@@ -1,0 +1,27 @@
+{
+    "name": "@silent-pix/db",
+    "private": true,
+    "version": "0.1.0",
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        }
+    },
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "typecheck": "tsc -p tsconfig.json --noEmit",
+        "db:generate": "drizzle-kit generate"
+    },
+    "dependencies": {
+        "better-sqlite3": "latest",
+        "drizzle-orm": "latest"
+    },
+    "devDependencies": {
+        "@types/better-sqlite3": "latest",
+        "drizzle-kit": "latest"
+    }
+}

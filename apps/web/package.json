@@ -1,0 +1,19 @@
+{
+    "name": "@silent-pix/web",
+    "private": true,
+    "version": "0.1.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite --host 127.0.0.1 --port 5173",
+        "build": "vite build",
+        "typecheck": "tsc -p tsconfig.json --noEmit"
+    },
+    "dependencies": {
+        "@silent-pix/shared": "workspace:*",
+        "solid-js": "latest"
+    },
+    "devDependencies": {
+        "vite-plugin-solid": "latest",
+        "vite": "latest"
+    }
+}
