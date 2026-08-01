@@ -1,6 +1,8 @@
+@import "tailwindcss";
+
 :root {
-    color: #202124;
-    background: #f7f5ef;
+    color: #f8fafc;
+    background: #0b0f14;
     font-family:
         Inter,
         ui-sans-serif,
@@ -13,6 +15,7 @@
     text-rendering: optimizeLegibility;
 }
 
+
 * {
     box-sizing: border-box;
 }
@@ -21,40 +24,23 @@ body {
     margin: 0;
     min-width: 320px;
     min-height: 100vh;
+    background: #0b0f14;
 }
 
-.app-shell {
-    display: grid;
-    min-height: 100vh;
-    place-items: center;
-    padding: 48px 24px;
+.scrollbar-hidden {
+    scrollbar-width: none;
 }
 
-.intro {
-    width: min(100%, 720px);
+.scrollbar-hidden::-webkit-scrollbar {
+    display: none;
 }
 
-.eyebrow {
-    margin: 0 0 12px;
-    color: #6f6256;
-    font-size: 0.875rem;
-    font-weight: 700;
-    letter-spacing: 0;
-    text-transform: uppercase;
+.number-input {
+    appearance: textfield;
 }
 
-h1 {
+.number-input::-webkit-inner-spin-button,
+.number-input::-webkit-outer-spin-button {
     margin: 0;
-    color: #141414;
-    font-size: clamp(3rem, 12vw, 7rem);
-    line-height: 0.95;
-    letter-spacing: 0;
-}
-
-.summary {
-    max-width: 36rem;
-    margin: 24px 0 0;
-    color: #3f4540;
-    font-size: 1.125rem;
-    line-height: 1.7;
+    appearance: none;
 }
