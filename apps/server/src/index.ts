@@ -1,15 +1,12 @@
-import { serve } from '@hono/node-server'
-
-import { createApp } from './app.js'
-import { loadEnv } from './config/env.js'
+﻿import { createApp } from '#/app'
+import { loadEnv } from '#/config/env'
 
 const env = loadEnv()
 const app = createApp()
 
-serve({
-    fetch: app.fetch,
+app.listen({
     hostname: env.serverHost,
     port: env.serverPort,
-}, info => {
-    console.log(`Silent Pix server listening on http://${info.address}:${info.port}`)
+}, () => {
+    console.log(`Silent Pix server listening on http://${env.serverHost}:${env.serverPort}`)
 })
