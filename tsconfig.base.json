@@ -4,11 +4,12 @@
         "lib": ["ES2022", "DOM", "DOM.Iterable"],
         "module": "ESNext",
         "moduleResolution": "Bundler",
-        "baseUrl": ".",
-        "ignoreDeprecations": "6.0",
         "paths": {
-            "@silent-pix/shared": ["packages/shared/src/index.ts"],
-            "@silent-pix/db": ["packages/db/src/index.ts"]
+            "@silent-pix/shared": ["./packages/shared/src/index.ts"],
+            "@silent-pix/event/events": ["./packages/event/src/events.ts"],
+            "@silent-pix/event/client": ["./packages/event/src/client.ts"],
+            "@silent-pix/event/server": ["./packages/event/src/server.ts"],
+            "@silent-pix/db": ["./packages/db/src/index.ts"]
         },
         "strict": true,
         "noUncheckedIndexedAccess": true,

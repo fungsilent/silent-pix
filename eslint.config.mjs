@@ -1,9 +1,10 @@
-// @ts-check
+﻿// @ts-check
 import js from '@eslint/js'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
 import { defineConfig } from 'eslint/config';
 import stylistic from '@stylistic/eslint-plugin'
+import perfectionist from 'eslint-plugin-perfectionist'
 
 export default defineConfig(
     {
@@ -12,6 +13,7 @@ export default defineConfig(
             '**/.vite/**',
             '**/.turbo/**',
             '**/node_modules/**',
+            'apps/server/src/archive/**',
             'eslint.config.mjs',
             'pnpm-lock.yaml',
         ],
@@ -39,6 +41,7 @@ export default defineConfig(
         },
         plugins: {
             '@stylistic': stylistic,
+            'perfectionist': perfectionist,
         },
         rules: {
             /**
@@ -84,6 +87,7 @@ export default defineConfig(
              * Variable / object / array
              */
             '@stylistic/object-curly-spacing': ['error', 'always'],
+            '@stylistic/object-curly-newline': ['error', { multiline: true, consistent: true }],
             '@stylistic/array-bracket-spacing': ['error', 'never'],
             '@stylistic/comma-spacing': ['error', { before: false, after: true }],
             '@stylistic/key-spacing': ['error', { beforeColon: false, afterColon: true }],
@@ -91,9 +95,62 @@ export default defineConfig(
             /**
              * Function
              */
-            '@stylistic/space-before-function-paren': ['error', 'never'],
+            // '@stylistic/space-before-function-paren': ['error', 'never'],
+            "@stylistic/space-before-function-paren": ["error", {
+                "anonymous": "always",
+                "named": "never",
+                "asyncArrow": "always",
+                "catch": "always"
+            }],
             '@stylistic/arrow-parens': ['error', 'as-needed'],
             '@stylistic/arrow-spacing': ['error', { before: true, after: true }],
+
+            /**
+             * Import / Export
+             */
+            'perfectionist/sort-imports': [
+                'error',
+                {
+                    type: 'alphabetical',
+                    order: 'asc',
+                    ignoreCase: true,
+                    groups: [
+                        'builtin',
+                        'external',
+                        'internal',
+                        ['parent', 'sibling', 'index'],
+                        'side-effect',
+                        'unknown',
+                        'type',
+                    ],
+                    'newlinesBetween': 1,
+                }
+            ],
+            'perfectionist/sort-named-imports': [
+                'error',
+                {
+                    type: 'alphabetical',
+                    order: 'asc',
+                    ignoreCase: true
+                }
+            ],
+
+            /**
+             * JSX
+             */
+            '@stylistic/jsx-quotes': ['error', 'prefer-single'],
+            '@stylistic/jsx-first-prop-new-line': ['error', 'multiline-multiprop'],
+            '@stylistic/jsx-max-props-per-line': [
+                'error',
+                {
+                    maximum: {
+                        single: 1,
+                        multi: 1,
+                    },
+                },
+            ],
+            '@stylistic/jsx-indent-props': ['error', 4],
+            '@stylistic/jsx-closing-bracket-location': ['error', 'tag-aligned'],
         },
     },
 
@@ -115,3 +172,4 @@ export default defineConfig(
         },
     },
 )
+

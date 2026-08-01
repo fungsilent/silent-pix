@@ -9,11 +9,23 @@
         "typecheck": "tsc -p tsconfig.json --noEmit"
     },
     "dependencies": {
+        "@ark-ui/solid": "^5.37.1",
+        "@elysia/eden": "^1.4.10",
+        "@silent-pix/event": "workspace:*",
         "@silent-pix/shared": "workspace:*",
-        "solid-js": "latest"
+        "@tanstack/solid-query": "^5.101.2",
+        "clsx": "^2.1.1",
+        "lucide-solid": "^1.23.0",
+        "solid-js": "^1.9.14",
+        "zod": "^4.4.3"
     },
     "devDependencies": {
-        "vite-plugin-solid": "latest",
-        "vite": "latest"
+        "@silent-pix/server": "workspace:*",
+        "@tailwindcss/vite": "^4.3.2",
+        "elysia": "^1.4.29",
+        "tailwindcss": "^4.3.2",
+        "typescript": "^7.0.2",
+        "vite": "^8.2.0",
+        "vite-plugin-solid": "^2.11.14"
     }
 }
