@@ -9,24 +9,23 @@
     "dev:web": "pnpm --filter @silent-pix/web dev",
     "dev:server": "pnpm --filter @silent-pix/server dev",
     "dev:desktop": "pnpm --filter @silent-pix/desktop dev",
-
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
-
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-
     "check": "pnpm typecheck && pnpm lint",
     "clean": "git clean -fdX"
   },
   "devDependencies": {
-    "@eslint/js": "latest",
-    "@types/node": "latest",
-    "eslint": "latest",
-    "globals": "latest",
-    "turbo": "latest",
-    "typescript": "latest",
-    "typescript-eslint": "latest",
-    "@stylistic/eslint-plugin": "latest"
+    "@eslint/js": "^10.0.1",
+    "@stylistic/eslint-plugin": "^5.10.0",
+    "@typescript/native": "npm:typescript@^7.0.2",
+    "@types/node": "^26.1.2",
+    "eslint": "^10.8.0",
+    "eslint-plugin-perfectionist": "^5.9.1",
+    "globals": "^17.8.0",
+    "turbo": "^2.10.8",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
+    "typescript-eslint": "^8.65.0"
   }
 }

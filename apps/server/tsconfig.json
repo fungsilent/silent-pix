@@ -5,11 +5,16 @@
         "declaration": true,
         "declarationMap": true,
         "outDir": "dist",
+        "paths": {
+            "#/*": ["./src/*"]
+        },
         "rootDir": "src",
         "types": ["node"]
     },
     "include": ["src/**/*.ts"],
+    "exclude": ["src/archive/**"],
     "references": [
+        { "path": "../../packages/event" },
         { "path": "../../packages/shared" }
     ]
 }

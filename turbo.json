@@ -6,7 +6,7 @@
       "outputs": ["dist/**", ".vite/**"]
     },
     "typecheck": {
-      "dependsOn": ["^typecheck"],
+      "dependsOn": ["^build", "^typecheck"],
       "outputs": []
     },
     "dev": {

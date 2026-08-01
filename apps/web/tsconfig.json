@@ -7,11 +7,15 @@
         "jsx": "preserve",
         "jsxImportSource": "solid-js",
         "outDir": "dist",
+        "paths": {
+            "#/*": ["./src/*"]
+        },
         "rootDir": "src",
         "types": ["vite/client"]
     },
     "include": ["src/**/*.ts", "src/**/*.tsx"],
     "references": [
+        { "path": "../../packages/event" },
         { "path": "../../packages/shared" }
     ]
 }

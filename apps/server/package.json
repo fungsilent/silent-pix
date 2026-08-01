@@ -5,18 +5,33 @@
     "type": "module",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
+    "exports": {
+        "./api": {
+            "types": "./dist/app.d.ts",
+            "default": "./dist/app.js"
+        }
+    },
+    "imports": {
+        "#/*": {
+            "development": "./src/*.ts",
+            "types": "./src/*.ts",
+            "default": "./dist/*.js"
+        }
+    },
     "scripts": {
-        "dev": "tsx watch src/index.ts",
+        "dev": "tsx watch --conditions=development src/index.ts",
         "build": "tsc -p tsconfig.json",
         "typecheck": "tsc -p tsconfig.json --noEmit"
     },
     "dependencies": {
-        "@hono/node-server": "latest",
+        "@elysiajs/node": "^1.4.5",
+        "@silent-pix/event": "workspace:*",
         "@silent-pix/shared": "workspace:*",
-        "dotenv": "latest",
-        "hono": "latest"
+        "dotenv": "^17.4.2",
+        "elysia": "^1.4.29"
     },
     "devDependencies": {
-        "tsx": "latest"
+        "tsx": "^4.23.1",
+        "typescript": "^7.0.2"
     }
 }
