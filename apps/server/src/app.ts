@@ -1,11 +1,19 @@
-import { Hono } from 'hono'
+import { node } from '@elysiajs/node'
+import { Elysia } from 'elysia'
 
-import { healthRoutes } from './routes/health.routes.js'
+import { errorCatchMiddleware } from '#/middleware/error-catch'
+import { appRoutes } from '#/module/app/app.route'
+import { taskRoutes } from '#/module/task/task.route'
 
-export function createApp(): Hono {
-    const app = new Hono()
-
-    app.route('/', healthRoutes)
-
-    return app
+export function createApp() {
+    return new Elysia({ adapter: node() })
+        .use(errorCatchMiddleware)
+        .group(
+            '/api',
+            app => app
+                .use(appRoutes)
+                .use(taskRoutes),
+        )
 }
+
+export type Api = ReturnType<typeof createApp>
