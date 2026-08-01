@@ -53,10 +53,24 @@ Wrong:
 import { TaskStatus } from '../../packages/shared/src'
 ```
 
+Inside `apps/web/src`, use the web source alias:
+
+```ts
+import { Button } from '@/components/base/Button'
+import { TaskList } from '@/pages/generate/components/task/TaskList'
+```
+
+Do not use relative imports inside `apps/web/src`:
+
+```ts
+import { Button } from '../../../components/base/Button'
+```
+
 Rules:
 
 ```txt
 - no cross-package relative imports
+- no relative imports inside `apps/web/src`; use `@/`
 - no importing another package's src directly
 - avoid circular package dependencies
 ```
@@ -68,6 +82,10 @@ Rules:
 ```txt
 apps/web
     UI and browser client only.
+    App-level chrome lives in `apps/web/src/components`.
+    Shared low-level UI primitives live in `apps/web/src/components/base`.
+    Shared form/control primitives live in `apps/web/src/components/field`.
+    Page-specific UI lives under that page folder, e.g. `apps/web/src/pages/generate/components`.
 
 apps/server
     Hono server, routes, env, lifecycle.
@@ -77,6 +95,9 @@ apps/desktop
 
 packages/shared
     shared contracts only.
+
+packages/event
+    event contracts and WebSocket helpers only.
 
 packages/db
     persistence only.
@@ -91,7 +112,7 @@ Do not mix ownership.
 Use:
 
 ```txt
-route → service/use-case → repository → database
+route ??service/use-case ??repository ??database
 ```
 
 Route handles:
@@ -145,6 +166,92 @@ Error:
 ```
 
 Do not leak raw internal errors.
+
+---
+
+## Events
+
+Use `packages/event` for local server event contracts and WebSocket helpers.
+
+Rules:
+
+```txt
+- define event items in `packages/event/src/events.ts`
+- browser connection helpers live in `packages/event/src/client.ts`
+- Node WebSocket server helpers live in `packages/event/src/server.ts`
+- no DB imports
+- no Hono imports
+- no feature-specific task/image events yet
+- WebSocket events are notifications only, not source of truth
+```
+
+---
+
+## Web UI
+
+Use:
+
+```txt
+- SolidJS components
+- Tailwind CSS utilities
+- clsx for conditional class composition
+- lucide-solid for icons
+- flex layout as the default layout primitive
+```
+
+Rules:
+
+```txt
+- shared low-level primitives go in `apps/web/src/components/base`
+- shared form/control primitives go in `apps/web/src/components/field`
+- app-level chrome such as `Header` lives in `apps/web/src/components` and is used from `App.tsx`
+- page-specific components go in `apps/web/src/pages/<page>/components`
+- generate task-list components live in `apps/web/src/pages/generate/components/task`
+- generate detail/config components live in `apps/web/src/pages/generate/components/config`
+- page components should not own app-level header layout
+- generate page mock data may exist only as UI placeholder data
+- mock UI data must not become backend state or task lifecycle authority
+- web state uses Solid native stores through `apps/web/src/lib/store.ts`
+- store consumers read native Solid store proxies directly from `store.state`
+- domain actions may be flattened onto returned stores but must not live inside reactive state
+- page editor state should be page-scoped through context
+- Zod validates submit/API payload boundaries; do not add a generic form abstraction
+- prefer `classes`/named class slots for reusable components when one `class` string is too vague
+```
+
+Current component roles:
+
+```txt
+components/Header.tsx
+    App-level header.
+
+components/base/Button.tsx
+    Base button primitive.
+
+components/base/Label.tsx
+    Compact display label/pill.
+
+components/base/Line.tsx
+    Shared line/separator primitive.
+
+components/base/Panel.tsx
+    Collapsible panel and scrollable panel-content primitives. Panel owns collapsed state and passes state/actions to children.
+
+components/base/Tag.tsx
+    Small badge/tag primitive.
+
+components/field/*
+    Shared Ark UI-based form/control primitives. Keep them generic and reusable; page-specific label groups, rows, and mock data belong in page components.
+
+pages/generate/components/task/*
+    Generate-page-only task list and task item UI.
+
+pages/generate/components/config/*
+    Generate-page-only task detail, config field layout, and mock LoRA stack UI.
+
+pages/generate/components/TaskStatus.tsx
+    Generate-page-only status display.
+```
 
 ---
 

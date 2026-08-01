@@ -18,8 +18,10 @@ This repo is a clean rebuild. The goal is to define stable architecture first, t
 | Monorepo | pnpm workspace |
 | Build | Turborepo |
 | Language | TypeScript |
-| Frontend | SolidJS + Vite |
+| Frontend | SolidJS + Vite + Tailwind CSS |
+| Frontend UI helpers | Ark UI + lucide-solid + clsx |
 | Backend | Hono on Node.js |
+| Server events | Local WebSocket foundation |
 | Database | SQLite |
 | DB tooling | Drizzle |
 | Formatting | ESLint + @stylistic |
@@ -34,11 +36,11 @@ This repo is a clean rebuild. The goal is to define stable architecture first, t
 
 ```txt
 Desktop / Web client
-    ↓ REST
+    ??REST
 Backend server
-    ↓
+    ??
 SQLite + filesystem
-    ↓
+    ??
 ComfyUI
 ```
 
@@ -49,7 +51,7 @@ Rules:
 - Frontend must not access SQLite directly.
 - SQLite stores durable state and metadata.
 - Filesystem stores images, thumbnails, uploads, and workflow snapshots.
-- Realtime channels are future notifications only, not source of truth.
+- WebSocket events are notifications only, not source of truth.
 
 ---
 
@@ -57,12 +59,13 @@ Rules:
 
 ```txt
 apps/
-    web/        SolidJS frontend
+    web/        SolidJS frontend and UI foundation
     server/     Hono backend
     desktop/    desktop shell placeholder
 
 packages/
     shared/     shared DTOs, schemas, enums, types
+    event/      browser-safe event contracts, WS client, WS server helpers
     db/         SQLite / Drizzle schema, client, migrations, repositories
 
 docs/
@@ -152,6 +155,10 @@ Allowed now:
 - ESLint setup
 - Hono base server
 - SolidJS base app
+- Tailwind-based web UI foundation
+- shared web UI primitives
+- static/mock generate page shell
+- local REST / WebSocket event foundation
 - SQLite / Drizzle foundation
 - docs and AGENTS.md
 ```
@@ -161,13 +168,30 @@ Not allowed yet:
 ```txt
 - task queue
 - ComfyUI integration
-- SSE / WebSocket
-- image generation UI
+- feature realtime channels beyond foundation server events
+- functional image generation workflow UI
 - workflow editor
 - auth
 - cloud sync
 - multi-user system
 ```
+
+Current web UI status:
+
+```txt
+apps/web/src/
+    components/
+        Header.tsx              app-level header
+        base/                   shared low-level UI primitives
+        field/                  shared Ark UI-based form/control primitives
+    pages/generate/             generate workspace shell
+    pages/generate/components/
+        task/                   generate-page task list and item UI
+        config/                 generate-page detail/config mock UI
+    temp/                       temporary mock visual data
+```
+
+The generate page is a layout and interaction foundation only. It may use mock task/config data, LoRA stack placeholders, and temporary images for UI shaping, but it must not create task lifecycle authority, call ComfyUI, or treat mock data as durable state.
 
 ---
 

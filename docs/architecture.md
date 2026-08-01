@@ -20,7 +20,7 @@ Rules:
 
 - Backend is the source of truth.
 - Frontend must not invent task lifecycle state.
-- Realtime events must not be required to recover state.
+- WebSocket events must not be required to recover state.
 - Client refresh + REST query must always recover the current state.
 
 ---
@@ -35,9 +35,11 @@ Allowed:
 
 ```txt
 - SolidJS UI
+- Tailwind CSS styling
 - frontend state
 - backend API calls
-- future realtime client
+- local WebSocket event client
+- static/mock UI data for layout shaping
 ```
 
 Forbidden:
@@ -47,6 +49,66 @@ Forbidden:
 - SQLite access
 - filesystem policy
 - task lifecycle authority
+- durable task/image state
+```
+
+Current web structure:
+
+```txt
+apps/web/src/
+    App.tsx
+        app shell, shared Header, and event client lifecycle
+
+    components/
+        Header.tsx
+            app-level header
+
+        base/
+            shared low-level UI primitives, such as Button, Label, Line, Panel, and Tag
+
+        field/
+            shared Ark UI-based form/control primitives, such as Editable, Number, Select, Slider, and Text
+
+    pages/generate/
+        generate workspace shell
+
+    pages/generate/components/
+        task/
+            generate-page task list and item UI
+
+        config/
+            generate-page detail/config mock UI
+
+        TaskStatus.tsx
+            generate-page status display
+
+    temp/
+        temporary mock assets/data for UI shaping only
+```
+
+`apps/web` uses `@/` as an alias to `apps/web/src`.
+
+Generate page status:
+
+```txt
+- layout foundation only
+- static/mock task list, task detail, config fields, and LoRA stack placeholders are allowed
+- collapsible panels and form controls are UI state only
+- page editor state is page-scoped through context
+- Zod validates submit/API payload boundaries; there is no generic form abstraction
+- no task queue
+- no task lifecycle authority
+- no ComfyUI calls
+- no durable image/task/config state
+```
+
+Web state:
+
+```txt
+- apps/web uses Solid native stores through `apps/web/src/lib/store.ts`
+- the local store wrapper exposes `state`, `set`, `reconcile`, `produce`, and optional flattened actions
+- domain actions live on returned store objects, not inside reactive state
+- stores must preserve Solid fine-grained reactivity and native `set` path syntax
 ```
 
 ---
@@ -62,7 +124,7 @@ Allowed:
 - REST routes
 - config/env
 - server lifecycle
-- future realtime endpoints
+- local WebSocket event endpoint
 - calling services/use-cases
 ```
 
@@ -77,7 +139,7 @@ Forbidden:
 Preferred flow:
 
 ```txt
-route → service/use-case → repository → SQLite
+route ??service/use-case ??repository ??SQLite
 ```
 
 ---
@@ -92,6 +154,7 @@ Allowed later:
 - app window
 - OS app data path resolution
 - backend process startup/connection
+- local REST/WS connection to the backend
 ```
 
 Forbidden:
@@ -127,6 +190,30 @@ Forbidden:
 - DB access
 - filesystem access
 - Hono logic
+```
+
+---
+
+### `packages/event`
+
+Owns event contracts and WebSocket foundation helpers.
+
+Allowed:
+
+```txt
+- browser-safe server event contracts
+- browser WebSocket client helper
+- Node WebSocket server helper
+```
+
+Forbidden:
+
+```txt
+- DB access
+- Hono routes
+- ComfyUI client
+- task lifecycle logic
+- durable state
 ```
 
 ---
@@ -229,20 +316,28 @@ Production data must live in OS app data directory. Dev data may use `./.local/d
 REST:
 
 ```txt
-- create/read/update task-related resources
-- read/update settings
 - return authoritative backend state
+- expose health and future resource APIs
 ```
 
-Future SSE/WebSocket:
+WebSocket foundation:
 
 ```txt
-- notify task changes
-- notify progress
-- notify previews
+- endpoint: GET /api/events
+- local clients only
+- server events only
+- current events: connected, ping, server_status
 ```
 
 Realtime is never the durable source of truth.
+
+Current frontend event usage:
+
+```txt
+- App.tsx owns the local server-event client lifecycle
+- Header may display connection status
+- generate task UI must not infer task state from server events
+```
 
 ---
 
