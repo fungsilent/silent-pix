@@ -8,6 +8,13 @@
       "when": 1785667528792,
       "tag": "0000_amazing_mephisto",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1785678578737,
+      "tag": "0001_greedy_scourge",
+      "breakpoints": true
     }
   ]
 }
