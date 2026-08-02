@@ -1,25 +1,28 @@
-import { createEffect, on } from 'solid-js'
+import { createEffect, Show } from 'solid-js'
 
+import { useTaskDetailQuery } from '#/features/task/task.query'
 import { TaskDetail } from '#/pages/generate/components/config/TaskDetail'
 import { TaskList } from '#/pages/generate/components/task/TaskList'
 import { Workspace } from '#/pages/generate/components/workspace/Workspace'
-import { createGenerateStore, GenerateSchema, GenerateStoreProvider, toGenerateValues } from '#/pages/generate/store'
+import { createGenerateStore, draftTask, GenerateSchema, GenerateStoreProvider, toGenerateValues } from '#/pages/generate/store'
 import { taskStore } from '#/store/task'
 
 import type { GenerateValues } from '#/pages/generate/store'
 
 export function GeneratePage() {
-    const generateStore = createGenerateStore(toGenerateValues(taskStore.state.activeTask))
+    const taskDetailQuery = useTaskDetailQuery(() => taskStore.state.selectedTaskId)
+    const activeTask = () => taskStore.state.selectedTaskId
+        ? taskDetailQuery.data
+        : draftTask
+    const generateStore = createGenerateStore(toGenerateValues(draftTask))
 
-    createEffect(
-        on(
-            () => taskStore.state.activeTask.id,
-            () => {
-                generateStore.loadTask(taskStore.state.activeTask)
-            },
-            { defer: true },
-        ),
-    )
+    createEffect(() => {
+        const task = activeTask()
+
+        if (task) {
+            generateStore.loadTask(task)
+        }
+    })
 
     const handleGenerate = (values: GenerateValues) => {
         console.log('Generate form submit', values)
@@ -44,8 +47,21 @@ export function GeneratePage() {
                 onSubmit={event => void handleSubmit(event)}
             >
                 <TaskList />
-                <Workspace task={taskStore.state.activeTask} />
-                <TaskDetail task={taskStore.state.activeTask} />
+                <Show
+                    when={activeTask()}
+                    fallback={(
+                        <section class='flex min-w-0 flex-1 items-center justify-center bg-[#0e131a] text-sm font-bold text-[#9fb0c7]'>
+                            {taskDetailQuery.isError ? 'Failed to load task detail.' : 'Loading task detail...'}
+                        </section>
+                    )}
+                >
+                    {task => (
+                        <>
+                            <Workspace task={task()} />
+                            <TaskDetail task={task()} />
+                        </>
+                    )}
+                </Show>
             </form>
         </GenerateStoreProvider>
     )

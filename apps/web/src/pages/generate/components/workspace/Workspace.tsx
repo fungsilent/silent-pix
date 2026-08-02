@@ -3,10 +3,10 @@ import { createEffect, createMemo, createSignal } from 'solid-js'
 import { ImageStage } from '#/pages/generate/components/workspace/ImageStage'
 import { PromptPanel } from '#/pages/generate/components/workspace/PromptPanel'
 
-import type { TaskDetail } from '#/temp/task'
+import type { GenerateTask } from '#/pages/generate/store'
 
 type WorkspaceProps = {
-    task: TaskDetail
+    task: GenerateTask
 }
 
 export function Workspace(props: WorkspaceProps) {

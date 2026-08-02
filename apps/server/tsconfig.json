@@ -14,6 +14,7 @@
     "include": ["src/**/*.ts"],
     "exclude": ["src/archive/**"],
     "references": [
+        { "path": "../../packages/db" },
         { "path": "../../packages/event" },
         { "path": "../../packages/shared" }
     ]

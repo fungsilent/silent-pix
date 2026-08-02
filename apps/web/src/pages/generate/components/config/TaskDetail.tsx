@@ -4,10 +4,10 @@ import { TaskConfig } from '#/pages/generate/components/config/TaskConfig'
 import { TaskInfo } from '#/pages/generate/components/config/TaskInfo'
 import { TaskLora } from '#/pages/generate/components/config/TaskLora'
 
-import type { TaskDetail as TaskDetailData } from '#/temp/task'
+import type { GenerateTask } from '#/pages/generate/store'
 
 type TaskDetailProps = {
-    task: TaskDetailData
+    task: GenerateTask
 }
 
 export function TaskDetail(props: TaskDetailProps) {

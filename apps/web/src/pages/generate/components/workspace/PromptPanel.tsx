@@ -6,7 +6,7 @@ import { Button } from '#/components/base/Button'
 import { Tag } from '#/components/field'
 import { useGenerateStore } from '#/pages/generate/store'
 
-import type { PromptTagData, TaskDetail } from '#/temp/task'
+import type { GenerateTask, GenerateValues } from '#/pages/generate/store'
 
 /* MARK: PromptPanel */
 type PromptKind = 'positive' | 'negative'
@@ -16,7 +16,7 @@ type PromptGroupState = {
 }
 
 type PromptPanelProps = {
-    task: TaskDetail
+    task: GenerateTask
 }
 
 
@@ -74,7 +74,7 @@ export function PromptPanel(props: PromptPanelProps) {
     const tags = (kind: PromptKind) => store.state.values[kind]
     const selectedTag = (kind: PromptKind) => tags(kind).find(tag => tag.id === selected()[kind]) ?? tags(kind)[0]
 
-    const updateTags = (kind: PromptKind, nextTags: PromptTagData[]) => {
+    const updateTags = (kind: PromptKind, nextTags: GenerateValues[PromptKind]) => {
         store.setValue(kind, nextTags)
 
         const selectedId = selected()[kind]
@@ -241,7 +241,7 @@ type PromptGroupProps = {
     draggedId: string | undefined
     kind: PromptKind
     selectedId: string | undefined
-    tags: PromptTagData[]
+    tags: GenerateValues[PromptKind]
     text: string
     visible: boolean
     onAddTag: () => void

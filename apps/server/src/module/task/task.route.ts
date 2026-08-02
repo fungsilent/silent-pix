@@ -29,3 +29,29 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
             },
         },
     )
+    .get(
+        '/:taskId',
+        ({ params, status }) => {
+            const task = taskService.findTask(params)
+
+            if (!task) {
+                return status(404, {
+                    error: {
+                        code: 'TASK_NOT_FOUND',
+                        message: 'Task not found.',
+                    },
+                })
+            }
+
+            return task
+        },
+        {
+            params: taskApi.getTaskRequest,
+            response: {
+                200: taskApi.getTaskResponse,
+                404: appApi.errorResponse,
+                422: appApi.errorResponse,
+                500: appApi.errorResponse,
+            },
+        },
+    )

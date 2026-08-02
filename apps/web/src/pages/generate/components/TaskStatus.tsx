@@ -1,9 +1,9 @@
 import { Badge } from '#/components/base/Badge'
 
-import type { TaskStatus as TaskStatusValue } from '@silent-pix/shared'
+import type { TaskApi } from '@silent-pix/shared'
 
 type TaskStatusProps = {
-    status: TaskStatusValue
+    status: TaskApi.TaskStatus
 }
 
 type Item = {
@@ -11,7 +11,7 @@ type Item = {
     class: string
 }
 
-const statusMap: Record<TaskStatusValue, Item> = {
+const statusMap: Record<TaskApi.TaskStatus, Item> = {
     queued: {
         label: 'Queued',
         class: 'border-amber-500/50 bg-amber-500/15 text-amber-300',
