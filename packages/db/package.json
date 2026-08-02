@@ -11,10 +11,18 @@
             "import": "./dist/index.js"
         }
     },
+    "imports": {
+        "#/*": {
+            "development": "./src/*.ts",
+            "types": "./src/*.ts",
+            "default": "./dist/*.js"
+        }
+    },
     "scripts": {
         "build": "tsc -p tsconfig.json",
         "typecheck": "tsc -p tsconfig.json --noEmit",
-        "db:generate": "drizzle-kit generate"
+        "db:generate": "drizzle-kit generate",
+        "db:migrate": "tsx ./src/migrate.ts"
     },
     "dependencies": {
         "better-sqlite3": "^13.0.2",
@@ -22,6 +30,7 @@
     },
     "devDependencies": {
         "@types/better-sqlite3": "^9.6.0",
-        "drizzle-kit": "^0.31.10"
+        "drizzle-kit": "^0.31.10",
+        "tsx": "^4.23.1"
     }
 }

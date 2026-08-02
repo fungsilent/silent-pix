@@ -14,7 +14,9 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "check": "pnpm typecheck && pnpm lint",
-    "clean": "git clean -fdX"
+    "clean": "git clean -fdX",
+    "db:generate": "pnpm --filter @silent-pix/db db:generate",
+    "db:migrate": "pnpm --filter @silent-pix/db db:migrate"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

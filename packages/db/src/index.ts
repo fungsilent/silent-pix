@@ -1,2 +1,4 @@
-export * from './client.js'
-export * from './schema.js'
+export * from '#/client'
+export * from '#/migrate'
+export * from '#/repository/index'
+export * from '#/schema'

@@ -5,6 +5,9 @@
         "declaration": true,
         "declarationMap": true,
         "outDir": "dist",
+        "paths": {
+            "#/*": ["./src/*"]
+        },
         "rootDir": "src"
     },
     "include": ["src/**/*.ts"],
