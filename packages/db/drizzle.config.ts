@@ -1,18 +1,22 @@
 /// <reference types="node" />
 
-import { isAbsolute, resolve } from 'node:path'
+import { dirname, isAbsolute, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 import { defineConfig } from 'drizzle-kit'
 
-const databasePath = process.env.DATABASE_PATH ?? './.local/data/silent-pix.sqlite'
+const packageRoot = dirname(fileURLToPath(import.meta.url))
+const repoRoot = resolve(packageRoot, '..', '..')
+const configuredPath = process.env.DATABASE_PATH ?? './.local/data/silent-pix.sqlite'
+const databasePath = isAbsolute(configuredPath)
+    ? configuredPath
+    : resolve(repoRoot, configuredPath)
 
 export default defineConfig({
-    schema: './src/schema.ts',
-    out: './migrations',
+    schema: resolve(packageRoot, 'src/schema.ts'),
+    out: resolve(packageRoot, 'migrations'),
     dialect: 'sqlite',
     dbCredentials: {
-        url: isAbsolute(databasePath)
-            ? databasePath
-            : resolve(process.cwd(), databasePath),
+        url: databasePath,
     },
 })
