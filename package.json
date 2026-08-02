@@ -16,7 +16,9 @@
     "check": "pnpm typecheck && pnpm lint",
     "clean": "git clean -fdX",
     "db:generate": "pnpm --filter @silent-pix/db db:generate",
-    "db:migrate": "pnpm --filter @silent-pix/db db:migrate"
+    "db:migrate": "pnpm --filter @silent-pix/db db:migrate",
+    "db:seed": "pnpm --filter @silent-pix/db db:seed",
+    "db:reset": "pnpm --filter @silent-pix/db db:reset"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

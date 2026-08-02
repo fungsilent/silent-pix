@@ -13,8 +13,8 @@ const databasePath = isAbsolute(configuredPath)
     : resolve(repoRoot, configuredPath)
 
 export default defineConfig({
-    schema: resolve(packageRoot, 'src/schema.ts'),
-    out: resolve(packageRoot, 'migrations'),
+    schema: './src/schema.ts',
+    out: './migrations',
     dialect: 'sqlite',
     dbCredentials: {
         url: databasePath,

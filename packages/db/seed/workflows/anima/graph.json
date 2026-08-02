@@ -1,0 +1,171 @@
+{
+  "47": {
+    "inputs": {
+      "lora_data": "[{\"on\":true,\"lora\":\"kqos_anima.v8.1-000020.safetensors\",\"str\":1.2,\"vid\":1,\"v2a\":1,\"aud\":1,\"a2v\":1,\"other\":1},{\"on\":false,\"lora\":\"kqos_anima.v8.1-000030.safetensors\",\"str\":0.9,\"vid\":1,\"v2a\":1,\"aud\":1,\"a2v\":1,\"other\":1}]",
+      "ltx_mode": false,
+      "lora_ui": "[{\"on\":true,\"lora\":\"kqos_anima.v8.1-000020.safetensors\",\"str\":1.2,\"vid\":1,\"v2a\":1,\"aud\":1,\"a2v\":1,\"other\":1},{\"on\":false,\"lora\":\"kqos_anima.v8.1-000030.safetensors\",\"str\":0.9,\"vid\":1,\"v2a\":1,\"aud\":1,\"a2v\":1,\"other\":1}]",
+      "model": [
+        "45:14",
+        0
+      ],
+      "clip": [
+        "45:16",
+        0
+      ]
+    },
+    "class_type": "MultiLoRALoader",
+    "_meta": {
+      "title": "Multi LoRA Loader"
+    }
+  },
+  "48": {
+    "inputs": {
+      "PromptStackState": "{\"version\":1,\"rows\":[{\"enabled\":true,\"label\":\"Default\",\"text\":\"nsfw, worst quality, low quality, score_1, score_2, score_3,\\nbad anatomy, bad hands, malformed hands, extra fingers, missing fingers,\\nextra limbs, twisted body, poorly drawn face, asymmetrical eyes,\\nblurry, messy lineart, flat shading, low detail,\\nwrong outfit, inaccurate clothing details, wrong colors,\\nextra accessories, text, watermark, logo, cropped, out of frame,\"}],\"separator\":\", \"}"
+    },
+    "class_type": "PixaromaPromptStack",
+    "_meta": {
+      "title": "Prompt Stack Pixaroma"
+    }
+  },
+  "49": {
+    "inputs": {
+      "text": [
+        "48",
+        0
+      ],
+      "clip": [
+        "47",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP 文字編碼（提示詞）"
+    }
+  },
+  "50": {
+    "inputs": {
+      "PromptStackState": "{\"version\":1,\"rows\":[{\"enabled\":true,\"label\":\"畫質\",\"text\":\"masterpiece, best quality, score_9, score_8, highres, anime screenshot,\"},{\"enabled\":true,\"label\":\"刻晴\",\"text\":\"kqos, purple hair, purple eyes, twintails, cone hair bun,\"},{\"enabled\":true,\"label\":\"服裝\",\"text\":\"blue hair ribbon, pearl hair ornament, black lace choker, black dress, strapless, bare shoulders, detached flowing  sleeves, blue arm ribbons, black patterned pantyhose,\"},{\"enabled\":true,\"label\":\"pose\",\"text\":\"elegant sitting pose, dynamic pose, playful,\\ndynamic three-quarter view,\"},{\"enabled\":true,\"label\":\"backgroud\",\"text\":\"aesthetic background, fitting background, dynamic background, complementary background, detailed background, layered background,\"}],\"separator\":\", \"}"
+    },
+    "class_type": "PixaromaPromptStack",
+    "_meta": {
+      "title": "Prompt Stack Pixaroma"
+    }
+  },
+  "51": {
+    "inputs": {
+      "text": [
+        "50",
+        0
+      ],
+      "clip": [
+        "47",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP 文字編碼（提示詞）"
+    }
+  },
+  "56": {
+    "inputs": {
+      "filename_prefix": "silent-pix",
+      "images": [
+        "46:7",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "儲存圖片"
+    }
+  },
+  "45:14": {
+    "inputs": {
+      "unet_name": "anima-base-v1.0.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "載入擴散模型"
+    }
+  },
+  "45:15": {
+    "inputs": {
+      "vae_name": "qwen_image_vae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "載入 VAE"
+    }
+  },
+  "45:16": {
+    "inputs": {
+      "clip_name": "qwen_3_06b_base.safetensors",
+      "type": "stable_diffusion",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "載入 CLIP"
+    }
+  },
+  "46:9": {
+    "inputs": {
+      "width": 1536,
+      "height": 864,
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "空白潛在影像"
+    }
+  },
+  "46:6": {
+    "inputs": {
+      "seed": 689052985619377,
+      "steps": 40,
+      "cfg": 4,
+      "sampler_name": "dpmpp_2m_sde_gpu",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": [
+        "47",
+        0
+      ],
+      "positive": [
+        "51",
+        0
+      ],
+      "negative": [
+        "49",
+        0
+      ],
+      "latent_image": [
+        "46:9",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "46:7": {
+    "inputs": {
+      "samples": [
+        "46:6",
+        0
+      ],
+      "vae": [
+        "45:15",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE 解碼"
+    }
+  }
+}

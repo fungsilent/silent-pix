@@ -1,0 +1,46 @@
+{
+    "seed": {
+        "nodeId": "46:6",
+        "input": "seed"
+    },
+    "steps": {
+        "nodeId": "46:6",
+        "input": "steps"
+    },
+    "cfg": {
+        "nodeId": "46:6",
+        "input": "cfg"
+    },
+    "samplerName": {
+        "nodeId": "46:6",
+        "input": "sampler_name"
+    },
+    "scheduler": {
+        "nodeId": "46:6",
+        "input": "scheduler"
+    },
+    "width": {
+        "nodeId": "46:9",
+        "input": "width"
+    },
+    "height": {
+        "nodeId": "46:9",
+        "input": "height"
+    },
+    "batchSize": {
+        "nodeId": "46:9",
+        "input": "batch_size"
+    },
+    "positivePrompt": {
+        "nodeId": "50",
+        "input": "PromptStackState"
+    },
+    "negativePrompt": {
+        "nodeId": "48",
+        "input": "PromptStackState"
+    },
+    "loraData": {
+        "nodeId": "47",
+        "input": "lora_data"
+    }
+}
