@@ -25,6 +25,7 @@
     },
     "dependencies": {
         "@elysiajs/node": "^1.4.5",
+        "@silent-pix/db": "workspace:*",
         "@silent-pix/event": "workspace:*",
         "@silent-pix/shared": "workspace:*",
         "dotenv": "^17.4.2",

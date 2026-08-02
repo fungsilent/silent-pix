@@ -1,11 +1,11 @@
 import { Editable } from '#/components/field/Editable'
 import { TaskStatus } from '#/pages/generate/components/TaskStatus'
 
-import type { TaskDetail } from '#/temp/task'
+import type { GenerateTask } from '#/pages/generate/store'
 import type { JSX } from 'solid-js'
 
 type TaskInfoProps = {
-    task: TaskDetail
+    task: GenerateTask
 }
 
 export function TaskInfo(props: TaskInfoProps) {
@@ -32,7 +32,7 @@ export function TaskInfo(props: TaskInfoProps) {
             </DetailRow>
 
             <DetailRow label='Created'>
-                <span class='text-sm leading-none text-white'>{props.task.createdAt?.toLocaleString()}</span>
+                <span class='text-sm leading-none text-white'>{props.task.createdAt ? new Date(props.task.createdAt).toLocaleString() : ''}</span>
             </DetailRow>
         </section>
     )

@@ -4,13 +4,13 @@ import { Clock3, Hourglass, Image as ImageIcon, LoaderCircle } from 'lucide-soli
 import { Button } from '#/components/base/Button'
 import { TaskStatus } from '#/pages/generate/components/TaskStatus'
 
-import type { TaskListItem, TaskStatus as TaskStatusValue } from '@silent-pix/shared'
+import type { TaskApi } from '@silent-pix/shared'
 import type { LucideProps } from 'lucide-solid'
 import type { Component } from 'solid-js'
 
 type TaskItemProps = {
     selected: boolean
-    task: TaskListItem
+    task: TaskApi.TaskListItem
     thumbnailOnly: boolean
     onSelect: () => void
 }
@@ -21,7 +21,7 @@ type PlaceholderMeta = {
     label: string
 }
 
-const placeholderMap: Record<TaskStatusValue, PlaceholderMeta> = {
+const placeholderMap: Record<TaskApi.TaskStatus, PlaceholderMeta> = {
     done: {
         Icon: ImageIcon,
         class: 'border-[#263241] bg-[#0e131a] text-[#6f7f95]',

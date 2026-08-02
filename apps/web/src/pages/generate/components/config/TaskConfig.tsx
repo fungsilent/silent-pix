@@ -5,10 +5,10 @@ import { Number, Select, Text } from '#/components/field'
 import { useGenerateStore } from '#/pages/generate/store'
 import { samplers, workflows } from '#/temp/task'
 
-import type { TaskDetail } from '#/temp/task'
+import type { GenerateTask } from '#/pages/generate/store'
 
 type TaskConfigProps = {
-    task: TaskDetail
+    task: GenerateTask
 }
 
 export function TaskConfig(props: TaskConfigProps) {

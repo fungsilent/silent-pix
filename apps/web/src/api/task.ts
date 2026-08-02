@@ -14,4 +14,16 @@ export const taskApi = {
 
         return data
     },
+
+    async detail(request: TaskApi.GetTaskRequest): Promise<TaskApi.GetTaskResponse> {
+        const { data, error } = await apiClient.api.task({ taskId: request.taskId }).get()
+
+        if (error) {
+            const { code, message } = error.value.error
+
+            throw new ApiError(error.status, code, message)
+        }
+
+        return data
+    },
 }

@@ -3,7 +3,7 @@ import { z } from 'zod'
 
 import { createStore } from '#/lib/store'
 
-import type { TaskDetail } from '#/temp/task'
+import type { TaskApi } from '@silent-pix/shared'
 import type { JSX } from 'solid-js'
 import type { z as zod } from 'zod'
 
@@ -34,6 +34,46 @@ export const GenerateSchema = z.object({
 
 export type GenerateValues = zod.infer<typeof GenerateSchema>
 
+export type GenerateTask = Omit<TaskApi.GetTaskResponse, 'createdAt' | 'status'> & {
+    createdAt: string | null
+    status: TaskApi.TaskStatus | null
+}
+
+export const draftTask: GenerateTask = {
+    id: '#',
+    name: '',
+    status: null,
+    createdAt: null,
+    workflow: 'anime-xl-v1',
+    config: {
+        seed: '',
+        steps: 40,
+        cfg: 4,
+        width: 1536,
+        height: 1536,
+        batch: 1,
+        sampler: 'dpmpp-2m-karras',
+    },
+    lora: [],
+    prompt: {
+        negative: [
+            {
+                id: 'draft-negative-quality',
+                label: 'Quality',
+                text: 'low quality, worst quality, lowres, blurry',
+            },
+        ],
+        positive: [
+            {
+                id: 'draft-positive-quality',
+                label: 'Quality',
+                text: 'masterpiece, best quality, ultra detailed',
+            },
+        ],
+    },
+    images: [],
+}
+
 type GenerateState = {
     initialValues: GenerateValues
     values: GenerateValues
@@ -49,7 +89,7 @@ const configKeys = [
     'sampler',
 ] as const
 
-export const toGenerateValues = (task: TaskDetail): GenerateValues => ({
+export const toGenerateValues = (task: GenerateTask): GenerateValues => ({
     cfg: task.config.cfg,
     height: task.config.height,
     lora: task.lora.map(lora => ({ ...lora })),
@@ -85,7 +125,7 @@ export function createGenerateStore(initialValues: GenerateValues) {
         //     store.set('values', cloneGenerateValues(store.state.initialValues))
         // },
 
-        loadTask(task: TaskDetail) {
+        loadTask(task: GenerateTask) {
             const values = toGenerateValues(task)
             store.set({
                 initialValues: cloneGenerateValues(values),

@@ -1,6 +1,8 @@
-import { mockTasks } from '#/module/task/task.data'
+import { done, fail } from '#/lib/service-result'
+import { mockTaskDetails, mockTasks } from '#/module/task/task.data'
 
 import type { TaskApi } from '@silent-pix/shared'
+import type { ServiceResult } from '#/lib/service-result'
 
 type TaskCursor = {
     createdAt: string
@@ -18,16 +20,6 @@ function isTaskCursor(value: unknown): value is TaskCursor {
         && !Number.isNaN(Date.parse(cursor.createdAt))
         && typeof cursor.id === 'string'
 }
-
-type FindTasksResult =
-    | {
-        ok: true
-        data: TaskApi.GetTasksResponse
-    }
-    | {
-        ok: false
-        error: 'INVALID_TASK_CURSOR'
-    }
 
 function compareTasks(left: TaskApi.TaskListItem, right: TaskApi.TaskListItem): number {
     return right.createdAt.localeCompare(left.createdAt) || right.id.localeCompare(left.id)
@@ -55,7 +47,7 @@ function decodeCursor(value: string): TaskCursor | undefined {
 }
 
 export const taskService = {
-    findTasks(query: TaskApi.GetTasksQuery): FindTasksResult {
+    findTasks(query: TaskApi.GetTasksQuery): ServiceResult<TaskApi.GetTasksResponse, 'INVALID_TASK_CURSOR'> {
         const tasks = [...mockTasks].sort(compareTasks)
         let start = 0
 
@@ -63,10 +55,7 @@ export const taskService = {
             const cursor = decodeCursor(query.cursor)
 
             if (!cursor) {
-                return {
-                    ok: false,
-                    error: 'INVALID_TASK_CURSOR',
-                }
+                return fail('INVALID_TASK_CURSOR')
             }
 
             const cursorIndex = tasks.findIndex(task => (
@@ -74,10 +63,7 @@ export const taskService = {
             ))
 
             if (cursorIndex < 0) {
-                return {
-                    ok: false,
-                    error: 'INVALID_TASK_CURSOR',
-                }
+                return fail('INVALID_TASK_CURSOR')
             }
 
             start = cursorIndex + 1
@@ -87,20 +73,16 @@ export const taskService = {
         const lastItem = items.at(-1)
 
         if (lastItem && start + items.length < tasks.length) {
-            return {
-                ok: true,
-                data: {
-                    items,
-                    nextCursor: encodeCursor(lastItem),
-                },
-            }
+            return done({
+                items,
+                nextCursor: encodeCursor(lastItem),
+            })
         }
 
-        return {
-            ok: true,
-            data: {
-                items,
-            },
-        }
+        return done({ items })
+    },
+
+    findTask(request: TaskApi.GetTaskRequest): TaskApi.GetTaskResponse | undefined {
+        return mockTaskDetails.find(task => task.id === request.taskId)
     },
 }
