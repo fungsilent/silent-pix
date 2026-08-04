@@ -70,7 +70,7 @@ function readWorkflow(directoryName: string): WorkflowSeed {
     }
 }
 
-const database = createDatabaseClient(config.databasePath)
+const database = await createDatabaseClient(config.databasePath)
 
 try {
     const workflowDirectories = readdirSync(seedRoot, { withFileTypes: true })
@@ -80,9 +80,9 @@ try {
     const workflowsToSeed = workflowDirectories.map(readWorkflow)
     const now = Date.now()
 
-    database.db.transaction(transaction => {
+    await database.db.transaction(async transaction => {
         for (const workflow of workflowsToSeed) {
-            const existing = transaction.select({ id: workflows.id }).from(workflows)
+            const existing = await transaction.select({ id: workflows.id }).from(workflows)
                 .where(eq(workflows.id, workflow.id))
                 .get()
 
@@ -91,7 +91,7 @@ try {
                 continue
             }
 
-            transaction.insert(workflows).values({
+            await transaction.insert(workflows).values({
                 id: workflow.id,
                 name: workflow.name,
                 graph: workflow.graph,
