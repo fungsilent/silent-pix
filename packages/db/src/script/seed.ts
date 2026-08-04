@@ -1,24 +1,18 @@
 import { readdirSync, readFileSync } from 'node:fs'
-import { dirname, isAbsolute, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { resolve } from 'node:path'
 
 import { eq } from 'drizzle-orm'
 
 import { createDatabaseClient } from '#/client'
-import {
-    type ConfigSchema,
-    type JsonObject,
-    workflows,
-} from '#/schema'
-import { assertUUID, type UUID } from '#/uuid'
+import { loadConfig } from '#/config'
+import { workflows } from '#/schema/schema.export'
+import { assertUUID } from '#/uuid'
 
-const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
-const repoRoot = resolve(packageRoot, '..', '..')
-const seedRoot = resolve(packageRoot, 'seed', 'workflows')
-const configuredPath = process.env.DATABASE_PATH ?? './.local/data/silent-pix.sqlite'
-const databasePath = isAbsolute(configuredPath)
-    ? configuredPath
-    : resolve(repoRoot, configuredPath)
+import type { ConfigSchema, JsonObject, } from '#/schema/schema.export'
+import type { UUID } from '#/uuid'
+
+const config = loadConfig()
+const seedRoot = resolve(config.packageRoot, 'seed', 'workflows')
 
 type WorkflowSeed = {
     id: UUID
@@ -76,7 +70,7 @@ function readWorkflow(directoryName: string): WorkflowSeed {
     }
 }
 
-const database = createDatabaseClient(databasePath)
+const database = createDatabaseClient(config.databasePath)
 
 try {
     const workflowDirectories = readdirSync(seedRoot, { withFileTypes: true })

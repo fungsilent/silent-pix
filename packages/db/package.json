@@ -27,9 +27,11 @@
         "db:seed": "tsx ./src/script/seed.ts"
     },
     "dependencies": {
+        "@silent-pix/env": "workspace:*",
         "better-sqlite3": "^13.0.2",
         "drizzle-orm": "^0.45.2",
-        "uuid": "^14.0.1"
+        "uuid": "^14.0.1",
+        "dotenv": "^17.4.2"
     },
     "devDependencies": {
         "@types/better-sqlite3": "^9.6.0",

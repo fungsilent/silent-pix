@@ -4,13 +4,12 @@ import { dirname, isAbsolute, resolve } from 'node:path'
 import Database from 'better-sqlite3'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
 
-import { schema } from '#/schema'
+import * as schema from '#/schema/schema.export'
 
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3'
 
 export type DatabaseClient = {
     db: BetterSQLite3Database<typeof schema>
-    sqlite: Database.Database
     check: () => boolean
     close: () => void
 }
@@ -37,7 +36,6 @@ export function createDatabaseClient(databasePath: string, options: DatabaseClie
 
     return {
         db,
-        sqlite,
         check() {
             try {
                 if (closed) {

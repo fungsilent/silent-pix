@@ -1,21 +1,9 @@
-import { isAbsolute, resolve } from 'node:path'
-import { dirname } from 'node:path'
-import { fileURLToPath } from 'node:url'
-
 import { createDatabaseClient } from '#/client'
-import { taskImages, tasks, workflows } from '#/schema'
+import { loadConfig } from '#/config'
+import { taskImages, tasks, workflows } from '#/schema/schema.export'
 
-if (!process.argv.slice(2).includes('--confirm')) {
-    throw new Error('Database reset requires the --confirm argument.')
-}
-
-const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
-const repoRoot = resolve(packageRoot, '..', '..')
-const configuredPath = process.env.DATABASE_PATH ?? './.local/data/silent-pix.sqlite'
-const databasePath = isAbsolute(configuredPath)
-    ? configuredPath
-    : resolve(repoRoot, configuredPath)
-const database = createDatabaseClient(databasePath)
+const config = loadConfig()
+const database = createDatabaseClient(config.databasePath)
 
 try {
     database.db.transaction(databaseTransaction => {
@@ -24,7 +12,7 @@ try {
         databaseTransaction.delete(workflows).run()
     })
 
-    console.log(`Reset database data at ${databasePath}.`)
+    console.log(`Reset database data at ${config.databasePath}.`)
 } finally {
     database.close()
 }

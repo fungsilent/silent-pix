@@ -1,5 +1,4 @@
 export * from '#/client'
-export * from '#/migrate'
-export * from '#/repository/index'
-export * from '#/schema'
+export * from '#/schema/schema.export'
+export * from '#/schema/schema.util'
 export * from '#/uuid'
