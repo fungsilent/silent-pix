@@ -6,7 +6,7 @@
     - `apps/desktop`: desktop shell placeholder/startup model.
     - `packages/shared`: shared Zod contracts only.
     - `packages/event`: event contracts and WebSocket helpers only.
-    - `packages/db`: SQLite, Drizzle schema, migrations, clients, and repositories.
+    - `packages/db`: SQLite driver, Drizzle schema, migrations, and database client.
 - Use workspace package imports such as `@silent-pix/shared`; do not use cross-package relative imports.
 - Use the `#/` alias for source imports. Do not use `./` or `../` source imports.
 - Do not add Prettier. Formatting is ESLint + `@stylistic`.
@@ -58,6 +58,7 @@
 ## Storage and Boundaries
 
 - Use SQLite + Drizzle only. Do not add other database engines, ORMs, queues, or cloud database services.
+- Server services query `database.db` with Drizzle directly. Do not add a repository layer or use raw SQLite outside the database client.
 - Frontend must never call ComfyUI, access SQLite, or know backend-only env values.
 - Backend is the source of truth for durable state. Frontend state is UI state only.
 - WebSocket events are notifications only. Define event items in `packages/event/src/events.ts`.
