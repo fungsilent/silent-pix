@@ -24,6 +24,14 @@ const statusMap: Record<TaskApi.TaskStatus, Item> = {
         label: 'Done',
         class: 'border-emerald-500/50 bg-emerald-500/15 text-emerald-300',
     },
+    failed: {
+        label: 'Failed',
+        class: 'border-rose-500/50 bg-rose-500/15 text-rose-300',
+    },
+    cancelled: {
+        label: 'Cancelled',
+        class: 'border-slate-500/50 bg-slate-500/15 text-slate-300',
+    },
 }
 
 export function TaskStatus(props: TaskStatusProps) {

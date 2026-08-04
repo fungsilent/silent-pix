@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Clock3, Hourglass, Image as ImageIcon, LoaderCircle } from 'lucide-solid'
+import { Ban, CircleX, Clock3, Hourglass, Image as ImageIcon, LoaderCircle } from 'lucide-solid'
 
 import { Button } from '#/components/base/Button'
 import { TaskStatus } from '#/pages/generate/components/TaskStatus'
@@ -36,6 +36,16 @@ const placeholderMap: Record<TaskApi.TaskStatus, PlaceholderMeta> = {
         Icon: LoaderCircle,
         class: 'border-sky-500/30 bg-sky-500/10 text-sky-300',
         label: 'Running task thumbnail pending',
+    },
+    failed: {
+        Icon: CircleX,
+        class: 'border-rose-500/30 bg-rose-500/10 text-rose-300',
+        label: 'Task failed',
+    },
+    cancelled: {
+        Icon: Ban,
+        class: 'border-slate-500/30 bg-slate-500/10 text-slate-300',
+        label: 'Task cancelled',
     },
 }
 
