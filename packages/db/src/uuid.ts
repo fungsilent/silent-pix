@@ -10,6 +10,11 @@ export function isUUID(value: string): value is UUID {
     return validate(value)
 }
 
+export function toUUID(value: string, label: string): UUID {
+    assertUUID(value, label)
+    return value
+}
+
 export function assertUUID(value: string, label: string): asserts value is UUID {
     if (!isUUID(value)) {
         throw new Error(`${label} must be a UUID.`)

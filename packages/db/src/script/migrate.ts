@@ -1,21 +1,16 @@
-import { dirname, isAbsolute, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { resolve } from 'node:path'
 
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
 
 import { createDatabaseClient } from '#/client'
+import { loadConfig } from '#/config'
 
-const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const repoRoot = resolve(packageRoot, '..', '..')
-const configuredPath = process.env.DATABASE_PATH ?? './.local/data/silent-pix.sqlite'
-const databasePath = isAbsolute(configuredPath)
-    ? configuredPath
-    : resolve(repoRoot, configuredPath)
-const database = createDatabaseClient(databasePath)
+const config = loadConfig()
+const database = createDatabaseClient(config.databasePath)
 
 try {
     migrate(database.db, {
-        migrationsFolder: resolve(packageRoot, 'migrations')
+        migrationsFolder: resolve(config.packageRoot, 'migrations'),
     })
 } finally {
     database.close()

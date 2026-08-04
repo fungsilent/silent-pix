@@ -1,71 +1,9 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "6b00a01b-a0ab-4bdd-8696-ecae9a4c626c",
+  "id": "5dd12fa1-7ce1-435b-9841-8e93d7e0b9ed",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
-    "task_images": {
-      "name": "task_images",
-      "columns": {
-        "task_id": {
-          "name": "task_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "path": {
-          "name": "path",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "filename": {
-          "name": "filename",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        }
-      },
-      "indexes": {
-        "task_images_task_path_idx": {
-          "name": "task_images_task_path_idx",
-          "columns": [
-            "task_id",
-            "path"
-          ],
-          "isUnique": false
-        }
-      },
-      "foreignKeys": {
-        "task_images_task_id_tasks_id_fk": {
-          "name": "task_images_task_id_tasks_id_fk",
-          "tableFrom": "task_images",
-          "tableTo": "tasks",
-          "columnsFrom": [
-            "task_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {
-        "task_images_task_id_path_pk": {
-          "columns": [
-            "task_id",
-            "path"
-          ],
-          "name": "task_images_task_id_path_pk"
-        }
-      },
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
     "tasks": {
       "name": "tasks",
       "columns": {
@@ -118,6 +56,13 @@
           "notNull": true,
           "autoincrement": false
         },
+        "comfy_prompt_id": {
+          "name": "comfy_prompt_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "error_code": {
           "name": "error_code",
           "type": "text",
@@ -148,6 +93,13 @@
             "status"
           ],
           "isUnique": false
+        },
+        "tasks_comfy_prompt_id_idx": {
+          "name": "tasks_comfy_prompt_id_idx",
+          "columns": [
+            "comfy_prompt_id"
+          ],
+          "isUnique": true
         }
       },
       "foreignKeys": {
@@ -168,6 +120,14 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {
+        "tasks_id_uuid_check": {
+          "name": "tasks_id_uuid_check",
+          "value": "\n    length(\"tasks\".\"id\") = 36\n    AND substr(\"tasks\".\"id\", 9, 1) = '-'\n    AND substr(\"tasks\".\"id\", 14, 1) = '-'\n    AND substr(\"tasks\".\"id\", 19, 1) = '-'\n    AND substr(\"tasks\".\"id\", 24, 1) = '-'\n    AND lower(\"tasks\".\"id\") NOT GLOB '*[^0-9a-f-]*'\n"
+        },
+        "tasks_workflow_id_uuid_check": {
+          "name": "tasks_workflow_id_uuid_check",
+          "value": "\n    length(\"tasks\".\"workflow_id\") = 36\n    AND substr(\"tasks\".\"workflow_id\", 9, 1) = '-'\n    AND substr(\"tasks\".\"workflow_id\", 14, 1) = '-'\n    AND substr(\"tasks\".\"workflow_id\", 19, 1) = '-'\n    AND substr(\"tasks\".\"workflow_id\", 24, 1) = '-'\n    AND lower(\"tasks\".\"workflow_id\") NOT GLOB '*[^0-9a-f-]*'\n"
+        },
         "tasks_config_json_check": {
           "name": "tasks_config_json_check",
           "value": "json_valid(\"tasks\".\"config\")"
@@ -175,6 +135,72 @@
         "tasks_status_check": {
           "name": "tasks_status_check",
           "value": "\"tasks\".\"status\" in ('queued', 'running', 'done', 'failed', 'cancelled')"
+        }
+      }
+    },
+    "task_images": {
+      "name": "task_images",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "task_id": {
+          "name": "task_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "path": {
+          "name": "path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "filename": {
+          "name": "filename",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "task_images_task_path_idx": {
+          "name": "task_images_task_path_idx",
+          "columns": [
+            "task_id",
+            "path"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "task_images_task_id_tasks_id_fk": {
+          "name": "task_images_task_id_tasks_id_fk",
+          "tableFrom": "task_images",
+          "tableTo": "tasks",
+          "columnsFrom": [
+            "task_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "task_images_task_id_uuid_check": {
+          "name": "task_images_task_id_uuid_check",
+          "value": "\n    length(\"task_images\".\"task_id\") = 36\n    AND substr(\"task_images\".\"task_id\", 9, 1) = '-'\n    AND substr(\"task_images\".\"task_id\", 14, 1) = '-'\n    AND substr(\"task_images\".\"task_id\", 19, 1) = '-'\n    AND substr(\"task_images\".\"task_id\", 24, 1) = '-'\n    AND lower(\"task_images\".\"task_id\") NOT GLOB '*[^0-9a-f-]*'\n"
         }
       }
     },
@@ -229,6 +255,10 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {
+        "workflows_id_uuid_check": {
+          "name": "workflows_id_uuid_check",
+          "value": "\n    length(\"workflows\".\"id\") = 36\n    AND substr(\"workflows\".\"id\", 9, 1) = '-'\n    AND substr(\"workflows\".\"id\", 14, 1) = '-'\n    AND substr(\"workflows\".\"id\", 19, 1) = '-'\n    AND substr(\"workflows\".\"id\", 24, 1) = '-'\n    AND lower(\"workflows\".\"id\") NOT GLOB '*[^0-9a-f-]*'\n"
+        },
         "workflows_graph_json_check": {
           "name": "workflows_graph_json_check",
           "value": "json_valid(\"workflows\".\"graph\")"
