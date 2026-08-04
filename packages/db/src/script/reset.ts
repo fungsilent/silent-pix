@@ -3,13 +3,13 @@ import { loadConfig } from '#/config'
 import { taskImages, tasks, workflows } from '#/schema/schema.export'
 
 const config = loadConfig()
-const database = createDatabaseClient(config.databasePath)
+const database = await createDatabaseClient(config.databasePath)
 
 try {
-    database.db.transaction(databaseTransaction => {
-        databaseTransaction.delete(taskImages).run()
-        databaseTransaction.delete(tasks).run()
-        databaseTransaction.delete(workflows).run()
+    await database.db.transaction(async databaseTransaction => {
+        await databaseTransaction.delete(taskImages)
+        await databaseTransaction.delete(tasks)
+        await databaseTransaction.delete(workflows)
     })
 
     console.log(`Reset database data at ${config.databasePath}.`)

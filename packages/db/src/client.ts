@@ -1,37 +1,28 @@
-import { mkdirSync } from 'node:fs'
-import { dirname, isAbsolute, resolve } from 'node:path'
-
-import Database from 'better-sqlite3'
-import { drizzle } from 'drizzle-orm/better-sqlite3'
+import { createClient } from '@libsql/client'
+import { drizzle } from 'drizzle-orm/libsql'
 
 import * as schema from '#/schema/schema.export'
 
-import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3'
+import type { LibSQLDatabase } from 'drizzle-orm/libsql'
 
 export type DatabaseClient = {
-    db: BetterSQLite3Database<typeof schema>
+    db: LibSQLDatabase<typeof schema>
     check: () => boolean
     close: () => void
 }
 
-export type DatabaseClientOptions = {
-    baseDir?: string
-}
+export async function createDatabaseClient(databasePath: string): Promise<DatabaseClient> {
+    const client = createClient({
+        url: `file:${databasePath}`,
+    })
 
-export function createDatabaseClient(databasePath: string, options: DatabaseClientOptions = {}): DatabaseClient {
-    const resolvedDatabasePath = resolveDatabasePath(databasePath, options)
+    await client.execute('PRAGMA foreign_keys = ON')
 
-    if (resolvedDatabasePath !== ':memory:') {
-        mkdirSync(dirname(resolvedDatabasePath), { recursive: true })
-    }
+    const db = drizzle({
+        client,
+        schema,
+    })
 
-    const sqlite = new Database(resolvedDatabasePath)
-
-    sqlite.pragma('journal_mode = WAL')
-    sqlite.pragma('foreign_keys = ON')
-    sqlite.pragma('busy_timeout = 5000')
-
-    const db = drizzle(sqlite, { schema })
     let closed = false
 
     return {
@@ -41,7 +32,7 @@ export function createDatabaseClient(databasePath: string, options: DatabaseClie
                 if (closed) {
                     throw new Error('Database client is closed.')
                 }
-                sqlite.prepare('SELECT 1').get()
+                // sqlite.prepare('SELECT 1').get()
                 return true
             } catch {
                 return false
@@ -49,29 +40,9 @@ export function createDatabaseClient(databasePath: string, options: DatabaseClie
         },
         close() {
             if (!closed) {
-                sqlite.close()
+                client.close()
                 closed = true
             }
         },
     }
-}
-
-export function resolveDatabasePath(databasePath: string, options: DatabaseClientOptions = {}): string {
-    if (databasePath === ':memory:') {
-        return databasePath
-    }
-
-    if (isAbsolute(databasePath)) {
-        return databasePath
-    }
-
-    if (!options.baseDir) {
-        throw new Error('Relative database paths require an explicit baseDir')
-    }
-
-    return resolve(options.baseDir, databasePath)
-}
-
-export function getDatabaseDirectory(databasePath: string): string {
-    return dirname(databasePath)
 }

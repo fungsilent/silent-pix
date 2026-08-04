@@ -1,11 +1,11 @@
 import { z } from 'zod'
 
-export const taskStatus = z.enum(['queued', 'running', 'done'])
+export const taskStatus = z.enum(['queued', 'running', 'done', 'failed', 'cancelled'])
 
 export type TaskStatus = z.output<typeof taskStatus>
 
 export const taskListItem = z.object({
-    id: z.string(),
+    id: z.uuid(),
     status: taskStatus,
     createdAt: z.iso.datetime(),
     thumbnail: z.string().optional(),
@@ -30,7 +30,7 @@ export const taskLora = z.object({
 export type TaskLora = z.output<typeof taskLora>
 
 export const taskConfig = z.object({
-    seed: z.string(),
+    seed: z.string().nullable(),
     steps: z.number(),
     cfg: z.number(),
     width: z.number(),
@@ -51,7 +51,6 @@ export const getTasksQuery = z.object({
 
 export type GetTasksQuery = z.output<typeof getTasksQuery>
 
-
 export const getTasksResponse = z.object({
     items: z.array(taskListItem),
     nextCursor: z.string().optional(),
@@ -60,13 +59,13 @@ export const getTasksResponse = z.object({
 export type GetTasksResponse = z.output<typeof getTasksResponse>
 
 export const getTaskRequest = z.object({
-    taskId: z.string().min(1),
+    taskId: z.uuid(),
 })
 
 export type GetTaskRequest = z.output<typeof getTaskRequest>
 
 export const getTaskResponse = z.object({
-    id: z.string(),
+    id: z.uuid(),
     name: z.string(),
     status: taskStatus,
     createdAt: z.iso.datetime(),
@@ -81,3 +80,31 @@ export const getTaskResponse = z.object({
 })
 
 export type GetTaskResponse = z.output<typeof getTaskResponse>
+
+export const createTaskRequest = z.object({
+    name: z.string().min(1).max(120),
+    workflowId: z.uuid(),
+    config: taskConfig,
+    lora: z.array(taskLora),
+    prompt: z.object({
+        positive: z.array(taskPromptTag),
+        negative: z.array(taskPromptTag),
+    }),
+})
+
+export type CreateTaskRequest = z.output<typeof createTaskRequest>
+
+export const createTaskResponse = z.object({
+    id: z.uuid(),
+    status: taskStatus,
+    createdAt: z.iso.datetime(),
+})
+
+export type CreateTaskResponse = z.output<typeof createTaskResponse>
+
+export const getTaskImageRequest = z.object({
+    taskId: z.uuid(),
+    filename: z.string().min(1).max(255),
+})
+
+export type GetTaskImageRequest = z.output<typeof getTaskImageRequest>

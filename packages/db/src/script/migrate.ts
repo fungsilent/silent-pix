@@ -1,15 +1,15 @@
 import { resolve } from 'node:path'
 
-import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
+import { migrate } from 'drizzle-orm/libsql/migrator'
 
 import { createDatabaseClient } from '#/client'
 import { loadConfig } from '#/config'
 
 const config = loadConfig()
-const database = createDatabaseClient(config.databasePath)
+const database = await createDatabaseClient(config.databasePath)
 
 try {
-    migrate(database.db, {
+    await migrate(database.db, {
         migrationsFolder: resolve(config.packageRoot, 'migrations'),
     })
 } finally {
