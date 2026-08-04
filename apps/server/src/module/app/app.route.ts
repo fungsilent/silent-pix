@@ -1,16 +1,18 @@
 import { appApi } from '@silent-pix/shared'
 import { Elysia } from 'elysia'
 
+import { comfyMiddleware } from '#/middleware/comfy'
 import { databaseMiddleware } from '#/middleware/database'
 
 export const appRoutes = new Elysia({ name: 'app-route' })
     .use(databaseMiddleware)
+    .use(comfyMiddleware)
     .get(
         '/health',
-        ({ database }) => {
+        ({ comfyClient, database }) => {
             return {
                 database: database.check(),
-                comfy: false,
+                comfy: comfyClient.isConnected(),
             }
         },
         {

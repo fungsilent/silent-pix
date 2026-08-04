@@ -27,8 +27,10 @@
         "@elysiajs/node": "^1.4.5",
         "@silent-pix/db": "workspace:*",
         "@silent-pix/event": "workspace:*",
+        "@silent-pix/env": "workspace:*",
         "@silent-pix/shared": "workspace:*",
         "dotenv": "^17.4.2",
+        "drizzle-orm": "^0.45.2",
         "elysia": "^1.4.29"
     },
     "devDependencies": {
