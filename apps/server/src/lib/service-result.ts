@@ -8,10 +8,6 @@ type ServiceFailure<TError extends string> = {
     error: TError
 }
 
-export type ServiceResult<TData, TError extends string> =
-    | ServiceDone<TData>
-    | ServiceFailure<TError>
-
 export function done<TData>(data: TData): ServiceDone<TData> {
     return {
         ok: true,

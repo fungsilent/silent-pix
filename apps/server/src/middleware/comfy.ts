@@ -2,9 +2,9 @@ import { Elysia } from 'elysia'
 
 import { serverStore } from '#/app.store'
 
-export const databaseMiddleware = new Elysia({ name: 'database-middleware' })
+export const comfyMiddleware = new Elysia({ name: 'comfy-middleware' })
     .derive(
         { as: 'scoped' },
         () => ({
-            database: serverStore.get().database,
+            comfyClient: serverStore.get().comfyClient,
         }))
