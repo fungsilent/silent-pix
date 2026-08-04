@@ -46,12 +46,12 @@ export function TaskConfig(props: TaskConfigProps) {
             <Text
                 label='Seed'
                 value={store.state.values.seed}
-                placeholder={props.task.config.seed}
+                placeholder={props.task.config.seed ?? ''}
                 onInput={value => store.setValue('seed', value)}
                 action={(
                     <Button
                         classes={{ root: 'h-8 w-8 p-0' }}
-                        onClick={() => store.setValue('seed', props.task.config.seed)}
+                        onClick={() => store.setValue('seed', props.task.config.seed ?? '')}
                     >
                         <Undo2
                             size={13}
