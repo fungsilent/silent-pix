@@ -125,7 +125,7 @@ export function PanelContent(props: PanelContentProps) {
     return (
         <ScrollArea.Root class={clsx('relative min-h-0 flex-1 overflow-hidden', props.classes?.root)}>
             <ScrollArea.Viewport class={clsx('scrollbar-hidden h-full w-full', props.classes?.viewport)}>
-                <ScrollArea.Content class={clsx('flex flex-col gap-2 p-2 pr-3', props.classes?.content)}>
+                <ScrollArea.Content class={clsx('flex !min-w-0 flex-col gap-2 p-2 pr-3', props.classes?.content)}>
                     {props.children}
                 </ScrollArea.Content>
             </ScrollArea.Viewport>
