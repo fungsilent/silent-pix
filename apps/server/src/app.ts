@@ -18,10 +18,19 @@ export async function createApp() {
             store.comfyClient.start()
         })
         .onStop(() => {
+            store.eventChannel.close()
             store.comfyClient.close()
             store.database.close()
         })
         .use(errorCatchMiddleware)
+        .ws('/api/event', {
+            open: ws => {
+                store.eventChannel.connect(ws)
+            },
+            close: ws => {
+                store.eventChannel.disconnect(ws)
+            },
+        })
         .group(
             '/api',
             app => app
@@ -30,4 +39,4 @@ export async function createApp() {
         )
 }
 
-export type Api = ReturnType<typeof createApp>
+export type Api = Awaited<ReturnType<typeof createApp>>

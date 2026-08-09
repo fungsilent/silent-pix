@@ -171,7 +171,9 @@ Desktop mode is a first-class target.
 
 ### `packages/shared`
 
-Shared contracts only.
+Shared REST and WebSocket contracts only.
+
+Event contracts live under `packages/shared/src/event/<module>.ts`, divided by domain module. The aggregate `event.serverEvent` schema is the runtime source of truth for outbound server events.
 
 Allowed:
 
@@ -180,6 +182,7 @@ Allowed:
 - enums
 - schemas
 - shared API types
+- server-to-web WebSocket event Zod schemas and inferred types
 ```
 
 Forbidden:
@@ -196,14 +199,13 @@ Forbidden:
 
 ### `packages/event`
 
-Owns event contracts and WebSocket foundation helpers.
+Owns generic WebSocket transport helpers only.
 
 Allowed:
 
 ```txt
-- browser-safe server event contracts
-- browser WebSocket client helper
-- Node WebSocket server helper
+- browser WebSocket client helper with JSON decoding and reconnect lifecycle
+- Node WebSocket server helper with socket collection and JSON broadcast
 ```
 
 Forbidden:
@@ -323,10 +325,12 @@ REST:
 WebSocket foundation:
 
 ```txt
-- endpoint: GET /api/events
+- endpoint: GET /api/event
 - local clients only
 - server events only
-- current events: connected, ping, server_status
+- current business notification: `task.changed` with only `taskId`
+- server validates every outbound event through `event.serverEvent.parse()` before broadcast
+- connection state comes from WebSocket open, close, and reconnect lifecycle callbacks
 ```
 
 Realtime is never the durable source of truth.
@@ -335,8 +339,10 @@ Current frontend event usage:
 
 ```txt
 - App.tsx owns the local server-event client lifecycle
+- `apps/web/src/lib/event.ts` dispatches decoded `Event.ServerEvent` values
+- `task.changed` invalidates the complete `taskKeys.all` TanStack Query namespace
 - Header may display connection status
-- generate task UI must not infer task state from server events
+- generate task UI reads authoritative task data from REST; event payloads are notifications only
 ```
 
 ---

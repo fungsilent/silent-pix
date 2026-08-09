@@ -14,11 +14,13 @@ import { loadConfig } from '#/config'
 import { ComfyError } from '#/lib/comfy/comfy.client'
 import { buildComfyPrompt, type GenerateConfig } from '#/lib/comfy/comfy.prompt'
 import { done, fail } from '#/lib/service-result'
+import { taskChanged } from '#/module/task/task.event'
 import { castTaskImageModel, castTaskModel, castWorkflowModel } from '#/module/task/task.model'
 import { imageFilename, imageUrl } from '#/module/task/task.util'
 
-import type { ConfigSchema, DatabaseClient, JsonObject, TaskStatus, TaskUpdate, UUID } from '@silent-pix/db'
+import type { DatabaseClient, TaskStatus, TaskUpdate, UUID } from '@silent-pix/db'
 import type { TaskApi } from '@silent-pix/shared'
+import type { PushEvent } from '#/app.store'
 import type { ComfyClient } from '#/lib/comfy/comfy.client'
 import type { TaskImageModel, TaskModel, WorkflowModel } from '#/module/task/task.model'
 
@@ -26,14 +28,7 @@ const config = loadConfig()
 
 type TaskCursor = { createdAt: string, id: string }
 
-export type TaskExecution = {
-    taskId: string
-    graph: JsonObject
-    configSchema: ConfigSchema
-    input: GenerateConfig
-}
-
-export type CompletedTaskImage = { imageId: UUID, path: string, filename: string }
+type CompletedTaskImage = { imageId: UUID, path: string, filename: string }
 
 export const taskService = {
     // CRUD
@@ -210,6 +205,7 @@ export const taskService = {
         database: DatabaseClient,
         client: ComfyClient,
         taskId: UUID,
+        pushEvent: PushEvent,
     ) {
         const item = await taskService.findTask(database, taskId, { includeWorkflow: true })
 
@@ -242,6 +238,7 @@ export const taskService = {
                         {
                             limtedStatus: ['queued']
                         })
+                    pushEvent(taskChanged(taskId))
                 },
             })
             const outputImages = Object.values(result.history.outputs ?? {})
@@ -270,26 +267,31 @@ export const taskService = {
                 }
             }))
 
-            await taskService.complete(database, taskId, completedImages)
+            await taskService.complete(database, taskId, completedImages, pushEvent)
         }
         catch (error) {
             console.error(`Task ${taskId} generationn failed.`, error)
 
             await Promise.allSettled(savedFiles.map(path => unlink(path)))
             if (error instanceof ComfyError) {
-                await taskService.fail(database, taskId, error.code, error.message)
+                await taskService.fail(database, taskId, error.code, error.message, pushEvent)
                 return
             }
 
             if (error instanceof Error) {
-                await taskService.fail(database, taskId, 'TASK_GENERATE_ERROR', error.message)
+                await taskService.fail(database, taskId, 'TASK_GENERATE_ERROR', error.message, pushEvent)
                 return
             }
 
         }
     },
 
-    async complete(database: DatabaseClient, taskId: UUID, images: CompletedTaskImage[]) {
+    async complete(
+        database: DatabaseClient,
+        taskId: UUID,
+        images: CompletedTaskImage[],
+        pushEvent: PushEvent,
+    ) {
         await database.db.transaction(async tx => {
             if (images.length) {
                 await tx
@@ -311,6 +313,8 @@ export const taskService = {
                 .where(eq(tasks.id, taskId))
                 .run()
         })
+
+        pushEvent(taskChanged(taskId))
     },
 
     async fail(
@@ -318,6 +322,7 @@ export const taskService = {
         taskId: UUID,
         errorCode: string,
         errorMessage: string,
+        pushEvent: PushEvent,
     ) {
         await taskService.updateTask(
             database,
@@ -330,6 +335,7 @@ export const taskService = {
             {
                 limtedStatus: ['queued', 'running'],
             })
+        pushEvent(taskChanged(taskId))
     },
 
     findImage(database: DatabaseClient, request: TaskApi.GetTaskImageRequest) {

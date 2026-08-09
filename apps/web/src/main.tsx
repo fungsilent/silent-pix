@@ -11,7 +11,13 @@ if (!root) {
     throw new Error('Root element not found')
 }
 
-export const queryClient = new QueryClient()
+export const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            refetchOnWindowFocus: false,
+        },
+    },
+})
 
 render(
     () => (

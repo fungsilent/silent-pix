@@ -1,12 +1,20 @@
 import { createDatabaseClient } from '@silent-pix/db'
+import { createEventChannel } from '@silent-pix/event/server'
+import { event } from '@silent-pix/shared'
 
 import { ComfyClient } from '#/lib/comfy/comfy.client'
 
+import type { EventChannel } from '@silent-pix/event/server'
+import type { Event } from '@silent-pix/shared'
 import type { ServerConfig } from '#/config'
+
+export type PushEvent = (value: Event.ServerEvent) => void
 
 type Store = {
     database: Awaited<ReturnType<typeof createDatabaseClient>>
     comfyClient: ComfyClient
+    eventChannel: EventChannel<Event.ServerEvent>
+    pushEvent: PushEvent
 }
 
 let initialized = false
@@ -20,10 +28,17 @@ export const serverStore = {
 
         const database = await createDatabaseClient(env.databasePath)
         const comfyClient = new ComfyClient(env.comfyuiBaseUrl)
+        const eventChannel = createEventChannel<Event.ServerEvent>()
+        const pushEvent: PushEvent = value => {
+            const parsed = event.serverEvent.parse(value)
+            eventChannel.broadcast(parsed)
+        }
 
         store = {
             database,
             comfyClient,
+            eventChannel,
+            pushEvent,
         }
 
         initialized = true

@@ -171,18 +171,20 @@ Do not leak raw internal errors.
 
 ## Events
 
-Use `packages/event` for local server event contracts and WebSocket helpers.
+Use `packages/shared/src/event/<module>.ts` for server-to-web event contracts and `packages/event` for generic WebSocket transport helpers.
 
 Rules:
 
 ```txt
-- define event items in `packages/event/src/events.ts`
+- aggregate outbound events through `event.serverEvent`
+- server validates every outbound event before broadcast
 - browser connection helpers live in `packages/event/src/client.ts`
 - Node WebSocket server helpers live in `packages/event/src/server.ts`
+- `task.changed` carries only `taskId`
+- no connected, ping, or server_status application messages
 - no DB imports
 - no Hono imports
-- no feature-specific task/image events yet
-- WebSocket events are notifications only, not source of truth
+- WebSocket events are notifications only; REST remains the source of truth
 ```
 
 ---

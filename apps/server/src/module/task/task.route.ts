@@ -8,6 +8,7 @@ import { Elysia } from 'elysia'
 import { loadConfig } from '#/config'
 import { comfyMiddleware } from '#/middleware/comfy'
 import { databaseMiddleware } from '#/middleware/database'
+import { eventMiddleware } from '#/middleware/event'
 import { taskService } from '#/module/task/task.service'
 import { contentType, imageUrl } from '#/module/task/task.util'
 
@@ -16,6 +17,7 @@ const storageRoot = resolve(loadConfig().appStorageDir)
 export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
     .use(databaseMiddleware)
     .use(comfyMiddleware)
+    .use(eventMiddleware)
     .get(
         '/',
         async ({ database, query, status }) => {
@@ -43,7 +45,7 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
     )
     .post(
         '/',
-        async ({ body, database, comfyClient, status }) => {
+        async ({ body, database, comfyClient, pushEvent, status }) => {
             const creation = await taskService.create(database, body)
             if (!creation.ok) {
                 return status(404, {
@@ -54,7 +56,7 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
                 })
             }
 
-            void taskService.generate(database, comfyClient, creation.data.id)
+            void taskService.generate(database, comfyClient, creation.data.id, pushEvent)
 
             return status(201, {
                 id: creation.data.id,

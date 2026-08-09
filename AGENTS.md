@@ -4,8 +4,8 @@
     - `apps/web`: SolidJS UI and backend API client only. Shared UI primitives live in `apps/web/src/components`; page-specific UI lives under that page folder.
     - `apps/server`: Elysia app, middleware, routes, services, env, and lifecycle.
     - `apps/desktop`: desktop shell placeholder/startup model.
-    - `packages/shared`: shared Zod contracts only.
-    - `packages/event`: event contracts and WebSocket helpers only.
+    - `packages/shared`: shared REST and WebSocket Zod contracts only.
+    - `packages/event`: generic WebSocket transport helpers only.
     - `packages/db`: SQLite driver, Drizzle schema, migrations, and database client.
 - Use workspace package imports such as `@silent-pix/shared`; do not use cross-package relative imports.
 - Use the `#/` alias for source imports. Do not use `./` or `../` source imports.
@@ -36,7 +36,7 @@
 ## Current Task API Scope
 
 - The current task API trial implements only `GET /api/task` and frontend `taskApi.list()`.
-- Do not add task detail, create, cancel, delete, task lifecycle timers, task-specific WebSocket events, or task persistence unless explicitly requested.
+- The explicitly requested `task.changed` notification is allowed; other task lifecycle events and persistence features remain out of scope unless explicitly requested.
 - Backend mock task-list data is non-durable and must satisfy the shared Zod response schema.
 - Use stable opaque task IDs consistently across backend fixtures and temporary frontend fixtures; do not add frontend ID translation.
 - TanStack Query owns task-list pages, loading, errors, fetch state, and pagination state.
@@ -61,6 +61,8 @@
 - Server services query `database.db` with Drizzle directly. Do not add a repository layer or use raw SQLite outside the database client.
 - Frontend must never call ComfyUI, access SQLite, or know backend-only env values.
 - Backend is the source of truth for durable state. Frontend state is UI state only.
-- WebSocket events are notifications only. Define event items in `packages/event/src/events.ts`.
+- WebSocket event contracts live under `packages/shared/src/event`, divided by domain module.
+- The server validates every outbound event through the shared aggregate schema before broadcast.
+- WebSocket events are notifications only; the web invalidates REST queries instead of treating event payloads as source-of-truth data.
 - Store image files on the filesystem and metadata in SQLite. Do not store image binary data in SQLite.
 - Do not assume cwd is repo root. Resolve runtime paths explicitly and keep production app data overrides possible.

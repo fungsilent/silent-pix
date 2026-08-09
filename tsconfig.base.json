@@ -6,7 +6,6 @@
         "moduleResolution": "Bundler",
         "paths": {
             "@silent-pix/shared": ["./packages/shared/src/index.ts"],
-            "@silent-pix/event/events": ["./packages/event/src/events.ts"],
             "@silent-pix/event/client": ["./packages/event/src/client.ts"],
             "@silent-pix/event/server": ["./packages/event/src/server.ts"],
             "@silent-pix/db": ["./packages/db/src/index.ts"]

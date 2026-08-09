@@ -4,7 +4,7 @@
     "version": "0.1.0",
     "type": "module",
     "scripts": {
-        "dev": "vite --host 127.0.0.1 --port 5173",
+        "dev": "wait-on tcp:127.0.0.1:3070 && vite --host 127.0.0.1",
         "build": "vite build",
         "typecheck": "tsc -p tsconfig.json --noEmit"
     },
@@ -26,6 +26,7 @@
         "tailwindcss": "^4.3.2",
         "typescript": "^7.0.2",
         "vite": "^8.2.0",
-        "vite-plugin-solid": "^2.11.14"
+        "vite-plugin-solid": "^2.11.14",
+        "wait-on": "^9.1.0"
     }
 }
