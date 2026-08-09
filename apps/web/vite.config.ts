@@ -19,7 +19,7 @@ export default defineConfig({
             '/api': {
                 target: `http://${process.env.SERVER_HOST ?? '127.0.0.1'}:${process.env.SERVER_PORT ?? '3070'}`,
                 changeOrigin: true,
-                ws: false,
+                ws: true,
             },
         },
     },
