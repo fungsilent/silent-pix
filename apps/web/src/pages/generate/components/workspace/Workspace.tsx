@@ -7,6 +7,8 @@ import type { GenerateTask } from '#/pages/generate/store'
 
 type WorkspaceProps = {
     task: GenerateTask
+    isSubmitting?: boolean | undefined
+    submitError?: string | undefined
 }
 
 export function Workspace(props: WorkspaceProps) {
@@ -23,7 +25,11 @@ export function Workspace(props: WorkspaceProps) {
             class='flex h-full min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-auto bg-[#0e131a] p-3'
             aria-label='Generate workspace'
         >
-            <PromptPanel task={props.task} />
+            <PromptPanel
+                task={props.task}
+                isSubmitting={props.isSubmitting}
+                submitError={props.submitError}
+            />
             <ImageStage
                 images={images()}
                 selectedIndex={selectedImageIndex()}

@@ -4,8 +4,8 @@ import type { JSX } from 'solid-js'
 
 type ButtonProps = {
     children: JSX.Element
-    disabled?: boolean
-    onClick?: () => void
+    disabled?: boolean | undefined
+    onClick?: (() => void) | undefined
     type?: JSX.ButtonHTMLAttributes<HTMLButtonElement>['type']
     classes?: {
         root?: string

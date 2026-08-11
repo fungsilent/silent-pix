@@ -26,4 +26,40 @@ export const taskApi = {
 
         return data
     },
+
+    async create(request: TaskApi.CreateTaskRequest): Promise<TaskApi.CreateTaskResponse> {
+        const { data, error } = await apiClient.api.task.post(request)
+
+        if (error) {
+            const { code, message } = error.value.error
+
+            throw new ApiError(error.status, code, message)
+        }
+
+        return data
+    },
+
+    async listSamplers(): Promise<TaskApi.GetSamplersResponse> {
+        const { data, error } = await apiClient.api.task.sampler.get()
+
+        if (error) {
+            const { code, message } = error.value.error
+
+            throw new ApiError(error.status, code, message)
+        }
+
+        return data
+    },
+
+    async listLoras(): Promise<TaskApi.GetLorasResponse> {
+        const { data, error } = await apiClient.api.task.lora.get()
+
+        if (error) {
+            const { code, message } = error.value.error
+
+            throw new ApiError(error.status, code, message)
+        }
+
+        return data
+    },
 }

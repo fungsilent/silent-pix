@@ -74,13 +74,7 @@ export function buildComfyPrompt(
 }
 
 function toGeneratorInput(taskConfig: GenerateConfig): GeneratorInput {
-    const seed = !taskConfig.config.seed
-        ? createRandomSeed()
-        : Number(taskConfig.config.seed)
-
-    if (!Number.isSafeInteger(seed) || seed < 0) {
-        throw new ComfyPromptError('Task seed must be a non-negative safe integer.')
-    }
+    const seed = Number(resolveSeed(taskConfig.config.seed))
 
     return {
         seed,
@@ -104,6 +98,16 @@ function toGeneratorInput(taskConfig: GenerateConfig): GeneratorInput {
             other: 1,
         }))),
     }
+}
+
+export function resolveSeed(value: string | null): string {
+    const seed = !value ? createRandomSeed() : Number(value)
+
+    if (!Number.isSafeInteger(seed) || seed < 0) {
+        throw new ComfyPromptError('Task seed must be a non-negative safe integer.')
+    }
+
+    return String(seed)
 }
 
 function createRandomSeed(): number {

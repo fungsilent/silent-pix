@@ -35,13 +35,13 @@
 
 ## Current Task API Scope
 
-- The current task API trial implements only `GET /api/task` and frontend `taskApi.list()`.
-- The explicitly requested `task.changed` notification is allowed; other task lifecycle events and persistence features remain out of scope unless explicitly requested.
+- The task API exposes list, detail, create, image, sampler, and LoRA endpoints through the shared contracts and frontend `taskApi` wrapper.
+- `task.created` announces new tasks to clients other than the creator; `task.changed` carries realtime lifecycle updates to all clients. Other task lifecycle events remain out of scope unless explicitly requested.
 - Backend mock task-list data is non-durable and must satisfy the shared Zod response schema.
 - Use stable opaque task IDs consistently across backend fixtures and temporary frontend fixtures; do not add frontend ID translation.
 - TanStack Query owns task-list pages, loading, errors, fetch state, and pagination state.
 - Do not copy Query data into a Solid store. The task store may own frontend choices such as `selectedTaskId` only.
-- REST is the source of truth for task-list data.
+- REST provides initial and recovery synchronization. A successful task-create response seeds the originating client's feed and detail caches; `task.created` inserts tasks for other clients and `task.changed` updates existing cache entries.
 
 ## Web UI and State
 
@@ -63,6 +63,7 @@
 - Backend is the source of truth for durable state. Frontend state is UI state only.
 - WebSocket event contracts live under `packages/shared/src/event`, divided by domain module.
 - The server validates every outbound event through the shared aggregate schema before broadcast.
-- WebSocket events are notifications only; the web invalidates REST queries instead of treating event payloads as source-of-truth data.
+- Each web client uses one UUID for its WebSocket `clientId` query and task-create `x-event-client-id` header. Server-side broadcast filters exclude the creator from `task.created`.
+- `task.created` and `task.changed` carry the task fields required by list and detail caches. Created events idempotently insert feed entries, changed events patch existing entries, and the web invalidates task queries once after WebSocket reconnection to recover missed events.
 - Store image files on the filesystem and metadata in SQLite. Do not store image binary data in SQLite.
 - Do not assume cwd is repo root. Resolve runtime paths explicitly and keep production app data overrides possible.

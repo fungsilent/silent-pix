@@ -1,16 +1,25 @@
-import { createEffect, Show } from 'solid-js'
+import { createEffect, createSignal, Show } from 'solid-js'
 
-import { useTaskDetailQuery } from '#/features/task/task.query'
+import { ApiError } from '#/api/client'
+import { useCreateTaskMutation, useTaskDetailQuery } from '#/features/task/task.query'
 import { TaskDetail } from '#/pages/generate/components/config/TaskDetail'
 import { TaskList } from '#/pages/generate/components/task/TaskList'
 import { Workspace } from '#/pages/generate/components/workspace/Workspace'
-import { createGenerateStore, draftTask, GenerateSchema, GenerateStoreProvider, toGenerateValues } from '#/pages/generate/store'
+import {
+    createGenerateStore,
+    draftTask,
+    generateSchema,
+    GenerateStoreProvider,
+    toCreateTaskRequest,
+    toGenerateValues,
+} from '#/pages/generate/store'
 import { taskStore } from '#/store/task'
 
-import type { GenerateValues } from '#/pages/generate/store'
 
 export function GeneratePage() {
     const taskDetailQuery = useTaskDetailQuery(() => taskStore.state.selectedTaskId)
+    const createTaskMutation = useCreateTaskMutation()
+    const [submitError, setSubmitError] = createSignal<string>()
     const activeTask = () => taskStore.state.selectedTaskId
         ? taskDetailQuery.data
         : draftTask
@@ -24,20 +33,24 @@ export function GeneratePage() {
         }
     })
 
-    const handleGenerate = (values: GenerateValues) => {
-        console.log('Generate form submit', values)
-    }
-
     const handleSubmit = async (event: SubmitEvent) => {
         event.preventDefault()
+        setSubmitError()
 
-        const result = GenerateSchema.safeParse(generateStore.state.values)
+        const result = generateSchema.safeParse(generateStore.state.values)
 
         if (!result.success) {
+            setSubmitError(result.error.issues[0]?.message ?? 'Please check the form values.')
             return
         }
 
-        await Promise.resolve(handleGenerate(result.data))
+        try {
+            const response = await createTaskMutation.mutateAsync(toCreateTaskRequest(result.data))
+            taskStore.selectTask(response.id)
+        }
+        catch (error) {
+            setSubmitError(getSubmitError(error))
+        }
     }
 
     return (
@@ -57,7 +70,11 @@ export function GeneratePage() {
                 >
                     {task => (
                         <>
-                            <Workspace task={task()} />
+                            <Workspace
+                                task={task()}
+                                isSubmitting={createTaskMutation.isPending}
+                                submitError={submitError()}
+                            />
                             <TaskDetail task={task()} />
                         </>
                     )}
@@ -65,4 +82,21 @@ export function GeneratePage() {
             </form>
         </GenerateStoreProvider>
     )
+}
+
+function getSubmitError(error: unknown): string {
+    if (error instanceof ApiError) {
+        switch (error.code) {
+            case 'WORKFLOW_NOT_FOUND':
+                return 'Workflow is no longer available. Refresh and select it again.'
+            default:
+                return error.message || 'Failed to create task.'
+        }
+    }
+
+    if (error instanceof Error && error.message) {
+        return error.message
+    }
+
+    return 'Failed to create task. Please try again.'
 }

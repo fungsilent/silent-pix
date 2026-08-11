@@ -1,18 +1,28 @@
-import { useInfiniteQuery, useQuery } from '@tanstack/solid-query'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/solid-query'
 
 import { taskApi } from '#/api/task'
+import { workflowApi } from '#/api/workflow'
+import { cacheCreatedTaskResponse } from '#/features/task/task.cache'
+import { taskKeys } from '#/features/task/task.key'
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { Accessor } from 'solid-js'
 
 const taskFeedLimit = 30
 
-export const taskKeys = {
-    all: ['tasks'] as const,
-    feeds: () => [...taskKeys.all, 'feed'] as const,
-    feed: (input: TaskApi.GetTasksQuery) => [...taskKeys.feeds(), input] as const,
-    details: () => [...taskKeys.all, 'detail'] as const,
-    detail: (request: TaskApi.GetTaskRequest) => [...taskKeys.details(), request] as const,
+export const workflowKeys = {
+    all: ['workflows'] as const,
+    list: () => [...workflowKeys.all, 'list'] as const,
+}
+
+export const samplerKeys = {
+    all: ['samplers'] as const,
+    list: () => [...samplerKeys.all, 'list'] as const,
+}
+
+export const loraKeys = {
+    all: ['loras'] as const,
+    list: () => [...loraKeys.all, 'list'] as const,
 }
 
 export function useTaskFeedQuery() {
@@ -48,4 +58,37 @@ export function useTaskDetailQuery(taskId: Accessor<string | undefined>) {
             },
         }
     })
+}
+
+export function useWorkflowListQuery() {
+    return useQuery(() => ({
+        queryKey: workflowKeys.list(),
+        queryFn: () => workflowApi.list(),
+    }))
+}
+
+export function useSamplerListQuery() {
+    return useQuery(() => ({
+        queryKey: samplerKeys.list(),
+        queryFn: () => taskApi.listSamplers(),
+    }))
+}
+
+export function useLoraListQuery(enabled: Accessor<boolean>) {
+    return useQuery(() => ({
+        queryKey: loraKeys.list(),
+        enabled: enabled(),
+        queryFn: () => taskApi.listLoras(),
+    }))
+}
+
+export function useCreateTaskMutation() {
+    const queryClient = useQueryClient()
+
+    return useMutation(() => ({
+        mutationFn: (request: TaskApi.CreateTaskRequest) => taskApi.create(request),
+        onSuccess: task => {
+            cacheCreatedTaskResponse(queryClient, task)
+        },
+    }))
 }

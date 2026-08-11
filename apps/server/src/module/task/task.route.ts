@@ -10,7 +10,7 @@ import { comfyMiddleware } from '#/middleware/comfy'
 import { databaseMiddleware } from '#/middleware/database'
 import { eventMiddleware } from '#/middleware/event'
 import { taskService } from '#/module/task/task.service'
-import { contentType, imageUrl } from '#/module/task/task.util'
+import { contentType } from '#/module/task/task.util'
 
 const storageRoot = resolve(loadConfig().appStorageDir)
 
@@ -48,7 +48,16 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
         async ({ body, database, comfyClient, pushEvent, status }) => {
             const creation = await taskService.create(database, body)
             if (!creation.ok) {
-                return status(404, {
+                if (creation.error === 'WORKFLOW_NOT_FOUND') {
+                    return status(404, {
+                        error: {
+                            code: creation.error,
+                            message: 'Workflow not found.',
+                        },
+                    })
+                }
+
+                return status(500, {
                     error: {
                         code: creation.error,
                         message: 'Failed to create task.',
@@ -56,13 +65,14 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
                 })
             }
 
+            const createdTask = await taskService.getTaskResponse(database, creation.data.id)
+            if (!createdTask) {
+                throw new Error('Created task could not be loaded.')
+            }
+
             void taskService.generate(database, comfyClient, creation.data.id, pushEvent)
 
-            return status(201, {
-                id: creation.data.id,
-                status: creation.data.status,
-                createdAt: creation.data.createdAt.toISOString(),
-            })
+            return status(201, createdTask)
         },
         {
             body: taskApi.createTaskRequest,
@@ -129,11 +139,11 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
     .get(
         '/:taskId',
         async ({ database, params, status }) => {
-            const item = await taskService.findTask(database, toUUID(params.taskId, 'taskId'), {
-                includeWorkflow: true,
-                includeImage: true,
-            })
-            if (!item) {
+            const task = await taskService.getTaskResponse(
+                database,
+                toUUID(params.taskId, 'taskId'),
+            )
+            if (!task) {
                 return status(404, {
                     error: {
                         code: 'TASK_NOT_FOUND',
@@ -142,23 +152,45 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
                 })
             }
 
-            return {
-                id: item.task.id,
-                name: item.task.name,
-                status: item.task.status,
-                createdAt: item.task.createdAt.toISOString(),
-                workflow: item.workflow.name,
-                config: item.task.config.config,
-                lora: item.task.config.lora,
-                prompt: item.task.config.prompt,
-                images: item.images.map(image => imageUrl(item.task.id, image.filename)),
-            }
+            return task
         },
         {
             params: taskApi.getTaskRequest,
             response: {
                 200: taskApi.getTaskResponse,
                 404: appApi.errorResponse,
+                422: appApi.errorResponse,
+                500: appApi.errorResponse,
+            },
+        },
+    )
+    .get(
+        '/lora',
+        async ({ comfyClient }) => {
+            const options = await taskService.loraList(comfyClient)
+            return {
+                options,
+            }
+        },
+        {
+            response: {
+                200: taskApi.getLorasResponse,
+                422: appApi.errorResponse,
+                500: appApi.errorResponse,
+            },
+        },
+    )
+    .get(
+        '/sampler',
+        async ({ comfyClient }) => {
+            const options = await taskService.samplerList(comfyClient)
+            return {
+                options
+            }
+        },
+        {
+            response: {
+                200: taskApi.getSamplersResponse,
                 422: appApi.errorResponse,
                 500: appApi.errorResponse,
             },

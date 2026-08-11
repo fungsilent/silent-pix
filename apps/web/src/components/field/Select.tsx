@@ -12,6 +12,7 @@ type SelectProps = {
     label: string
     options: SelectOption[]
     value: string
+    disabled?: boolean | undefined
     onChange?: (value: string) => void
     classes?: {
         root?: string
@@ -31,6 +32,7 @@ export function Select(props: SelectProps) {
         <ArkSelect.Root
             collection={collection()}
             value={[props.value]}
+            disabled={props.disabled}
             onValueChange={details => {
                 const value = details.value[0]
 
@@ -46,7 +48,7 @@ export function Select(props: SelectProps) {
             <ArkSelect.Control>
                 <ArkSelect.Trigger
                     class={clsx(
-                        'flex h-8 w-full min-w-0 items-center justify-between gap-2 rounded-md border border-[#35445a] bg-[#101721] px-3 text-left text-sm leading-none text-white outline-none focus:border-blue-500',
+                        'flex h-8 w-full min-w-0 items-center justify-between gap-2 rounded-md border border-[#35445a] bg-[#101721] px-3 text-left text-sm leading-none text-white outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-60',
                         props.classes?.trigger,
                     )}
                 >
@@ -95,5 +97,3 @@ export function Select(props: SelectProps) {
         </ArkSelect.Root>
     )
 }
-
-

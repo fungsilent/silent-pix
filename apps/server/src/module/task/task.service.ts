@@ -12,7 +12,7 @@ import { and, desc, eq, inArray } from 'drizzle-orm'
 
 import { loadConfig } from '#/config'
 import { ComfyError } from '#/lib/comfy/comfy.client'
-import { buildComfyPrompt, type GenerateConfig } from '#/lib/comfy/comfy.prompt'
+import { buildComfyPrompt, type GenerateConfig, resolveSeed } from '#/lib/comfy/comfy.prompt'
 import { done, fail } from '#/lib/service-result'
 import { taskChanged } from '#/module/task/task.event'
 import { castTaskImageModel, castTaskModel, castWorkflowModel } from '#/module/task/task.model'
@@ -31,7 +31,7 @@ type TaskCursor = { createdAt: string, id: string }
 type CompletedTaskImage = { imageId: UUID, path: string, filename: string }
 
 export const taskService = {
-    // CRUD
+    // MARK: CRUD
     async findTask<HasWorkflow extends boolean = false, HasImages extends boolean = false>(
         database: DatabaseClient,
         taskId: UUID,
@@ -83,6 +83,33 @@ export const taskService = {
         }
     },
 
+    async getTaskResponse(
+        database: DatabaseClient,
+        taskId: UUID,
+    ): Promise<TaskApi.GetTaskResponse | undefined> {
+        const item = await taskService.findTask(database, taskId, {
+            includeWorkflow: true,
+            includeImage: true,
+        })
+
+        if (!item) {
+            return undefined
+        }
+
+        return {
+            id: item.task.id,
+            name: item.task.name,
+            status: item.task.status,
+            createdAt: item.task.createdAt.toISOString(),
+            workflowId: item.task.workflowId,
+            workflow: item.workflow.name,
+            config: item.task.config.config,
+            lora: item.task.config.lora,
+            prompt: item.task.config.prompt,
+            images: item.images.map(image => imageUrl(item.task.id, image.filename)),
+        }
+    },
+
     async updateTask(
         database: DatabaseClient,
         task: TaskUpdate,
@@ -106,7 +133,7 @@ export const taskService = {
             ))
     },
 
-    // Service
+    // MARK: Service
     async create(database: DatabaseClient, request: TaskApi.CreateTaskRequest) {
         const workflowId = toUUID(request.workflowId, 'workflowId')
         const [workflow] = await database.db
@@ -118,7 +145,10 @@ export const taskService = {
 
         const createdAt = Date.now()
         const config: GenerateConfig = {
-            config: request.config,
+            config: {
+                ...request.config,
+                seed: resolveSeed(request.config.seed),
+            },
             lora: request.lora,
             prompt: request.prompt,
         }
@@ -201,6 +231,25 @@ export const taskService = {
         })
     },
 
+    async publishChanged(
+        database: DatabaseClient,
+        taskId: UUID,
+        pushEvent: PushEvent,
+    ): Promise<void> {
+        const item = await taskService.findTask(database, taskId, { includeImage: true })
+
+        if (!item) {
+            return
+        }
+
+        pushEvent(taskChanged({
+            id: item.task.id,
+            status: item.task.status,
+            createdAt: item.task.createdAt.toISOString(),
+            images: item.images.map(image => imageUrl(item.task.id, image.filename)),
+        }))
+    },
+
     async generate(
         database: DatabaseClient,
         client: ComfyClient,
@@ -238,14 +287,21 @@ export const taskService = {
                         {
                             limtedStatus: ['queued']
                         })
-                    pushEvent(taskChanged(taskId))
+                    await taskService.publishChanged(database, taskId, pushEvent)
                 },
             })
             const outputImages = Object.values(result.history.outputs ?? {})
                 .flatMap(output => output.images ?? [])
 
             if (!outputImages.length) {
-                return fail('COMFY_OUTPUT_MISSING')
+                await taskService.fail(
+                    database,
+                    taskId,
+                    'COMFY_OUTPUT_MISSING',
+                    'ComfyUI did not return any output images.',
+                    pushEvent,
+                )
+                return
             }
 
             const taskDirectory = resolve(config.appStorageDir, 'tasks', taskId)
@@ -273,16 +329,14 @@ export const taskService = {
             console.error(`Task ${taskId} generationn failed.`, error)
 
             await Promise.allSettled(savedFiles.map(path => unlink(path)))
-            if (error instanceof ComfyError) {
-                await taskService.fail(database, taskId, error.code, error.message, pushEvent)
-                return
-            }
+            const code = error instanceof ComfyError
+                ? error.code
+                : 'TASK_GENERATE_ERROR'
+            const message = error instanceof Error
+                ? error.message
+                : 'An unexpected task generation error occurred.'
 
-            if (error instanceof Error) {
-                await taskService.fail(database, taskId, 'TASK_GENERATE_ERROR', error.message, pushEvent)
-                return
-            }
-
+            await taskService.fail(database, taskId, code, message, pushEvent)
         }
     },
 
@@ -314,7 +368,7 @@ export const taskService = {
                 .run()
         })
 
-        pushEvent(taskChanged(taskId))
+        await taskService.publishChanged(database, taskId, pushEvent)
     },
 
     async fail(
@@ -335,7 +389,7 @@ export const taskService = {
             {
                 limtedStatus: ['queued', 'running'],
             })
-        pushEvent(taskChanged(taskId))
+        await taskService.publishChanged(database, taskId, pushEvent)
     },
 
     findImage(database: DatabaseClient, request: TaskApi.GetTaskImageRequest) {
@@ -350,6 +404,33 @@ export const taskService = {
                 eq(taskImages.filename, request.filename),
             ))
             .get()
+    },
+    // MARK: Option
+    async samplerList(comfyClient: ComfyClient) {
+        const comfySamplers = new Set(await comfyClient.getSamplerNames())
+        const allowSamplers = new Set([
+            'er_sde',
+            'euler_a',
+            'dpmpp_2m_sde_gpu',
+            'euler'
+        ])
+        const availableSamplers = [...allowSamplers]
+            .filter(sampler => comfySamplers.has(sampler))
+            .map(sampler => ({
+                label: sampler,
+                value: sampler,
+            }))
+        return availableSamplers
+    },
+
+    async loraList(comfyClient: ComfyClient) {
+        const names = [...new Set(await comfyClient.getLoraNames())]
+            .sort((left, right) => left < right ? -1 : left > right ? 1 : 0)
+
+        return names.map(name => ({
+            label: name,
+            value: name,
+        }))
     },
 }
 

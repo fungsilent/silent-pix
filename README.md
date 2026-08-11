@@ -51,7 +51,7 @@ Rules:
 - Frontend must not access SQLite directly.
 - SQLite stores durable state and metadata.
 - Filesystem stores images, thumbnails, uploads, and workflow snapshots.
-- WebSocket events are notifications only, not source of truth.
+- Validated WebSocket task snapshots update frontend query caches in realtime; REST restores state after refresh or reconnection.
 
 ---
 

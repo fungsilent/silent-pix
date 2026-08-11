@@ -5,7 +5,8 @@ import { Pencil } from 'lucide-solid'
 type EditableProps = {
     label: string
     value: string
-    onCommit?: (value: string) => void
+    onChange?: ((value: string) => void) | undefined
+    onCommit?: ((value: string) => void) | undefined
     classes?: {
         root?: string
         area?: string
@@ -20,6 +21,7 @@ export function Editable(props: EditableProps) {
         <ArkEditable.Root
             value={props.value}
             selectOnFocus
+            onValueChange={details => props.onChange?.(details.value)}
             onValueCommit={details => props.onCommit?.(details.value)}
             class={clsx('flex min-w-0 items-center gap-2', props.classes?.root)}
         >
@@ -56,4 +58,3 @@ export function Editable(props: EditableProps) {
         </ArkEditable.Root>
     )
 }
-

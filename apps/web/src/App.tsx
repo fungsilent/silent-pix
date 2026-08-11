@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/solid-query'
 import { createSignal, onCleanup, onMount } from 'solid-js'
 
 import { Header } from '#/components/Header'
+import { taskKeys } from '#/features/task/task.key'
 import { handleServerEvent } from '#/lib/event'
 import { GeneratePage } from '#/pages/generate/GeneratePage'
 
@@ -15,9 +16,25 @@ export function App() {
     const [lastEventTime, setLastEventTime] = createSignal<string>('None')
 
     onMount(() => {
+        let hasConnected = false
         const eventClient = createEventClient<Event.ServerEvent>({
             url: createSameOriginEventsUrl(),
-            onStatusChange: setConnectionStatus,
+            onStatusChange: status => {
+                setConnectionStatus(status)
+
+                if (status !== 'connected') {
+                    return
+                }
+
+                if (hasConnected) {
+                    void queryClient.invalidateQueries({
+                        queryKey: taskKeys.all,
+                    })
+                    return
+                }
+
+                hasConnected = true
+            },
             onEvent: serverEvent => {
                 setLastEventTime(new Date().toISOString())
                 handleServerEvent(queryClient, serverEvent)
