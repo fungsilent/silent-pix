@@ -16,7 +16,8 @@ export type ComfyHistory = {
 
 type ComfyPromptResponse = {
     prompt_id?: string
-    error?: string
+    error?: unknown
+    node_errors?: unknown
 }
 
 type ComfyHistoryResponse = Record<string, ComfyHistory>
@@ -120,6 +121,76 @@ export class ComfyClient {
         }
 
         return new Uint8Array(await response.arrayBuffer())
+    }
+
+    async getSamplerNames(): Promise<string[]> {
+        const response = await fetch(new URL('object_info/KSampler', this.baseUrl))
+        const body = await readJson<unknown>(response)
+
+        if (!response.ok) {
+            throw new ComfyError(
+                `Comfy object info returned HTTP ${response.status}.`,
+                'COMFY_OBJECT_INFO_ERROR',
+            )
+        }
+
+        const names = readSamplerNames(body)
+        if (!names) {
+            throw new ComfyError(
+                'Comfy KSampler object info does not contain sampler options.',
+                'COMFY_OBJECT_INFO_INVALID',
+            )
+        }
+
+        return names
+    }
+
+    async getLoraNames(): Promise<string[]> {
+        let response: Response
+
+        try {
+            response = await fetch(new URL('models/loras', this.baseUrl))
+        }
+        catch {
+            throw new ComfyError(
+                'Unable to load the Comfy LoRA catalog.',
+                'COMFY_LORA_LIST_ERROR',
+            )
+        }
+
+        let body: unknown
+        try {
+            body = await readJson<unknown>(response)
+        }
+        catch {
+            if (!response.ok) {
+                throw new ComfyError(
+                    `Comfy LoRA list returned HTTP ${response.status}.`,
+                    'COMFY_LORA_LIST_ERROR',
+                )
+            }
+
+            throw new ComfyError(
+                'Comfy LoRA list returned invalid JSON.',
+                'COMFY_LORA_LIST_INVALID',
+            )
+        }
+
+        if (!response.ok) {
+            throw new ComfyError(
+                `Comfy LoRA list returned HTTP ${response.status}.`,
+                'COMFY_LORA_LIST_ERROR',
+            )
+        }
+
+        if (!isStringArray(body)) {
+            throw new ComfyError(
+                'Comfy LoRA list has an invalid response shape.',
+                'COMFY_LORA_LIST_INVALID',
+            )
+        }
+
+        return body
     }
 
     close(): void {
@@ -373,7 +444,7 @@ export class ComfyClient {
 
         if (!response.ok || body.error) {
             throw new ComfyError(
-                body.error ?? `Comfy prompt returned HTTP ${response.status}.`,
+                formatComfyError(body.error ?? body.node_errors ?? `Comfy prompt returned HTTP ${response.status}.`),
                 'COMFY_PROMPT_ERROR',
             )
         }
@@ -410,6 +481,56 @@ async function readJson<T>(response: Response): Promise<T> {
     catch {
         throw new ComfyError('Comfy returned invalid JSON.', 'COMFY_INVALID_RESPONSE')
     }
+}
+
+function formatComfyError(value: unknown): string {
+    if (typeof value === 'string') {
+        return value
+    }
+
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+        const record = value as Record<string, unknown>
+        const message = typeof record.message === 'string' ? record.message : undefined
+        const details = typeof record.details === 'string' ? record.details : undefined
+        const type = typeof record.type === 'string' ? record.type : undefined
+        const summary = [type, message, details].filter(Boolean).join(': ')
+
+        if (summary) {
+            return summary
+        }
+    }
+
+    try {
+        return JSON.stringify(value)
+    }
+    catch {
+        return 'Comfy returned an unknown prompt error.'
+    }
+}
+
+function readSamplerNames(value: unknown): string[] | undefined {
+    if (!isRecord(value)) return undefined
+
+    const kSampler = value.KSampler
+    if (!isRecord(kSampler) || !isRecord(kSampler.input) || !isRecord(kSampler.input.required)) {
+        return undefined
+    }
+
+    const samplerName = kSampler.input.required.sampler_name
+    if (!Array.isArray(samplerName) || !Array.isArray(samplerName[0])) {
+        return undefined
+    }
+
+    const names = samplerName[0].filter((name): name is string => typeof name === 'string')
+    return names.length ? names : undefined
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function isStringArray(value: unknown): value is string[] {
+    return Array.isArray(value) && value.every(item => typeof item === 'string')
 }
 
 function parseJson<T>(value: string): T | undefined {

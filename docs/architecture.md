@@ -11,7 +11,7 @@ SQLite     = durable state and metadata
 Filesystem = images, uploads, thumbnails, workflow snapshots
 Memory     = active runtime state only
 REST       = actions and queries
-Realtime   = notifications only
+Realtime   = validated cache-update snapshots
 Frontend   = UI state only
 ComfyUI    = execution backend only
 ```
@@ -328,21 +328,23 @@ WebSocket foundation:
 - endpoint: GET /api/event
 - local clients only
 - server events only
-- current business notification: `task.changed` with only `taskId`
+- current business notification: `task.changed` with task lifecycle snapshot fields
 - server validates every outbound event through `event.serverEvent.parse()` before broadcast
 - connection state comes from WebSocket open, close, and reconnect lifecycle callbacks
 ```
 
-Realtime is never the durable source of truth.
+Realtime is not durable; SQLite remains authoritative and REST restores missed state.
 
 Current frontend event usage:
 
 ```txt
 - App.tsx owns the local server-event client lifecycle
 - `apps/web/src/lib/event.ts` dispatches decoded `Event.ServerEvent` values
-- `task.changed` invalidates the complete `taskKeys.all` TanStack Query namespace
+- a successful `POST /api/task` response seeds the local feed and detail caches before task selection
+- `task.changed` patches matching task feed and detail cache data without another request
+- a WebSocket reconnection invalidates `taskKeys.all` once to recover events missed while disconnected
 - Header may display connection status
-- generate task UI reads authoritative task data from REST; event payloads are notifications only
+- generate task UI initializes from REST and applies server-validated realtime snapshots
 ```
 
 ---

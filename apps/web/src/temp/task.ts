@@ -170,7 +170,7 @@ export const tasksDetail: TaskDetail[] = [
             width: 768,
             height: 1024,
             batch: 1,
-            sampler: 'dpmpp-2m-karras',
+            sampler: 'dpmpp_2m_sde_gpu',
         },
         lora: loraItems,
         prompt,
@@ -189,7 +189,7 @@ export const tasksDetail: TaskDetail[] = [
             width: 832,
             height: 1216,
             batch: 1,
-            sampler: 'euler-a',
+            sampler: 'euler',
         },
         lora: loraItems,
         prompt,
@@ -208,7 +208,7 @@ export const tasksDetail: TaskDetail[] = [
             width: 1024,
             height: 1280,
             batch: 1,
-            sampler: 'dpmpp-2m-karras',
+            sampler: 'dpmpp_2m_sde_gpu',
         },
         lora: loraItems,
         prompt,
@@ -227,7 +227,7 @@ export const tasksDetail: TaskDetail[] = [
             width: 1152,
             height: 896,
             batch: 1,
-            sampler: 'euler-a',
+            sampler: 'euler',
         },
         lora: loraItems,
         prompt,
@@ -246,7 +246,7 @@ export const tasksDetail: TaskDetail[] = [
             width: 1344,
             height: 768,
             batch: 3,
-            sampler: 'dpmpp-2m-karras',
+            sampler: 'dpmpp_2m_sde_gpu',
         },
         lora: loraItems,
         prompt,
@@ -264,17 +264,4 @@ export const workflows = [
         value: 'portrait-base-v08',
     },
 ]
-
-export const samplers = [
-    {
-        label: 'DPM++ 2M Karras',
-        value: 'dpmpp-2m-karras',
-    },
-    {
-        label: 'Euler a',
-        value: 'euler-a',
-    },
-]
-
-
 

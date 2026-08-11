@@ -30,16 +30,42 @@ export const taskLora = z.object({
 export type TaskLora = z.output<typeof taskLora>
 
 export const taskConfig = z.object({
-    seed: z.string().nullable(),
-    steps: z.number(),
-    cfg: z.number(),
-    width: z.number(),
-    height: z.number(),
-    batch: z.number(),
-    sampler: z.string(),
+    seed: z.string().trim().min(1).max(64),
+    steps: z.number().int().min(1).max(100),
+    cfg: z.number().finite().min(0).max(100),
+    width: z.number().int().min(64).max(4096),
+    height: z.number().int().min(64).max(4096),
+    batch: z.number().int().min(1).max(16),
+    sampler: z.string().trim().min(1).max(120),
 })
 
 export type TaskConfig = z.output<typeof taskConfig>
+
+export const samplerOption = z.object({
+    label: z.string().trim().min(1).max(120),
+    value: z.string().trim().min(1).max(120),
+})
+
+export type SamplerOption = z.output<typeof samplerOption>
+
+export const getSamplersResponse = z.object({
+    options: z.array(samplerOption),
+})
+
+export type GetSamplersResponse = z.output<typeof getSamplersResponse>
+
+export const loraOption = z.object({
+    label: z.string().min(1),
+    value: z.string().min(1),
+})
+
+export type LoraOption = z.output<typeof loraOption>
+
+export const getLorasResponse = z.object({
+    options: z.array(loraOption),
+})
+
+export type GetLorasResponse = z.output<typeof getLorasResponse>
 
 export const getTasksQuery = z.object({
     cursor: z.string().max(512).optional(),
@@ -69,6 +95,7 @@ export const getTaskResponse = z.object({
     name: z.string(),
     status: taskStatus,
     createdAt: z.iso.datetime(),
+    workflowId: z.uuid().optional(),
     workflow: z.string(),
     config: taskConfig,
     lora: z.array(taskLora),
@@ -82,9 +109,11 @@ export const getTaskResponse = z.object({
 export type GetTaskResponse = z.output<typeof getTaskResponse>
 
 export const createTaskRequest = z.object({
-    name: z.string().min(1).max(120),
+    name: z.string().trim().max(120),
     workflowId: z.uuid(),
-    config: taskConfig,
+    config: taskConfig.extend({
+        seed: taskConfig.shape.seed.nullable()
+    }),
     lora: z.array(taskLora),
     prompt: z.object({
         positive: z.array(taskPromptTag),
@@ -94,13 +123,9 @@ export const createTaskRequest = z.object({
 
 export type CreateTaskRequest = z.output<typeof createTaskRequest>
 
-export const createTaskResponse = z.object({
-    id: z.uuid(),
-    status: taskStatus,
-    createdAt: z.iso.datetime(),
-})
+export const createTaskResponse = getTaskResponse
 
-export type CreateTaskResponse = z.output<typeof createTaskResponse>
+export type CreateTaskResponse = GetTaskResponse
 
 export const getTaskImageRequest = z.object({
     taskId: z.uuid(),

@@ -6,6 +6,7 @@ import { loadConfig } from '#/config'
 import { errorCatchMiddleware } from '#/middleware/error-catch'
 import { appRoutes } from '#/module/app/app.route'
 import { taskRoutes } from '#/module/task/task.route'
+import { workflowRoutes } from '#/module/workflow/workflow.route'
 
 export async function createApp() {
     const env = loadConfig()
@@ -35,7 +36,8 @@ export async function createApp() {
             '/api',
             app => app
                 .use(appRoutes)
-                .use(taskRoutes),
+                .use(taskRoutes)
+                .use(workflowRoutes),
         )
 }
 

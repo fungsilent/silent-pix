@@ -1,12 +1,14 @@
 import { Plus, X } from 'lucide-solid'
-import { For } from 'solid-js'
+import { createSignal, For } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { Number, Slider } from '#/components/field'
+import { LoraDialog } from '#/pages/generate/components/config/LoraDialog'
 import { useGenerateStore } from '#/pages/generate/store'
 
 export function TaskLora() {
     const store = useGenerateStore()
+    const [dialogOpen, setDialogOpen] = createSignal(false)
 
     return (
         <section class='flex flex-col gap-2 pt-1'>
@@ -64,8 +66,9 @@ export function TaskLora() {
             </div>
 
             <Button
+                type='button'
                 classes={{ root: 'h-7 border-blue-500/70 bg-blue-500/10 p-0 text-blue-300' }}
-                onClick={store.addLora}
+                onClick={() => setDialogOpen(true)}
             >
                 <Plus
                     size={13}
@@ -74,6 +77,10 @@ export function TaskLora() {
                 />
                 <span class='text-sm leading-none'>Add LoRA</span>
             </Button>
+            <LoraDialog
+                open={dialogOpen()}
+                onOpenChange={setDialogOpen}
+            />
         </section>
     )
 }

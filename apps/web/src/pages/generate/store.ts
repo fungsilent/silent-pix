@@ -7,36 +7,39 @@ import type { TaskApi } from '@silent-pix/shared'
 import type { JSX } from 'solid-js'
 import type { z as zod } from 'zod'
 
-const PromptTagSchema = z.object({
-    id: z.string(),
-    label: z.string(),
+const promptTagSchema = z.object({
+    id: z.string().min(1),
+    label: z.string().min(1),
     text: z.string(),
 })
 
-const LoraSchema = z.object({
-    id: z.string(),
-    name: z.string(),
-    weight: z.number(),
+const loraSchema = z.object({
+    id: z.string().min(1),
+    name: z.string().min(1),
+    weight: z.number().finite().min(0).max(2),
 })
 
-export const GenerateSchema = z.object({
-    cfg: z.number(),
-    height: z.number(),
-    lora: z.array(LoraSchema),
-    negative: z.array(PromptTagSchema),
-    positive: z.array(PromptTagSchema),
-    sampler: z.string(),
-    seed: z.string(),
-    steps: z.number(),
-    width: z.number(),
-    workflow: z.string(),
+export const generateSchema = z.object({
+    name: z.string().trim().max(120),
+    workflowId: z.uuid(),
+    cfg: z.number().finite().min(0).max(100),
+    height: z.number().int().min(64).max(4096),
+    lora: z.array(loraSchema),
+    negative: z.array(promptTagSchema),
+    positive: z.array(promptTagSchema),
+    sampler: z.string().trim().min(1).max(120),
+    seed: z.string().max(64),
+    steps: z.number().int().min(1).max(100),
+    width: z.number().int().min(64).max(4096),
+    batch: z.number().int().min(1).max(16),
 })
 
-export type GenerateValues = zod.infer<typeof GenerateSchema>
+export type GenerateValues = zod.infer<typeof generateSchema>
 
-export type GenerateTask = Omit<TaskApi.GetTaskResponse, 'createdAt' | 'status'> & {
-    createdAt: string | null
-    status: TaskApi.TaskStatus | null
+export type GenerateTask = Omit<TaskApi.GetTaskResponse, 'createdAt' | 'status' | 'config'> & {
+    createdAt: TaskApi.GetTaskResponse['createdAt'] | null
+    status: TaskApi.GetTaskResponse['status'] | null
+    config: TaskApi.CreateTaskRequest['config']
 }
 
 export const draftTask: GenerateTask = {
@@ -44,15 +47,15 @@ export const draftTask: GenerateTask = {
     name: '',
     status: null,
     createdAt: null,
-    workflow: 'anime-xl-v1',
+    workflow: '',
     config: {
-        seed: '',
+        seed: null,
         steps: 40,
         cfg: 4,
         width: 1536,
         height: 1536,
         batch: 1,
-        sampler: 'dpmpp-2m-karras',
+        sampler: 'dpmpp_2m_sde_gpu',
     },
     lora: [],
     prompt: {
@@ -80,27 +83,64 @@ type GenerateState = {
 }
 
 const configKeys = [
-    'workflow',
+    'workflowId',
     'seed',
     'steps',
     'cfg',
     'width',
     'height',
+    'batch',
     'sampler',
 ] as const
 
 export const toGenerateValues = (task: GenerateTask): GenerateValues => ({
+    name: task.name,
     cfg: task.config.cfg,
     height: task.config.height,
     lora: task.lora.map(lora => ({ ...lora })),
     negative: task.prompt.negative.map(tag => ({ ...tag })),
     positive: task.prompt.positive.map(tag => ({ ...tag })),
-    sampler: task.config.sampler,
+    sampler: normalizeSampler(task.config.sampler),
     seed: '',
     steps: task.config.steps,
     width: task.config.width,
-    workflow: task.workflow,
+    batch: task.config.batch,
+    workflowId: task.workflowId ?? '',
 })
+
+function normalizeSampler(value: string): string {
+    switch (value) {
+        case 'dpmpp-2m-karras':
+            return 'dpmpp_2m_sde_gpu'
+        case 'euler-a':
+            return 'euler'
+        default:
+            return value
+    }
+}
+
+export function toCreateTaskRequest(values: GenerateValues): TaskApi.CreateTaskRequest {
+    const seed = values.seed.trim()
+
+    return {
+        name: values.name.trim(),
+        workflowId: values.workflowId,
+        config: {
+            seed: seed === '' ? null : seed,
+            steps: values.steps,
+            cfg: values.cfg,
+            width: values.width,
+            height: values.height,
+            batch: values.batch,
+            sampler: normalizeSampler(values.sampler.trim()),
+        },
+        lora: values.lora,
+        prompt: {
+            positive: values.positive,
+            negative: values.negative,
+        },
+    }
+}
 
 const cloneGenerateValues = (values: GenerateValues): GenerateValues => ({
     ...values,
@@ -121,10 +161,6 @@ export function createGenerateStore(initialValues: GenerateValues) {
             store.set('values', key, value)
         },
 
-        // reset() {
-        //     store.set('values', cloneGenerateValues(store.state.initialValues))
-        // },
-
         loadTask(task: GenerateTask) {
             const values = toGenerateValues(task)
             store.set({
@@ -141,15 +177,21 @@ export function createGenerateStore(initialValues: GenerateValues) {
         },
 
         /* LoRA */
-        addLora() {
+        addLora(name: string) {
+            if (!name || store.state.values.lora.some(lora => lora.name === name)) {
+                return false
+            }
+
             store.set('values', 'lora', lora => [
                 ...lora,
                 {
                     id: `lora-${crypto.randomUUID()}`,
-                    name: 'new_lora',
-                    weight: 0.5,
+                    name,
+                    weight: 0.7,
                 },
             ])
+
+            return true
         },
 
         setLoraWeight(id: string, weight: number) {

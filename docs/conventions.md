@@ -180,11 +180,11 @@ Rules:
 - server validates every outbound event before broadcast
 - browser connection helpers live in `packages/event/src/client.ts`
 - Node WebSocket server helpers live in `packages/event/src/server.ts`
-- `task.changed` carries only `taskId`
+- `task.changed` carries fields required to patch existing list and detail query caches
 - no connected, ping, or server_status application messages
 - no DB imports
 - no Hono imports
-- WebSocket events are notifications only; REST remains the source of truth
+- validated WebSocket snapshots update query caches directly; REST provides initial load and reconnect recovery
 ```
 
 ---

@@ -1,5 +1,6 @@
 import { Editable } from '#/components/field/Editable'
 import { TaskStatus } from '#/pages/generate/components/TaskStatus'
+import { useGenerateStore } from '#/pages/generate/store'
 
 import type { GenerateTask } from '#/pages/generate/store'
 import type { JSX } from 'solid-js'
@@ -9,6 +10,8 @@ type TaskInfoProps = {
 }
 
 export function TaskInfo(props: TaskInfoProps) {
+    const store = useGenerateStore()
+
     return (
         <section class='flex flex-col gap-2'>
             <DetailRow label='ID'>
@@ -18,7 +21,9 @@ export function TaskInfo(props: TaskInfoProps) {
             <DetailRow label='Name'>
                 <Editable
                     label='Name'
-                    value={props.task.name}
+                    value={store.state.values.name}
+                    onChange={value => store.setValue('name', value)}
+                    onCommit={value => store.setValue('name', value)}
                     classes={{
                         root: 'w-full',
                     }}

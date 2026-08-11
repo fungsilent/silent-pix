@@ -17,6 +17,8 @@ type PromptGroupState = {
 
 type PromptPanelProps = {
     task: GenerateTask
+    isSubmitting?: boolean | undefined
+    submitError?: string | undefined
 }
 
 
@@ -157,9 +159,10 @@ export function PromptPanel(props: PromptPanelProps) {
                 </div>
                 <Button
                     type='submit'
+                    disabled={props.isSubmitting}
                     classes={{
                         root: clsx(
-                            'inline-flex gap-2 rounded-md bg-blue-500 px-4 font-bold text-white text-sm'
+                            'inline-flex gap-2 rounded-md bg-blue-500 px-4 font-bold text-white text-sm disabled:cursor-not-allowed disabled:opacity-60'
                         )
                     }}
                 >
@@ -167,9 +170,15 @@ export function PromptPanel(props: PromptPanelProps) {
                         size={16}
                         strokeWidth={2.2}
                     />
-                    Generate
+                    {props.isSubmitting ? 'Creating...' : 'Generate'}
                 </Button>
             </div>
+
+            <Show when={props.submitError}>
+                <p class='m-0 border-t border-[#263241] px-3 py-2 text-xs text-red-300'>
+                    {props.submitError}
+                </p>
+            </Show>
 
             {hasPrompt() && (
                 <div class={clsx('border-b border-[#263241]')}/>
