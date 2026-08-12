@@ -13,7 +13,9 @@ export function TaskList() {
     return (
         <Panel
             classes={{
-                root: 'max-[720px]:hidden',
+                // 寬度由內容決定，只用 min/max 夾住合理範圍
+                root: 'w-max border-r border-line max-[720px]:hidden',
+                open: 'min-w-[168px] max-w-[320px]',
             }}
         >
             {panel => (
@@ -29,15 +31,15 @@ export function TaskList() {
                     />
                     <PanelContent
                         classes={{
-                            root: '',
+                            content: 'gap-1 px-2 pt-1 pb-3',
                         }}
                     >
                         <Show when={taskFeedQuery.isLoading}>
-                            <div class='px-3 py-2 text-sm text-fg-muted'>Loading tasks...</div>
+                            <div class='px-1 py-2 text-xs text-fg-muted'>Loading tasks...</div>
                         </Show>
 
                         <Show when={taskFeedQuery.isError}>
-                            <div class='px-3 py-2 text-sm text-red-300'>Failed to load tasks.</div>
+                            <div class='px-1 py-2 text-xs text-red-300'>Failed to load tasks.</div>
                         </Show>
 
                         <For each={tasks()}>
@@ -54,7 +56,7 @@ export function TaskList() {
                         <Show when={taskFeedQuery.hasNextPage}>
                             <Button
                                 classes={{
-                                    root: 'w-full justify-center border-line bg-elevated px-3 py-2 text-sm',
+                                    root: 'mt-1 h-8 w-full justify-center border-transparent bg-transparent px-3 text-xs text-fg-muted',
                                 }}
                                 disabled={taskFeedQuery.isFetchingNextPage}
                                 onClick={() => void taskFeedQuery.fetchNextPage()}

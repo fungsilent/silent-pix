@@ -1,27 +1,22 @@
 import { createEventClient, createSameOriginEventsUrl } from '@silent-pix/event/client'
 import { useQueryClient } from '@tanstack/solid-query'
-import { createSignal, onCleanup, onMount } from 'solid-js'
+import { onCleanup, onMount } from 'solid-js'
 
 import { Header } from '#/components/Header'
 import { taskKeys } from '#/features/task/task.key'
 import { handleServerEvent } from '#/lib/event'
 import { GeneratePage } from '#/pages/generate/GeneratePage'
 
-import type { EventConnectionStatus } from '@silent-pix/event/client'
 import type { Event } from '@silent-pix/shared'
 
 export function App() {
     const queryClient = useQueryClient()
-    const [connectionStatus, setConnectionStatus] = createSignal<EventConnectionStatus>('disconnected')
-    const [lastEventTime, setLastEventTime] = createSignal<string>('None')
 
     onMount(() => {
         let hasConnected = false
         const eventClient = createEventClient<Event.ServerEvent>({
             url: createSameOriginEventsUrl(),
             onStatusChange: status => {
-                setConnectionStatus(status)
-
                 if (status !== 'connected') {
                     return
                 }
@@ -36,7 +31,6 @@ export function App() {
                 hasConnected = true
             },
             onEvent: serverEvent => {
-                setLastEventTime(new Date().toISOString())
                 handleServerEvent(queryClient, serverEvent)
             },
         })
@@ -50,10 +44,7 @@ export function App() {
 
     return (
         <main class='flex flex-col overflow-hidden bg-canvas text-fg'>
-            <Header
-                connectionStatus={connectionStatus()}
-                lastEventTime={lastEventTime()}
-            />
+            <Header />
             <GeneratePage />
         </main>
     )

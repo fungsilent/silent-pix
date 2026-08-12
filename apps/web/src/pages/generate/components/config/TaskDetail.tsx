@@ -14,21 +14,19 @@ export function TaskDetail(props: TaskDetailProps) {
     return (
         <Panel
             classes={{
-                root: 'bg-surface max-[980px]:hidden',
+                root: 'border-l border-line bg-surface max-[980px]:hidden',
                 open: 'w-[290px]',
-                close: 'w-12',
+                close: 'w-10',
             }}
         >
             {panel => (
                 panel.isCollapsed() ? (
-                    <PanelHeader
-                        action={(
-                            <CollapseButton
-                                collapsed={panel.isCollapsed()}
-                                onClick={panel.toggle}
-                            />
-                        )}
-                    />
+                    <div class='flex h-12 items-center justify-center'>
+                        <CollapseButton
+                            collapsed={panel.isCollapsed()}
+                            onClick={panel.toggle}
+                        />
+                    </div>
                 ) : (
                     <div class='flex h-full min-h-0 flex-col'>
                         <PanelHeader

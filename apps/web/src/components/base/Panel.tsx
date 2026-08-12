@@ -3,8 +3,6 @@ import { clsx } from 'clsx'
 import { ChevronsLeft, ChevronsRight } from 'lucide-solid'
 import { createSignal } from 'solid-js'
 
-import { Button } from '#/components/base/Button'
-
 import type { Accessor, JSX } from 'solid-js'
 
 /* MARK: Panel */
@@ -52,7 +50,7 @@ export function Panel(props: PanelProps) {
     return (
         <aside
             class={clsx(
-                'overflow-hidden bg-surface',
+                'flex-none overflow-hidden bg-surface',
                 props.classes?.root,
                 isCollapsed() ? props.classes?.close : props.classes?.open,
             )}
@@ -71,8 +69,9 @@ type PanelHeaderProps = {
 
 export function PanelHeader(props: PanelHeaderProps) {
     return (
-        <div class='flex h-12 items-center justify-between border-b border-line-subtle px-2'>
-            <h2 class='m-0 text-[0.85rem] font-bold leading-none text-fg'>
+        // 無底線：整個版面只留 top bar 底線與欄分隔線
+        <div class='flex h-12 items-center justify-between gap-2 px-2'>
+            <h2 class='m-0 truncate text-[13px] font-semibold leading-none text-fg'>
                 {props.title}
             </h2>
             {props.action}
@@ -88,8 +87,10 @@ type CollapseButtonProps = {
 
 export function CollapseButton(props: CollapseButtonProps) {
     return (
-        <Button
-            aria-label='Collapse tasks'
+        <button
+            type='button'
+            aria-label={props.collapsed ? 'Expand panel' : 'Collapse panel'}
+            class='flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-fg-muted hover:bg-hover hover:text-fg'
             onClick={props.onClick}
         >
             {
@@ -97,17 +98,17 @@ export function CollapseButton(props: CollapseButtonProps) {
                     ? (
                         <ChevronsRight
                             size={16}
-                            strokeWidth={2}
+                            strokeWidth={1.8}
                         />
                     )
                     : (
                         <ChevronsLeft
                             size={16}
-                            strokeWidth={2}
+                            strokeWidth={1.8}
                         />
                     )
             }
-        </Button>
+        </button>
     )
 }
 
