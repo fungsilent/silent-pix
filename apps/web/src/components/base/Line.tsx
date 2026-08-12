@@ -1,5 +1,5 @@
 export function Line() {
     return (
-        <div class='my-1 border-t border-[#263241]' />
+        <div class='my-1 border-t border-line-subtle' />
     )
 }

@@ -9,7 +9,7 @@ type LabelProps = {
 export function Label(props: LabelProps) {
     return (
         <div
-            class='flex items-center justify-center gap-2 p-2 overflow-hidden text-ellipsis whitespace-nowrap rounded-md border border-[#263241] text-[0.78rem] text-[#9fb0c7]'
+            class='flex items-center justify-center gap-2 p-2 overflow-hidden text-ellipsis whitespace-nowrap rounded-md border border-line text-[0.78rem] text-fg-secondary'
             aria-label={props.label}
         >
             {props.children}

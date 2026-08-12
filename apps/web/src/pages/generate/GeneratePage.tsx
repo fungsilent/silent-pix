@@ -63,7 +63,7 @@ export function GeneratePage() {
                 <Show
                     when={activeTask()}
                     fallback={(
-                        <section class='flex min-w-0 flex-1 items-center justify-center bg-[#0e131a] text-sm font-bold text-[#9fb0c7]'>
+                        <section class='flex min-w-0 flex-1 items-center justify-center bg-canvas text-sm font-bold text-fg-muted'>
                             {taskDetailQuery.isError ? 'Failed to load task detail.' : 'Loading task detail...'}
                         </section>
                     )}

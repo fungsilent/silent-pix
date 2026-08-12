@@ -49,7 +49,7 @@ export function App() {
     })
 
     return (
-        <main class='flex flex-col overflow-hidden bg-[#0b0f14] text-slate-50'>
+        <main class='flex flex-col overflow-hidden bg-canvas text-fg'>
             <Header
                 connectionStatus={connectionStatus()}
                 lastEventTime={lastEventTime()}

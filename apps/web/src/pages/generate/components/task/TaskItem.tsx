@@ -24,7 +24,7 @@ type PlaceholderMeta = {
 const placeholderMap: Record<TaskApi.TaskStatus, PlaceholderMeta> = {
     done: {
         Icon: ImageIcon,
-        class: 'border-[#263241] bg-[#0e131a] text-[#6f7f95]',
+        class: 'border-line-subtle bg-elevated text-fg-muted',
         label: 'No thumbnail',
     },
     queued: {
@@ -59,8 +59,8 @@ export function TaskItem(props: TaskItemProps) {
                 root: clsx(
                     'w-full justify-start gap-3 p-0 text-left',
                     props.selected
-                        ? 'border-blue-500 bg-blue-500/10'
-                        : 'border-[#263241] bg-[#141b24]',
+                        ? 'border-accent bg-active'
+                        : 'border-line bg-elevated',
                 ),
             }}
             onClick={props.onSelect}
@@ -69,7 +69,7 @@ export function TaskItem(props: TaskItemProps) {
                 class={clsx(
                     'h-24 w-24 shrink-0 overflow-hidden rounded-md border',
                     !props.task.thumbnail && placeholder().class,
-                    props.task.thumbnail && 'border-[#263241] bg-[#0e131a]',
+                    props.task.thumbnail && 'border-line-subtle bg-elevated',
                 )}
             >
                 {
@@ -87,7 +87,7 @@ export function TaskItem(props: TaskItemProps) {
 
             {!props.thumbnailOnly && (
                 <div class='flex min-w-0 flex-1 flex-col gap-1 py-2 pr-2'>
-                    <span class='truncate text-sm font-bold leading-none text-white'>{props.task.id}</span>
+                    <span class='truncate text-sm font-bold leading-none text-fg'>{props.task.id}</span>
 
                     <div class='flex flex-1 items-center'>
                         <TaskStatus status={props.task.status} />
@@ -95,7 +95,7 @@ export function TaskItem(props: TaskItemProps) {
 
                     <div class='flex items-center gap-1'>
                         <Clock3 size={11} />
-                        <span class='truncate text-[0.75rem] leading-none text-[#9fb0c7]'>{new Date(props.task.createdAt).toLocaleString()}</span>
+                        <span class='truncate text-[0.75rem] leading-none text-fg-muted'>{new Date(props.task.createdAt).toLocaleString()}</span>
                     </div>
                 </div>
             )}

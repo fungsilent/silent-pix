@@ -43,29 +43,29 @@ export function Dialog(props: DialogProps) {
                 >
                     <ArkDialog.Content
                         class={clsx(
-                            'flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-lg border border-[#35445a] bg-[#101721] text-[#c7d2e4] shadow-2xl outline-none',
+                            'flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-lg border border-line bg-surface text-fg-secondary shadow-2xl outline-none',
                             props.classes?.content,
                         )}
                     >
                         <div
                             class={clsx(
-                                'flex shrink-0 items-start justify-between gap-4 border-b border-[#263241] px-4 py-3',
+                                'flex shrink-0 items-start justify-between gap-4 border-b border-line-subtle px-4 py-3',
                                 props.classes?.header,
                             )}
                         >
                             <div class='min-w-0'>
-                                <ArkDialog.Title class='m-0 text-base font-bold leading-tight text-white'>
+                                <ArkDialog.Title class='m-0 text-base font-bold leading-tight text-fg'>
                                     {props.title}
                                 </ArkDialog.Title>
                                 {props.description && (
-                                    <ArkDialog.Description class='mt-1 text-xs leading-5 text-[#9fb0c7]'>
+                                    <ArkDialog.Description class='mt-1 text-xs leading-5 text-fg-muted'>
                                         {props.description}
                                     </ArkDialog.Description>
                                 )}
                             </div>
                             <ArkDialog.CloseTrigger
                                 aria-label='Close dialog'
-                                class='flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md border border-[#29374a] bg-[#111821] text-[#c7d2e4] outline-none hover:border-[#456184] focus:border-blue-500'
+                                class='flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md border border-line bg-elevated text-fg-secondary outline-none hover:bg-hover focus:border-accent'
                             >
                                 <X
                                     size={15}
@@ -85,7 +85,7 @@ export function Dialog(props: DialogProps) {
                         {props.footer && (
                             <div
                                 class={clsx(
-                                    'flex shrink-0 justify-end gap-2 border-t border-[#263241] px-4 py-3',
+                                    'flex shrink-0 justify-end gap-2 border-t border-line-subtle px-4 py-3',
                                     props.classes?.footer,
                                 )}
                             >

@@ -57,7 +57,7 @@ export function LoraDialog(props: LoraDialogProps) {
                     <Button
                         type='button'
                         disabled={!canAdd()}
-                        classes={{ root: 'min-w-20 border-blue-500/70 bg-blue-500/10 px-3 py-1.5 text-sm text-blue-300' }}
+                        classes={{ root: 'min-w-20 border-accent/70 bg-accent/15 px-3 py-1.5 text-sm text-accent-fg' }}
                         onClick={addSelectedLora}
                     >
                         Add
@@ -67,7 +67,7 @@ export function LoraDialog(props: LoraDialogProps) {
         >
             <div class='flex min-h-32 flex-col gap-3'>
                 <Show when={query.isLoading}>
-                    <p class='m-0 py-8 text-center text-sm text-[#9fb0c7]'>Loading LoRAs...</p>
+                    <p class='m-0 py-8 text-center text-sm text-fg-muted'>Loading LoRAs...</p>
                 </Show>
 
                 <Show when={query.isError}>
@@ -92,7 +92,7 @@ export function LoraDialog(props: LoraDialogProps) {
                     <Show
                         when={options().length > 0}
                         fallback={(
-                            <p class='m-0 py-8 text-center text-sm text-[#9fb0c7]'>
+                            <p class='m-0 py-8 text-center text-sm text-fg-muted'>
                                 No LoRAs available in ComfyUI.
                             </p>
                         )}
@@ -117,11 +117,11 @@ export function LoraDialog(props: LoraDialogProps) {
                                             class={clsx(
                                                 'flex min-h-10 w-full items-center justify-between gap-3 rounded-md border px-3 py-2 text-left text-sm outline-none transition-colors',
                                                 isSelected()
-                                                    ? 'border-blue-500 bg-blue-500/15 text-white'
-                                                    : 'border-[#29374a] bg-[#111821] text-[#c7d2e4]',
+                                                    ? 'border-accent bg-accent/15 text-fg'
+                                                    : 'border-line bg-elevated text-fg-secondary',
                                                 isAdded()
                                                     ? 'cursor-not-allowed opacity-60'
-                                                    : 'cursor-pointer hover:border-[#456184] focus:border-blue-500',
+                                                    : 'cursor-pointer hover:bg-hover focus:border-accent',
                                             )}
                                             onClick={() => {
                                                 if (!isAdded()) setSelectedName(option.value)
@@ -133,7 +133,7 @@ export function LoraDialog(props: LoraDialogProps) {
                                                 fallback={(
                                                     <Show when={isSelected()}>
                                                         <Check
-                                                            class='shrink-0 text-blue-300'
+                                                            class='shrink-0 text-accent-fg'
                                                             size={15}
                                                             strokeWidth={2}
                                                             aria-hidden='true'
@@ -141,7 +141,7 @@ export function LoraDialog(props: LoraDialogProps) {
                                                     </Show>
                                                 )}
                                             >
-                                                <span class='shrink-0 text-xs text-[#9fb0c7]'>Added</span>
+                                                <span class='shrink-0 text-xs text-fg-muted'>Added</span>
                                             </Show>
                                         </button>
                                     )

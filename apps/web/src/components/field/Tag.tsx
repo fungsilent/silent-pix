@@ -42,8 +42,8 @@ export function Tag(props: TagProps) {
                             class={clsx(
                                 'inline-flex h-6 cursor-pointer items-center gap-1 rounded-md border px-2 text-[0.72rem] leading-none',
                                 item.id === props.selectedId
-                                    ? props.classes?.itemActive ?? 'border-blue-500 bg-blue-500/20 text-blue-100'
-                                    : props.classes?.itemIdle ?? 'border-[#314154] bg-[#101720] text-[#a9b8cd]',
+                                    ? props.classes?.itemActive ?? 'border-accent bg-accent/20 text-accent-fg'
+                                    : props.classes?.itemIdle ?? 'border-line bg-elevated text-fg-secondary',
                                 item.id === props.draggedId && 'opacity-50',
                                 props.classes?.item,
                             )}
@@ -69,7 +69,7 @@ export function Tag(props: TagProps) {
                             <ArkTagsInput.ItemPreview class='flex min-w-0 items-center gap-1'>
                                 <ArkTagsInput.ItemText class='min-w-0 truncate'>{item.label}</ArkTagsInput.ItemText>
                                 <ArkTagsInput.ItemDeleteTrigger
-                                    class='inline-flex h-4 w-4 items-center justify-center rounded text-[#7f90a8] hover:text-white'
+                                    class='inline-flex h-4 w-4 items-center justify-center rounded text-fg-muted hover:text-fg'
                                 >
                                     <X
                                         size={12}
@@ -78,12 +78,12 @@ export function Tag(props: TagProps) {
                                     />
                                 </ArkTagsInput.ItemDeleteTrigger>
                             </ArkTagsInput.ItemPreview>
-                            <ArkTagsInput.ItemInput class='h-5 min-w-16 rounded border border-blue-500/60 bg-[#0b1118] px-1 text-xs text-white outline-none' />
+                            <ArkTagsInput.ItemInput class='h-5 min-w-16 rounded border border-accent/60 bg-active px-1 text-xs text-fg outline-none' />
                         </ArkTagsInput.Item>
                     )}
                 </For>
                 <ArkTagsInput.Input
-                    class={clsx('h-6 min-w-20 flex-1 bg-transparent text-xs text-white outline-none placeholder:text-[#617188]', props.classes?.input)}
+                    class={clsx('h-6 min-w-20 flex-1 bg-transparent text-xs text-fg outline-none placeholder:text-fg-muted', props.classes?.input)}
                     placeholder={props.placeholder ?? 'Tag'}
                 />
                 <ArkTagsInput.HiddenInput />

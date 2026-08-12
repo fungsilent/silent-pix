@@ -1,8 +1,74 @@
 @import "tailwindcss";
 
+/* MARK: theme — dark */
+:root,
+[data-theme='dark'] {
+    --sp-canvas: #0a0a0a;
+    --sp-surface: #171717;
+    --sp-elevated: #262626;
+    --sp-active: #2e2e2e;
+    --sp-hover: #333333;
+    --sp-stage: #050505;
+
+    --sp-line-subtle: rgb(255 255 255 / 5.5%);
+    --sp-line: rgb(255 255 255 / 10%);
+
+    --sp-fg: #e5e5e5;
+    --sp-fg-title: #d4d4d4;
+    --sp-fg-secondary: #a3a3a3;
+    --sp-fg-muted: #737373;
+
+    --sp-accent: #2563eb;
+    --sp-accent-hover: #3b82f6;
+    --sp-accent-fg: #7ea6ff;
+}
+
+/* MARK: theme — light（尚未驗收，只定義 token，不接切換 UI） */
+[data-theme='light'] {
+    --sp-canvas: #f5f5f5;
+    --sp-surface: #ffffff;
+    --sp-elevated: #ededed;
+    --sp-active: #e4e4e4;
+    --sp-hover: #dcdcdc;
+    --sp-stage: #1a1a1a;
+
+    --sp-line-subtle: rgb(0 0 0 / 6%);
+    --sp-line: rgb(0 0 0 / 12%);
+
+    --sp-fg: #171717;
+    --sp-fg-title: #262626;
+    --sp-fg-secondary: #525252;
+    --sp-fg-muted: #737373;
+
+    --sp-accent: #2563eb;
+    --sp-accent-hover: #1d4ed8;
+    --sp-accent-fg: #1e40af;
+}
+
+@theme inline {
+    --color-canvas: var(--sp-canvas);
+    --color-surface: var(--sp-surface);
+    --color-elevated: var(--sp-elevated);
+    --color-active: var(--sp-active);
+    --color-hover: var(--sp-hover);
+    --color-stage: var(--sp-stage);
+
+    --color-line: var(--sp-line);
+    --color-line-subtle: var(--sp-line-subtle);
+
+    --color-fg: var(--sp-fg);
+    --color-fg-title: var(--sp-fg-title);
+    --color-fg-secondary: var(--sp-fg-secondary);
+    --color-fg-muted: var(--sp-fg-muted);
+
+    --color-accent: var(--sp-accent);
+    --color-accent-hover: var(--sp-accent-hover);
+    --color-accent-fg: var(--sp-accent-fg);
+}
+
 :root {
-    color: #f8fafc;
-    background: #0b0f14;
+    color: var(--sp-fg);
+    background: var(--sp-canvas);
     font-family:
         Inter,
         ui-sans-serif,
@@ -24,7 +90,7 @@ body {
     margin: 0;
     min-width: 320px;
     min-height: 100vh;
-    background: #0b0f14;
+    background: var(--sp-canvas);
 }
 
 .scrollbar-hidden {
