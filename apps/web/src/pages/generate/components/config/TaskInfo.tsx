@@ -15,7 +15,9 @@ export function TaskInfo(props: TaskInfoProps) {
     return (
         <section class='flex flex-col gap-2'>
             <DetailRow label='ID'>
-                <span class='text-sm font-bold leading-none text-fg'>{props.task.id}</span>
+                <span class='block truncate font-mono text-[11px] font-medium leading-none text-fg'>
+                    {props.task.id}
+                </span>
             </DetailRow>
 
             <DetailRow label='Name'>
@@ -37,7 +39,9 @@ export function TaskInfo(props: TaskInfoProps) {
             </DetailRow>
 
             <DetailRow label='Created'>
-                <span class='text-sm leading-none text-fg'>{props.task.createdAt ? new Date(props.task.createdAt).toLocaleString() : ''}</span>
+                <span class='text-xs leading-none text-fg-secondary'>
+                    {props.task.createdAt ? new Date(props.task.createdAt).toLocaleString() : ''}
+                </span>
             </DetailRow>
         </section>
     )
@@ -50,8 +54,8 @@ type DetailRowProps = {
 
 function DetailRow(props: DetailRowProps) {
     return (
-        <div class='grid min-w-0 grid-cols-[52px_minmax(0,1fr)] items-center gap-3'>
-            <span class='text-xs leading-none text-fg-muted'>{props.label}</span>
+        <div class='grid min-w-0 grid-cols-[74px_minmax(0,1fr)] items-center gap-3'>
+            <span class='text-[11.5px] leading-none text-fg-muted'>{props.label}</span>
             <div class='min-w-0'>{props.children}</div>
         </div>
     )

@@ -15,7 +15,8 @@ export function TaskDetail(props: TaskDetailProps) {
         <Panel
             classes={{
                 root: 'border-l border-line bg-surface max-[980px]:hidden',
-                open: 'w-[290px]',
+                // 350 是讓 ID 欄位能完整顯示 36 字元 UUID 的最小寬度
+                open: 'w-[350px]',
                 close: 'w-10',
             }}
         >
@@ -38,7 +39,11 @@ export function TaskDetail(props: TaskDetailProps) {
                                 />
                             )}
                         />
-                        <PanelContent>
+                        <PanelContent
+                            classes={{
+                                content: 'gap-3 px-4 pt-0 pb-5',
+                            }}
+                        >
                             <TaskInfo task={props.task} />
                             <Line />
                             <TaskConfig task={props.task} />

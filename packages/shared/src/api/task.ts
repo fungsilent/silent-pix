@@ -6,6 +6,7 @@ export type TaskStatus = z.output<typeof taskStatus>
 
 export const taskListItem = z.object({
     id: z.uuid(),
+    name: z.string(),
     status: taskStatus,
     createdAt: z.iso.datetime(),
     thumbnail: z.string().optional(),

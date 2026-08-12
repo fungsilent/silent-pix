@@ -153,11 +153,13 @@ export const taskService = {
             prompt: request.prompt,
         }
 
+        const taskId = createUUID()
         const [createdTask] = await database.db
             .insert(tasks)
             .values({
-                id: createUUID(),
-                name: request.name,
+                id: taskId,
+                // 沒有命名時以 UUID 首段當預設名稱
+                name: request.name || taskId.slice(0, 8),
                 status: 'queued',
                 workflowId,
                 config,
@@ -216,6 +218,7 @@ export const taskService = {
             const filename = firstImage.get(row.id)
             return {
                 id: row.id,
+                name: row.name,
                 status: row.status,
                 createdAt: row.createdAt.toISOString(),
                 ...(filename ? { thumbnail: imageUrl(row.id, filename) } : {}),
@@ -244,6 +247,7 @@ export const taskService = {
 
         pushEvent(taskChanged({
             id: item.task.id,
+            name: item.task.name,
             status: item.task.status,
             createdAt: item.task.createdAt.toISOString(),
             images: item.images.map(image => imageUrl(item.task.id, image.filename)),
