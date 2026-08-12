@@ -1,3 +1,6 @@
+import { mkdir } from 'node:fs/promises'
+import { dirname } from 'node:path'
+
 import { createClient } from '@libsql/client'
 import { drizzle } from 'drizzle-orm/libsql'
 
@@ -12,6 +15,8 @@ export type DatabaseClient = {
 }
 
 export async function createDatabaseClient(databasePath: string): Promise<DatabaseClient> {
+    await mkdir(dirname(databasePath), { recursive: true })
+
     const client = createClient({
         url: `file:${databasePath}`,
     })
