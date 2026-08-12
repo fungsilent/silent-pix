@@ -17,7 +17,7 @@ export function Button(props: ButtonProps) {
         <button
             type={props.type ?? 'button'}
             class={clsx(
-                'flex items-center justify-center gap-2 rounded-md border border-[#29374a] bg-[#111821] p-2 text-[#c7d2e4] cursor-pointer',
+                'flex items-center justify-center gap-2 rounded-md border border-line bg-elevated p-2 text-fg-secondary cursor-pointer hover:bg-hover',
                 props.classes?.root,
             )}
             disabled={props.disabled}

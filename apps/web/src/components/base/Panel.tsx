@@ -52,7 +52,7 @@ export function Panel(props: PanelProps) {
     return (
         <aside
             class={clsx(
-                'overflow-hidden bg-[#11161d]',
+                'overflow-hidden bg-surface',
                 props.classes?.root,
                 isCollapsed() ? props.classes?.close : props.classes?.open,
             )}
@@ -71,8 +71,8 @@ type PanelHeaderProps = {
 
 export function PanelHeader(props: PanelHeaderProps) {
     return (
-        <div class='flex h-12 items-center justify-between border-b border-[#263241] px-2'>
-            <h2 class='m-0 text-[0.85rem] font-bold leading-none text-white'>
+        <div class='flex h-12 items-center justify-between border-b border-line-subtle px-2'>
+            <h2 class='m-0 text-[0.85rem] font-bold leading-none text-fg'>
                 {props.title}
             </h2>
             {props.action}
@@ -133,7 +133,7 @@ export function PanelContent(props: PanelContentProps) {
                 orientation='vertical'
                 class='absolute bottom-1 right-1 top-1 w-1.5 rounded-full bg-transparent'
             >
-                <ScrollArea.Thumb class='rounded-full bg-[#3f5167]' />
+                <ScrollArea.Thumb class='rounded-full bg-white/10' />
             </ScrollArea.Scrollbar>
         </ScrollArea.Root>
     )

@@ -42,18 +42,18 @@ export function Select(props: SelectProps) {
             }}
             class={clsx('flex min-w-0 flex-col gap-1', props.classes?.root)}
         >
-            <ArkSelect.Label class={clsx('text-xs leading-none text-[#9fb0c7]', props.classes?.label)}>
+            <ArkSelect.Label class={clsx('text-xs leading-none text-fg-muted', props.classes?.label)}>
                 {props.label}
             </ArkSelect.Label>
             <ArkSelect.Control>
                 <ArkSelect.Trigger
                     class={clsx(
-                        'flex h-8 w-full min-w-0 items-center justify-between gap-2 rounded-md border border-[#35445a] bg-[#101721] px-3 text-left text-sm leading-none text-white outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-60',
+                        'flex h-8 w-full min-w-0 items-center justify-between gap-2 rounded-md border border-line bg-active px-3 text-left text-sm leading-none text-fg outline-none focus:border-accent disabled:cursor-not-allowed disabled:opacity-60',
                         props.classes?.trigger,
                     )}
                 >
                     <ArkSelect.ValueText />
-                    <ArkSelect.Indicator class='shrink-0 text-[#c7d2e4]'>
+                    <ArkSelect.Indicator class='shrink-0 text-fg-secondary'>
                         <ChevronDown
                             size={15}
                             strokeWidth={2}
@@ -65,7 +65,7 @@ export function Select(props: SelectProps) {
             <ArkSelect.Positioner>
                 <ArkSelect.Content
                     class={clsx(
-                        'z-10 mt-1 min-w-[var(--reference-width)] overflow-hidden rounded-md border border-[#35445a] bg-[#101721] p-1 shadow-xl',
+                        'z-10 mt-1 min-w-[var(--reference-width)] overflow-hidden rounded-md border border-line bg-elevated p-1 shadow-xl',
                         props.classes?.content,
                     )}
                 >
@@ -75,12 +75,12 @@ export function Select(props: SelectProps) {
                                 <ArkSelect.Item
                                     item={option}
                                     class={clsx(
-                                        'flex h-8 cursor-default items-center justify-between gap-2 rounded px-2 text-sm text-white outline-none data-[highlighted]:bg-blue-500/20',
+                                        'flex h-8 cursor-default items-center justify-between gap-2 rounded px-2 text-sm text-fg outline-none data-[highlighted]:bg-accent/20',
                                         props.classes?.item,
                                     )}
                                 >
                                     <ArkSelect.ItemText>{option.label}</ArkSelect.ItemText>
-                                    <ArkSelect.ItemIndicator class='text-blue-300'>
+                                    <ArkSelect.ItemIndicator class='text-accent-fg'>
                                         <Check
                                             size={13}
                                             strokeWidth={2}

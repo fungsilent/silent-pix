@@ -14,7 +14,7 @@ export function TaskDetail(props: TaskDetailProps) {
     return (
         <Panel
             classes={{
-                root: 'bg-[#10151c] max-[980px]:hidden',
+                root: 'bg-surface max-[980px]:hidden',
                 open: 'w-[290px]',
                 close: 'w-12',
             }}

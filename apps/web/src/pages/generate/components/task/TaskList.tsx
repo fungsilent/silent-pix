@@ -33,7 +33,7 @@ export function TaskList() {
                         }}
                     >
                         <Show when={taskFeedQuery.isLoading}>
-                            <div class='px-3 py-2 text-sm text-[#9fb0c7]'>Loading tasks...</div>
+                            <div class='px-3 py-2 text-sm text-fg-muted'>Loading tasks...</div>
                         </Show>
 
                         <Show when={taskFeedQuery.isError}>
@@ -54,7 +54,7 @@ export function TaskList() {
                         <Show when={taskFeedQuery.hasNextPage}>
                             <Button
                                 classes={{
-                                    root: 'w-full justify-center border-[#263241] bg-[#141b24] px-3 py-2 text-sm',
+                                    root: 'w-full justify-center border-line bg-elevated px-3 py-2 text-sm',
                                 }}
                                 disabled={taskFeedQuery.isFetchingNextPage}
                                 onClick={() => void taskFeedQuery.fetchNextPage()}

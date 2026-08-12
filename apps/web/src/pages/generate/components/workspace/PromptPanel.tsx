@@ -142,10 +142,10 @@ export function PromptPanel(props: PromptPanelProps) {
     const hasPrompt = () => positive().visible || negative().visible
 
     return (
-        <section class='overflow-hidden rounded-md border border-[#263241] bg-[#111821]'>
+        <section class='overflow-hidden rounded-md border border-line-subtle bg-surface'>
             <div class='flex min-h-12 items-center justify-between gap-3 px-3 py-2'>
                 <div class='flex min-w-0 items-center gap-2'>
-                    <h2 class='m-0 text-sm font-bold leading-none text-white'>Prompt</h2>
+                    <h2 class='m-0 text-sm font-bold leading-none text-fg'>Prompt</h2>
                     <PromptToggle
                         kind='positive'
                         visible={positive().visible}
@@ -162,7 +162,7 @@ export function PromptPanel(props: PromptPanelProps) {
                     disabled={props.isSubmitting}
                     classes={{
                         root: clsx(
-                            'inline-flex gap-2 rounded-md bg-blue-500 px-4 font-bold text-white text-sm disabled:cursor-not-allowed disabled:opacity-60'
+                            'inline-flex gap-2 rounded-md border-transparent bg-accent px-4 font-bold text-white text-sm hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60'
                         )
                     }}
                 >
@@ -175,13 +175,13 @@ export function PromptPanel(props: PromptPanelProps) {
             </div>
 
             <Show when={props.submitError}>
-                <p class='m-0 border-t border-[#263241] px-3 py-2 text-xs text-red-300'>
+                <p class='m-0 border-t border-line-subtle px-3 py-2 text-xs text-red-300'>
                     {props.submitError}
                 </p>
             </Show>
 
             {hasPrompt() && (
-                <div class={clsx('border-b border-[#263241]')}/>
+                <div class={clsx('border-b border-line-subtle')}/>
             )}
 
             <div class='flex flex-col'>
@@ -232,10 +232,10 @@ function PromptToggle(props: PromptToggleProps) {
         <Button
             classes={{
                 root: clsx(
-                    'h-7 rounded px-3 text-[0.72rem] font-bold leading-none text-white outline outline-1 outline-offset-0',
+                    'h-7 rounded px-3 text-[0.72rem] font-bold leading-none outline outline-1 outline-offset-0',
                     props.visible
-                        ? 'bg-[#182538] outline-blue-400'
-                        : 'bg-[#0d141d] text-[#7f90a8] outline-[#263241]',
+                        ? 'bg-accent/15 text-accent-fg outline-accent/40'
+                        : 'bg-elevated text-fg-muted outline-line-subtle',
                 )
             }}
             onClick={props.onClick}
@@ -267,7 +267,7 @@ function PromptGroup(props: PromptGroupProps) {
         <Show when={props.visible}>
             <section class='overflow-hidden'>
                 <div class='flex min-h-10 items-center gap-2 px-2 py-2'>
-                    <span class='w-14 shrink-0 text-xs font-bold text-white'>{promptLabel[props.kind]}</span>
+                    <span class='w-14 shrink-0 text-xs font-bold text-fg'>{promptLabel[props.kind]}</span>
                     <Tag
                         classes={{
                             root: 'flex-1',
@@ -283,7 +283,7 @@ function PromptGroup(props: PromptGroupProps) {
                     />
                 </div>
                 <textarea
-                    class='block min-h-14 w-full resize-y bg-[#0b1118] px-3 py-2 text-xs font-semibold leading-5 text-white outline-none focus:border-blue-500'
+                    class='block min-h-14 w-full resize-y bg-active px-3 py-2 text-xs font-semibold leading-5 text-fg outline-none focus:border-accent'
                     value={props.text}
                     onInput={event => props.onTextInput(event.currentTarget.value)}
                 />

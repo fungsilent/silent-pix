@@ -36,7 +36,7 @@ export function TaskConfig(props: TaskConfigProps) {
     return (
         <section class='flex flex-col gap-3'>
             <div class='flex flex-col gap-1 py-1'>
-                <h3 class='m-0 text-sm font-bold leading-none text-white'>Config</h3>
+                <h3 class='m-0 text-sm font-bold leading-none text-fg'>Config</h3>
             </div>
 
             <div class='flex min-w-0 items-end gap-2'>
@@ -64,7 +64,7 @@ export function TaskConfig(props: TaskConfigProps) {
             </div>
 
             <Show when={workflowQuery.isLoading}>
-                <p class='m-0 text-xs text-[#9fb0c7]'>Loading workflows...</p>
+                <p class='m-0 text-xs text-fg-muted'>Loading workflows...</p>
             </Show>
             <Show when={workflowQuery.isError}>
                 <p class='m-0 text-xs text-red-300'>Failed to load workflows.</p>
@@ -146,7 +146,7 @@ export function TaskConfig(props: TaskConfigProps) {
                 onChange={value => store.setValue('sampler', value)}
             />
             <Show when={samplerQuery.isLoading}>
-                <p class='m-0 text-xs text-[#9fb0c7]'>Loading samplers...</p>
+                <p class='m-0 text-xs text-fg-muted'>Loading samplers...</p>
             </Show>
             <Show when={samplerQuery.isError}>
                 <p class='m-0 text-xs text-red-300'>Failed to load samplers.</p>

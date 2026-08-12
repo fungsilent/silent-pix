@@ -12,11 +12,11 @@ type HeaderProps = {
 
 export function Header(props: HeaderProps) {
     return (
-        <header class='flex items-center justify-between gap-4 h-[56px] border-b border-[#263241] bg-[#0d1218]'>
+        <header class='flex items-center justify-between gap-4 h-[56px] border-b border-line-subtle bg-surface'>
             <div class='flex min-w-0 items-center gap-2.5'>
                 <Button
                     aria-label='Toggle navigation'
-                    classes={{ root: 'text-blue-100' }}
+                    classes={{ root: 'text-fg-secondary' }}
                 >
                     <Menu
                         size={16}

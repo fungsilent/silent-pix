@@ -65,13 +65,13 @@ export function ImageStage(props: ImageStageProps) {
 
     return (
         <section
-            class='flex min-h-[420px] flex-1 flex-col overflow-hidden rounded-md border border-[#263241] bg-[#11161d]'
+            class='flex min-h-[420px] flex-1 flex-col overflow-hidden rounded-md border border-line-subtle bg-surface'
             aria-label='Image preview'
         >
-            <div class='relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-md bg-[#05080d]'>
+            <div class='relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-md bg-stage'>
                 <Show
                     when={selectedImage()}
-                    fallback={<div class='text-sm font-bold text-[#6f7f95]'>No image</div>}
+                    fallback={<div class='text-sm font-bold text-fg-muted'>No image</div>}
                 >
                     {image => (
                         <img
@@ -83,14 +83,14 @@ export function ImageStage(props: ImageStageProps) {
                 </Show>
 
                 <div class='absolute right-2 top-2 flex gap-2'>
-                    <Button classes={{ root: 'h-8 w-8 p-0 text-white' }}>
+                    <Button classes={{ root: 'h-8 w-8 p-0 text-fg' }}>
                         <Expand
                             size={14}
                             strokeWidth={2}
                             aria-hidden='true'
                         />
                     </Button>
-                    <Button classes={{ root: 'h-8 w-8 p-0 text-white' }}>
+                    <Button classes={{ root: 'h-8 w-8 p-0 text-fg' }}>
                         <Star
                             size={14}
                             strokeWidth={2}
@@ -107,7 +107,7 @@ export function ImageStage(props: ImageStageProps) {
                 </div>
 
                 <Button
-                    classes={{ root: 'absolute left-3 top-1/2 h-16 w-10 -translate-y-1/2 bg-[#080c12] p-0 text-white disabled:opacity-30' }}
+                    classes={{ root: 'absolute left-3 top-1/2 h-16 w-10 -translate-y-1/2 bg-surface/75 p-0 text-fg disabled:opacity-30' }}
                     aria-label='Previous image'
                     disabled={props.images.length < 2}
                     onClick={selectPrevious}
@@ -119,7 +119,7 @@ export function ImageStage(props: ImageStageProps) {
                     />
                 </Button>
                 <Button
-                    classes={{ root: 'absolute right-3 top-1/2 h-16 w-10 -translate-y-1/2 bg-[#080c12] p-0 text-white disabled:opacity-30' }}
+                    classes={{ root: 'absolute right-3 top-1/2 h-16 w-10 -translate-y-1/2 bg-surface/75 p-0 text-fg disabled:opacity-30' }}
                     aria-label='Next image'
                     disabled={props.images.length < 2}
                     onClick={selectNext}
@@ -139,10 +139,10 @@ export function ImageStage(props: ImageStageProps) {
                             <Button
                                 classes={{
                                     root: clsx(
-                                        'h-20 bg-[#05080d] p-0!',
+                                        'h-20 bg-stage p-0!',
                                         index() === props.selectedIndex
-                                            ? 'border-blue-500 ring-1 ring-blue-400'
-                                            : 'border-[#263241]',
+                                            ? 'border-accent ring-1 ring-accent'
+                                            : 'border-line',
                                     ),
                                 }}
                                 onClick={() => props.onSelect(index())}

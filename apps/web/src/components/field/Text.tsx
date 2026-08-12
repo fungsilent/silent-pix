@@ -21,7 +21,7 @@ type TextProps = {
 export function Text(props: TextProps) {
     return (
         <Field.Root class={clsx('flex min-w-0 flex-col gap-1', props.classes?.root)}>
-            <Field.Label class={clsx('text-xs leading-none text-[#9fb0c7]', props.classes?.label)}>
+            <Field.Label class={clsx('text-xs leading-none text-fg-muted', props.classes?.label)}>
                 {props.label}
             </Field.Label>
             <div class={clsx('flex min-w-0 items-center gap-2', props.classes?.control)}>
@@ -30,7 +30,7 @@ export function Text(props: TextProps) {
                     value={props.value}
                     placeholder={props.placeholder}
                     class={clsx(
-                        'h-8 min-w-0 flex-1 rounded-md border border-[#35445a] bg-[#101721] px-3 text-sm leading-none text-white outline-none placeholder:text-[#617188] focus:border-blue-500',
+                        'h-8 min-w-0 flex-1 rounded-md border border-line bg-active px-3 text-sm leading-none text-fg outline-none placeholder:text-fg-muted focus:border-accent',
                         props.classes?.input,
                     )}
                     onInput={event => props.onInput?.(event.currentTarget.value)}

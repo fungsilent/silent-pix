@@ -12,19 +12,19 @@ export function TaskLora() {
 
     return (
         <section class='flex flex-col gap-2 pt-1'>
-            <h3 class='m-0 text-sm font-bold leading-none text-white'>LoRA</h3>
+            <h3 class='m-0 text-sm font-bold leading-none text-fg'>LoRA</h3>
 
             <div class='flex flex-col gap-2'>
                 <For each={store.state.values.lora}>
                     {lora => (
-                        <div class='flex flex-col gap-3 rounded-md border border-[#263241] bg-[#101721] p-2'>
+                        <div class='flex flex-col gap-3 rounded-md border border-line-subtle bg-active p-2'>
                             <div class='flex items-start gap-2'>
-                                <span class='min-w-0 flex-1 truncate pt-2 text-sm font-bold leading-none text-white'>
+                                <span class='min-w-0 flex-1 truncate pt-2 text-sm font-bold leading-none text-fg'>
                                     {lora.name}
                                 </span>
                                 <Button
                                     aria-label={`Remove ${lora.name}`}
-                                    classes={{ root: 'h-8 w-8 border-[#35445a] p-0 text-red-400' }}
+                                    classes={{ root: 'h-8 w-8 border-line p-0 text-red-400' }}
                                     onClick={() => store.removeLora(lora.id)}
                                 >
                                     <X
@@ -67,7 +67,7 @@ export function TaskLora() {
 
             <Button
                 type='button'
-                classes={{ root: 'h-7 border-blue-500/70 bg-blue-500/10 p-0 text-blue-300' }}
+                classes={{ root: 'h-7 border-accent/70 bg-accent/15 p-0 text-accent-fg' }}
                 onClick={() => setDialogOpen(true)}
             >
                 <Plus

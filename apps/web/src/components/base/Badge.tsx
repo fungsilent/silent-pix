@@ -12,13 +12,13 @@ type BadgeProps = {
 }
 
 const toneClass: Record<BadgeTone, string> = {
-    accent: 'border-blue-500/70 bg-blue-500/15 text-blue-200',
-    neutral: 'border-[#29374a] bg-[#101720] text-[#9fb0c7]',
+    accent: 'border-accent/70 bg-accent/15 text-accent-fg',
+    neutral: 'border-line bg-elevated text-fg-secondary',
 }
 
 export function Badge(props: BadgeProps) {
     const tone = () => props.tone ?? 'neutral'
-    const selectedClass = () => props.selected ? 'border-blue-500 bg-blue-500/20 text-blue-100' : toneClass[tone()]
+    const selectedClass = () => props.selected ? 'border-accent bg-accent/20 text-accent-fg' : toneClass[tone()]
 
     return (
         <div
