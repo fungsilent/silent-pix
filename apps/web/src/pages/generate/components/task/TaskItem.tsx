@@ -1,7 +1,6 @@
 import clsx from 'clsx'
-import { Ban, CircleX, Clock3, Hourglass, Image as ImageIcon, LoaderCircle } from 'lucide-solid'
+import { Ban, CircleX, Hourglass, Image as ImageIcon, LoaderCircle } from 'lucide-solid'
 
-import { Button } from '#/components/base/Button'
 import { TaskStatus } from '#/pages/generate/components/TaskStatus'
 
 import type { TaskApi } from '@silent-pix/shared'
@@ -21,6 +20,7 @@ type PlaceholderMeta = {
     label: string
 }
 
+/* status placeholder 的 icon 與顏色沿用現行，不得更動 */
 const placeholderMap: Record<TaskApi.TaskStatus, PlaceholderMeta> = {
     done: {
         Icon: ImageIcon,
@@ -51,25 +51,27 @@ const placeholderMap: Record<TaskApi.TaskStatus, PlaceholderMeta> = {
 
 export function TaskItem(props: TaskItemProps) {
     const placeholder = () => placeholderMap[props.task.status]
+    // 尚未有 display name 之前先用 UUID 首段當標題
+    const title = () => props.task.id.slice(0, 8)
 
     return (
-        <Button
+        <button
+            type='button'
             aria-pressed={props.selected}
-            classes={{
-                root: clsx(
-                    'w-full justify-start gap-3 p-0 text-left',
-                    props.selected
-                        ? 'border-accent bg-active'
-                        : 'border-line bg-elevated',
-                ),
-            }}
+            class={clsx(
+                'flex w-full cursor-pointer items-center gap-2.5 rounded-lg border p-2 text-left',
+                props.selected
+                    ? 'border-accent/60 bg-active shadow-[0_0_0_1px_rgba(37,99,235,0.14),0_1px_12px_rgba(37,99,235,0.12)]'
+                    : 'border-transparent hover:bg-elevated',
+            )}
             onClick={props.onSelect}
         >
             <div
                 class={clsx(
-                    'h-24 w-24 shrink-0 overflow-hidden rounded-md border',
-                    !props.task.thumbnail && placeholder().class,
-                    props.task.thumbnail && 'border-line-subtle bg-elevated',
+                    'size-14 shrink-0 overflow-hidden rounded-md border',
+                    props.task.thumbnail
+                        ? 'border-line-subtle bg-elevated'
+                        : placeholder().class,
                 )}
             >
                 {
@@ -86,20 +88,17 @@ export function TaskItem(props: TaskItemProps) {
             </div>
 
             {!props.thumbnailOnly && (
-                <div class='flex min-w-0 flex-1 flex-col gap-1 py-2 pr-2'>
-                    <span class='truncate text-sm font-bold leading-none text-fg'>{props.task.id}</span>
-
-                    <div class='flex flex-1 items-center'>
-                        <TaskStatus status={props.task.status} />
-                    </div>
-
-                    <div class='flex items-center gap-1'>
-                        <Clock3 size={11} />
-                        <span class='truncate text-[0.75rem] leading-none text-fg-muted'>{new Date(props.task.createdAt).toLocaleString()}</span>
-                    </div>
+                <div class='flex min-w-0 flex-1 flex-col items-start gap-1.5'>
+                    <span class='max-w-full truncate font-mono text-xs font-medium leading-none text-fg'>
+                        {title()}
+                    </span>
+                    <TaskStatus status={props.task.status} />
+                    <span class='max-w-full truncate text-[11px] leading-none text-fg-muted'>
+                        {new Date(props.task.createdAt).toLocaleString()}
+                    </span>
                 </div>
             )}
-        </Button>
+        </button>
     )
 }
 
@@ -115,7 +114,10 @@ function TaskThumbnailPlaceholder(props: TaskThumbnailPlaceholderProps) {
             class='flex h-full w-full items-center justify-center'
             aria-label={props.meta.label}
         >
-            <Icon size={30} />
+            <Icon
+                size={22}
+                strokeWidth={1.6}
+            />
         </div>
     )
 }

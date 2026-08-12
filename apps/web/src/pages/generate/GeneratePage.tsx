@@ -56,7 +56,7 @@ export function GeneratePage() {
     return (
         <GenerateStoreProvider store={generateStore}>
             <form
-                class='flex h-[calc(100dvh-56px)] min-h-0 overflow-hidden'
+                class='flex h-[calc(100dvh-48px)] min-h-0 overflow-hidden'
                 onSubmit={event => void handleSubmit(event)}
             >
                 <TaskList />
