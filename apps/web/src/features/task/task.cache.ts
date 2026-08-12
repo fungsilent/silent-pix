@@ -62,6 +62,7 @@ export function cacheTaskChanged(
 function toTaskSnapshot(task: TaskApi.GetTaskResponse): Event.Task.Snapshot {
     return {
         id: task.id,
+        name: task.name,
         status: task.status,
         createdAt: task.createdAt,
         images: task.images,
@@ -84,6 +85,7 @@ function toTaskListItem(task: Event.Task.Snapshot): TaskApi.TaskListItem {
 
     return {
         id: task.id,
+        name: task.name,
         status: task.status,
         createdAt: task.createdAt,
         ...(thumbnail ? { thumbnail } : {}),
@@ -190,6 +192,7 @@ function sameStrings(left: string[], right: string[]): boolean {
 
 function sameTaskListItem(left: TaskApi.TaskListItem, right: TaskApi.TaskListItem): boolean {
     return left.id === right.id
+        && left.name === right.name
         && left.status === right.status
         && left.createdAt === right.createdAt
         && left.thumbnail === right.thumbnail

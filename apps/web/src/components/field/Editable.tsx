@@ -29,13 +29,13 @@ export function Editable(props: EditableProps) {
             <ArkEditable.Area class={clsx('min-w-0 flex-1', props.classes?.area)}>
                 <ArkEditable.Preview
                     class={clsx(
-                        'flex h-8 w-full items-center rounded-md border border-line bg-active px-3 text-sm leading-none text-fg',
+                        'flex h-8 w-full cursor-text items-center truncate rounded-md border border-transparent bg-active px-3 text-xs leading-none text-fg',
                         props.classes?.preview,
                     )}
                 />
                 <ArkEditable.Input
                     class={clsx(
-                        'h-8 w-full rounded-md border border-accent bg-active px-3 text-sm leading-none text-fg outline-none',
+                        'h-8 w-full rounded-md border border-accent bg-active px-3 text-xs leading-none text-fg outline-none ring-3 ring-accent/40',
                         props.classes?.input,
                     )}
                 />
@@ -43,7 +43,7 @@ export function Editable(props: EditableProps) {
             <ArkEditable.Control>
                 <ArkEditable.EditTrigger
                     class={clsx(
-                        'flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-line bg-elevated text-fg-secondary',
+                        'flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md border border-transparent text-fg-muted hover:bg-hover hover:text-fg',
                         props.classes?.trigger,
                     )}
                     aria-label={`Edit ${props.label}`}

@@ -30,7 +30,7 @@ export function Text(props: TextProps) {
                     value={props.value}
                     placeholder={props.placeholder}
                     class={clsx(
-                        'h-8 min-w-0 flex-1 rounded-md border border-line bg-active px-3 text-sm leading-none text-fg outline-none placeholder:text-fg-muted focus:border-accent',
+                        'h-8 min-w-0 flex-1 rounded-md border border-transparent bg-active px-3 text-xs leading-none text-fg outline-none placeholder:text-fg-muted focus:border-accent focus:ring-3 focus:ring-accent/40',
                         props.classes?.input,
                     )}
                     onInput={event => props.onInput?.(event.currentTarget.value)}

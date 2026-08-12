@@ -48,7 +48,7 @@ export function Select(props: SelectProps) {
             <ArkSelect.Control>
                 <ArkSelect.Trigger
                     class={clsx(
-                        'flex h-8 w-full min-w-0 items-center justify-between gap-2 rounded-md border border-line bg-active px-3 text-left text-sm leading-none text-fg outline-none focus:border-accent disabled:cursor-not-allowed disabled:opacity-60',
+                        'flex h-8 w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-transparent bg-active px-3 text-left text-xs leading-none text-fg outline-none focus:border-accent focus:ring-3 focus:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-60',
                         props.classes?.trigger,
                     )}
                 >
@@ -75,7 +75,7 @@ export function Select(props: SelectProps) {
                                 <ArkSelect.Item
                                     item={option}
                                     class={clsx(
-                                        'flex h-8 cursor-default items-center justify-between gap-2 rounded px-2 text-sm text-fg outline-none data-[highlighted]:bg-accent/20',
+                                        'flex h-8 cursor-default items-center justify-between gap-2 rounded px-2 text-xs text-fg outline-none data-[highlighted]:bg-accent/20',
                                         props.classes?.item,
                                     )}
                                 >

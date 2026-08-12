@@ -28,7 +28,7 @@ export function Number(props: NumberProps) {
                 max={props.max}
                 step={props.step}
                 class={clsx(
-                    'number-input h-8 min-w-0 rounded-md border border-line bg-active px-3 text-sm leading-none text-fg outline-none focus:border-accent',
+                    'number-input h-8 min-w-0 rounded-md border border-transparent bg-active px-3 text-xs leading-none text-fg outline-none focus:border-accent focus:ring-3 focus:ring-accent/40',
                     props.classes?.input,
                 )}
                 onInput={event => props.onChange?.(event.currentTarget.valueAsNumber)}

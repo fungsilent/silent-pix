@@ -187,6 +187,7 @@ export const mockTaskDetails: TaskApi.GetTaskResponse[] = [
 
 export const mockTasks: TaskApi.TaskListItem[] = mockTaskDetails.map(task => ({
     id: task.id,
+    name: task.name,
     status: task.status,
     createdAt: task.createdAt,
     thumbnail: task.images[0],
