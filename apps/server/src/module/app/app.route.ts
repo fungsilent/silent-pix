@@ -9,9 +9,9 @@ export const appRoutes = new Elysia({ name: 'app-route' })
     .use(comfyMiddleware)
     .get(
         '/health',
-        ({ comfyClient, database }) => {
+        async ({ comfyClient, database }) => {
             return {
-                database: database.check(),
+                database: await database.check(),
                 comfy: comfyClient.isConnected(),
             }
         },

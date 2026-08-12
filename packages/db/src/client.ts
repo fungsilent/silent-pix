@@ -10,7 +10,7 @@ import type { LibSQLDatabase } from 'drizzle-orm/libsql'
 
 export type DatabaseClient = {
     db: LibSQLDatabase<typeof schema>
-    check: () => boolean
+    check: () => Promise<boolean>
     close: () => void
 }
 
@@ -32,12 +32,13 @@ export async function createDatabaseClient(databasePath: string): Promise<Databa
 
     return {
         db,
-        check() {
+        async check() {
             try {
                 if (closed) {
                     throw new Error('Database client is closed.')
                 }
-                // sqlite.prepare('SELECT 1').get()
+
+                await client.execute('SELECT 1')
                 return true
             } catch {
                 return false
