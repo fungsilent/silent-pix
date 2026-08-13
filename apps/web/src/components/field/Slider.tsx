@@ -1,5 +1,6 @@
 import { Slider as ArkSlider } from '@ark-ui/solid'
-import { clsx } from 'clsx'
+
+import { cn } from '#/lib/cn'
 
 type SliderProps = {
     label: string
@@ -32,15 +33,15 @@ export function Slider(props: SliderProps) {
                     props.onChange?.(nextValue)
                 }
             }}
-            class={clsx('min-w-0 touch-none', props.classes?.root)}
+            class={cn('min-w-0 touch-none', props.classes?.root)}
         >
-            <ArkSlider.Control class={clsx('relative flex h-5 w-full min-w-0 items-center', props.classes?.control)}>
-                <ArkSlider.Track class={clsx('h-2 w-full rounded-full border border-line bg-elevated', props.classes?.track)}>
-                    <ArkSlider.Range class={clsx('h-full rounded-full bg-accent', props.classes?.range)} />
+            <ArkSlider.Control class={cn('relative flex h-5 w-full min-w-0 items-center', props.classes?.control)}>
+                <ArkSlider.Track class={cn('h-2 w-full rounded-full border border-line bg-elevated', props.classes?.track)}>
+                    <ArkSlider.Range class={cn('h-full rounded-full bg-accent', props.classes?.range)} />
                 </ArkSlider.Track>
                 <ArkSlider.Thumb
                     index={0}
-                    class={clsx(
+                    class={cn(
                         'h-4 w-4 rounded-full bg-accent outline-none ring-2 ring-transparent focus:ring-accent/40',
                         props.classes?.thumb,
                     )}

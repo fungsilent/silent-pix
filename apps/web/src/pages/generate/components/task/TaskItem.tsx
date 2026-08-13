@@ -1,6 +1,7 @@
-import clsx from 'clsx'
 import { Ban, CircleX, Hourglass, Image as ImageIcon, LoaderCircle } from 'lucide-solid'
 
+import { Button } from '#/components/base/Button'
+import { cn } from '#/lib/cn'
 import { TaskStatus } from '#/pages/generate/components/TaskStatus'
 
 import type { TaskApi } from '@silent-pix/shared'
@@ -53,19 +54,21 @@ export function TaskItem(props: TaskItemProps) {
     const placeholder = () => placeholderMap[props.task.status]
 
     return (
-        <button
-            type='button'
+        <Button
+            variant='ghost'
             aria-pressed={props.selected}
-            class={clsx(
-                'flex w-full cursor-pointer items-center gap-2.5 rounded-lg border p-2 text-left',
-                props.selected
-                    ? 'border-accent/60 bg-active shadow-[0_0_0_1px_rgba(37,99,235,0.14),0_1px_12px_rgba(37,99,235,0.12)]'
-                    : 'border-transparent hover:bg-elevated',
-            )}
+            classes={{
+                root: cn(
+                    'w-full justify-start gap-2.5 rounded-lg text-left',
+                    props.selected
+                        ? 'border-accent/60 bg-active shadow-[0_0_0_1px_rgba(37,99,235,0.14),0_1px_12px_rgba(37,99,235,0.12)]'
+                        : 'hover:bg-elevated',
+                ),
+            }}
             onClick={props.onSelect}
         >
             <div
-                class={clsx(
+                class={cn(
                     'size-14 shrink-0 overflow-hidden rounded-md border',
                     props.task.thumbnail
                         ? 'border-line-subtle bg-elevated'
@@ -96,7 +99,7 @@ export function TaskItem(props: TaskItemProps) {
                     </span>
                 </div>
             )}
-        </button>
+        </Button>
     )
 }
 

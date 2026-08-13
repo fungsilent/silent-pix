@@ -30,10 +30,10 @@ export function TaskLora() {
                                 >
                                     {lora.name}
                                 </span>
-                                <button
-                                    type='button'
+                                <Button
+                                    variant='ghost'
                                     aria-label={`Remove ${lora.name}`}
-                                    class='flex size-6 shrink-0 cursor-pointer items-center justify-center rounded text-fg-muted hover:bg-red-500/12 hover:text-red-400'
+                                    classes={{ root: 'size-6 shrink-0 rounded p-0 hover:bg-red-500/12 hover:text-red-400' }}
                                     onClick={() => store.removeLora(lora.id)}
                                 >
                                     <X
@@ -41,7 +41,7 @@ export function TaskLora() {
                                         strokeWidth={1.8}
                                         aria-hidden='true'
                                     />
-                                </button>
+                                </Button>
                             </div>
                             <div class='flex items-center gap-2.5'>
                                 <Slider
@@ -80,7 +80,8 @@ export function TaskLora() {
 
             <Button
                 type='button'
-                classes={{ root: 'h-7 border-transparent bg-accent/15 p-0 text-accent-fg hover:bg-accent/25' }}
+                variant='accent'
+                classes={{ root: 'h-7 p-0' }}
                 onClick={() => setDialogOpen(true)}
             >
                 <Plus

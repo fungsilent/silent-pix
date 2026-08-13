@@ -55,8 +55,9 @@ export function TaskList() {
 
                         <Show when={taskFeedQuery.hasNextPage}>
                             <Button
+                                variant='ghost'
                                 classes={{
-                                    root: 'mt-1 h-8 w-full justify-center border-transparent bg-transparent px-3 text-xs text-fg-muted',
+                                    root: 'mt-1 h-8 w-full justify-center px-3 text-xs',
                                 }}
                                 disabled={taskFeedQuery.isFetchingNextPage}
                                 onClick={() => void taskFeedQuery.fetchNextPage()}

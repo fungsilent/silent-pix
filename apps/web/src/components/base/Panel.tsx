@@ -1,7 +1,9 @@
 import { ScrollArea } from '@ark-ui/solid'
-import { clsx } from 'clsx'
 import { ChevronsLeft, ChevronsRight } from 'lucide-solid'
 import { createSignal } from 'solid-js'
+
+import { Button } from '#/components/base/Button'
+import { cn } from '#/lib/cn'
 
 import type { Accessor, JSX } from 'solid-js'
 
@@ -49,7 +51,7 @@ export function Panel(props: PanelProps) {
 
     return (
         <aside
-            class={clsx(
+            class={cn(
                 'flex-none overflow-hidden bg-surface',
                 props.classes?.root,
                 isCollapsed() ? props.classes?.close : props.classes?.open,
@@ -87,10 +89,10 @@ type CollapseButtonProps = {
 
 export function CollapseButton(props: CollapseButtonProps) {
     return (
-        <button
-            type='button'
+        <Button
+            variant='ghost'
             aria-label={props.collapsed ? 'Expand panel' : 'Collapse panel'}
-            class='flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-fg-muted hover:bg-hover hover:text-fg'
+            classes={{ root: 'size-8 shrink-0 p-0' }}
             onClick={props.onClick}
         >
             {
@@ -108,7 +110,7 @@ export function CollapseButton(props: CollapseButtonProps) {
                         />
                     )
             }
-        </button>
+        </Button>
     )
 }
 
@@ -124,9 +126,9 @@ type PanelContentProps = {
 
 export function PanelContent(props: PanelContentProps) {
     return (
-        <ScrollArea.Root class={clsx('relative min-h-0 flex-1 overflow-hidden', props.classes?.root)}>
-            <ScrollArea.Viewport class={clsx('scrollbar-hidden h-full w-full', props.classes?.viewport)}>
-                <ScrollArea.Content class={clsx('flex !min-w-0 flex-col gap-2 p-2 pr-3', props.classes?.content)}>
+        <ScrollArea.Root class={cn('relative min-h-0 flex-1 overflow-hidden', props.classes?.root)}>
+            <ScrollArea.Viewport class={cn('scrollbar-hidden h-full w-full', props.classes?.viewport)}>
+                <ScrollArea.Content class={cn('flex !min-w-0 flex-col gap-2 p-2 pr-3', props.classes?.content)}>
                     {props.children}
                 </ScrollArea.Content>
             </ScrollArea.Viewport>

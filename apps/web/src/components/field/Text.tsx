@@ -1,5 +1,6 @@
 import { Field } from '@ark-ui/solid'
-import { clsx } from 'clsx'
+
+import { cn } from '#/lib/cn'
 
 import type { JSX } from 'solid-js'
 
@@ -20,23 +21,23 @@ type TextProps = {
 
 export function Text(props: TextProps) {
     return (
-        <Field.Root class={clsx('flex min-w-0 flex-col gap-1', props.classes?.root)}>
-            <Field.Label class={clsx('text-xs leading-none text-fg-muted', props.classes?.label)}>
+        <Field.Root class={cn('flex min-w-0 flex-col gap-1', props.classes?.root)}>
+            <Field.Label class={cn('text-xs leading-none text-fg-muted', props.classes?.label)}>
                 {props.label}
             </Field.Label>
-            <div class={clsx('flex min-w-0 items-center gap-2', props.classes?.control)}>
+            <div class={cn('flex min-w-0 items-center gap-2', props.classes?.control)}>
                 <Field.Input
                     type='text'
                     value={props.value}
                     placeholder={props.placeholder}
-                    class={clsx(
+                    class={cn(
                         'h-8 min-w-0 flex-1 rounded-md border border-transparent bg-active px-3 text-xs leading-none text-fg outline-none placeholder:text-fg-muted focus:border-accent focus:ring-3 focus:ring-accent/40',
                         props.classes?.input,
                     )}
                     onInput={event => props.onInput?.(event.currentTarget.value)}
                 />
                 {props.action && (
-                    <div class={clsx('shrink-0', props.classes?.action)}>
+                    <div class={cn('shrink-0', props.classes?.action)}>
                         {props.action}
                     </div>
                 )}

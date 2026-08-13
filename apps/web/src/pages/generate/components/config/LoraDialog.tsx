@@ -1,10 +1,10 @@
-import { clsx } from 'clsx'
 import { Check, RefreshCw } from 'lucide-solid'
 import { createEffect, createMemo, createSignal, For, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { Dialog } from '#/components/base/Dialog'
 import { useLoraListQuery } from '#/features/task/task.query'
+import { cn } from '#/lib/cn'
 import { useGenerateStore } from '#/pages/generate/store'
 
 type LoraDialogProps = {
@@ -57,7 +57,8 @@ export function LoraDialog(props: LoraDialogProps) {
                     <Button
                         type='button'
                         disabled={!canAdd()}
-                        classes={{ root: 'min-w-20 border-accent/70 bg-accent/15 px-3 py-1.5 text-sm text-accent-fg' }}
+                        variant='accent'
+                        classes={{ root: 'min-w-20 px-3 py-1.5 text-sm' }}
                         onClick={addSelectedLora}
                     >
                         Add
@@ -108,21 +109,22 @@ export function LoraDialog(props: LoraDialogProps) {
                                     const isSelected = () => selectedName() === option.value
 
                                     return (
-                                        <button
-                                            type='button'
+                                        <Button
                                             role='radio'
                                             aria-checked={isSelected()}
                                             disabled={isAdded()}
                                             title={option.value}
-                                            class={clsx(
-                                                'flex min-h-10 w-full items-center justify-between gap-3 rounded-md border px-3 py-2 text-left text-sm outline-none transition-colors',
-                                                isSelected()
-                                                    ? 'border-accent bg-accent/15 text-fg'
-                                                    : 'border-line bg-elevated text-fg-secondary',
-                                                isAdded()
-                                                    ? 'cursor-not-allowed opacity-60'
-                                                    : 'cursor-pointer hover:bg-hover focus:border-accent',
-                                            )}
+                                            classes={{
+                                                root: cn(
+                                                    'min-h-10 w-full justify-between gap-3 px-3 py-2 text-left text-sm outline-none transition-colors',
+                                                    isSelected()
+                                                        ? 'border-accent bg-accent/15 text-fg'
+                                                        : 'border-line',
+                                                    isAdded()
+                                                        ? 'cursor-not-allowed opacity-60'
+                                                        : 'focus:border-accent',
+                                                ),
+                                            }}
                                             onClick={() => {
                                                 if (!isAdded()) setSelectedName(option.value)
                                             }}
@@ -143,7 +145,7 @@ export function LoraDialog(props: LoraDialogProps) {
                                             >
                                                 <span class='shrink-0 text-xs text-fg-muted'>Added</span>
                                             </Show>
-                                        </button>
+                                        </Button>
                                     )
                                 }}
                             </For>

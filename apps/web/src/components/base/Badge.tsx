@@ -1,4 +1,4 @@
-import clsx from 'clsx'
+import { cn } from '#/lib/cn'
 
 import type { JSX } from 'solid-js'
 
@@ -23,7 +23,7 @@ export function Badge(props: BadgeProps) {
     return (
         <div
             {...props}
-            class={clsx(
+            class={cn(
                 'inline-flex h-5 shrink-0 items-center justify-center rounded-md px-2 text-[0.72rem] font-medium leading-none',
                 props.class ?? selectedClass(),
             )}

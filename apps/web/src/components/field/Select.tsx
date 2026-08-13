@@ -1,7 +1,8 @@
 import { Select as ArkSelect, createListCollection } from '@ark-ui/solid'
-import { clsx } from 'clsx'
 import { Check, ChevronDown } from 'lucide-solid'
 import { createMemo, For } from 'solid-js'
+
+import { cn } from '#/lib/cn'
 
 type SelectOption = {
     label: string
@@ -40,14 +41,14 @@ export function Select(props: SelectProps) {
                     props.onChange?.(value)
                 }
             }}
-            class={clsx('flex min-w-0 flex-col gap-1', props.classes?.root)}
+            class={cn('flex min-w-0 flex-col gap-1', props.classes?.root)}
         >
-            <ArkSelect.Label class={clsx('text-xs leading-none text-fg-muted', props.classes?.label)}>
+            <ArkSelect.Label class={cn('text-xs leading-none text-fg-muted', props.classes?.label)}>
                 {props.label}
             </ArkSelect.Label>
             <ArkSelect.Control>
                 <ArkSelect.Trigger
-                    class={clsx(
+                    class={cn(
                         'flex h-8 w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-transparent bg-active px-3 text-left text-xs leading-none text-fg outline-none focus:border-accent focus:ring-3 focus:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-60',
                         props.classes?.trigger,
                     )}
@@ -64,7 +65,7 @@ export function Select(props: SelectProps) {
             </ArkSelect.Control>
             <ArkSelect.Positioner>
                 <ArkSelect.Content
-                    class={clsx(
+                    class={cn(
                         'z-10 mt-1 min-w-[var(--reference-width)] overflow-hidden rounded-md border border-line bg-elevated p-1 shadow-xl',
                         props.classes?.content,
                     )}
@@ -74,7 +75,7 @@ export function Select(props: SelectProps) {
                             {option => (
                                 <ArkSelect.Item
                                     item={option}
-                                    class={clsx(
+                                    class={cn(
                                         'flex h-8 cursor-default items-center justify-between gap-2 rounded px-2 text-xs text-fg outline-none data-[highlighted]:bg-accent/20',
                                         props.classes?.item,
                                     )}
