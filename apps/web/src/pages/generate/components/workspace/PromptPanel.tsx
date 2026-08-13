@@ -163,11 +163,6 @@ export function PromptPanel(props: PromptPanelProps) {
         updateTags(kind, nextTags)
     }
 
-    /*
-     * textarea 用 resize-y，上限必須跟「目前開著幾塊」連動，否則兩塊各自吃掉
-     * 一大截就會把 stage 擠掉。460px 是扣掉 top bar、workspace 間距、stage 的
-     * 240px 下限與 Prompt 自身的固定 chrome 之後的粗估值。
-     */
     const openCount = () => (positive().visible ? 1 : 0) + (negative().visible ? 1 : 0)
     const textAreaMaxHeight = () => `max(56px, calc((100dvh - 460px) / ${openCount() || 1}))`
 
@@ -178,8 +173,8 @@ export function PromptPanel(props: PromptPanelProps) {
     }
 
     return (
-        <section class='flex shrink-0 flex-col overflow-hidden rounded-md border border-line-subtle bg-surface'>
-            <div class='flex min-h-12 shrink-0 items-center justify-between gap-3 px-3 py-2'>
+        <section class='flex shrink-0 flex-col overflow-hidden border-b border-line-subtle bg-surface pb-1'>
+            <div class='flex min-h-12 shrink-0 items-center justify-between gap-3 px-4 py-2'>
                 <div class='flex min-w-0 items-center gap-2'>
                     <h2 class='m-0 text-sm font-bold leading-none text-fg'>Prompt</h2>
                     <PromptToggle
@@ -305,7 +300,7 @@ type PromptGroupProps = {
 function PromptGroup(props: PromptGroupProps) {
     return (
         <Show when={props.visible}>
-            <section class='flex flex-col px-3 pb-3'>
+            <section class='flex flex-col px-4 pb-2'>
                 <div class='flex min-w-0 items-end gap-2'>
                     <span class='w-[54px] shrink-0 pb-2 text-xs leading-none text-fg-muted'>
                         {promptLabel[props.kind]}
@@ -324,7 +319,6 @@ function PromptGroup(props: PromptGroupProps) {
                         onValuesChange={props.onValuesChange}
                     />
                 </div>
-                {/* focus ring 加在 panel 上，textarea 本身無邊框、透明底 */}
                 <div class='rounded-md border border-transparent bg-active px-3 py-2 focus-within:border-accent focus-within:ring-3 focus-within:ring-accent/40'>
                     <textarea
                         class='scrollbar-thin resizer-hidden block h-20 min-h-14 w-full resize-y bg-transparent text-xs leading-5 text-fg outline-none'
