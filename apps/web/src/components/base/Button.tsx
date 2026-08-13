@@ -32,7 +32,7 @@ export function Button(props: ButtonProps) {
             {...rest}
             type={local.type ?? 'button'}
             class={cn(
-                'flex cursor-pointer items-center justify-center gap-2 rounded-md border border-transparent p-2',
+                'flex cursor-pointer items-center justify-center gap-2 rounded-md border border-transparent p-2 outline-none focus-visible:border-accent focus-visible:ring-3 focus-visible:ring-accent/40',
                 variantClass[local.variant ?? 'default'],
                 local.classes?.root,
                 local.class,
