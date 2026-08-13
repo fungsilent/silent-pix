@@ -21,7 +21,6 @@ export function TaskLora() {
             <div class='flex flex-col gap-2'>
                 <For each={loras()}>
                     {lora => (
-                        // LoRA 沒有縮圖，不得新增
                         <div class='flex flex-col gap-2 rounded-lg bg-active px-2.5 py-2'>
                             <div class='flex items-center gap-1.5'>
                                 <span
@@ -89,7 +88,7 @@ export function TaskLora() {
                     strokeWidth={1.8}
                     aria-hidden='true'
                 />
-                <span class='text-xs leading-none'>Add LoRA</span>
+                <span class='text-xs leading-none'>Select LoRA</span>
             </Button>
             <LoraDialog
                 open={dialogOpen()}

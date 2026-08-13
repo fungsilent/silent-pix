@@ -142,6 +142,8 @@ export function toCreateTaskRequest(values: GenerateValues): TaskApi.CreateTaskR
     }
 }
 
+const defaultLoraWeight = 0.7
+
 const cloneGenerateValues = (values: GenerateValues): GenerateValues => ({
     ...values,
     lora: values.lora.map(lora => ({ ...lora })),
@@ -187,11 +189,31 @@ export function createGenerateStore(initialValues: GenerateValues) {
                 {
                     id: `lora-${crypto.randomUUID()}`,
                     name,
-                    weight: 0.7,
+                    weight: defaultLoraWeight,
                 },
             ])
 
             return true
+        },
+
+        /*
+         * 以 name 為 key 對齊：留下來的沿用原本的 id 與已調好的 weight，
+         * 只有新加入的才拿預設值。順序由傳入的陣列決定。
+         */
+        setLoraNames(names: string[]) {
+            const current = store.state.values.lora
+
+            store.set('values', 'lora', names.map(name => {
+                const existing = current.find(lora => lora.name === name)
+
+                return existing
+                    ? { ...existing }
+                    : {
+                        id: `lora-${crypto.randomUUID()}`,
+                        name,
+                        weight: defaultLoraWeight,
+                    }
+            }))
         },
 
         setLoraWeight(id: string, weight: number) {
