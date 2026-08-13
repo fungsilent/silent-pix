@@ -1,8 +1,8 @@
-import { clsx } from 'clsx'
 import { ChevronLeft, ChevronRight, Expand, Star, Trash2 } from 'lucide-solid'
 import { For, onCleanup, onMount, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
+import { cn } from '#/lib/cn'
 
 type ImageStageProps = {
     images: string[]
@@ -65,7 +65,7 @@ export function ImageStage(props: ImageStageProps) {
 
     return (
         <section
-            class='flex min-h-[420px] flex-1 flex-col overflow-hidden rounded-md border border-line-subtle bg-surface'
+            class='flex min-h-[240px] flex-1 flex-col overflow-hidden rounded-md border border-line-subtle bg-surface'
             aria-label='Image preview'
         >
             <div class='relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-md bg-stage'>
@@ -138,7 +138,7 @@ export function ImageStage(props: ImageStageProps) {
                         {(image, index) => (
                             <Button
                                 classes={{
-                                    root: clsx(
+                                    root: cn(
                                         'h-20 bg-stage p-0!',
                                         index() === props.selectedIndex
                                             ? 'border-accent ring-1 ring-accent'
