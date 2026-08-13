@@ -22,7 +22,7 @@ export function Workspace(props: WorkspaceProps) {
 
     return (
         <section
-            class='flex h-full min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-auto bg-canvas p-3'
+            class='flex h-full min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden bg-canvas p-3'
             aria-label='Generate workspace'
         >
             <PromptPanel

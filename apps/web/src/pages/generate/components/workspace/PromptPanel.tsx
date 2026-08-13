@@ -1,9 +1,9 @@
-import { clsx } from 'clsx'
 import { Sparkles } from 'lucide-solid'
 import { createEffect, createSignal, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
-import { Tag } from '#/components/field'
+import { cn } from '#/lib/cn'
+import { PromptTabs } from '#/pages/generate/components/workspace/PromptTabs'
 import { useGenerateStore } from '#/pages/generate/store'
 
 import type { GenerateTask, GenerateValues } from '#/pages/generate/store'
@@ -88,13 +88,43 @@ export function PromptPanel(props: PromptPanelProps) {
         }
     }
 
+    /*
+     * Ark 只回傳 label 陣列，所以先用 label 對位（涵蓋新增、刪除、重排），
+     * 對不到的再用位置對位——那代表這一格是改名，必須沿用原本的 id 與 text，
+     * 否則改名會被當成新分頁，textarea 內容整段消失。
+     */
     const syncTagValues = (kind: PromptKind, tagValues: string[]) => {
         const current = tags(kind)
-        const nextTags = tagValues.map(value => {
-            const existing = current.find(tag => tag.label === value)
-            return existing ?? {
+        const taken = new Set<number>()
+
+        const byLabel = tagValues.map(value => {
+            const index = current.findIndex((tag, tagIndex) => (
+                !taken.has(tagIndex) && tag.label === value
+            ))
+
+            if (index < 0) {
+                return undefined
+            }
+
+            taken.add(index)
+            return current[index]
+        })
+
+        const nextTags = byLabel.map((tag, index) => {
+            const label = tagValues[index] ?? ''
+            if (tag) {
+                return tag
+            }
+
+            const renamed = current[index]
+            if (renamed && !taken.has(index)) {
+                taken.add(index)
+                return { ...renamed, label }
+            }
+
+            return {
                 id: `${kind}-${crypto.randomUUID()}`,
-                label: value,
+                label,
                 text: '',
             }
         })
@@ -133,17 +163,23 @@ export function PromptPanel(props: PromptPanelProps) {
         updateTags(kind, nextTags)
     }
 
+    /*
+     * textarea 用 resize-y，上限必須跟「目前開著幾塊」連動，否則兩塊各自吃掉
+     * 一大截就會把 stage 擠掉。460px 是扣掉 top bar、workspace 間距、stage 的
+     * 240px 下限與 Prompt 自身的固定 chrome 之後的粗估值。
+     */
+    const openCount = () => (positive().visible ? 1 : 0) + (negative().visible ? 1 : 0)
+    const textAreaMaxHeight = () => `max(56px, calc((100dvh - 460px) / ${openCount() || 1}))`
+
     const toggleVisible = (kind: PromptKind) => {
         setGroup(kind, {
             visible: !group(kind).visible,
         })
     }
 
-    const hasPrompt = () => positive().visible || negative().visible
-
     return (
-        <section class='overflow-hidden rounded-md border border-line-subtle bg-surface'>
-            <div class='flex min-h-12 items-center justify-between gap-3 px-3 py-2'>
+        <section class='flex shrink-0 flex-col overflow-hidden rounded-md border border-line-subtle bg-surface'>
+            <div class='flex min-h-12 shrink-0 items-center justify-between gap-3 px-3 py-2'>
                 <div class='flex min-w-0 items-center gap-2'>
                     <h2 class='m-0 text-sm font-bold leading-none text-fg'>Prompt</h2>
                     <PromptToggle
@@ -159,11 +195,10 @@ export function PromptPanel(props: PromptPanelProps) {
                 </div>
                 <Button
                     type='submit'
+                    variant='primary'
                     disabled={props.isSubmitting}
                     classes={{
-                        root: clsx(
-                            'inline-flex gap-2 rounded-md border-transparent bg-accent px-4 font-bold text-white text-sm hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60'
-                        )
+                        root: 'px-4 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-60'
                     }}
                 >
                     <Sparkles
@@ -180,11 +215,7 @@ export function PromptPanel(props: PromptPanelProps) {
                 </p>
             </Show>
 
-            {hasPrompt() && (
-                <div class={clsx('border-b border-line-subtle')}/>
-            )}
-
-            <div class='flex flex-col'>
+            <div class='flex flex-col gap-1'>
                 <PromptGroup
                     kind='positive'
                     tags={tags('positive')}
@@ -197,6 +228,7 @@ export function PromptPanel(props: PromptPanelProps) {
                     onDragStart={tagId => setDragged(value => ({ ...value, positive: tagId }))}
                     onDrop={tagId => moveTag('positive', tagId)}
                     onSelect={tagId => setSelected(value => ({ ...value, positive: tagId }))}
+                    textAreaMaxHeight={textAreaMaxHeight()}
                     onTextInput={text => updateSelectedText('positive', text)}
                     onValuesChange={tagValues => syncTagValues('positive', tagValues)}
                 />
@@ -212,6 +244,7 @@ export function PromptPanel(props: PromptPanelProps) {
                     onDragStart={tagId => setDragged(value => ({ ...value, negative: tagId }))}
                     onDrop={tagId => moveTag('negative', tagId)}
                     onSelect={tagId => setSelected(value => ({ ...value, negative: tagId }))}
+                    textAreaMaxHeight={textAreaMaxHeight()}
                     onTextInput={text => updateSelectedText('negative', text)}
                     onValuesChange={tagValues => syncTagValues('negative', tagValues)}
                 />
@@ -230,16 +263,22 @@ type PromptToggleProps = {
 function PromptToggle(props: PromptToggleProps) {
     return (
         <Button
+            variant={props.visible ? 'accent' : 'default'}
+            aria-pressed={props.visible}
             classes={{
-                root: clsx(
-                    'h-7 rounded px-3 text-[0.72rem] font-bold leading-none outline outline-1 outline-offset-0',
+                root: cn(
+                    'h-7 gap-1.5 px-3 py-0 text-[0.72rem] leading-none outline outline-1 outline-offset-0',
                     props.visible
-                        ? 'bg-accent/15 text-accent-fg outline-accent/40'
-                        : 'bg-elevated text-fg-muted outline-line-subtle',
-                )
+                        ? 'outline-accent/40'
+                        : 'text-fg-muted outline-line-subtle hover:text-fg-secondary',
+                ),
             }}
             onClick={props.onClick}
         >
+            <span
+                class='size-[5px] shrink-0 rounded-full bg-current opacity-45'
+                aria-hidden='true'
+            />
             {promptLabel[props.kind]}
         </Button>
     )
@@ -252,6 +291,7 @@ type PromptGroupProps = {
     selectedId: string | undefined
     tags: GenerateValues[PromptKind]
     text: string
+    textAreaMaxHeight: string
     visible: boolean
     onAddTag: () => void
     onDragEnd: () => void
@@ -265,10 +305,12 @@ type PromptGroupProps = {
 function PromptGroup(props: PromptGroupProps) {
     return (
         <Show when={props.visible}>
-            <section class='overflow-hidden'>
-                <div class='flex min-h-10 items-center gap-2 px-2 py-2'>
-                    <span class='w-14 shrink-0 text-xs font-bold text-fg'>{promptLabel[props.kind]}</span>
-                    <Tag
+            <section class='flex flex-col px-3 pb-3'>
+                <div class='flex min-w-0 items-end gap-2'>
+                    <span class='w-[54px] shrink-0 pb-2 text-xs leading-none text-fg-muted'>
+                        {promptLabel[props.kind]}
+                    </span>
+                    <PromptTabs
                         classes={{
                             root: 'flex-1',
                         }}
@@ -282,11 +324,15 @@ function PromptGroup(props: PromptGroupProps) {
                         onValuesChange={props.onValuesChange}
                     />
                 </div>
-                <textarea
-                    class='block min-h-14 w-full resize-y bg-active px-3 py-2 text-xs font-semibold leading-5 text-fg outline-none focus:border-accent'
-                    value={props.text}
-                    onInput={event => props.onTextInput(event.currentTarget.value)}
-                />
+                {/* focus ring 加在 panel 上，textarea 本身無邊框、透明底 */}
+                <div class='rounded-md border border-transparent bg-active px-3 py-2 focus-within:border-accent focus-within:ring-3 focus-within:ring-accent/40'>
+                    <textarea
+                        class='scrollbar-thin resizer-hidden block h-20 min-h-14 w-full resize-y bg-transparent text-xs leading-5 text-fg outline-none'
+                        style={{ 'max-height': props.textAreaMaxHeight }}
+                        value={props.text}
+                        onInput={event => props.onTextInput(event.currentTarget.value)}
+                    />
+                </div>
             </section>
         </Show>
     )

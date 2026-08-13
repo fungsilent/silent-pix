@@ -1,17 +1,17 @@
 import { TagsInput as ArkTagsInput } from '@ark-ui/solid/tags-input'
-import { clsx } from 'clsx'
 import { GripVertical, X } from 'lucide-solid'
 import { For } from 'solid-js'
 
-export type TagItemData = {
+import { cn } from '#/lib/cn'
+
+export type PromptTabItem = {
     id: string
     label: string
 }
 
-type TagProps = {
+type PromptTabsProps = {
     draggedId?: string | undefined
-    items: TagItemData[]
-    placeholder?: string
+    items: PromptTabItem[]
     selectedId?: string | undefined
     onDragEnd?: () => void
     onDragStart?: (itemId: string) => void
@@ -20,32 +20,27 @@ type TagProps = {
     onValuesChange: (values: string[]) => void
     classes?: {
         root?: string
-        control?: string
-        input?: string
-        item?: string
-        itemActive?: string
-        itemIdle?: string
     }
 }
 
-export function Tag(props: TagProps) {
+export function PromptTabs(props: PromptTabsProps) {
     return (
         <ArkTagsInput.Root
-            class={clsx('min-w-0', props.classes?.root)}
+            class={cn('min-w-0', props.classes?.root)}
             value={props.items.map(item => item.label)}
             onValueChange={details => props.onValuesChange(details.value)}
         >
-            <ArkTagsInput.Control class={clsx('flex min-w-0 flex-wrap items-center gap-2', props.classes?.control)}>
+            <ArkTagsInput.Control class='flex min-w-0 flex-wrap items-end gap-0.5'>
                 <For each={props.items}>
                     {item => (
                         <ArkTagsInput.Item
-                            class={clsx(
-                                'inline-flex h-6 cursor-pointer items-center gap-1 rounded-md border px-2 text-[0.72rem] leading-none',
+                            class={cn(
+                                'inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-t-md pl-2 pr-1 text-xs leading-none',
                                 item.id === props.selectedId
-                                    ? props.classes?.itemActive ?? 'border-accent bg-accent/20 text-accent-fg'
-                                    : props.classes?.itemIdle ?? 'border-line bg-elevated text-fg-secondary',
+                                    // 與下方 panel 同色、無分隔線，負 margin 蓋掉接縫
+                                    ? '-mb-0.5 bg-active pb-0.5 text-fg shadow-[inset_0_2px_0_var(--sp-accent)]'
+                                    : 'text-fg-muted hover:bg-white/[0.045] hover:text-fg-secondary',
                                 item.id === props.draggedId && 'opacity-50',
-                                props.classes?.item,
                             )}
                             draggable={Boolean(props.onDragStart)}
                             index={props.items.findIndex(candidate => candidate.id === item.id)}
@@ -63,18 +58,20 @@ export function Tag(props: TagProps) {
                             }}
                         >
                             <GripVertical
+                                class='shrink-0 opacity-35'
                                 size={12}
-                                strokeWidth={2}
+                                strokeWidth={1.8}
+                                aria-hidden='true'
                             />
                             <ArkTagsInput.ItemPreview class='flex min-w-0 items-center gap-1'>
                                 <ArkTagsInput.ItemText class='min-w-0 truncate'>{item.label}</ArkTagsInput.ItemText>
                                 <ArkTagsInput.ItemDeleteTrigger
-                                    class='inline-flex h-4 w-4 items-center justify-center rounded text-fg-muted hover:text-fg'
+                                    class='flex size-4 shrink-0 items-center justify-center rounded text-fg-muted hover:bg-white/[0.09] hover:text-fg'
                                 >
                                     <X
                                         size={12}
-                                        strokeWidth={2.2}
-                                        class='text-red-400 cursor-pointer'
+                                        strokeWidth={2}
+                                        aria-hidden='true'
                                     />
                                 </ArkTagsInput.ItemDeleteTrigger>
                             </ArkTagsInput.ItemPreview>
@@ -83,8 +80,8 @@ export function Tag(props: TagProps) {
                     )}
                 </For>
                 <ArkTagsInput.Input
-                    class={clsx('h-6 min-w-20 flex-1 bg-transparent text-xs text-fg outline-none placeholder:text-fg-muted', props.classes?.input)}
-                    placeholder={props.placeholder ?? 'Tag'}
+                    class='h-7 min-w-8 flex-1 bg-transparent px-2 text-xs text-fg outline-none placeholder:text-fg-muted'
+                    placeholder='+'
                 />
                 <ArkTagsInput.HiddenInput />
             </ArkTagsInput.Control>
