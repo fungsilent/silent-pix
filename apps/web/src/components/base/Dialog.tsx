@@ -1,7 +1,8 @@
 import { Dialog as ArkDialog } from '@ark-ui/solid'
-import { clsx } from 'clsx'
 import { X } from 'lucide-solid'
 import { Portal } from 'solid-js/web'
+
+import { cn } from '#/lib/cn'
 
 import type { JSX } from 'solid-js'
 
@@ -30,25 +31,25 @@ export function Dialog(props: DialogProps) {
         >
             <Portal>
                 <ArkDialog.Backdrop
-                    class={clsx(
+                    class={cn(
                         'fixed inset-0 z-40 bg-black/70',
                         props.classes?.backdrop,
                     )}
                 />
                 <ArkDialog.Positioner
-                    class={clsx(
+                    class={cn(
                         'fixed inset-0 z-50 flex max-h-[100dvh] items-center justify-center overflow-y-auto p-4',
                         props.classes?.positioner,
                     )}
                 >
                     <ArkDialog.Content
-                        class={clsx(
+                        class={cn(
                             'flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-lg border border-line bg-surface text-fg-secondary shadow-2xl outline-none',
                             props.classes?.content,
                         )}
                     >
                         <div
-                            class={clsx(
+                            class={cn(
                                 'flex shrink-0 items-start justify-between gap-4 border-b border-line-subtle px-4 py-3',
                                 props.classes?.header,
                             )}
@@ -75,7 +76,7 @@ export function Dialog(props: DialogProps) {
                             </ArkDialog.CloseTrigger>
                         </div>
                         <div
-                            class={clsx(
+                            class={cn(
                                 'min-h-0 flex-1 overflow-y-auto p-4',
                                 props.classes?.body,
                             )}
@@ -84,7 +85,7 @@ export function Dialog(props: DialogProps) {
                         </div>
                         {props.footer && (
                             <div
-                                class={clsx(
+                                class={cn(
                                     'flex shrink-0 justify-end gap-2 border-t border-line-subtle px-4 py-3',
                                     props.classes?.footer,
                                 )}

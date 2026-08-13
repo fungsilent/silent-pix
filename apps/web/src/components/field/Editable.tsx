@@ -1,6 +1,7 @@
 import { Editable as ArkEditable } from '@ark-ui/solid'
-import { clsx } from 'clsx'
 import { Pencil } from 'lucide-solid'
+
+import { cn } from '#/lib/cn'
 
 type EditableProps = {
     label: string
@@ -23,18 +24,18 @@ export function Editable(props: EditableProps) {
             selectOnFocus
             onValueChange={details => props.onChange?.(details.value)}
             onValueCommit={details => props.onCommit?.(details.value)}
-            class={clsx('flex min-w-0 items-center gap-2', props.classes?.root)}
+            class={cn('flex min-w-0 items-center gap-2', props.classes?.root)}
         >
             <ArkEditable.Label class='sr-only'>{props.label}</ArkEditable.Label>
-            <ArkEditable.Area class={clsx('min-w-0 flex-1', props.classes?.area)}>
+            <ArkEditable.Area class={cn('min-w-0 flex-1', props.classes?.area)}>
                 <ArkEditable.Preview
-                    class={clsx(
+                    class={cn(
                         'flex h-8 w-full cursor-text items-center truncate rounded-md border border-transparent bg-active px-3 text-xs leading-none text-fg',
                         props.classes?.preview,
                     )}
                 />
                 <ArkEditable.Input
-                    class={clsx(
+                    class={cn(
                         'h-8 w-full rounded-md border border-accent bg-active px-3 text-xs leading-none text-fg outline-none ring-3 ring-accent/40',
                         props.classes?.input,
                     )}
@@ -42,7 +43,7 @@ export function Editable(props: EditableProps) {
             </ArkEditable.Area>
             <ArkEditable.Control>
                 <ArkEditable.EditTrigger
-                    class={clsx(
+                    class={cn(
                         'flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md border border-transparent text-fg-muted hover:bg-hover hover:text-fg',
                         props.classes?.trigger,
                     )}

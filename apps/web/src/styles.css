@@ -101,6 +101,38 @@ body {
     display: none;
 }
 
+/* thumb 比 plan 的 white/10 重，因為它多半疊在 bg-active 上，10% 幾乎看不見 */
+.scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 22%) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 4px;
+    background: rgb(255 255 255 / 22%);
+    background-clip: content-box;
+}
+
+/* 藏掉原生的斜線把手，拖拉縮放仍然可用 */
+.resizer-hidden::-webkit-resizer {
+    display: none;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgb(255 255 255 / 34%);
+    background-clip: content-box;
+}
+
 .number-input {
     appearance: textfield;
 }

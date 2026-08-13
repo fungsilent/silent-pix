@@ -1,5 +1,6 @@
 import { Field } from '@ark-ui/solid'
-import { clsx } from 'clsx'
+
+import { cn } from '#/lib/cn'
 
 type NumberProps = {
     label: string
@@ -17,8 +18,8 @@ type NumberProps = {
 
 export function Number(props: NumberProps) {
     return (
-        <Field.Root class={clsx('flex min-w-0 flex-col gap-1', props.classes?.root)}>
-            <Field.Label class={clsx('text-xs leading-none text-fg-muted', props.classes?.label)}>
+        <Field.Root class={cn('flex min-w-0 flex-col gap-1', props.classes?.root)}>
+            <Field.Label class={cn('text-xs leading-none text-fg-muted', props.classes?.label)}>
                 {props.label}
             </Field.Label>
             <Field.Input
@@ -27,7 +28,7 @@ export function Number(props: NumberProps) {
                 min={props.min}
                 max={props.max}
                 step={props.step}
-                class={clsx(
+                class={cn(
                     'number-input h-8 min-w-0 rounded-md border border-transparent bg-active px-3 text-xs leading-none text-fg outline-none focus:border-accent focus:ring-3 focus:ring-accent/40',
                     props.classes?.input,
                 )}
