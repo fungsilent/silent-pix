@@ -6,12 +6,18 @@ import { cn } from '#/lib/cn'
 
 type ImageStageProps = {
     images: string[]
+    keyboardEnabled: boolean
     selectedIndex: number
+    onExpand: () => void
     onSelect: (index: number) => void
 }
 
+const glass = 'border-white/[0.09] bg-surface/75 backdrop-blur-[8px]'
+
 export function ImageStage(props: ImageStageProps) {
     const selectedImage = () => props.images[props.selectedIndex] ?? props.images[0]
+    const hasMany = () => props.images.length > 1
+
     const selectPrevious = () => {
         if (props.images.length === 0) {
             return
@@ -39,7 +45,7 @@ export function ImageStage(props: ImageStageProps) {
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
-        if (props.images.length < 2 || isEditableTarget(event.target)) {
+        if (!props.keyboardEnabled || props.images.length < 2 || isEditableTarget(event.target)) {
             return
         }
 
@@ -65,99 +71,120 @@ export function ImageStage(props: ImageStageProps) {
 
     return (
         <section
-            class='flex min-h-[240px] flex-1 flex-col overflow-hidden rounded-md border border-line-subtle bg-surface'
+            class='flex min-h-[240px] flex-1 flex-col overflow-hidden bg-stage'
             aria-label='Image preview'
         >
-            <div class='relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-md bg-stage'>
+            <div class='relative flex min-h-0 flex-1 items-center justify-center overflow-hidden'>
                 <Show
                     when={selectedImage()}
-                    fallback={<div class='text-sm font-bold text-fg-muted'>No image</div>}
+                    fallback={<div class='text-sm text-fg-muted'>No image</div>}
                 >
                     {image => (
                         <img
-                            class='h-full max-h-full max-w-full object-contain'
+                            class='h-full w-full object-contain'
                             src={image()}
                             alt='Selected generated preview'
+                            onClick={props.onExpand}
                         />
                     )}
                 </Show>
 
-                <div class='absolute right-2 top-2 flex gap-2'>
-                    <Button classes={{ root: 'h-8 w-8 p-0 text-fg' }}>
+                <div class='absolute right-3 top-3 flex gap-2'>
+                    <Button
+                        variant='ghost'
+                        aria-label='Expand'
+                        classes={{ root: cn('size-8 rounded-md border p-0', glass) }}
+                        onClick={props.onExpand}
+                    >
                         <Expand
-                            size={14}
-                            strokeWidth={2}
+                            size={15}
+                            strokeWidth={1.8}
                             aria-hidden='true'
                         />
                     </Button>
-                    <Button classes={{ root: 'h-8 w-8 p-0 text-fg' }}>
+                    <Button
+                        variant='ghost'
+                        aria-label='Favorite'
+                        classes={{ root: cn('size-8 rounded-md border p-0', glass) }}
+                    >
                         <Star
-                            size={14}
-                            strokeWidth={2}
+                            size={15}
+                            strokeWidth={1.8}
                             aria-hidden='true'
                         />
                     </Button>
-                    <Button classes={{ root: 'h-8 w-8 p-0 text-red-400' }}>
+                    <Button
+                        variant='ghost'
+                        aria-label='Delete'
+                        classes={{ root: cn('size-8 rounded-md border p-0 hover:text-red-400', glass) }}
+                    >
                         <Trash2
-                            size={14}
-                            strokeWidth={2}
+                            size={15}
+                            strokeWidth={1.8}
                             aria-hidden='true'
                         />
                     </Button>
                 </div>
 
-                <Button
-                    classes={{ root: 'absolute left-3 top-1/2 h-16 w-10 -translate-y-1/2 bg-surface/75 p-0 text-fg disabled:opacity-30' }}
-                    aria-label='Previous image'
-                    disabled={props.images.length < 2}
-                    onClick={selectPrevious}
-                >
-                    <ChevronLeft
-                        size={22}
-                        strokeWidth={2.2}
-                        aria-hidden='true'
-                    />
-                </Button>
-                <Button
-                    classes={{ root: 'absolute right-3 top-1/2 h-16 w-10 -translate-y-1/2 bg-surface/75 p-0 text-fg disabled:opacity-30' }}
-                    aria-label='Next image'
-                    disabled={props.images.length < 2}
-                    onClick={selectNext}
-                >
-                    <ChevronRight
-                        size={22}
-                        strokeWidth={2.2}
-                        aria-hidden='true'
-                    />
-                </Button>
+                <Show when={hasMany()}>
+                    <Button
+                        variant='ghost'
+                        aria-label='Previous image'
+                        classes={{ root: cn('absolute left-3 top-1/2 size-9 -translate-y-1/2 rounded-md border p-0', glass) }}
+                        onClick={selectPrevious}
+                    >
+                        <ChevronLeft
+                            size={18}
+                            strokeWidth={1.8}
+                            aria-hidden='true'
+                        />
+                    </Button>
+                    <Button
+                        variant='ghost'
+                        aria-label='Next image'
+                        classes={{ root: cn('absolute right-3 top-1/2 size-9 -translate-y-1/2 rounded-md border p-0', glass) }}
+                        onClick={selectNext}
+                    >
+                        <ChevronRight
+                            size={18}
+                            strokeWidth={1.8}
+                            aria-hidden='true'
+                        />
+                    </Button>
+                </Show>
             </div>
 
-            <Show when={props.images.length > 0}>
-                <div class='flex h-24 items-center justify-center gap-2 p-2 overflow-x-auto'>
+            <Show when={hasMany()}>
+                <div class='relative flex h-20 shrink-0 items-center justify-center gap-2 border-t border-white/[0.07] bg-[#101010] py-2'>
                     <For each={props.images}>
                         {(image, index) => (
                             <Button
+                                variant='ghost'
+                                aria-label={`Show image ${index() + 1}`}
+                                aria-pressed={index() === props.selectedIndex}
                                 classes={{
                                     root: cn(
-                                        'h-20 bg-stage p-0!',
+                                        'h-full w-auto shrink-0 overflow-hidden rounded-md p-0',
                                         index() === props.selectedIndex
-                                            ? 'border-accent ring-1 ring-accent'
-                                            : 'border-line',
+                                            ? 'opacity-100 ring-2 ring-accent'
+                                            : 'opacity-60 hover:opacity-100',
                                     ),
                                 }}
                                 onClick={() => props.onSelect(index())}
                             >
                                 <img
-                                    class='h-full w-full object-cover'
+                                    class='h-full w-auto object-contain'
                                     src={image}
-                                    alt='Generated thumbnail'
+                                    alt=''
                                 />
                             </Button>
                         )}
                     </For>
+                    <span class='absolute right-[18px] top-1/2 -translate-y-1/2 text-xs text-fg-muted tabular-nums'>
+                        {props.selectedIndex + 1} / {props.images.length}
+                    </span>
                 </div>
             </Show>
         </section>
     )
 }
-
