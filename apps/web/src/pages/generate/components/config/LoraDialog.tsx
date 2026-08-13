@@ -1,8 +1,9 @@
-import { Check, RefreshCw } from 'lucide-solid'
-import { createEffect, createMemo, createSignal, For, Show } from 'solid-js'
+import { Check, Plus, RefreshCw, Search } from 'lucide-solid'
+import { createEffect, createSignal, For, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { Dialog } from '#/components/base/Dialog'
+import { Text } from '#/components/field'
 import { useLoraListQuery } from '#/features/task/task.query'
 import { cn } from '#/lib/cn'
 import { useGenerateStore } from '#/pages/generate/store'
@@ -15,58 +16,92 @@ type LoraDialogProps = {
 export function LoraDialog(props: LoraDialogProps) {
     const store = useGenerateStore()
     const query = useLoraListQuery(() => props.open)
-    const [selectedName, setSelectedName] = createSignal<string>()
-    const addedNames = createMemo(() => new Set(
-        store.state.values.lora.map(lora => lora.name),
-    ))
-    const options = () => query.data?.options ?? []
-    const canAdd = () => {
-        const name = selectedName()
-        return Boolean(name && !addedNames().has(name))
-    }
+    const [selected, setSelected] = createSignal<string[]>([])
+    const [keyword, setKeyword] = createSignal('')
 
     createEffect(() => {
         if (!props.open) {
-            setSelectedName()
+            return
         }
+
+        setSelected(store.state.values.lora.map(lora => lora.name))
+        setKeyword('')
     })
 
-    const addSelectedLora = () => {
-        const name = selectedName()
-        if (!name || addedNames().has(name)) return
-
-        if (store.addLora(name)) {
-            props.onOpenChange(false)
+    const options = () => query.data?.options ?? []
+    const visibleOptions = () => {
+        const text = keyword().trim().toLowerCase()
+        if (!text) {
+            return options()
         }
+
+        return options().filter(option => option.label.toLowerCase().includes(text))
+    }
+
+    const isSelected = (name: string) => selected().includes(name)
+    const toggle = (name: string) => {
+        setSelected(current => (
+            current.includes(name)
+                ? current.filter(item => item !== name)
+                : [...current, name]
+        ))
+    }
+
+    const apply = () => {
+        store.setLoraNames(selected())
+        props.onOpenChange(false)
     }
 
     return (
         <Dialog
             open={props.open}
-            title='Add LoRA'
+            title='Select LoRA'
             onOpenChange={props.onOpenChange}
+            classes={{
+                backdrop: 'bg-black/55 backdrop-blur-[2px]',
+                body: 'flex min-h-0 flex-col overflow-hidden',
+                content: 'w-[600px] max-w-full rounded-[10px] max-h-[70vh]',
+            }}
             footer={(
-                <>
-                    <Button
-                        type='button'
-                        classes={{ root: 'min-w-20 px-3 py-1.5 text-sm' }}
-                        onClick={() => props.onOpenChange(false)}
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        type='button'
-                        disabled={!canAdd()}
-                        variant='accent'
-                        classes={{ root: 'min-w-20 px-3 py-1.5 text-sm' }}
-                        onClick={addSelectedLora}
-                    >
-                        Add
-                    </Button>
-                </>
+                <div class='flex w-full items-center justify-between gap-3'>
+                    <span class='text-xs text-fg-muted tabular-nums'>
+                        {selected().length} selected
+                    </span>
+                    <div class='flex gap-2'>
+                        <Button
+                            type='button'
+                            classes={{ root: 'min-w-20 px-3 py-1.5 text-sm' }}
+                            onClick={() => props.onOpenChange(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type='button'
+                            variant='accent'
+                            classes={{ root: 'min-w-20 px-3 py-1.5 text-sm' }}
+                            onClick={apply}
+                        >
+                            Apply
+                        </Button>
+                    </div>
+                </div>
             )}
         >
-            <div class='flex min-h-32 flex-col gap-3'>
+            <Text
+                label='Search LoRA'
+                value={keyword()}
+                placeholder='Search LoRA...'
+                icon={(
+                    <Search
+                        size={14}
+                        strokeWidth={1.8}
+                    />
+                )}
+                classes={{ root: 'shrink-0', label: 'sr-only' }}
+                onInput={setKeyword}
+            />
+
+            <div class='scrollbar-thin -mx-4 mt-3 min-h-0 flex-1 overflow-y-auto px-4'>
                 <Show when={query.isLoading}>
                     <p class='m-0 py-8 text-center text-sm text-fg-muted'>Loading LoRAs...</p>
                 </Show>
@@ -81,7 +116,7 @@ export function LoraDialog(props: LoraDialogProps) {
                         >
                             <RefreshCw
                                 size={14}
-                                strokeWidth={2}
+                                strokeWidth={1.8}
                                 aria-hidden='true'
                             />
                             Retry
@@ -91,63 +126,58 @@ export function LoraDialog(props: LoraDialogProps) {
 
                 <Show when={!query.isLoading && !query.isError}>
                     <Show
-                        when={options().length > 0}
+                        when={visibleOptions().length > 0}
                         fallback={(
                             <p class='m-0 py-8 text-center text-sm text-fg-muted'>
-                                No LoRAs available in ComfyUI.
+                                {options().length === 0
+                                    ? 'No LoRAs available in ComfyUI.'
+                                    : 'No LoRA matches the search.'}
                             </p>
                         )}
                     >
-                        <div
-                            class='flex flex-col gap-1'
-                            role='radiogroup'
-                            aria-label='Available LoRAs'
-                        >
-                            <For each={options()}>
-                                {option => {
-                                    const isAdded = () => addedNames().has(option.value)
-                                    const isSelected = () => selectedName() === option.value
-
-                                    return (
-                                        <Button
-                                            role='radio'
-                                            aria-checked={isSelected()}
-                                            disabled={isAdded()}
-                                            title={option.value}
-                                            classes={{
-                                                root: cn(
-                                                    'min-h-10 w-full justify-between gap-3 px-3 py-2 text-left text-sm outline-none transition-colors',
-                                                    isSelected()
-                                                        ? 'border-accent bg-accent/15 text-fg'
-                                                        : 'border-line',
-                                                    isAdded()
-                                                        ? 'cursor-not-allowed opacity-60'
-                                                        : 'focus:border-accent',
-                                                ),
-                                            }}
-                                            onClick={() => {
-                                                if (!isAdded()) setSelectedName(option.value)
-                                            }}
+                        <div class='flex flex-col'>
+                            <For each={visibleOptions()}>
+                                {option => (
+                                    <Button
+                                        variant='ghost'
+                                        role='checkbox'
+                                        aria-checked={isSelected(option.value)}
+                                        title={option.value}
+                                        classes={{
+                                            root: cn(
+                                                'h-12 w-full justify-between gap-3 rounded-none border-b border-line-subtle px-3 text-left text-sm',
+                                                isSelected(option.value)
+                                                    ? 'bg-accent/15 text-fg shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--sp-accent)_45%,transparent)]'
+                                                    : 'hover:bg-elevated',
+                                            ),
+                                        }}
+                                        onClick={() => toggle(option.value)}
+                                    >
+                                        <span class='min-w-0 truncate'>{option.label}</span>
+                                        <span
+                                            class={cn(
+                                                'flex size-7 shrink-0 items-center justify-center rounded-md',
+                                                isSelected(option.value) ? 'text-accent-fg' : 'text-fg-muted',
+                                            )}
+                                            aria-hidden='true'
                                         >
-                                            <span class='min-w-0 break-all'>{option.label}</span>
                                             <Show
-                                                when={isAdded()}
+                                                when={isSelected(option.value)}
                                                 fallback={(
-                                                    <Show when={isSelected()}>
-                                                        <Check
-                                                            class='shrink-0 text-accent-fg'
-                                                            size={15}
-                                                            strokeWidth={2}
-                                                            aria-hidden='true'
-                                                        />
-                                                    </Show>
+                                                    <Plus
+                                                        size={15}
+                                                        strokeWidth={1.8}
+                                                    />
                                                 )}
                                             >
-                                                <span class='shrink-0 text-xs text-fg-muted'>Added</span>
+                                                <Check
+                                                    size={15}
+                                                    strokeWidth={2}
+                                                />
                                             </Show>
-                                        </Button>
-                                    )
-                                }}
+                                        </span>
+                                    </Button>
+                                )}
                             </For>
                         </div>
                     </Show>
