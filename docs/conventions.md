@@ -19,6 +19,46 @@ Rules:
 
 ---
 
+## Types and Contracts
+
+Find the existing definition before writing a type. Do not hand-write a copy of
+something a library or `packages/shared` already declares.
+
+Rules:
+
+```txt
+- library shapes come from the library's own exported types
+- payload validation comes from the shared Zod schema, not hand-written narrowing
+- a hand-written structural subset is a silent duplicate: it goes stale without ever failing to compile
+- if the existing definition is awkward to use, prove it with a compile before replacing it
+```
+
+Examples:
+
+```ts
+// no — a hand-written subset of the client library's response
+type TreatyResult<T> = { data: T | null, error: { status: unknown, value: unknown } | null }
+
+// yes — the library already declares both
+Treaty.TreatyResponse<Record<number, unknown>>
+Treaty.Error<Treaty.TreatyResponse<Record<number, unknown>>>
+```
+
+```ts
+// no — re-implements appApi.errorResponse by hand
+if (typeof value !== 'object' || value === null || !('error' in value)) return undefined
+
+// yes — validate with the contract itself
+const body = appApi.errorResponse.safeParse(value)
+```
+
+A declared type describes the contract, not runtime reality. Eden types a route's
+error as `status: 422 | 500`, but a transport failure produces `status: 503` with an
+`Error` in `value` — neither is in the declared union. So reusing the library type
+does not remove the need to narrow untrusted values; it only removes the duplicate.
+
+---
+
 ## Formatting
 
 No Prettier.
@@ -181,10 +221,14 @@ Rules:
 - browser connection helpers live in `packages/event/src/client.ts`
 - Node WebSocket server helpers live in `packages/event/src/server.ts`
 - `task.changed` carries fields required to patch existing list and detail query caches
-- no connected, ping, or server_status application messages
+- application events must not exist purely for transport; a heartbeat must carry user-visible state
+- `health.snapshot` doubles as the liveness signal; the client treats silence of *valid* events as connection loss
+- the client must validate every inbound event; an event that fails validation is not evidence the connection is alive
+- the heartbeat interval lives in `packages/shared`; both sides derive their timers from it
+- when the connection is lost the client must treat health as unknown, never reuse the last snapshot
 - no DB imports
 - no Hono imports
-- validated WebSocket snapshots update query caches directly; REST provides initial load and reconnect recovery
+- validated WebSocket snapshots update query caches directly; REST `/health` remains for bootstrap and external checks
 ```
 
 ---
@@ -208,6 +252,9 @@ Rules:
 - shared form/control primitives go in `apps/web/src/components/field`
 - app-level chrome such as `Header` lives in `apps/web/src/components` and is used from `App.tsx`
 - page-specific components go in `apps/web/src/pages/<page>/components`
+- a `components` folder holds components only
+- page-scoped non-component logic sits at the page root, beside that page's store
+- logic that carries no page-specific knowledge goes in `apps/web/src/lib`, even when only one page uses it today
 - generate task-list components live in `apps/web/src/pages/generate/components/task`
 - generate detail/config components live in `apps/web/src/pages/generate/components/config`
 - page components should not own app-level header layout
@@ -239,17 +286,23 @@ components/base/Line.tsx
 components/base/Panel.tsx
     Collapsible panel and scrollable panel-content primitives. Panel owns collapsed state and passes state/actions to children.
 
-components/base/Tag.tsx
+components/base/Badge.tsx
     Small badge/tag primitive.
 
 components/field/*
     Shared Ark UI-based form/control primitives. Keep them generic and reusable; page-specific label groups, rows, and mock data belong in page components.
 
+lib/*
+    Non-component browser logic with no page-specific knowledge: class merging, stores, event dispatch, error mapping, image zoom/pan.
+
+pages/generate/store.ts, pages/generate/issue.ts
+    Generate-page-wide non-component logic: form state and the issue model feeding the issue chip.
+
 pages/generate/components/task/*
     Generate-page-only task list and task item UI.
 
 pages/generate/components/config/*
-    Generate-page-only task detail, config field layout, and mock LoRA stack UI.
+    Generate-page-only task detail, config field layout, and LoRA stack UI.
 
 pages/generate/components/TaskStatus.tsx
     Generate-page-only status display.
@@ -420,4 +473,5 @@ If it affects AI implementation behavior, also update `AGENTS.md`.
 - PostgreSQL added
 - Redis added
 - cross-package relative imports
+- hand-written copies of library types or shared schemas
 ```
