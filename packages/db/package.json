@@ -23,6 +23,7 @@
         "typecheck": "tsc -p tsconfig.json --noEmit",
         "db:generate": "drizzle-kit generate",
         "db:migrate": "tsx ./src/script/migrate.ts",
+        "db:studio": "drizzle-kit studio",
         "db:reset": "tsx ./src/script/reset.ts",
         "db:seed": "tsx ./src/script/seed.ts"
     },
