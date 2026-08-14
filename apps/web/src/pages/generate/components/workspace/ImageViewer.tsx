@@ -4,9 +4,9 @@ import { Portal } from 'solid-js/web'
 
 import { Button } from '#/components/base/Button'
 import { cn } from '#/lib/cn'
-import { createImageZoom } from '#/pages/generate/components/workspace/createImageZoom'
+import { createImageZoom } from '#/lib/imageZoom'
 
-import type { Offset, Size } from '#/pages/generate/components/workspace/createImageZoom'
+import type { Offset, Size } from '#/lib/imageZoom'
 
 type ImageViewerProps = {
     images: string[]

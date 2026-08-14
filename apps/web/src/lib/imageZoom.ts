@@ -144,7 +144,7 @@ export function createImageZoom() {
         const element = viewportRef()
         if (!element) return
 
-        // 縮圖列出現/消失、視窗縮放都會改變可用空間，交給 observer 而不是追蹤 signal
+        // 周邊元素出現/消失、視窗縮放都會改變可用空間，交給 observer 而不是追蹤 signal
         const observer = new ResizeObserver(measure)
         observer.observe(element)
         measure()
