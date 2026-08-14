@@ -1,11 +1,14 @@
 import { Sparkles } from 'lucide-solid'
-import { createEffect, createSignal, Show } from 'solid-js'
+import { createEffect, createSignal, on, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { cn } from '#/lib/cn'
+import { IssueChip } from '#/pages/generate/components/workspace/IssueChip'
 import { PromptTabs } from '#/pages/generate/components/workspace/PromptTabs'
+import { useOptionIssues } from '#/pages/generate/issue'
 import { useGenerateStore } from '#/pages/generate/store'
 
+import type { GenerateIssue } from '#/pages/generate/issue'
 import type { GenerateTask, GenerateValues } from '#/pages/generate/store'
 
 /* MARK: PromptPanel */
@@ -18,7 +21,8 @@ type PromptGroupState = {
 type PromptPanelProps = {
     task: GenerateTask
     isSubmitting?: boolean | undefined
-    submitError?: string | undefined
+    submitIssues: GenerateIssue[]
+    submitToken: number
 }
 
 
@@ -30,6 +34,9 @@ const promptLabel: Record<PromptKind, string> = {
 
 export function PromptPanel(props: PromptPanelProps) {
     const store = useGenerateStore()
+    const optionIssues = useOptionIssues()
+    const [issuesOpen, setIssuesOpen] = createSignal(false)
+    const issues = () => [...optionIssues(), ...props.submitIssues]
     const [positive, setPositive] = createSignal<PromptGroupState>({
         visible: true,
     })
@@ -62,6 +69,27 @@ export function PromptPanel(props: PromptPanelProps) {
             negative: undefined,
             positive: undefined,
         })
+    })
+
+    /*
+     * 只有「剛按下 Generate」才自動展開。常駐來源（選項載入失敗）會讓計數在
+     * 使用者什麼都沒做時變動，那時候彈開等於無故打擾。
+     */
+    createEffect(on(
+        () => props.submitToken,
+        token => {
+            if (token > 0) {
+                setIssuesOpen(issues().length > 1)
+            }
+        },
+        { defer: true },
+    ))
+
+    /* 問題清空時把展開狀態也收掉，否則下次冒出問題會直接彈開 */
+    createEffect(() => {
+        if (issues().length === 0) {
+            setIssuesOpen(false)
+        }
     })
 
     const group = (kind: PromptKind) => kind === 'positive' ? positive() : negative()
@@ -175,7 +203,7 @@ export function PromptPanel(props: PromptPanelProps) {
     return (
         <section class='flex shrink-0 flex-col overflow-hidden border-b border-line-subtle bg-surface pb-1'>
             <div class='flex min-h-12 shrink-0 items-center justify-between gap-3 px-4 py-2'>
-                <div class='flex min-w-0 items-center gap-2'>
+                <div class='flex shrink-0 items-center gap-2'>
                     <h2 class='m-0 text-sm font-bold leading-none text-fg'>Prompt</h2>
                     <PromptToggle
                         kind='positive'
@@ -188,6 +216,15 @@ export function PromptPanel(props: PromptPanelProps) {
                         onClick={() => toggleVisible('negative')}
                     />
                 </div>
+
+                <div class='flex min-w-0 flex-1 justify-end'>
+                    <IssueChip
+                        issues={issues()}
+                        open={issuesOpen()}
+                        onOpenChange={setIssuesOpen}
+                    />
+                </div>
+
                 <Button
                     type='submit'
                     variant='primary'
@@ -203,12 +240,6 @@ export function PromptPanel(props: PromptPanelProps) {
                     {props.isSubmitting ? 'Creating...' : 'Generate'}
                 </Button>
             </div>
-
-            <Show when={props.submitError}>
-                <p class='m-0 border-t border-line-subtle px-3 py-2 text-xs text-red-300'>
-                    {props.submitError}
-                </p>
-            </Show>
 
             <div class='flex flex-col gap-1'>
                 <PromptGroup

@@ -4,12 +4,14 @@ import { ImageStage } from '#/pages/generate/components/workspace/ImageStage'
 import { ImageViewer } from '#/pages/generate/components/workspace/ImageViewer'
 import { PromptPanel } from '#/pages/generate/components/workspace/PromptPanel'
 
+import type { GenerateIssue } from '#/pages/generate/issue'
 import type { GenerateTask } from '#/pages/generate/store'
 
 type WorkspaceProps = {
     task: GenerateTask
     isSubmitting?: boolean | undefined
-    submitError?: string | undefined
+    submitIssues: GenerateIssue[]
+    submitToken: number
 }
 
 export function Workspace(props: WorkspaceProps) {
@@ -31,7 +33,8 @@ export function Workspace(props: WorkspaceProps) {
             <PromptPanel
                 task={props.task}
                 isSubmitting={props.isSubmitting}
-                submitError={props.submitError}
+                submitIssues={props.submitIssues}
+                submitToken={props.submitToken}
             />
             <ImageStage
                 images={images()}

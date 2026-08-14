@@ -64,14 +64,9 @@ export function TaskConfig(props: TaskConfigProps) {
                 </Button>
             </div>
 
+            {/* 錯誤與空狀態改由 PromptPanel 的 issue chip 統一顯示 */}
             <Show when={workflowQuery.isLoading}>
                 <p class='m-0 text-xs text-fg-muted'>Loading workflows...</p>
-            </Show>
-            <Show when={workflowQuery.isError}>
-                <p class='m-0 text-xs text-red-300'>Failed to load workflows.</p>
-            </Show>
-            <Show when={!workflowQuery.isLoading && !workflowQuery.isError && workflowOptions().length === 0}>
-                <p class='m-0 text-xs text-amber-300'>No workflows available.</p>
             </Show>
 
             <Text
@@ -148,12 +143,6 @@ export function TaskConfig(props: TaskConfigProps) {
             />
             <Show when={samplerQuery.isLoading}>
                 <p class='m-0 text-xs text-fg-muted'>Loading samplers...</p>
-            </Show>
-            <Show when={samplerQuery.isError}>
-                <p class='m-0 text-xs text-red-300'>Failed to load samplers.</p>
-            </Show>
-            <Show when={!samplerQuery.isLoading && !samplerQuery.isError && samplerOptions().length === 0}>
-                <p class='m-0 text-xs text-amber-300'>No samplers available.</p>
             </Show>
         </section>
     )
