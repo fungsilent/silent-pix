@@ -42,7 +42,17 @@ type ConnectionWaiter = {
 
 const connectionTimeoutMs = 10_000
 const executionTimeoutMs = 30 * 60 * 1000
-const maximumReconnectDelayMs = 30_000
+/*
+ * 偵測 ComfyUI 死亡是即時的（RST 直接觸發 close），
+ * 但偵測復活受限於這個退避上限——30 秒對本機工具太久。
+ */
+const maximumReconnectDelayMs = 5_000
+/*
+ * 選項清單是互動路徑，使用者在等。
+ * 這個 timeout 只是「socket 還開著但 HTTP 卡住」的保底——
+ * ComfyUI 真的掛掉時 assertConnected 會先擋下來，根本不會走到 fetch。
+ */
+const optionRequestTimeoutMs = 5_000
 
 export class ComfyError extends Error {
     constructor(
@@ -64,9 +74,25 @@ export class ComfyClient {
     private reconnectAttempt = 0
     private connecting = false
     private started = false
+    private statusListener: ((connected: boolean) => void) | undefined
+    private lastNotifiedStatus: boolean | undefined
 
     constructor(baseUrl: string) {
         this.baseUrl = new URL(baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`)
+    }
+
+    /* socket 狀態一翻就通知，這是 health 能即時反應的來源 */
+    onStatusChange(listener: (connected: boolean) => void): void {
+        this.statusListener = listener
+    }
+
+    private notifyStatus(connected: boolean): void {
+        if (this.lastNotifiedStatus === connected) {
+            return
+        }
+
+        this.lastNotifiedStatus = connected
+        this.statusListener?.(connected)
     }
 
     start(): void {
@@ -78,6 +104,15 @@ export class ComfyClient {
 
     isConnected(): boolean {
         return this.socket?.readyState === WebSocket.OPEN
+    }
+
+    private assertConnected(): void {
+        if (!this.isConnected()) {
+            throw new ComfyError(
+                'ComfyUI is unavailable.',
+                'COMFY_UNAVAILABLE',
+            )
+        }
     }
 
     async execute(
@@ -124,7 +159,22 @@ export class ComfyClient {
     }
 
     async getSamplerNames(): Promise<string[]> {
-        const response = await fetch(new URL('object_info/KSampler', this.baseUrl))
+        this.assertConnected()
+
+        let response: Response
+
+        try {
+            response = await fetch(new URL('object_info/KSampler', this.baseUrl), {
+                signal: AbortSignal.timeout(optionRequestTimeoutMs),
+            })
+        }
+        catch {
+            throw new ComfyError(
+                'ComfyUI is unavailable.',
+                'COMFY_UNAVAILABLE',
+            )
+        }
+
         const body = await readJson<unknown>(response)
 
         if (!response.ok) {
@@ -146,15 +196,19 @@ export class ComfyClient {
     }
 
     async getLoraNames(): Promise<string[]> {
+        this.assertConnected()
+
         let response: Response
 
         try {
-            response = await fetch(new URL('models/loras', this.baseUrl))
+            response = await fetch(new URL('models/loras', this.baseUrl), {
+                signal: AbortSignal.timeout(optionRequestTimeoutMs),
+            })
         }
         catch {
             throw new ComfyError(
-                'Unable to load the Comfy LoRA catalog.',
-                'COMFY_LORA_LIST_ERROR',
+                'ComfyUI is unavailable.',
+                'COMFY_UNAVAILABLE',
             )
         }
 
@@ -236,6 +290,7 @@ export class ComfyClient {
 
             this.connecting = false
             this.reconnectAttempt = 0
+            this.notifyStatus(true)
             this.resolveConnectionWaiters()
             void this.reconcilePendingExecutions()
         })
@@ -254,6 +309,7 @@ export class ComfyClient {
 
             this.socket = undefined
             this.connecting = false
+            this.notifyStatus(false)
             this.scheduleReconnect()
         })
     }

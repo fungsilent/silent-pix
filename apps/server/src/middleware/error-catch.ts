@@ -1,5 +1,7 @@
 import { Elysia } from 'elysia'
 
+import { ComfyError } from '#/lib/comfy/comfy.client'
+
 export const errorCatchMiddleware = new Elysia({ name: 'error-catch' })
     .onError(
         { as: 'global' },
@@ -18,6 +20,17 @@ export const errorCatchMiddleware = new Elysia({ name: 'error-catch' })
                     error: {
                         code: 'ROUTE_NOT_FOUND',
                         message: 'Route not found.',
+                    },
+                })
+            }
+
+            if (error instanceof ComfyError) {
+                console.error(error)
+
+                return status(500, {
+                    error: {
+                        code: error.code,
+                        message: error.message,
                     },
                 })
             }
