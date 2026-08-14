@@ -139,7 +139,37 @@ pnpm lint
 pnpm lint:fix
 pnpm check
 pnpm clean
+
+pnpm db:generate
+pnpm db:migrate
+pnpm db:seed
+pnpm db:reset
+pnpm db:studio
 ```
+
+---
+
+## Database Browsing
+
+```bash
+pnpm db:studio
+```
+
+Then open <https://local.drizzle.studio> in the browser.
+
+WSL note: do not point a Windows GUI client (DBGate, DB Browser, etc.) at the SQLite file
+through `\\wsl.localhost\...`. That path goes over 9P, which has no POSIX advisory locks and
+cannot mmap the WAL `-shm` file, so every connection fails with `SQLITE_BUSY: database is locked`.
+Run `pnpm db:studio` inside WSL instead — WSL2 forwards the port, so the browser on Windows works
+while the database file stays local to Linux.
+
+To inspect a copy in a Windows tool anyway, snapshot it first:
+
+```bash
+cp .data/silent-pix.sqlite /mnt/c/Users/<you>/Desktop/silent-pix-snapshot.sqlite
+```
+
+The snapshot is read-only in practice; writes there never reach the real database.
 
 ---
 
