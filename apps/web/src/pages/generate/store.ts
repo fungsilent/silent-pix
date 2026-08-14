@@ -44,7 +44,7 @@ export type GenerateTask = Omit<TaskApi.GetTaskResponse, 'createdAt' | 'status' 
 
 export const draftTask: GenerateTask = {
     id: '#',
-    name: '',
+    name: null,
     status: null,
     createdAt: null,
     workflow: '',
@@ -94,7 +94,8 @@ const configKeys = [
 ] as const
 
 export const toGenerateValues = (task: GenerateTask): GenerateValues => ({
-    name: task.name,
+    // 表單一律用字串，未命名與送出時的 null 在邊界轉換
+    name: task.name ?? '',
     cfg: task.config.cfg,
     height: task.config.height,
     lora: task.lora.map(lora => ({ ...lora })),
@@ -122,8 +123,10 @@ function normalizeSampler(value: string): string {
 export function toCreateTaskRequest(values: GenerateValues): TaskApi.CreateTaskRequest {
     const seed = values.seed.trim()
 
+    const name = values.name.trim()
+
     return {
-        name: values.name.trim(),
+        name: name === '' ? null : name,
         workflowId: values.workflowId,
         config: {
             seed: seed === '' ? null : seed,

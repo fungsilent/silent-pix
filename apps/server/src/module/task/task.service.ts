@@ -153,13 +153,11 @@ export const taskService = {
             prompt: request.prompt,
         }
 
-        const taskId = createUUID()
         const [createdTask] = await database.db
             .insert(tasks)
             .values({
-                id: taskId,
-                // 沒有命名時以 UUID 首段當預設名稱
-                name: request.name || taskId.slice(0, 8),
+                id: createUUID(),
+                name: request.name || null,
                 status: 'queued',
                 workflowId,
                 config,

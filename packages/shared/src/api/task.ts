@@ -6,7 +6,7 @@ export type TaskStatus = z.output<typeof taskStatus>
 
 export const taskListItem = z.object({
     id: z.uuid(),
-    name: z.string(),
+    name: z.string().nullable(),
     status: taskStatus,
     createdAt: z.iso.datetime(),
     thumbnail: z.string().optional(),
@@ -93,7 +93,7 @@ export type GetTaskRequest = z.output<typeof getTaskRequest>
 
 export const getTaskResponse = z.object({
     id: z.uuid(),
-    name: z.string(),
+    name: z.string().nullable(),
     status: taskStatus,
     createdAt: z.iso.datetime(),
     workflowId: z.uuid().optional(),
@@ -110,7 +110,7 @@ export const getTaskResponse = z.object({
 export type GetTaskResponse = z.output<typeof getTaskResponse>
 
 export const createTaskRequest = z.object({
-    name: z.string().trim().max(120),
+    name: z.string().trim().max(120).nullable(),
     workflowId: z.uuid(),
     config: taskConfig.extend({
         seed: taskConfig.shape.seed.nullable()

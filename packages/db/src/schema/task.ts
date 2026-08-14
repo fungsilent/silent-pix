@@ -19,7 +19,7 @@ export type TaskStatus = 'queued' | 'running' | 'done' | 'failed' | 'cancelled'
 
 export const tasks = sqliteTable('tasks', {
     id: text('id').$type<UUID>().primaryKey().$defaultFn(createUUID),
-    name: text('name').notNull(),
+    name: text('name'),
     status: text('status', {
         enum: ['queued', 'running', 'done', 'failed', 'cancelled'],
     }).$type<TaskStatus>().notNull(),
