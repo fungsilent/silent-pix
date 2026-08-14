@@ -98,7 +98,7 @@ export function IssueChip(props: IssueChipProps) {
                                         <Show when={issue.onRetry}>
                                             {onRetry => (
                                                 <Button
-                                                    classes={{ root: 'h-6 shrink-0 gap-1.5 px-2 text-[11.5px]' }}
+                                                    classes={{ root: 'h-6 shrink-0 gap-1.5 px-2' }}
                                                     onClick={() => onRetry()()}
                                                 >
                                                     <RefreshCw

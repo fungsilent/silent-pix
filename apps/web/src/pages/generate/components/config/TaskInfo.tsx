@@ -55,7 +55,7 @@ type DetailRowProps = {
 function DetailRow(props: DetailRowProps) {
     return (
         <div class='grid min-w-0 grid-cols-[74px_minmax(0,1fr)] items-center gap-3'>
-            <span class='text-[11.5px] leading-none text-fg-muted'>{props.label}</span>
+            <span class='text-xs leading-none text-fg-muted'>{props.label}</span>
             <div class='min-w-0'>{props.children}</div>
         </div>
     )

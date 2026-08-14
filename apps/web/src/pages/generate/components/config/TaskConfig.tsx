@@ -53,7 +53,7 @@ export function TaskConfig(props: TaskConfigProps) {
                 />
                 <Button
                     aria-label='Reset config'
-                    classes={{ root: 'h-8 w-8 p-0' }}
+                    classes={{ root: 'size-8 p-0' }}
                     onClick={store.resetConfig}
                 >
                     <RefreshCcw
@@ -77,7 +77,7 @@ export function TaskConfig(props: TaskConfigProps) {
                 action={(
                     <Button
                         disabled={!props.task.config.seed}
-                        classes={{ root: 'h-8 w-8 p-0' }}
+                        classes={{ root: 'size-8 p-0' }}
                         onClick={() => {
                             if (props.task.config.seed) {
                                 store.setValue('seed', props.task.config.seed)

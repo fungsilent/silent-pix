@@ -267,7 +267,7 @@ export function ImageViewer(props: ImageViewerProps) {
                                 aria-label='Zoom level, click to type a value'
                                 classes={{
                                     root: cn(
-                                        'h-7 w-[54px] rounded p-0 text-xs tabular-nums',
+                                        'w-[54px] rounded p-0 tabular-nums',
                                         !zoom.isFit() && 'text-fg',
                                     ),
                                 }}
@@ -318,7 +318,7 @@ export function ImageViewer(props: ImageViewerProps) {
                     <Button
                         variant='ghost'
                         aria-label='Actual size'
-                        classes={{ root: 'h-7 rounded px-2 text-xs' }}
+                        classes={{ root: 'rounded px-2' }}
                         onClick={zoom.toggleActualSize}
                     >
                         1:1

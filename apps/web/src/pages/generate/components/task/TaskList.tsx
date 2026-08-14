@@ -57,7 +57,7 @@ export function TaskList() {
                             <Button
                                 variant='ghost'
                                 classes={{
-                                    root: 'mt-1 h-8 w-full justify-center px-3 text-xs',
+                                    root: 'mt-1 w-full',
                                 }}
                                 disabled={taskFeedQuery.isFetchingNextPage}
                                 onClick={() => void taskFeedQuery.fetchNextPage()}

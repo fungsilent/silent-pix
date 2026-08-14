@@ -293,7 +293,7 @@ function PromptToggle(props: PromptToggleProps) {
             aria-pressed={props.visible}
             classes={{
                 root: cn(
-                    'h-7 gap-1.5 px-3 py-0 text-[0.72rem] leading-none outline outline-1 outline-offset-0',
+                    'gap-1.5 leading-none outline outline-1 outline-offset-0',
                     props.visible
                         ? 'outline-accent/40'
                         : 'text-fg-muted outline-line-subtle hover:text-fg-secondary',
