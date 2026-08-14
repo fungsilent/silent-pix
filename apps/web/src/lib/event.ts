@@ -1,3 +1,4 @@
+import { handleHealthSnapshot } from '#/features/app/app.event'
 import { handleTaskChanged } from '#/features/task/task.event'
 
 import type { Event } from '@silent-pix/shared'
@@ -10,6 +11,9 @@ export function handleServerEvent(
     switch (serverEvent.type) {
         case 'task.changed':
             handleTaskChanged(queryClient, serverEvent)
+            return
+        case 'health.snapshot':
+            handleHealthSnapshot(queryClient, serverEvent)
             return
     }
 }

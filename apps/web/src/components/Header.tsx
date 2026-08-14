@@ -3,6 +3,7 @@ import { Menu } from 'lucide-solid'
 import { Button } from '#/components/base/Button'
 import { useHealthQuery } from '#/features/app/app.query'
 import { cn } from '#/lib/cn'
+import { appStore, serviceHealth } from '#/store/app'
 
 /* MARK: Header */
 export function Header() {
@@ -31,31 +32,32 @@ export function Header() {
 /* MARK: ServiceStatus */
 type ServiceState = 'up' | 'down' | 'unknown'
 
-const serviceLabel: Record<string, string> = {
-    comfy: 'ComfyUI connection',
-    database: 'SQLite database',
-}
-
-const stateLabel: Record<ServiceState, string> = {
-    down: 'disconnected',
-    unknown: 'checking',
-    up: 'connected',
-}
-
 function ServiceStatus() {
     const query = useHealthQuery()
 
-    const state = (service: 'comfy' | 'database'): ServiceState => {
-        if (query.isError) {
-            return 'down'
+    /*
+     * WS 首次連上之前用 REST 的結果墊著；連上過之後一律以 WS 為準。
+     * 斷線時 liveHealth() 會回 undefined，於是 DB / Comfy 轉為未知
+     */
+    const health = () => serviceHealth()
+        ?? (appStore.state.hasConnected ? undefined : query.data)
+
+    const connectionState = (): ServiceState => {
+        if (appStore.state.connection === 'connected') {
+            return 'up'
         }
 
-        const health = query.data
-        if (!health) {
+        return appStore.state.hasConnected ? 'down' : 'unknown'
+    }
+
+    const state = (service: 'comfy' | 'database'): ServiceState => {
+        const value = health()
+
+        if (!value) {
             return 'unknown'
         }
 
-        return health[service] ? 'up' : 'down'
+        return value[service] ? 'up' : 'down'
     }
 
     return (
@@ -65,14 +67,17 @@ function ServiceStatus() {
             onClick={() => void query.refetch()}
         >
             <ServiceSegment
+                service='server'
+                name='Server'
+                state={connectionState()}
+            />
+            <Divider />
+            <ServiceSegment
                 service='database'
                 name='DB'
                 state={state('database')}
             />
-            <span
-                class='mx-0.5 h-3.5 w-px shrink-0 bg-line'
-                aria-hidden='true'
-            />
+            <Divider />
             <ServiceSegment
                 service='comfy'
                 name='Comfy'
@@ -82,10 +87,19 @@ function ServiceStatus() {
     )
 }
 
+function Divider() {
+    return (
+        <span
+            class='mx-0.5 h-3.5 w-px shrink-0 bg-line'
+            aria-hidden='true'
+        />
+    )
+}
+
 /* MARK: ServiceSegment */
 type ServiceSegmentProps = {
     name: string
-    service: 'comfy' | 'database'
+    service: 'comfy' | 'database' | 'server'
     state: ServiceState
 }
 
@@ -94,12 +108,10 @@ function ServiceSegment(props: ServiceSegmentProps) {
         <span
             class={cn(
                 'flex h-5 items-center gap-1.5 rounded px-2 text-[11.5px] leading-none',
-                // 只有異常那一段上底色，一眼定位是哪個服務出問題
                 props.state === 'down'
                     ? 'bg-red-500/12 text-red-300'
                     : 'text-fg-secondary',
             )}
-            title={`${serviceLabel[props.service]} — ${stateLabel[props.state]}`}
         >
             <span
                 class={cn(

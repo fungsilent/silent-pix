@@ -1,10 +1,12 @@
+import { useQueryClient } from '@tanstack/solid-query'
 import { createEffect, createSignal, Show } from 'solid-js'
 
-import { ApiError } from '#/api/client'
-import { useCreateTaskMutation, useTaskDetailQuery } from '#/features/task/task.query'
+import { ApiError } from '#/api/api.client'
+import { useCreateTaskMutation, useTaskDetailQuery, workflowKeys } from '#/features/task/task.query'
 import { TaskDetail } from '#/pages/generate/components/config/TaskDetail'
 import { TaskList } from '#/pages/generate/components/task/TaskList'
 import { Workspace } from '#/pages/generate/components/workspace/Workspace'
+import { toSubmitIssue, toValidationIssues } from '#/pages/generate/issue'
 import {
     createGenerateStore,
     draftTask,
@@ -15,11 +17,16 @@ import {
 } from '#/pages/generate/store'
 import { taskStore } from '#/store/task'
 
+import type { GenerateIssue } from '#/pages/generate/issue'
+
 
 export function GeneratePage() {
+    const queryClient = useQueryClient()
     const taskDetailQuery = useTaskDetailQuery(() => taskStore.state.selectedTaskId)
     const createTaskMutation = useCreateTaskMutation()
-    const [submitError, setSubmitError] = createSignal<string>()
+    const [submitIssues, setSubmitIssues] = createSignal<GenerateIssue[]>([])
+    /* 每次送出都遞增，讓 chip 知道「剛剛按了 Generate」而不只是清單變了 */
+    const [submitToken, setSubmitToken] = createSignal(0)
     const activeTask = () => taskStore.state.selectedTaskId
         ? taskDetailQuery.data
         : draftTask
@@ -33,14 +40,19 @@ export function GeneratePage() {
         }
     })
 
+    const reportIssues = (issues: GenerateIssue[]) => {
+        setSubmitIssues(issues)
+        setSubmitToken(token => token + 1)
+    }
+
     const handleSubmit = async (event: SubmitEvent) => {
         event.preventDefault()
-        setSubmitError()
+        setSubmitIssues([])
 
         const result = generateSchema.safeParse(generateStore.state.values)
 
         if (!result.success) {
-            setSubmitError(result.error.issues[0]?.message ?? 'Please check the form values.')
+            reportIssues(toValidationIssues(result.error.issues))
             return
         }
 
@@ -49,7 +61,12 @@ export function GeneratePage() {
             taskStore.selectTask(response.id)
         }
         catch (error) {
-            setSubmitError(getSubmitError(error))
+            /* 清單過期是能自動修的，直接刷新，不要只丟一句話叫使用者自己去弄 */
+            if (error instanceof ApiError && error.code === 'WORKFLOW_NOT_FOUND') {
+                void queryClient.refetchQueries({ queryKey: workflowKeys.list(), type: 'all' })
+            }
+
+            reportIssues([toSubmitIssue(error)])
         }
     }
 
@@ -73,7 +90,8 @@ export function GeneratePage() {
                             <Workspace
                                 task={task()}
                                 isSubmitting={createTaskMutation.isPending}
-                                submitError={submitError()}
+                                submitIssues={submitIssues()}
+                                submitToken={submitToken()}
                             />
                             <TaskDetail task={task()} />
                         </>
@@ -82,21 +100,4 @@ export function GeneratePage() {
             </form>
         </GenerateStoreProvider>
     )
-}
-
-function getSubmitError(error: unknown): string {
-    if (error instanceof ApiError) {
-        switch (error.code) {
-            case 'WORKFLOW_NOT_FOUND':
-                return 'Workflow is no longer available. Refresh and select it again.'
-            default:
-                return error.message || 'Failed to create task.'
-        }
-    }
-
-    if (error instanceof Error && error.message) {
-        return error.message
-    }
-
-    return 'Failed to create task. Please try again.'
 }
