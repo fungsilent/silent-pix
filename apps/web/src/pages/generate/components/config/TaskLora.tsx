@@ -80,7 +80,6 @@ export function TaskLora() {
             <Button
                 type='button'
                 variant='accent'
-                classes={{ root: 'h-7 p-0' }}
                 onClick={() => setDialogOpen(true)}
             >
                 <Plus
@@ -88,7 +87,7 @@ export function TaskLora() {
                     strokeWidth={1.8}
                     aria-hidden='true'
                 />
-                <span class='text-xs leading-none'>Select LoRA</span>
+                <span class='leading-none'>Select LoRA</span>
             </Button>
             <LoraDialog
                 open={dialogOpen()}

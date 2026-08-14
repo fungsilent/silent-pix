@@ -70,7 +70,7 @@ export function LoraDialog(props: LoraDialogProps) {
                     <div class='flex gap-2'>
                         <Button
                             type='button'
-                            classes={{ root: 'min-w-20 px-3 py-1.5 text-sm' }}
+                            classes={{ root: 'min-w-20 text-sm' }}
                             onClick={() => props.onOpenChange(false)}
                         >
                             Cancel
@@ -78,7 +78,7 @@ export function LoraDialog(props: LoraDialogProps) {
                         <Button
                             type='button'
                             variant='accent'
-                            classes={{ root: 'min-w-20 px-3 py-1.5 text-sm' }}
+                            classes={{ root: 'min-w-20 text-sm' }}
                             onClick={apply}
                         >
                             Apply
@@ -111,7 +111,7 @@ export function LoraDialog(props: LoraDialogProps) {
                         <p class='m-0 text-sm text-red-300'>Failed to load LoRAs.</p>
                         <Button
                             type='button'
-                            classes={{ root: 'px-3 py-1.5 text-sm' }}
+                            classes={{ root: 'text-sm' }}
                             onClick={() => void query.refetch()}
                         >
                             <RefreshCw
@@ -145,7 +145,7 @@ export function LoraDialog(props: LoraDialogProps) {
                                         title={option.value}
                                         classes={{
                                             root: cn(
-                                                'h-12 w-full justify-between gap-3 rounded-none border-b border-line-subtle px-3 text-left text-sm',
+                                                'h-12 w-full justify-between gap-3 rounded-none border-b border-line-subtle text-left text-sm',
                                                 isSelected(option.value)
                                                     ? 'bg-accent/15 text-fg shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--sp-accent)_45%,transparent)]'
                                                     : 'hover:bg-elevated',
