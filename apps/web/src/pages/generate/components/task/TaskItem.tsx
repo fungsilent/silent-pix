@@ -52,6 +52,8 @@ const placeholderMap: Record<TaskApi.TaskStatus, PlaceholderMeta> = {
 
 export function TaskItem(props: TaskItemProps) {
     const placeholder = () => placeholderMap[props.task.status]
+    // 未命名的 task 用 UUID 首段當標題，並以 mono 標示它是 id 而非名字
+    const shortId = () => props.task.id.slice(0, 8)
 
     return (
         <Button
@@ -90,8 +92,11 @@ export function TaskItem(props: TaskItemProps) {
 
             {!props.thumbnailOnly && (
                 <div class='flex min-w-0 flex-1 flex-col items-start gap-1.5'>
-                    <span class='max-w-full truncate text-xs font-medium leading-none text-fg'>
-                        {props.task.name}
+                    <span
+                        class='max-w-full truncate text-xs font-medium leading-none text-fg'
+                        classList={{ 'font-mono': !props.task.name }}
+                    >
+                        {props.task.name ?? shortId()}
                     </span>
                     <TaskStatus status={props.task.status} />
                     <span class='max-w-full truncate text-[11px] leading-none text-fg-muted'>

@@ -2,9 +2,9 @@
 
 import { defineConfig } from 'drizzle-kit'
 
-import { loadEnv } from '#/config/env'
+import { loadConfig } from '#/config'
 
-const env = loadEnv()
+const env = loadConfig()
 
 export default defineConfig({
     schema: './src/schema/schema.export.ts',
