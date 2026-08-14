@@ -8,6 +8,9 @@
         "build": "vite build",
         "typecheck": "tsc -p tsconfig.json --noEmit"
     },
+    "imports": {
+        "#/*": "./src/*"
+    },
     "dependencies": {
         "@ark-ui/solid": "^5.37.1",
         "@elysia/eden": "^1.4.10",
