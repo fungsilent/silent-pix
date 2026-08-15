@@ -61,7 +61,7 @@ export function TaskItem(props: TaskItemProps) {
             aria-pressed={props.selected}
             classes={{
                 root: cn(
-                    'w-full justify-start gap-2.5 rounded-lg text-left',
+                    'w-full justify-start gap-2.5 rounded-lg text-left p-1',
                     props.selected
                         ? 'border-accent/60 bg-active shadow-[0_0_0_1px_rgba(37,99,235,0.14),0_1px_12px_rgba(37,99,235,0.12)]'
                         : 'hover:bg-elevated',
