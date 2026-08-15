@@ -17,8 +17,6 @@ export function TaskDelete(props: TaskDeleteProps) {
     const [open, setOpen] = createSignal(false)
     const [error, setError] = createSignal<string>()
 
-    const isSaved = () => props.task.status !== null
-
     const imageCount = () => props.task.images.length
 
     const openDialog = () => {
@@ -39,10 +37,11 @@ export function TaskDelete(props: TaskDeleteProps) {
     }
 
     return (
-        <Show when={isSaved()}>
+        <>
             <Button
                 aria-label='Delete task'
-                classes={{ root: 'w-full text-red-300 hover:bg-red-500/12 hover:text-red-200' }}
+                variant='danger'
+                classes={{ root: 'w-full' }}
                 onClick={openDialog}
             >
                 <Trash2
@@ -65,7 +64,7 @@ export function TaskDelete(props: TaskDeleteProps) {
                     <div class='flex w-full items-center justify-between gap-3'>
                         <Show when={error()}>
                             {message => (
-                                <p class='m-0 min-w-0 truncate text-xs text-red-300'>{message()}</p>
+                                <p class='m-0 min-w-0 truncate text-xs text-danger-fg'>{message()}</p>
                             )}
                         </Show>
                         <div class='ml-auto flex shrink-0 gap-2'>
@@ -77,7 +76,8 @@ export function TaskDelete(props: TaskDeleteProps) {
                                 Cancel
                             </Button>
                             <Button
-                                classes={{ root: 'min-w-20 bg-red-500/15 text-red-300 hover:bg-red-500/25 text-sm' }}
+                                variant='danger'
+                                classes={{ root: 'min-w-20 text-sm' }}
                                 disabled={mutation.isPending}
                                 onClick={() => void confirm()}
                             >
@@ -91,6 +91,6 @@ export function TaskDelete(props: TaskDeleteProps) {
                     {props.task.name ?? props.task.id}
                 </p>
             </Dialog>
-        </Show>
+        </>
     )
 }
