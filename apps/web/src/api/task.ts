@@ -15,6 +15,10 @@ export const taskApi = {
         return unwrap(apiClient.api.task.post(request))
     },
 
+    remove(request: TaskApi.DeleteTaskRequest): Promise<TaskApi.DeleteTaskResponse> {
+        return unwrap(apiClient.api.task({ taskId: request.taskId }).delete())
+    },
+
     listSamplers(): Promise<TaskApi.GetSamplersResponse> {
         return unwrap(apiClient.api.task.sampler.get())
     },

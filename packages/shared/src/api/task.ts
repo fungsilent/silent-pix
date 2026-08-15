@@ -134,3 +134,15 @@ export const getTaskImageRequest = z.object({
 })
 
 export type GetTaskImageRequest = z.output<typeof getTaskImageRequest>
+
+export const deleteTaskRequest = z.object({
+    taskId: z.uuid(),
+})
+
+export type DeleteTaskRequest = z.output<typeof deleteTaskRequest>
+
+export const deleteTaskResponse = z.object({
+    id: z.uuid(),
+})
+
+export type DeleteTaskResponse = z.output<typeof deleteTaskResponse>

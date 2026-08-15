@@ -6,3 +6,10 @@ export function taskChanged(task: Event.Task.Snapshot): Event.Task.Changed {
         task,
     }
 }
+
+export function taskRemoved(taskId: string): Event.Task.Removed {
+    return {
+        type: 'task.removed',
+        taskId,
+    }
+}

@@ -9,6 +9,7 @@ import { loadConfig } from '#/config'
 import { comfyMiddleware } from '#/middleware/comfy'
 import { databaseMiddleware } from '#/middleware/database'
 import { eventMiddleware } from '#/middleware/event'
+import { taskRemoved } from '#/module/task/task.event'
 import { taskService } from '#/module/task/task.service'
 import { contentType } from '#/module/task/task.util'
 
@@ -158,6 +159,37 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
             params: taskApi.getTaskRequest,
             response: {
                 200: taskApi.getTaskResponse,
+                404: appApi.errorResponse,
+                422: appApi.errorResponse,
+                500: appApi.errorResponse,
+            },
+        },
+    )
+    .delete(
+        '/:taskId',
+        async ({ database, params, pushEvent, status }) => {
+            const result = await taskService.remove(
+                database,
+                toUUID(params.taskId, 'taskId'),
+            )
+
+            if (!result.ok) {
+                return status(404, {
+                    error: {
+                        code: result.error,
+                        message: 'Task not found.',
+                    },
+                })
+            }
+
+            pushEvent(taskRemoved(result.data.id))
+
+            return result.data
+        },
+        {
+            params: taskApi.deleteTaskRequest,
+            response: {
+                200: taskApi.deleteTaskResponse,
                 404: appApi.errorResponse,
                 422: appApi.errorResponse,
                 500: appApi.errorResponse,

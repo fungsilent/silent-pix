@@ -59,6 +59,42 @@ export function cacheTaskChanged(
     )
 }
 
+export function cacheTaskRemoved(
+    queryClient: QueryClient,
+    taskId: string,
+): void {
+    queryClient.removeQueries({ queryKey: taskKeys.snapshot(taskId) })
+    queryClient.removeQueries({ queryKey: taskKeys.detail({ taskId }) })
+
+    queryClient.setQueriesData<TaskFeedData>(
+        { queryKey: taskKeys.feeds() },
+        current => removeFromTaskFeed(current, taskId),
+    )
+}
+
+function removeFromTaskFeed(
+    current: TaskFeedData | undefined,
+    taskId: string,
+): TaskFeedData | undefined {
+    if (!current) {
+        return current
+    }
+
+    let found = false
+    const pages = current.pages.map(page => {
+        const items = page.items.filter(item => item.id !== taskId)
+
+        if (items.length === page.items.length) {
+            return page
+        }
+
+        found = true
+        return { ...page, items }
+    })
+
+    return found ? { ...current, pages } : current
+}
+
 function toTaskSnapshot(task: TaskApi.GetTaskResponse): Event.Task.Snapshot {
     return {
         id: task.id,
