@@ -3,6 +3,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 import { taskApi } from '#/api/task'
 import { workflowApi } from '#/api/workflow'
 import { cacheCreatedTaskResponse } from '#/features/task/task.cache'
+import { applyTaskRemoved } from '#/features/task/task.event'
 import { taskKeys } from '#/features/task/task.key'
 
 import type { TaskApi } from '@silent-pix/shared'
@@ -89,6 +90,17 @@ export function useCreateTaskMutation() {
         mutationFn: (request: TaskApi.CreateTaskRequest) => taskApi.create(request),
         onSuccess: task => {
             cacheCreatedTaskResponse(queryClient, task)
+        },
+    }))
+}
+
+export function useDeleteTaskMutation() {
+    const queryClient = useQueryClient()
+
+    return useMutation(() => ({
+        mutationFn: (request: TaskApi.DeleteTaskRequest) => taskApi.remove(request),
+        onSuccess: result => {
+            applyTaskRemoved(queryClient, result.id)
         },
     }))
 }

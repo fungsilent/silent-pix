@@ -1,4 +1,4 @@
-import { mkdir, unlink, writeFile } from 'node:fs/promises'
+import { mkdir, rm, unlink, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 
 import {
@@ -29,6 +29,10 @@ const config = loadConfig()
 type TaskCursor = { createdAt: string, id: string }
 
 type CompletedTaskImage = { imageId: UUID, path: string, filename: string }
+
+function taskDirectory(taskId: UUID): string {
+    return resolve(config.appStorageDir, 'tasks', taskId)
+}
 
 export const taskService = {
     // MARK: CRUD
@@ -173,6 +177,19 @@ export const taskService = {
         return done(castTaskModel(createdTask))
     },
 
+    async remove(database: DatabaseClient, taskId: UUID) {
+        const [removed] = await database.db
+            .delete(tasks)
+            .where(eq(tasks.id, taskId))
+            .returning({ id: tasks.id })
+
+        if (!removed) return fail('TASK_NOT_FOUND')
+
+        await rm(taskDirectory(taskId), { recursive: true, force: true })
+
+        return done({ id: removed.id })
+    },
+
     async getTasks(
         database: DatabaseClient,
         query: TaskApi.GetTasksQuery,
@@ -306,13 +323,13 @@ export const taskService = {
                 return
             }
 
-            const taskDirectory = resolve(config.appStorageDir, 'tasks', taskId)
-            await mkdir(taskDirectory, { recursive: true })
+            const directory = taskDirectory(taskId)
+            await mkdir(directory, { recursive: true })
 
             const completedImages: CompletedTaskImage[] = await Promise.all(outputImages.map(async image => {
                 const { imageId, filename } = imageFilename(image.filename)
                 const relativePath = `tasks/${taskId}/${filename}`
-                const absolutePath = resolve(taskDirectory, filename)
+                const absolutePath = resolve(directory, filename)
                 const bytes = await client.downloadImage(image)
 
                 await writeFile(absolutePath, bytes)
@@ -348,6 +365,12 @@ export const taskService = {
         images: CompletedTaskImage[],
         pushEvent: PushEvent,
     ) {
+        const item = await taskService.findTask(database, taskId)
+        if (!item) {
+            await rm(taskDirectory(taskId), { recursive: true, force: true })
+            return
+        }
+
         await database.db.transaction(async tx => {
             if (images.length) {
                 await tx

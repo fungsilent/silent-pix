@@ -1,6 +1,7 @@
 import { Line } from '#/components/base/Line'
 import { CollapseButton, Panel, PanelContent, PanelHeader } from '#/components/base/Panel'
 import { TaskConfig } from '#/pages/generate/components/config/TaskConfig'
+import { TaskDelete } from '#/pages/generate/components/config/TaskDelete'
 import { TaskInfo } from '#/pages/generate/components/config/TaskInfo'
 import { TaskLora } from '#/pages/generate/components/config/TaskLora'
 
@@ -49,6 +50,9 @@ export function TaskDetail(props: TaskDetailProps) {
                             <TaskConfig task={props.task} />
                             <Line />
                             <TaskLora />
+                            {/* 破壞性動作放最後，離其他控制項遠一點 */}
+                            <Line />
+                            <TaskDelete task={props.task} />
                         </PanelContent>
                     </div>
                 )

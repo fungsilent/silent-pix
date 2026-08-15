@@ -16,3 +16,10 @@ export const changed = z.object({
 })
 
 export type Changed = z.output<typeof changed>
+
+export const removed = z.object({
+    type: z.literal('task.removed'),
+    taskId: z.uuid(),
+})
+
+export type Removed = z.output<typeof removed>
