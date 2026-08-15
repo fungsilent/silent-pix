@@ -1,6 +1,8 @@
-import { Show } from 'solid-js'
+import { createEffect, createSignal, on, Show } from 'solid-js'
 
 import { Editable } from '#/components/field/Editable'
+import { useRenameTaskMutation } from '#/features/task/task.query'
+import { toErrorMessage } from '#/lib/error'
 import { TaskDelete } from '#/pages/generate/components/config/TaskDelete'
 import { TaskStatus } from '#/pages/generate/components/TaskStatus'
 import { useGenerateStore } from '#/pages/generate/store'
@@ -14,6 +16,35 @@ type TaskInfoProps = {
 
 export function TaskInfo(props: TaskInfoProps) {
     const store = useGenerateStore()
+    const renameMutation = useRenameTaskMutation()
+    const [renameError, setRenameError] = createSignal<string>()
+
+    createEffect(on(() => props.task.id, () => setRenameError()))
+
+    const commitName = async (value: string) => {
+        const name = value.trim()
+        store.setValue('name', name)
+        setRenameError()
+
+        if (props.task.status === null || renameMutation.isPending) {
+            return
+        }
+
+        const currentName = props.task.name ?? ''
+        if (name === currentName) {
+            return
+        }
+
+        try {
+            await renameMutation.mutateAsync({
+                taskId: props.task.id,
+                name: name === '' ? null : name,
+            })
+        }
+        catch (cause) {
+            setRenameError(toErrorMessage(cause))
+        }
+    }
 
     return (
         <section class='flex flex-col gap-2'>
@@ -24,15 +55,26 @@ export function TaskInfo(props: TaskInfoProps) {
             </DetailRow>
 
             <DetailRow label='Name'>
-                <Editable
-                    label='Name'
-                    value={store.state.values.name}
-                    onChange={value => store.setValue('name', value)}
-                    onCommit={value => store.setValue('name', value)}
-                    classes={{
-                        root: 'w-full',
-                    }}
-                />
+                <div class='flex min-w-0 flex-col gap-1'>
+                    <Editable
+                        disabled={renameMutation.isPending}
+                        label='Name'
+                        value={store.state.values.name}
+                        onChange={value => {
+                            setRenameError()
+                            store.setValue('name', value)
+                        }}
+                        onCommit={value => void commitName(value)}
+                        classes={{
+                            root: 'w-full',
+                        }}
+                    />
+                    <Show when={renameError()}>
+                        {message => (
+                            <p class='m-0 truncate text-xs text-danger-fg'>{message()}</p>
+                        )}
+                    </Show>
+                </div>
             </DetailRow>
 
             <DetailRow label='Status'>

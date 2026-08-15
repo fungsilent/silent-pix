@@ -15,6 +15,14 @@ export const taskApi = {
         return unwrap(apiClient.api.task.post(request))
     },
 
+    rename(
+        request: TaskApi.RenameTaskParams & TaskApi.RenameTaskRequest,
+    ): Promise<TaskApi.RenameTaskResponse> {
+        return unwrap(apiClient.api.task({ taskId: request.taskId }).name.patch({
+            name: request.name,
+        }))
+    },
+
     remove(request: TaskApi.DeleteTaskRequest): Promise<TaskApi.DeleteTaskResponse> {
         return unwrap(apiClient.api.task({ taskId: request.taskId }).delete())
     },

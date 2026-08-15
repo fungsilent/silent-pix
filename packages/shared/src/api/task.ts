@@ -110,7 +110,7 @@ export const getTaskResponse = z.object({
 export type GetTaskResponse = z.output<typeof getTaskResponse>
 
 export const createTaskRequest = z.object({
-    name: z.string().trim().max(120).nullable(),
+    name: z.string().trim().min(1).max(120).nullable(),
     workflowId: z.uuid(),
     config: taskConfig.extend({
         seed: taskConfig.shape.seed.nullable()
@@ -127,6 +127,20 @@ export type CreateTaskRequest = z.output<typeof createTaskRequest>
 export const createTaskResponse = getTaskResponse
 
 export type CreateTaskResponse = GetTaskResponse
+
+export const renameTaskParams = getTaskRequest
+
+export type RenameTaskParams = z.output<typeof renameTaskParams>
+
+export const renameTaskRequest = z.object({
+    name: z.string().trim().min(1).max(120).nullable(),
+})
+
+export type RenameTaskRequest = z.output<typeof renameTaskRequest>
+
+export const renameTaskResponse = getTaskResponse
+
+export type RenameTaskResponse = GetTaskResponse
 
 export const getTaskImageRequest = z.object({
     taskId: z.uuid(),

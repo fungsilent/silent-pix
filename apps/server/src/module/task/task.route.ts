@@ -85,6 +85,44 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
             },
         },
     )
+    .patch(
+        '/:taskId/name',
+        async ({ body, database, params, pushEvent, status }) => {
+            const taskId = toUUID(params.taskId, 'taskId')
+            const [renamed] = await taskService.updateTask(database, {
+                id: taskId,
+                name: body.name,
+            })
+
+            if (!renamed) {
+                return status(404, {
+                    error: {
+                        code: 'TASK_NOT_FOUND',
+                        message: 'Task not found.',
+                    },
+                })
+            }
+
+            const task = await taskService.getTaskResponse(database, taskId)
+            if (!task) {
+                throw new Error('Renamed task could not be loaded.')
+            }
+
+            await taskService.publishChanged(database, taskId, pushEvent)
+
+            return task
+        },
+        {
+            params: taskApi.renameTaskParams,
+            body: taskApi.renameTaskRequest,
+            response: {
+                200: taskApi.renameTaskResponse,
+                404: appApi.errorResponse,
+                422: appApi.errorResponse,
+                500: appApi.errorResponse,
+            },
+        },
+    )
     .get(
         '/:taskId/image/:filename',
         async ({ database, params, status }) => {
