@@ -21,6 +21,10 @@
     --sp-accent: #2563eb;
     --sp-accent-hover: #3b82f6;
     --sp-accent-fg: #7ea6ff;
+
+    --sp-danger: #dc2626;
+    --sp-danger-hover: #ef4444;
+    --sp-danger-fg: #fca5a5;
 }
 
 /* MARK: theme — light（尚未驗收，只定義 token，不接切換 UI） */
@@ -43,6 +47,10 @@
     --sp-accent: #2563eb;
     --sp-accent-hover: #1d4ed8;
     --sp-accent-fg: #1e40af;
+
+    --sp-danger: #dc2626;
+    --sp-danger-hover: #b91c1c;
+    --sp-danger-fg: #991b1b;
 }
 
 @theme inline {
@@ -64,6 +72,10 @@
     --color-accent: var(--sp-accent);
     --color-accent-hover: var(--sp-accent-hover);
     --color-accent-fg: var(--sp-accent-fg);
+
+    --color-danger: var(--sp-danger);
+    --color-danger-hover: var(--sp-danger-hover);
+    --color-danger-fg: var(--sp-danger-fg);
 }
 
 :root {

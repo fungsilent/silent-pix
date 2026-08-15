@@ -1,4 +1,7 @@
+import { Show } from 'solid-js'
+
 import { Editable } from '#/components/field/Editable'
+import { TaskDelete } from '#/pages/generate/components/config/TaskDelete'
 import { TaskStatus } from '#/pages/generate/components/TaskStatus'
 import { useGenerateStore } from '#/pages/generate/store'
 
@@ -43,6 +46,10 @@ export function TaskInfo(props: TaskInfoProps) {
                     {props.task.createdAt ? new Date(props.task.createdAt).toLocaleString() : ''}
                 </span>
             </DetailRow>
+
+            <Show when={props.task.status !== null}>
+                <TaskDelete task={props.task} />
+            </Show>
         </section>
     )
 }

@@ -4,7 +4,7 @@ import { cn } from '#/lib/cn'
 
 import type { JSX } from 'solid-js'
 
-type ButtonVariant = 'accent' | 'default' | 'ghost' | 'primary'
+type ButtonVariant = 'accent' | 'danger' | 'default' | 'ghost' | 'primary'
 
 type ButtonProps = JSX.ButtonHTMLAttributes<HTMLButtonElement> & {
     variant?: ButtonVariant
@@ -19,6 +19,7 @@ type ButtonProps = JSX.ButtonHTMLAttributes<HTMLButtonElement> & {
  */
 const variantClass: Record<ButtonVariant, string> = {
     accent: 'bg-accent/15 text-accent-fg hover:bg-accent/25',
+    danger: 'bg-danger/15 text-danger-fg hover:bg-danger/25 focus-visible:border-danger focus-visible:ring-danger/40',
     default: 'bg-elevated text-fg-secondary hover:bg-hover',
     ghost: 'bg-transparent text-fg-muted hover:bg-hover hover:text-fg',
     primary: 'bg-accent text-white hover:bg-accent-hover',
