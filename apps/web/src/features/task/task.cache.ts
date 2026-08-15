@@ -23,6 +23,26 @@ export function cacheCreatedTaskResponse(
     cacheTaskCreated(queryClient, latestSnapshot ?? toTaskSnapshot(task))
 }
 
+export function cacheTaskRenamed(
+    queryClient: QueryClient,
+    task: TaskApi.RenameTaskResponse,
+): void {
+    queryClient.setQueryData<TaskApi.GetTaskResponse>(
+        taskKeys.detail({ taskId: task.id }),
+        task,
+    )
+    queryClient.setQueryData<Event.Task.Snapshot>(
+        taskKeys.snapshot(task.id),
+        toTaskSnapshot(task),
+    )
+
+    const listItem = toTaskListItem(toTaskSnapshot(task))
+    queryClient.setQueriesData<TaskFeedData>(
+        { queryKey: taskKeys.feeds() },
+        current => updateTaskFeed(current, listItem, false),
+    )
+}
+
 export function cacheTaskCreated(
     queryClient: QueryClient,
     task: Event.Task.Snapshot,

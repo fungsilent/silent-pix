@@ -4,6 +4,7 @@ import { Pencil } from 'lucide-solid'
 import { cn } from '#/lib/cn'
 
 type EditableProps = {
+    disabled?: boolean
     label: string
     value: string
     onChange?: ((value: string) => void) | undefined
@@ -20,6 +21,7 @@ type EditableProps = {
 export function Editable(props: EditableProps) {
     return (
         <ArkEditable.Root
+            disabled={props.disabled}
             value={props.value}
             selectOnFocus
             onValueChange={details => props.onChange?.(details.value)}

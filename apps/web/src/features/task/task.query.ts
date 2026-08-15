@@ -2,7 +2,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 
 import { taskApi } from '#/api/task'
 import { workflowApi } from '#/api/workflow'
-import { cacheCreatedTaskResponse } from '#/features/task/task.cache'
+import { cacheCreatedTaskResponse, cacheTaskRenamed } from '#/features/task/task.cache'
 import { applyTaskRemoved } from '#/features/task/task.event'
 import { taskKeys } from '#/features/task/task.key'
 
@@ -90,6 +90,19 @@ export function useCreateTaskMutation() {
         mutationFn: (request: TaskApi.CreateTaskRequest) => taskApi.create(request),
         onSuccess: task => {
             cacheCreatedTaskResponse(queryClient, task)
+        },
+    }))
+}
+
+export function useRenameTaskMutation() {
+    const queryClient = useQueryClient()
+
+    return useMutation(() => ({
+        mutationFn: (
+            request: TaskApi.RenameTaskParams & TaskApi.RenameTaskRequest,
+        ) => taskApi.rename(request),
+        onSuccess: task => {
+            cacheTaskRenamed(queryClient, task)
         },
     }))
 }

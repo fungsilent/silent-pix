@@ -123,7 +123,7 @@ export const taskService = {
     ) {
         const { limtedStatus } = options || {}
         const { id, ...data } = task
-        await database.db
+        return await database.db
             .update(tasks)
             .set({
                 ...data,
@@ -135,6 +135,7 @@ export const taskService = {
                     ? inArray(tasks.status, limtedStatus)
                     : undefined
             ))
+            .returning()
     },
 
     // MARK: Service
