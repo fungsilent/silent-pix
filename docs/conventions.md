@@ -213,6 +213,33 @@ Do not leak raw internal errors.
 
 Use `packages/shared/src/event/<module>.ts` for server-to-web event contracts and `packages/event` for generic WebSocket transport helpers.
 
+### REST is the source of truth; the socket syncs everyone else
+
+A mutation applies its own outcome from the HTTP response. It never waits for
+the event to travel back, because a socket that is down while HTTP still works
+is a state this app models — under the naive design the server would succeed and
+the UI would sit frozen.
+
+So both paths exist and both run:
+
+```ts
+// the acting client, from the response it already has
+onSuccess: result => applyTaskRemoved(queryClient, result.id)
+
+// every other client, from the broadcast
+case 'task.removed': applyTaskRemoved(queryClient, event.taskId)
+```
+
+They call the same function, and that function is written to be idempotent —
+clearing absent cache entries is a no-op, and filtering a list that lacks the
+item returns it unchanged.
+
+This does not make the socket optional. It carries what no response can: a task
+moving through queued, running and done long after the POST returned. That is
+new information rather than the echo of an action, and replacing a poll with it
+is the point of having a socket at all. The distinction is the rule — if the
+acting client could already know, do not make it wait to be told.
+
 Rules:
 
 ```txt
@@ -221,6 +248,9 @@ Rules:
 - browser connection helpers live in `packages/event/src/client.ts`
 - Node WebSocket server helpers live in `packages/event/src/server.ts`
 - `task.changed` carries fields required to patch existing list and detail query caches
+- a mutation applies its own result in `onSuccess`; never rely on the round trip
+- the event handler and the mutation share one idempotent function per outcome
+- reconnecting invalidates what went stale while the socket was gone
 - application events must not exist purely for transport; a heartbeat must carry user-visible state
 - `health.snapshot` doubles as the liveness signal; the client treats silence of *valid* events as connection loss
 - the client must validate every inbound event; an event that fails validation is not evidence the connection is alive
@@ -229,6 +259,7 @@ Rules:
 - no DB imports
 - no Hono imports
 - validated WebSocket snapshots update query caches directly; REST `/health` remains for bootstrap and external checks
+- the socket carries what no response can, not a copy of what one already returned
 ```
 
 ---
