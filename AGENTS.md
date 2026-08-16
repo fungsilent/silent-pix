@@ -67,3 +67,9 @@
 - `task.created` and `task.changed` carry the task fields required by list and detail caches. Created events idempotently insert feed entries, changed events patch existing entries, and the web invalidates task queries once after WebSocket reconnection to recover missed events.
 - Store image files on the filesystem and metadata in SQLite. Do not store image binary data in SQLite.
 - Do not assume cwd is repo root. Resolve runtime paths explicitly and keep production app data overrides possible.
+
+## Plan Documents
+
+- Implementation plans live in `temp/<feature>-<author>-plan.md`. `temp/` is gitignored; plans are working documents, not repo history.
+- Before writing one, read `.agents/skills/plan-doc/SKILL.md`. It defines the required sections, and the density rule: show the change as schema sketches, ASCII layouts, and tables; do not argue for it in prose.
+- Never overwrite the user's own requirement sketch in `temp/`.
