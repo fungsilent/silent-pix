@@ -1,3 +1,4 @@
+export * from '#/schema/image'
 export * from '#/schema/task'
 export * from '#/schema/taskImage'
 export * from '#/schema/workflow'
