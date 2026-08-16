@@ -38,7 +38,7 @@ export function PromptTabs(props: PromptTabsProps) {
                                 'inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-t-md pl-2 pr-1 text-xs leading-none',
                                 item.id === props.selectedId
                                     // 與下方 panel 同色、無分隔線，負 margin 蓋掉接縫
-                                    ? '-mb-0.5 bg-active pb-0.5 text-fg shadow-[inset_0_2px_0_var(--sp-accent)]'
+                                    ? 'bg-active text-fg shadow-[inset_0_2px_0_var(--sp-accent)]'
                                     : 'text-fg-muted hover:bg-white/[0.045] hover:text-fg-secondary',
                                 item.id === props.draggedId && 'opacity-50',
                             )}
