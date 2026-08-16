@@ -6,6 +6,7 @@ import { cn } from '#/lib/cn'
 type EditableProps = {
     disabled?: boolean
     label: string
+    placeholder?: string
     value: string
     onChange?: ((value: string) => void) | undefined
     onCommit?: ((value: string) => void) | undefined
@@ -22,6 +23,7 @@ export function Editable(props: EditableProps) {
     return (
         <ArkEditable.Root
             disabled={props.disabled}
+            placeholder={props.placeholder}
             value={props.value}
             selectOnFocus
             onValueChange={details => props.onChange?.(details.value)}
@@ -32,7 +34,7 @@ export function Editable(props: EditableProps) {
             <ArkEditable.Area class={cn('min-w-0 flex-1', props.classes?.area)}>
                 <ArkEditable.Preview
                     class={cn(
-                        'flex h-8 w-full cursor-text items-center truncate rounded-md border border-transparent bg-active px-3 text-xs leading-none text-fg',
+                        'flex h-8 w-full cursor-text items-center truncate rounded-md border border-transparent bg-active px-3 text-xs leading-none text-fg data-[placeholder-shown]:text-fg-muted',
                         props.classes?.preview,
                     )}
                 />
