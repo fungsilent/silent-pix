@@ -1,5 +1,6 @@
 import { createEffect, createSignal, on, Show } from 'solid-js'
 
+import { Badge } from '#/components/base/Badge'
 import { Editable } from '#/components/field/Editable'
 import { useRenameTaskMutation } from '#/features/task/task.query'
 import { toErrorMessage } from '#/lib/error'
@@ -78,14 +79,21 @@ export function TaskInfo(props: TaskInfoProps) {
             </DetailRow>
 
             <DetailRow label='Status'>
-                {props.task.status && (
-                    <TaskStatus status={props.task.status} />
-                )}
+                {/* draft 是前端狀態，後端的 TaskStatus union 沒有它，所以不走 TaskStatus */}
+                {props.task.status
+                    ? <TaskStatus status={props.task.status} />
+                    : <Badge>Draft</Badge>}
             </DetailRow>
 
             <DetailRow label='Created'>
-                <span class='text-xs leading-none text-fg-secondary'>
-                    {props.task.createdAt ? new Date(props.task.createdAt).toLocaleString() : ''}
+                <span
+                    class='text-xs leading-none'
+                    classList={{
+                        'text-fg-secondary': props.task.createdAt !== null,
+                        'text-fg-muted': props.task.createdAt === null,
+                    }}
+                >
+                    {props.task.createdAt ? new Date(props.task.createdAt).toLocaleString() : '-'}
                 </span>
             </DetailRow>
 
