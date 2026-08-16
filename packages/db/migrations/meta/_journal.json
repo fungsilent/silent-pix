@@ -15,6 +15,13 @@
       "when": 1786641708520,
       "tag": "0001_tan_puff_adder",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1786903571748,
+      "tag": "0002_tired_solo",
+      "breakpoints": true
     }
   ]
 }

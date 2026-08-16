@@ -34,6 +34,7 @@ export const images = sqliteTable('images', {
         'images_hash_check',
         sql`length(${table.hash}) = 64 AND lower(${table.hash}) NOT GLOB '*[^0-9a-f]*'`,
     ),
+    check('images_mime_check', sql`${table.mime} in ('image/png', 'image/jpeg')`),
     check('images_dimension_check', sql`${table.width} > 0 AND ${table.height} > 0`),
     check('images_size_check', sql`${table.sizeBytes} > 0`),
     /* 「相同圖片不重複儲存」是靠這個 unique index，不是靠應用層先查再寫 */

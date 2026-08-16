@@ -6,6 +6,7 @@ import { config } from 'dotenv'
 export type BaseConfig = {
     repoRoot: string
     databasePath: string
+    appStorageDir: string
 }
 
 export type PackageConfig = BaseConfig & {
@@ -16,19 +17,19 @@ export function loadBaseConfig(): BaseConfig {
     const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..')
     config({ path: resolve(repoRoot, '.env') })
 
-    const dbConfigPath = process.env.DATABASE_PATH
-    if (!dbConfigPath) {
-        throw new Error('[Env] DATABASE_PATH not set')
-    }
-
-    const databasePath = isAbsolute(dbConfigPath)
-        ? dbConfigPath
-        : resolve(repoRoot, dbConfigPath)
-
     return {
         repoRoot,
-        databasePath,
+        databasePath: resolveRepoPath(repoRoot, 'DATABASE_PATH', process.env.DATABASE_PATH),
+        appStorageDir: resolveRepoPath(repoRoot, 'APP_STORAGE_DIR', process.env.APP_STORAGE_DIR),
     }
+}
+
+function resolveRepoPath(repoRoot: string, key: string, value: string | undefined): string {
+    if (!value) {
+        throw new Error(`[Env] ${key} not set`)
+    }
+
+    return isAbsolute(value) ? value : resolve(repoRoot, value)
 }
 
 export function loadPackageConfig(paths: string[]): PackageConfig {

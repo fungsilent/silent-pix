@@ -18,6 +18,7 @@
     "db:generate": "pnpm --filter @silent-pix/db db:generate",
     "db:migrate": "pnpm --filter @silent-pix/db db:migrate",
     "db:studio": "pnpm --filter @silent-pix/db db:studio",
+    "db:gc": "pnpm --filter @silent-pix/db db:gc",
     "db:seed": "pnpm --filter @silent-pix/db db:seed",
     "db:reset": "pnpm --filter @silent-pix/db db:reset"
   },

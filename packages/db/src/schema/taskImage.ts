@@ -39,6 +39,10 @@ export const taskImages = sqliteTable('task_images', {
 }, table => [
     check('task_images_task_id_uuid_check', uuidCheck(table.taskId)),
     check('task_images_image_id_uuid_check', uuidCheck(table.imageId)),
+    check(
+        'task_images_type_check',
+        sql`${table.type} in ('input', 'output', 'mask', 'control')`,
+    ),
     check('task_images_sort_index_check', sql`${table.sortIndex} >= 0`),
     uniqueIndex('task_images_slot_idx').on(table.taskId, table.type, table.sortIndex),
     /* 反向查「這張圖還有誰在用」；刪 task 後的零引用判定與 GC 都走這裡 */
