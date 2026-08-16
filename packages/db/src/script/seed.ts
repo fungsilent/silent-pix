@@ -86,11 +86,6 @@ try {
                 .where(eq(workflows.id, workflow.id))
                 .get()
 
-            if (existing) {
-                console.log(`Skipped workflow ${workflow.id}: already exists.`)
-                continue
-            }
-
             await transaction.insert(workflows).values({
                 id: workflow.id,
                 name: workflow.name,
@@ -98,9 +93,21 @@ try {
                 configSchema: workflow.configSchema,
                 createdAt: now,
                 updatedAt: now,
+            }).onConflictDoUpdate({
+                target: workflows.id,
+                set: {
+                    name: workflow.name,
+                    graph: workflow.graph,
+                    configSchema: workflow.configSchema,
+                    updatedAt: now,
+                },
             }).run()
 
-            console.log(`Seeded workflow ${workflow.name} (${workflow.id}).`)
+            console.log(
+                existing
+                    ? `Updated workflow ${workflow.name} (${workflow.id}).`
+                    : `Seeded workflow ${workflow.name} (${workflow.id}).`,
+            )
         }
     })
 } finally {
