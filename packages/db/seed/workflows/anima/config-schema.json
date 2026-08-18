@@ -1,34 +1,38 @@
 {
     "seed": {
-        "nodeId": "46:6",
+        "nodeId": "99:59",
         "input": "seed"
     },
     "steps": {
-        "nodeId": "46:6",
+        "nodeId": "99:59",
         "input": "steps"
     },
     "cfg": {
-        "nodeId": "46:6",
+        "nodeId": "99:59",
         "input": "cfg"
     },
     "samplerName": {
-        "nodeId": "46:6",
+        "nodeId": "99:59",
         "input": "sampler_name"
     },
     "scheduler": {
-        "nodeId": "46:6",
+        "nodeId": "99:59",
         "input": "scheduler"
     },
+    "denoise": {
+        "nodeId": "99:59",
+        "input": "denoise"
+    },
     "width": {
-        "nodeId": "46:9",
+        "nodeId": "133:130",
         "input": "width"
     },
     "height": {
-        "nodeId": "46:9",
+        "nodeId": "133:130",
         "input": "height"
     },
     "batchSize": {
-        "nodeId": "46:9",
+        "nodeId": "133:130",
         "input": "batch_size"
     },
     "positivePrompt": {
@@ -42,5 +46,9 @@
     "loraData": {
         "nodeId": "47",
         "input": "lora_data"
+    },
+    "initImagePath": {
+        "nodeId": "133:139",
+        "input": "text"
     }
 }

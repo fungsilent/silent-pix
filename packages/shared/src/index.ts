@@ -2,6 +2,9 @@
 export * as appApi from '#/api/app'
 export type * as AppApi from '#/api/app'
 
+export * as imageApi from '#/api/image'
+export type * as ImageApi from '#/api/image'
+
 export * as taskApi from '#/api/task'
 export type * as TaskApi from '#/api/task'
 

@@ -8,13 +8,13 @@ export type ComfyNode = {
 
 export type ComfyPrompt = Record<string, ComfyNode>
 
-export type GenerateConfig = {
-    config: TaskApi.TaskConfig
-    lora: TaskApi.TaskLora[]
-    prompt: {
-        positive: TaskApi.TaskPromptTag[]
-        negative: TaskApi.TaskPromptTag[]
-    }
+/* 就是 tasks.config 欄位的內容，形狀由 contract 定義，這裡不另外寫一份 */
+export type GenerateConfig = TaskApi.TaskGenerateConfig
+
+/* 只存在於這一次執行，絕不寫進 tasks.config，也絕不進 log */
+export type GenerateRuntime = {
+    /* ComfyUI 看得到的絕對路徑；空字串代表 txt2img */
+    initImagePath: string
 }
 
 type GeneratorInput = {
@@ -29,6 +29,16 @@ type GeneratorInput = {
     positivePrompt: string
     negativePrompt: string
     loraData: string
+    denoise: number
+    initImagePath: string
+}
+
+/*
+ * 模式由 graph 自己判定：路徑是空字串時 StringCompare 為真，switch 走 EmptyLatentImage；
+ * 有路徑就走 VAEEncode。server 只負責填那個字串，不需要另一個模式旗標。
+ */
+export const txt2imgRuntime: GenerateRuntime = {
+    initImagePath: '',
 }
 
 export class ComfyPromptError extends Error {
@@ -44,9 +54,10 @@ export function buildComfyPrompt(
     graph: JsonObject,
     configSchema: ConfigSchema,
     generateConfig: GenerateConfig,
+    runtime: GenerateRuntime,
 ): ComfyPrompt {
     const prompt = structuredClone(graph) as unknown as Record<string, unknown>
-    const input = toGeneratorInput(generateConfig)
+    const input = toGeneratorInput(generateConfig, runtime)
 
     for (const [key, mapping] of Object.entries(configSchema)) {
         const node = prompt[mapping.nodeId]
@@ -73,7 +84,7 @@ export function buildComfyPrompt(
     return prompt as ComfyPrompt
 }
 
-function toGeneratorInput(taskConfig: GenerateConfig): GeneratorInput {
+function toGeneratorInput(taskConfig: GenerateConfig, runtime: GenerateRuntime): GeneratorInput {
     const seed = Number(resolveSeed(taskConfig.config.seed))
 
     return {
@@ -97,6 +108,8 @@ function toGeneratorInput(taskConfig: GenerateConfig): GeneratorInput {
             a2v: 1,
             other: 1,
         }))),
+        denoise: taskConfig.config.denoise,
+        initImagePath: runtime.initImagePath,
     }
 }
 

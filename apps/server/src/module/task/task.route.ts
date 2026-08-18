@@ -1,19 +1,12 @@
-import { readFile } from 'node:fs/promises'
-import { isAbsolute, relative, resolve } from 'node:path'
-
 import { toUUID } from '@silent-pix/db'
 import { appApi, taskApi } from '@silent-pix/shared'
 import { Elysia } from 'elysia'
 
-import { loadConfig } from '#/config'
 import { comfyMiddleware } from '#/middleware/comfy'
 import { databaseMiddleware } from '#/middleware/database'
 import { eventMiddleware } from '#/middleware/event'
-import { taskRemoved } from '#/module/task/task.event'
+import { taskCreated, taskRemoved } from '#/module/task/task.event'
 import { taskService } from '#/module/task/task.service'
-import { contentType } from '#/module/task/task.util'
-
-const storageRoot = resolve(loadConfig().appStorageDir)
 
 export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
     .use(databaseMiddleware)
@@ -48,12 +41,15 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
         '/',
         async ({ body, database, comfyClient, pushEvent, status }) => {
             const creation = await taskService.create(database, body)
+
             if (!creation.ok) {
-                if (creation.error === 'WORKFLOW_NOT_FOUND') {
-                    return status(404, {
+                const failure = createFailures[creation.error]
+
+                if (failure) {
+                    return status(failure.status, {
                         error: {
                             code: creation.error,
-                            message: 'Workflow not found.',
+                            message: failure.message,
                         },
                     })
                 }
@@ -71,6 +67,11 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
                 throw new Error('Created task could not be loaded.')
             }
 
+            const snapshot = await taskService.snapshot(database, creation.data.id)
+            if (snapshot) {
+                pushEvent(taskCreated(snapshot))
+            }
+
             void taskService.generate(database, comfyClient, creation.data.id, pushEvent)
 
             return status(201, createdTask)
@@ -80,6 +81,7 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
             response: {
                 201: taskApi.createTaskResponse,
                 404: appApi.errorResponse,
+                415: appApi.errorResponse,
                 422: appApi.errorResponse,
                 500: appApi.errorResponse,
             },
@@ -117,58 +119,6 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
             body: taskApi.renameTaskRequest,
             response: {
                 200: taskApi.renameTaskResponse,
-                404: appApi.errorResponse,
-                422: appApi.errorResponse,
-                500: appApi.errorResponse,
-            },
-        },
-    )
-    .get(
-        '/:taskId/image/:filename',
-        async ({ database, params, status }) => {
-            const image = await taskService.findImage(database, params)
-
-            if (!image) {
-                return status(404, {
-                    error: {
-                        code: 'TASK_IMAGE_NOT_FOUND',
-                        message: 'Task image not found.',
-                    },
-                })
-            }
-
-            const absolutePath = resolve(storageRoot, image.path)
-            const relativePath = relative(storageRoot, absolutePath)
-
-            if (relativePath.startsWith('..') || isAbsolute(relativePath)) {
-                throw new Error('Task image path is outside app storage.')
-            }
-
-            try {
-                const bytes = new Uint8Array(await readFile(absolutePath))
-
-                return new Response(bytes, {
-                    headers: {
-                        'content-type': contentType(image.filename),
-                    },
-                })
-            }
-            catch (error) {
-                if (isFileNotFoundError(error)) {
-                    return status(404, {
-                        error: {
-                            code: 'TASK_IMAGE_FILE_NOT_FOUND',
-                            message: 'Task image file not found.',
-                        },
-                    })
-                }
-
-                throw error
-            }
-        },
-        {
-            params: taskApi.getTaskImageRequest,
-            response: {
                 404: appApi.errorResponse,
                 422: appApi.errorResponse,
                 500: appApi.errorResponse,
@@ -267,8 +217,9 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
         },
     )
 
-function isFileNotFoundError(error: unknown): boolean {
-    return error instanceof Error
-        && 'code' in error
-        && error.code === 'ENOENT'
+const createFailures: Record<string, { status: 404 | 415 | 422, message: string } | undefined> = {
+    WORKFLOW_NOT_FOUND: { status: 404, message: 'Workflow not found.' },
+    REFERENCE_IMAGE_NOT_FOUND: { status: 404, message: 'Reference image not found.' },
+    IMAGE_UNSUPPORTED_TYPE: { status: 415, message: 'Reference image must be a PNG or JPEG.' },
+    IMAGE_EMPTY: { status: 422, message: 'Reference image is empty.' },
 }

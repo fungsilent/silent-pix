@@ -1,38 +1,36 @@
-import { mkdir, rm, unlink, writeFile } from 'node:fs/promises'
-import { resolve } from 'node:path'
+import { existsSync } from 'node:fs'
 
 import {
-    createUUID,
+    images,
     taskImages,
     tasks,
     toUUID,
-    workflows,
 } from '@silent-pix/db'
-import { and, desc, eq, inArray } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray } from 'drizzle-orm'
 
 import { loadConfig } from '#/config'
 import { ComfyError } from '#/lib/comfy/comfy.client'
-import { buildComfyPrompt, type GenerateConfig, resolveSeed } from '#/lib/comfy/comfy.prompt'
+import { buildComfyPrompt, resolveSeed, txt2imgRuntime } from '#/lib/comfy/comfy.prompt'
+import { absolutePath } from '#/lib/image/image.store'
 import { done, fail } from '#/lib/service-result'
+import { toImageResource } from '#/module/image/image.model'
+import { imageService } from '#/module/image/image.service'
+import { comfyImagePath } from '#/module/image/image.util'
 import { taskChanged } from '#/module/task/task.event'
-import { castTaskImageModel, castTaskModel, castWorkflowModel } from '#/module/task/task.model'
-import { imageFilename, imageUrl } from '#/module/task/task.util'
+import { castTaskModel } from '#/module/task/task.model'
+import { workflowService } from '#/module/workflow/workflow.service'
 
 import type { DatabaseClient, TaskStatus, TaskUpdate, UUID } from '@silent-pix/db'
-import type { TaskApi } from '@silent-pix/shared'
+import type { ImageApi, TaskApi } from '@silent-pix/shared'
 import type { PushEvent } from '#/app.store'
 import type { ComfyClient } from '#/lib/comfy/comfy.client'
-import type { TaskImageModel, TaskModel, WorkflowModel } from '#/module/task/task.model'
+import type { GenerateConfig } from '#/lib/comfy/comfy.prompt'
+import type { TaskImageModel, TaskModel } from '#/module/task/task.model'
+import type { WorkflowModel } from '#/module/workflow/workflow.model'
 
 const config = loadConfig()
 
 type TaskCursor = { createdAt: string, id: string }
-
-type CompletedTaskImage = { imageId: UUID, path: string, filename: string }
-
-function taskDirectory(taskId: UUID): string {
-    return resolve(config.appStorageDir, 'tasks', taskId)
-}
 
 export const taskService = {
     // MARK: CRUD
@@ -58,32 +56,29 @@ export const taskService = {
 
         let workflow: WorkflowModel | undefined = undefined
         if (includeWorkflow) {
-            const [_workflow] = await database.db
-                .select()
-                .from(workflows)
-                .where(eq(workflows.id, task.workflowId))
-
+            const _workflow = await workflowService.findWorkflow(database, task.workflowId)
             if (!_workflow) {
                 return undefined
             }
-            workflow = castWorkflowModel(_workflow)
+            workflow = _workflow
         }
 
-        let images: TaskImageModel[] | undefined = undefined
+        let taskImageModels: TaskImageModel[] | undefined = undefined
         if (includeImage) {
-            const _images = await database.db
-                .select()
+            const rows = await database.db
+                .select({ relation: taskImages, image: images })
                 .from(taskImages)
+                .innerJoin(images, eq(images.id, taskImages.imageId))
                 .where(eq(taskImages.taskId, task.id))
-                .orderBy(taskImages.path)
+                .orderBy(asc(taskImages.type), asc(taskImages.sortIndex))
 
-            images = castTaskImageModel(_images)
+            taskImageModels = rows.map(row => ({ ...row.relation, image: row.image }))
         }
 
         return {
             task: castTaskModel(task),
             workflow: workflow as HasWorkflow extends true ? WorkflowModel : never,
-            images: images as HasImages extends true ? TaskImageModel[] : never,
+            images: taskImageModels as HasImages extends true ? TaskImageModel[] : never,
         }
     },
 
@@ -100,6 +95,11 @@ export const taskService = {
             return undefined
         }
 
+        const referenceImage = item.images.find(relation => relation.type === 'input')
+        const referenceOrigin = referenceImage
+            ? await imageService.findOrigin(database, referenceImage.imageId)
+            : undefined
+
         return {
             id: item.task.id,
             name: item.task.name,
@@ -110,7 +110,10 @@ export const taskService = {
             config: item.task.config.config,
             lora: item.task.config.lora,
             prompt: item.task.config.prompt,
-            images: item.images.map(image => imageUrl(item.task.id, image.filename)),
+            images: toOutputResources(item.images),
+            referenceImage: referenceImage
+                ? { image: toImageResource(referenceImage.image), origin: referenceOrigin ?? null }
+                : null,
         }
     },
 
@@ -141,44 +144,109 @@ export const taskService = {
     // MARK: Service
     async create(database: DatabaseClient, request: TaskApi.CreateTaskRequest) {
         const workflowId = toUUID(request.workflowId, 'workflowId')
-        const [workflow] = await database.db
-            .select({ workflowId: workflows.id })
-            .from(workflows)
-            .where(eq(workflows.id, workflowId))
+        const workflow = await workflowService.findWorkflow(database, workflowId)
 
         if (!workflow) return fail('WORKFLOW_NOT_FOUND')
 
+        let inputImage: ImageApi.ImageResource | undefined
+        let inputImageId: UUID | undefined
+        let ingestedImageId: UUID | undefined
+
+        if (request.referenceImageId) {
+            // img2img: task output image
+            const existing = await imageService.findImage(
+                database,
+                toUUID(request.referenceImageId, 'referenceImageId'),
+            )
+            if (!existing) return fail('REFERENCE_IMAGE_NOT_FOUND')
+
+            inputImageId = existing.id
+            inputImage = toImageResource(existing)
+        }
+        else if (request.referenceImage) {
+            // img2img: upload image
+            const imageBytes = new Uint8Array(await request.referenceImage.arrayBuffer())
+            const ingested = await imageService.ingest(database, imageBytes)
+            if (!ingested.ok) return fail(ingested.error)
+
+            inputImageId = ingested.data.image.id
+            inputImage = toImageResource(ingested.data.image)
+            if (ingested.data.created) {
+                ingestedImageId = ingested.data.image.id
+            }
+        }
+
         const createdAt = Date.now()
-        const config: GenerateConfig = {
+        const generateConfig: GenerateConfig = {
             config: {
                 ...request.config,
                 seed: resolveSeed(request.config.seed),
+                ...(inputImage
+                    ? {
+                        width: inputImage.width,
+                        height: inputImage.height,
+                        /* latent 來自 VAEEncode，EmptyLatentImage.batch_size 在死分支上 */
+                        batch: 1,
+                    }
+                    : { denoise: 1 }),
             },
             lora: request.lora,
             prompt: request.prompt,
         }
 
-        const [createdTask] = await database.db
-            .insert(tasks)
-            .values({
-                id: createUUID(),
-                name: request.name || null,
-                status: 'queued',
-                workflowId,
-                config,
-                createdAt,
-                updatedAt: createdAt,
-            })
-            .returning()
+        try {
+            const createdTask = await database.db.transaction(async transaction => {
+                const [inserted] = await transaction
+                    .insert(tasks)
+                    .values({
+                        name: request.name || null,
+                        status: 'queued',
+                        workflowId,
+                        config: generateConfig,
+                        createdAt,
+                        updatedAt: createdAt,
+                    })
+                    .returning()
 
-        if (!createdTask) {
+                if (!inserted) {
+                    throw new Error('Task insert returned no row.')
+                }
+
+                if (inputImageId) {
+                    await transaction
+                        .insert(taskImages)
+                        .values({
+                            taskId: inserted.id,
+                            imageId: inputImageId,
+                            type: 'input',
+                            sortIndex: 0,
+                            createdAt,
+                        })
+                }
+
+                return inserted
+            })
+
+            return done(castTaskModel(createdTask))
+        }
+        catch (error) {
+            console.error('Task create failed.', error)
+
+            if (ingestedImageId) {
+                await imageService.deleteUnreferenced(database, [ingestedImageId])
+            }
+
             return fail('CREATE_TASK_FAIL')
         }
-
-        return done(castTaskModel(createdTask))
     },
 
     async remove(database: DatabaseClient, taskId: UUID) {
+        const related = await database.db
+            .select({ imageId: taskImages.imageId })
+            .from(taskImages)
+            .where(eq(taskImages.taskId, taskId))
+            .all()
+
         const [removed] = await database.db
             .delete(tasks)
             .where(eq(tasks.id, taskId))
@@ -186,7 +254,10 @@ export const taskService = {
 
         if (!removed) return fail('TASK_NOT_FOUND')
 
-        await rm(taskDirectory(taskId), { recursive: true, force: true })
+        await imageService.deleteUnreferenced(
+            database,
+            [...new Set(related.map(relation => relation.imageId))],
+        )
 
         return done({ id: removed.id })
     },
@@ -216,28 +287,35 @@ export const taskService = {
 
         const selected = rows.slice(start, start + query.limit)
         const taskIds = selected.map(task => task.id)
-        const images = taskIds.length === 0
+        const thumbnailRows = taskIds.length === 0
             ? []
             : await database.db
-                .select()
+                .select({
+                    taskId: taskImages.taskId,
+                    sortIndex: taskImages.sortIndex,
+                    imageId: taskImages.imageId,
+                })
                 .from(taskImages)
-                .where(inArray(taskImages.taskId, taskIds))
-                .orderBy(taskImages.path)
+                .where(and(
+                    inArray(taskImages.taskId, taskIds),
+                    eq(taskImages.type, 'output'),
+                ))
+                .orderBy(asc(taskImages.sortIndex))
                 .all()
 
         const firstImage = new Map<string, string>()
-        for (const image of images) {
-            if (!firstImage.has(image.taskId)) firstImage.set(image.taskId, image.filename)
+        for (const row of thumbnailRows) {
+            if (!firstImage.has(row.taskId)) firstImage.set(row.taskId, row.imageId)
         }
 
         const items = selected.map(row => {
-            const filename = firstImage.get(row.id)
+            const imageId = firstImage.get(row.id)
             return {
                 id: row.id,
                 name: row.name,
                 status: row.status,
                 createdAt: row.createdAt.toISOString(),
-                ...(filename ? { thumbnail: imageUrl(row.id, filename) } : {}),
+                ...(imageId ? { thumbnail: `/api/image/${imageId}` } : {}),
             }
         })
         const lastItem = items.at(-1)
@@ -250,24 +328,37 @@ export const taskService = {
         })
     },
 
+    async snapshot(
+        database: DatabaseClient,
+        taskId: UUID,
+    ) {
+        const item = await taskService.findTask(database, taskId, { includeImage: true })
+
+        if (!item) {
+            return undefined
+        }
+
+        return {
+            id: item.task.id,
+            name: item.task.name,
+            status: item.task.status,
+            createdAt: item.task.createdAt.toISOString(),
+            images: toOutputResources(item.images),
+        }
+    },
+
     async publishChanged(
         database: DatabaseClient,
         taskId: UUID,
         pushEvent: PushEvent,
     ): Promise<void> {
-        const item = await taskService.findTask(database, taskId, { includeImage: true })
+        const snapshot = await taskService.snapshot(database, taskId)
 
-        if (!item) {
+        if (!snapshot) {
             return
         }
 
-        pushEvent(taskChanged({
-            id: item.task.id,
-            name: item.task.name,
-            status: item.task.status,
-            createdAt: item.task.createdAt.toISOString(),
-            images: item.images.map(image => imageUrl(item.task.id, image.filename)),
-        }))
+        pushEvent(taskChanged(snapshot))
     },
 
     async generate(
@@ -276,19 +367,42 @@ export const taskService = {
         taskId: UUID,
         pushEvent: PushEvent,
     ) {
-        const item = await taskService.findTask(database, taskId, { includeWorkflow: true })
+        const item = await taskService.findTask(database, taskId, {
+            includeWorkflow: true,
+            includeImage: true,
+        })
 
         if (!item) {
             return
         }
 
-        const savedFiles: string[] = []
-
         try {
+            const input = item.images.find(relation => relation.type === 'input')
+            let runtime = txt2imgRuntime
+
+            if (input) {
+                /* 使用 image path 才為圖片輸入，先確認檔案是否存在 */
+                if (!existsSync(absolutePath(config.appStorageDir, input.image.path))) {
+                    await taskService.fail(
+                        database,
+                        taskId,
+                        'REFERENCE_IMAGE_FILE_MISSING',
+                        'Reference image file is missing from storage.',
+                        pushEvent,
+                    )
+                    return
+                }
+
+                runtime = {
+                    initImagePath: comfyImagePath(config.comfyuiStoragePrefix, input.image.path),
+                }
+            }
+
             const prompt = buildComfyPrompt(
                 item.workflow.graph,
                 item.workflow.configSchema,
                 item.task.config,
+                runtime,
             )
             const result = await client.execute(prompt, {
                 async onPromptCreated(promptId) {
@@ -324,31 +438,39 @@ export const taskService = {
                 return
             }
 
-            const directory = taskDirectory(taskId)
-            await mkdir(directory, { recursive: true })
+            const outputs: { imageId: UUID, sortIndex: number }[] = []
 
-            const completedImages: CompletedTaskImage[] = await Promise.all(outputImages.map(async image => {
-                const { imageId, filename } = imageFilename(image.filename)
-                const relativePath = `tasks/${taskId}/${filename}`
-                const absolutePath = resolve(directory, filename)
-                const bytes = await client.downloadImage(image)
+            const ingestedOutputs = await Promise.all(
+                outputImages.map(async (image, index) => ({
+                    index,
+                    ingested: await imageService.ingest(database, await client.downloadImage(image)),
+                })),
+            )
 
-                await writeFile(absolutePath, bytes)
-                savedFiles.push(absolutePath)
-
-                return {
-                    imageId,
-                    path: relativePath,
-                    filename,
+            for (const { index, ingested } of ingestedOutputs) {
+                if (!ingested.ok) {
+                    await taskService.fail(
+                        database,
+                        taskId,
+                        ingested.error,
+                        'ComfyUI output could not be stored.',
+                        pushEvent,
+                    )
+                    return
                 }
-            }))
 
-            await taskService.complete(database, taskId, completedImages, pushEvent)
+                outputs.push({ imageId: ingested.data.image.id, sortIndex: index })
+            }
+
+            await taskService.complete(database, taskId, outputs, pushEvent)
         }
         catch (error) {
-            console.error(`Task ${taskId} generationn failed.`, error)
+            console.error(`Task ${taskId} generation failed.`, error)
 
-            await Promise.allSettled(savedFiles.map(path => unlink(path)))
+            /*
+             * 錯誤路徑不 unlink 任何東西。內容定址下剛「寫入」的檔案很可能是別的
+             * task 正在引用的既有檔案，刪掉就是刪掉活的圖。孤兒交給 db:gc。
+             */
             const code = error instanceof ComfyError
                 ? error.code
                 : 'TASK_GENERATE_ERROR'
@@ -363,22 +485,26 @@ export const taskService = {
     async complete(
         database: DatabaseClient,
         taskId: UUID,
-        images: CompletedTaskImage[],
+        outputs: { imageId: UUID, sortIndex: number }[],
         pushEvent: PushEvent,
     ) {
         const item = await taskService.findTask(database, taskId)
         if (!item) {
-            await rm(taskDirectory(taskId), { recursive: true, force: true })
             return
         }
 
+        const createdAt = Date.now()
+
         await database.db.transaction(async tx => {
-            if (images.length) {
+            if (outputs.length) {
                 await tx
                     .insert(taskImages)
-                    .values(images.map(image => ({
+                    .values(outputs.map(output => ({
                         taskId,
-                        ...image,
+                        imageId: output.imageId,
+                        type: 'output' as const,
+                        sortIndex: output.sortIndex,
+                        createdAt,
                     })))
                     .run()
             }
@@ -418,19 +544,6 @@ export const taskService = {
         await taskService.publishChanged(database, taskId, pushEvent)
     },
 
-    findImage(database: DatabaseClient, request: TaskApi.GetTaskImageRequest) {
-        return database.db
-            .select({
-                path: taskImages.path,
-                filename: taskImages.filename,
-            })
-            .from(taskImages)
-            .where(and(
-                eq(taskImages.taskId, toUUID(request.taskId, 'taskId')),
-                eq(taskImages.filename, request.filename),
-            ))
-            .get()
-    },
     // MARK: Option
     async samplerList(comfyClient: ComfyClient) {
         const comfySamplers = new Set(await comfyClient.getSamplerNames())
@@ -458,6 +571,14 @@ export const taskService = {
             value: name,
         }))
     },
+}
+
+/* 只有 output 進畫廊；輸入圖是另一個欄位，混進來會出現在縮圖與 viewer 裡 */
+function toOutputResources(relations: TaskImageModel[]): ImageApi.ImageResource[] {
+    return relations
+        .filter(relation => relation.type === 'output')
+        .sort((left, right) => left.sortIndex - right.sortIndex)
+        .map(relation => toImageResource(relation.image))
 }
 
 function isTaskCursor(value: unknown): value is TaskCursor {
