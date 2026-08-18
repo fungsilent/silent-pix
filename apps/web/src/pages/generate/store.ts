@@ -32,6 +32,7 @@ export const generateSchema = z.object({
     steps: z.number().int().min(1).max(100),
     width: z.number().int().min(64).max(4096),
     batch: z.number().int().min(1).max(16),
+    denoise: z.number().finite().min(0).max(1),
 })
 
 export type GenerateValues = zod.infer<typeof generateSchema>
@@ -56,6 +57,7 @@ export const draftTask: GenerateTask = {
         height: 1536,
         batch: 1,
         sampler: 'dpmpp_2m_sde_gpu',
+        denoise: 0.6,
     },
     lora: [],
     prompt: {
@@ -75,6 +77,7 @@ export const draftTask: GenerateTask = {
         ],
     },
     images: [],
+    referenceImage: null,
 }
 
 type GenerateState = {
@@ -91,6 +94,7 @@ const configKeys = [
     'height',
     'batch',
     'sampler',
+    'denoise',
 ] as const
 
 export const toGenerateValues = (task: GenerateTask): GenerateValues => ({
@@ -106,6 +110,7 @@ export const toGenerateValues = (task: GenerateTask): GenerateValues => ({
     steps: task.config.steps,
     width: task.config.width,
     batch: task.config.batch,
+    denoise: task.config.denoise,
     workflowId: task.workflowId ?? '',
 })
 
@@ -136,6 +141,7 @@ export function toCreateTaskRequest(values: GenerateValues): TaskApi.CreateTaskR
             height: values.height,
             batch: values.batch,
             sampler: normalizeSampler(values.sampler.trim()),
+            denoise: values.denoise,
         },
         lora: values.lora,
         prompt: {

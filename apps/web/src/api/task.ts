@@ -11,8 +11,12 @@ export const taskApi = {
         return unwrap(apiClient.api.task({ taskId: request.taskId }).get())
     },
 
-    create(request: TaskApi.CreateTaskRequest): Promise<TaskApi.CreateTaskResponse> {
-        return unwrap(apiClient.api.task.post(request))
+
+    create(
+        request: TaskApi.CreateTaskRequest,
+        signal?: AbortSignal,
+    ): Promise<TaskApi.CreateTaskResponse> {
+        return unwrap(apiClient.api.task.post(request, signal ? { fetch: { signal } } : {}))
     },
 
     rename(

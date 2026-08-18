@@ -4,8 +4,10 @@ import { For, onCleanup, onMount, Show } from 'solid-js'
 import { Button } from '#/components/base/Button'
 import { cn } from '#/lib/cn'
 
+import type { ImageApi } from '@silent-pix/shared'
+
 type ImageStageProps = {
-    images: string[]
+    images: ImageApi.ImageResource[]
     keyboardEnabled: boolean
     selectedIndex: number
     onExpand: () => void
@@ -82,7 +84,7 @@ export function ImageStage(props: ImageStageProps) {
                     {image => (
                         <img
                             class='h-full w-full object-contain'
-                            src={image()}
+                            src={image().url}
                             alt='Selected generated preview'
                             onClick={props.onExpand}
                         />
@@ -174,7 +176,7 @@ export function ImageStage(props: ImageStageProps) {
                             >
                                 <img
                                     class='h-full w-auto object-contain'
-                                    src={image}
+                                    src={image.url}
                                     alt=''
                                 />
                             </Button>

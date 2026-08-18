@@ -6,10 +6,11 @@ import { Button } from '#/components/base/Button'
 import { cn } from '#/lib/cn'
 import { createImageZoom } from '#/lib/imageZoom'
 
+import type { ImageApi } from '@silent-pix/shared'
 import type { Offset, Size } from '#/lib/imageZoom'
 
 type ImageViewerProps = {
-    images: string[]
+    images: ImageApi.ImageResource[]
     selectedIndex: number
     onClose: () => void
     onSelect: (index: number) => void
@@ -184,7 +185,7 @@ export function ImageViewer(props: ImageViewerProps) {
                                     translate: `${zoom.offset().x}px ${zoom.offset().y}px`,
                                     width: zoom.scaled().width ? `${zoom.scaled().width}px` : 'auto',
                                 }}
-                                src={source()}
+                                src={source().url}
                                 alt='Generated preview'
                                 draggable={false}
                                 /* 平移掛在圖片上：捕獲若設在 viewport，放大時的 click 會被改派給 viewport，誤判成點背景 */
@@ -207,7 +208,7 @@ export function ImageViewer(props: ImageViewerProps) {
                             <Minimap
                                 offset={zoom.offset()}
                                 scaled={zoom.scaled()}
-                                source={source()}
+                                source={source().url}
                                 viewport={zoom.viewport()}
                                 onMove={zoom.moveTo}
                             />
@@ -235,7 +236,7 @@ export function ImageViewer(props: ImageViewerProps) {
                                 >
                                     <img
                                         class='h-full w-auto object-contain'
-                                        src={thumbnail}
+                                        src={thumbnail.url}
                                         alt=''
                                     />
                                 </Button>
