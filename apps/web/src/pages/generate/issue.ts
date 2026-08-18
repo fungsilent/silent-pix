@@ -34,6 +34,7 @@ export type GenerateIssue = {
 const fieldLabel: Record<keyof GenerateValues, string> = {
     batch: 'Batch',
     cfg: 'CFG',
+    denoise: 'Denoise',
     height: 'Height',
     lora: 'LoRA',
     name: 'Name',

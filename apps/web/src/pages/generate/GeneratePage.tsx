@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/solid-query'
-import { createEffect, createSignal, Show } from 'solid-js'
+import { createEffect, createSignal, on, Show } from 'solid-js'
 
 import { ApiError } from '#/api/api.client'
 import { useCreateTaskMutation, useTaskDetailQuery, workflowKeys } from '#/features/task/task.query'
@@ -32,13 +32,21 @@ export function GeneratePage() {
         : draftTask
     const generateStore = createGenerateStore(toGenerateValues(draftTask))
 
-    createEffect(() => {
-        const task = activeTask()
+    /*
+     * 只在「換了另一個 task」時重載，不是每次 detail query 有新資料就重載。
+     * loadTask 是整包覆寫 values，所以原本的寫法會讓任何一則 task.changed
+     * ——包含正在跑的那個 task 自己的進度更新——把使用者打到一半的表單抹掉。
+     */
+    createEffect(on(
+        () => activeTask()?.id,
+        () => {
+            const task = activeTask()
 
-        if (task) {
-            generateStore.loadTask(task)
-        }
-    })
+            if (task) {
+                generateStore.loadTask(task)
+            }
+        },
+    ))
 
     const reportIssues = (issues: GenerateIssue[]) => {
         setSubmitIssues(issues)

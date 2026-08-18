@@ -11,15 +11,9 @@ export const apiClient: Treaty.Create<Api> = treaty<Api>(window.location.origin,
     throwHttpError: false,
     fetcher: (input, init) => fetch(input, {
         ...init,
-        signal: withTimeout(init?.signal),
+        signal: init?.signal ?? AbortSignal.timeout(requestTimeoutMs),
     }),
 })
-
-function withTimeout(signal: AbortSignal | null | undefined): AbortSignal {
-    const timeout = AbortSignal.timeout(requestTimeoutMs)
-
-    return signal ? AbortSignal.any([signal, timeout]) : timeout
-}
 
 export class ApiError extends Error {
     readonly code: string

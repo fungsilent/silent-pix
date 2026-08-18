@@ -1,6 +1,6 @@
 import { taskKeys } from '#/features/task/task.key'
 
-import type { Event, TaskApi } from '@silent-pix/shared'
+import type { Event, ImageApi, TaskApi } from '@silent-pix/shared'
 import type { InfiniteData, QueryClient } from '@tanstack/solid-query'
 
 type TaskFeedData = InfiniteData<TaskApi.GetTasksResponse, string | undefined>
@@ -137,7 +137,7 @@ function applySnapshot(
 }
 
 function toTaskListItem(task: Event.Task.Snapshot): TaskApi.TaskListItem {
-    const thumbnail = task.images[0]
+    const thumbnail = task.images[0]?.url
 
     return {
         id: task.id,
@@ -221,7 +221,7 @@ function updateTaskDetail(
 
     if (
         current.status === task.status
-        && sameStrings(current.images, task.images)
+        && sameImages(current.images, task.images)
     ) {
         return current
     }
@@ -241,9 +241,9 @@ function comesBefore(task: TaskApi.TaskListItem, other: TaskApi.TaskListItem): b
     return task.id > other.id
 }
 
-function sameStrings(left: string[], right: string[]): boolean {
+function sameImages(left: ImageApi.ImageResource[], right: ImageApi.ImageResource[]): boolean {
     return left.length === right.length
-        && left.every((value, index) => value === right[index])
+        && left.every((image, index) => image.id === right[index]?.id)
 }
 
 function sameTaskListItem(left: TaskApi.TaskListItem, right: TaskApi.TaskListItem): boolean {
