@@ -63,7 +63,7 @@ export type GenerateValues = zod.infer<typeof generateSchema>
 export type GenerateTask = Omit<TaskApi.GetTaskResponse, 'createdAt' | 'status' | 'config'> & {
     createdAt: TaskApi.GetTaskResponse['createdAt'] | null
     status: TaskApi.GetTaskResponse['status'] | null
-    config: TaskApi.CreateTaskRequest['config']
+    config: TaskApi.CreateTaskPayload['config']
 }
 
 export const draftTask: GenerateTask = {
@@ -161,37 +161,31 @@ function normalizeSampler(value: string): string {
 export function toCreateTaskRequest(values: GenerateValues): TaskApi.CreateTaskRequest {
     const reference = values.referenceImage
     const seed = values.seed.trim()
-
     const name = values.name.trim()
 
-    /*
-     * 三選一，對應 contract 的三個 variant。兩個 reference 欄位都給的話
-     * 不符合任何一個，所以這裡刻意只放其中一個。
-     */
-    const referenceFields = reference === null
-        ? {}
-        : reference.type === 'asset'
-            ? { referenceImageId: reference.image.id }
-            : { referenceImage: reference.file }
-
     return {
-        ...referenceFields,
-        name: name === '' ? null : name,
-        workflowId: values.workflowId,
-        config: {
-            seed: seed === '' ? null : seed,
-            steps: values.steps,
-            cfg: values.cfg,
-            width: values.width,
-            height: values.height,
-            batch: values.batch,
-            sampler: normalizeSampler(values.sampler.trim()),
-            denoise: values.denoise,
-        },
-        lora: values.lora,
-        prompt: {
-            positive: values.positive,
-            negative: values.negative,
+        /* 上傳新檔案就把 File 放在外層，Eden 會因此改走 multipart */
+        ...(reference?.type === 'local' ? { referenceImage: reference.file } : {}),
+        payload: {
+            name: name === '' ? null : name,
+            workflowId: values.workflowId,
+            referenceImageId: reference?.type === 'asset' ? reference.image.id : null,
+            config: {
+                seed: seed === '' ? null : seed,
+                steps: values.steps,
+                cfg: values.cfg,
+                width: values.width,
+                height: values.height,
+                batch: values.batch,
+                sampler: normalizeSampler(values.sampler.trim()),
+                /* 沒有參考圖時 server 一律改成 1，這裡送什麼都不影響結果 */
+                denoise: values.denoise,
+            },
+            lora: values.lora,
+            prompt: {
+                positive: values.positive,
+                negative: values.negative,
+            },
         },
     }
 }

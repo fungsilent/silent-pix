@@ -97,7 +97,7 @@ export const taskService = {
 
         const referenceImage = item.images.find(relation => relation.type === 'input')
         const referenceOrigin = referenceImage
-            ? await imageService.findOrigin(database, referenceImage.imageId)
+            ? await imageService.findOrigin(database, referenceImage.imageId, taskId)
             : undefined
 
         return {
@@ -143,7 +143,8 @@ export const taskService = {
 
     // MARK: Service
     async create(database: DatabaseClient, request: TaskApi.CreateTaskRequest) {
-        const workflowId = toUUID(request.workflowId, 'workflowId')
+        const { payload } = request
+        const workflowId = toUUID(payload.workflowId, 'workflowId')
         const workflow = await workflowService.findWorkflow(database, workflowId)
 
         if (!workflow) return fail('WORKFLOW_NOT_FOUND')
@@ -152,11 +153,11 @@ export const taskService = {
         let inputImageId: UUID | undefined
         let ingestedImageId: UUID | undefined
 
-        if (request.referenceImageId) {
+        if (payload.referenceImageId) {
             // img2img: task output image
             const existing = await imageService.findImage(
                 database,
-                toUUID(request.referenceImageId, 'referenceImageId'),
+                toUUID(payload.referenceImageId, 'referenceImageId'),
             )
             if (!existing) return fail('REFERENCE_IMAGE_NOT_FOUND')
 
@@ -179,8 +180,8 @@ export const taskService = {
         const createdAt = Date.now()
         const generateConfig: GenerateConfig = {
             config: {
-                ...request.config,
-                seed: resolveSeed(request.config.seed),
+                ...payload.config,
+                seed: resolveSeed(payload.config.seed),
                 ...(inputImage
                     ? {
                         width: inputImage.width,
@@ -190,8 +191,8 @@ export const taskService = {
                     }
                     : { denoise: 1 }),
             },
-            lora: request.lora,
-            prompt: request.prompt,
+            lora: payload.lora,
+            prompt: payload.prompt,
         }
 
         try {
@@ -199,7 +200,7 @@ export const taskService = {
                 const [inserted] = await transaction
                     .insert(tasks)
                     .values({
-                        name: request.name || null,
+                        name: payload.name || null,
                         status: 'queued',
                         workflowId,
                         config: generateConfig,
@@ -440,14 +441,16 @@ export const taskService = {
 
             const outputs: { imageId: UUID, sortIndex: number }[] = []
 
-            const ingestedOutputs = await Promise.all(
+            const downloaded = await Promise.all(
                 outputImages.map(async (image, index) => ({
                     index,
-                    ingested: await imageService.ingest(database, await client.downloadImage(image)),
+                    bytes: await client.downloadImage(image),
                 })),
             )
 
-            for (const { index, ingested } of ingestedOutputs) {
+            for (const { index, bytes } of downloaded) {
+                const ingested = await imageService.ingest(database, bytes)
+
                 if (!ingested.ok) {
                     await taskService.fail(
                         database,
