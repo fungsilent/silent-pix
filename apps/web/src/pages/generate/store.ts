@@ -1,3 +1,4 @@
+import { imageApi } from '@silent-pix/shared'
 import { createContext, useContext } from 'solid-js'
 import { z } from 'zod'
 
@@ -19,6 +20,27 @@ const loraSchema = z.object({
     weight: z.number().finite().min(0).max(2),
 })
 
+/*
+ * 參考圖有兩種來源，形狀不同：
+ * 1. 新上傳（只有 File 與 objectURL）
+ * 2. 既有 asset 已經在庫裡（有 id 與來源）。
+ */
+const referenceImageSchema = z.discriminatedUnion('type', [
+    z.object({
+        type: z.literal('local'),
+        file: z.file(),
+        previewUrl: z.string(),
+        width: z.number().int().positive(),
+        height: z.number().int().positive(),
+        sizeBytes: z.number().int().nonnegative(),
+    }),
+    z.object({
+        type: z.literal('asset'),
+        image: imageApi.imageResource,
+        origin: imageApi.imageUsage.nullable(),
+    }),
+])
+
 export const generateSchema = z.object({
     name: z.string().trim().max(120),
     workflowId: z.uuid(),
@@ -33,6 +55,7 @@ export const generateSchema = z.object({
     width: z.number().int().min(64).max(4096),
     batch: z.number().int().min(1).max(16),
     denoise: z.number().finite().min(0).max(1),
+    referenceImage: referenceImageSchema.nullable(),
 })
 
 export type GenerateValues = zod.infer<typeof generateSchema>
@@ -57,7 +80,7 @@ export const draftTask: GenerateTask = {
         height: 1536,
         batch: 1,
         sampler: 'dpmpp_2m_sde_gpu',
-        denoise: 0.6,
+        denoise: 0.7,
     },
     lora: [],
     prompt: {
@@ -80,22 +103,25 @@ export const draftTask: GenerateTask = {
     referenceImage: null,
 }
 
-type GenerateState = {
-    initialValues: GenerateValues
-    values: GenerateValues
+export type ReferenceImage = NonNullable<GenerateValues['referenceImage']>
+
+export function referenceSize(reference: ReferenceImage) {
+    return reference.type === 'local'
+        ? { width: reference.width, height: reference.height, sizeBytes: reference.sizeBytes }
+        : {
+            width: reference.image.width,
+            height: reference.image.height,
+            sizeBytes: reference.image.sizeBytes,
+        }
 }
 
-const configKeys = [
-    'workflowId',
-    'seed',
-    'steps',
-    'cfg',
-    'width',
-    'height',
-    'batch',
-    'sampler',
-    'denoise',
-] as const
+export function referencePreviewUrl(reference: ReferenceImage): string {
+    return reference.type === 'local' ? reference.previewUrl : reference.image.url
+}
+
+type GenerateState = {
+    values: GenerateValues
+}
 
 export const toGenerateValues = (task: GenerateTask): GenerateValues => ({
     // 表單一律用字串，未命名與送出時的 null 在邊界轉換
@@ -111,6 +137,13 @@ export const toGenerateValues = (task: GenerateTask): GenerateValues => ({
     width: task.config.width,
     batch: task.config.batch,
     denoise: task.config.denoise,
+    referenceImage: task.referenceImage
+        ? {
+            type: 'asset',
+            image: task.referenceImage.image,
+            origin: task.referenceImage.origin,
+        }
+        : null,
     workflowId: task.workflowId ?? '',
 })
 
@@ -126,11 +159,23 @@ function normalizeSampler(value: string): string {
 }
 
 export function toCreateTaskRequest(values: GenerateValues): TaskApi.CreateTaskRequest {
+    const reference = values.referenceImage
     const seed = values.seed.trim()
 
     const name = values.name.trim()
 
+    /*
+     * 三選一，對應 contract 的三個 variant。兩個 reference 欄位都給的話
+     * 不符合任何一個，所以這裡刻意只放其中一個。
+     */
+    const referenceFields = reference === null
+        ? {}
+        : reference.type === 'asset'
+            ? { referenceImageId: reference.image.id }
+            : { referenceImage: reference.file }
+
     return {
+        ...referenceFields,
         name: name === '' ? null : name,
         workflowId: values.workflowId,
         config: {
@@ -162,7 +207,6 @@ const cloneGenerateValues = (values: GenerateValues): GenerateValues => ({
 
 export function createGenerateStore(initialValues: GenerateValues) {
     const initialState: GenerateState = {
-        initialValues: cloneGenerateValues(initialValues),
         values: cloneGenerateValues(initialValues),
     }
 
@@ -173,18 +217,26 @@ export function createGenerateStore(initialValues: GenerateValues) {
         },
 
         loadTask(task: GenerateTask) {
-            const values = toGenerateValues(task)
-            store.set({
-                initialValues: cloneGenerateValues(values),
-                values: cloneGenerateValues(values),
-            })
+            releaseLocalPreview(store.state.values.referenceImage)
+            store.set({ values: cloneGenerateValues(toGenerateValues(task)) })
         },
 
-        /* Config */
-        resetConfig() {
-            configKeys.forEach(key => {
-                store.set('values', key, store.state.initialValues[key])
-            })
+        /* Reference image */
+        setReferenceImage(reference: ReferenceImage) {
+            const size = referenceSize(reference)
+
+            releaseLocalPreview(store.state.values.referenceImage)
+
+            store.set('values', 'referenceImage', reference)
+            store.set('values', 'width', size.width)
+            store.set('values', 'height', size.height)
+            /* latent 來自 VAEEncode，多出來的 batch 不會有第二張圖 */
+            store.set('values', 'batch', 1)
+        },
+
+        clearReferenceImage() {
+            releaseLocalPreview(store.state.values.referenceImage)
+            store.set('values', 'referenceImage', null)
         },
 
         /* LoRA */
@@ -235,6 +287,13 @@ export function createGenerateStore(initialValues: GenerateValues) {
             store.set('values', 'lora', lora => lora.filter(item => item.id !== id))
         },
     }))
+}
+
+/* 換掉或清掉本機預覽時要還回去，否則 objectURL 會一直佔著那份 blob */
+function releaseLocalPreview(reference: ReferenceImage | null): void {
+    if (reference?.type === 'local') {
+        URL.revokeObjectURL(reference.previewUrl)
+    }
 }
 
 export type GenerateStore = ReturnType<typeof createGenerateStore>

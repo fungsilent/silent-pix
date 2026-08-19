@@ -1,4 +1,5 @@
 export { Editable } from '#/components/field/Editable'
+export { FileDrop } from '#/components/field/FileDrop'
 export { Number } from '#/components/field/Number'
 export { Select } from '#/components/field/Select'
 export { Slider } from '#/components/field/Slider'
