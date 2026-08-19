@@ -3,6 +3,7 @@ import { createEffect, createMemo, createSignal, Show } from 'solid-js'
 import { ImageStage } from '#/pages/generate/components/workspace/ImageStage'
 import { ImageViewer } from '#/pages/generate/components/workspace/ImageViewer'
 import { PromptPanel } from '#/pages/generate/components/workspace/PromptPanel'
+import { useGenerateStore } from '#/pages/generate/store'
 
 import type { GenerateIssue } from '#/pages/generate/issue'
 import type { GenerateTask } from '#/pages/generate/store'
@@ -15,6 +16,7 @@ type WorkspaceProps = {
 }
 
 export function Workspace(props: WorkspaceProps) {
+    const store = useGenerateStore()
     const images = createMemo(() => props.task.images ?? [])
     const [selectedImageIndex, setSelectedImageIndex] = createSignal(0)
     const [expanded, setExpanded] = createSignal(false)
@@ -46,6 +48,7 @@ export function Workspace(props: WorkspaceProps) {
                     }
                 }}
                 onSelect={setSelectedImageIndex}
+                onUseAsReference={image => store.setReferenceImage({ type: 'asset', image, origin: null })}
             />
 
             <Show when={expanded()}>

@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/solid-query'
 
 import { appApi } from '#/api/app'
 
-export const healthKeys = {
+const healthKeys = {
     all: ['health'] as const,
 }
 

@@ -1,4 +1,4 @@
-import { RefreshCcw, Undo2 } from 'lucide-solid'
+import { Undo2 } from 'lucide-solid'
 import { createEffect, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
@@ -18,6 +18,7 @@ export function TaskConfig(props: TaskConfigProps) {
     const samplerQuery = useSamplerListQuery()
     const workflowQuery = useWorkflowListQuery()
     const samplerOptions = () => samplerQuery.data?.options ?? []
+    const hasReference = () => store.state.values.referenceImage !== null
     const workflowOptions = () => workflowQuery.data?.options.map(workflow => ({
         label: workflow.name,
         value: workflow.id,
@@ -40,29 +41,13 @@ export function TaskConfig(props: TaskConfigProps) {
                 <SectionTitle>Config</SectionTitle>
             </div>
 
-            <div class='flex min-w-0 items-end gap-2'>
-                <Select
-                    label='Workflow Template'
-                    value={store.state.values.workflowId}
-                    options={workflowOptions()}
-                    disabled={workflowQuery.isLoading || workflowQuery.isError || workflowOptions().length === 0}
-                    onChange={value => store.setValue('workflowId', value)}
-                    classes={{
-                        root: 'flex-1',
-                    }}
-                />
-                <Button
-                    aria-label='Reset config'
-                    classes={{ root: 'size-8 p-0' }}
-                    onClick={store.resetConfig}
-                >
-                    <RefreshCcw
-                        size={13}
-                        strokeWidth={2}
-                        aria-hidden='true'
-                    />
-                </Button>
-            </div>
+            <Select
+                label='Workflow Template'
+                value={store.state.values.workflowId}
+                options={workflowOptions()}
+                disabled={workflowQuery.isLoading || workflowQuery.isError || workflowOptions().length === 0}
+                onChange={value => store.setValue('workflowId', value)}
+            />
 
             {/* 錯誤與空狀態改由 PromptPanel 的 issue chip 統一顯示 */}
             <Show when={workflowQuery.isLoading}>
@@ -115,6 +100,7 @@ export function TaskConfig(props: TaskConfigProps) {
                     label='Width'
                     min={64}
                     max={4096}
+                    disabled={hasReference()}
                     value={store.state.values.width}
                     onChange={value => store.setValue('width', value)}
                 />
@@ -122,6 +108,7 @@ export function TaskConfig(props: TaskConfigProps) {
                     label='Height'
                     min={64}
                     max={4096}
+                    disabled={hasReference()}
                     value={store.state.values.height}
                     onChange={value => store.setValue('height', value)}
                 />
@@ -131,6 +118,7 @@ export function TaskConfig(props: TaskConfigProps) {
                 label='Batch'
                 min={1}
                 max={16}
+                disabled={hasReference()}
                 value={store.state.values.batch}
                 onChange={value => store.setValue('batch', value)}
             />

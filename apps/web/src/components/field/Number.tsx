@@ -8,6 +8,7 @@ type NumberProps = {
     min?: number
     max?: number
     step?: number
+    disabled?: boolean
     onChange?: (value: number) => void
     classes?: {
         root?: string
@@ -28,8 +29,10 @@ export function Number(props: NumberProps) {
                 min={props.min}
                 max={props.max}
                 step={props.step}
+                disabled={props.disabled}
                 class={cn(
                     'number-input h-8 min-w-0 rounded-md border border-transparent bg-active px-3 text-xs leading-none text-fg outline-none focus:border-accent focus:ring-3 focus:ring-accent/40',
+                    'disabled:cursor-default disabled:border-line-subtle disabled:bg-white/[0.02] disabled:text-fg-muted',
                     props.classes?.input,
                 )}
                 onInput={event => props.onChange?.(event.currentTarget.valueAsNumber)}

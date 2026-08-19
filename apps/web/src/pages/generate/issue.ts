@@ -40,6 +40,7 @@ const fieldLabel: Record<keyof GenerateValues, string> = {
     name: 'Name',
     negative: 'Negative',
     positive: 'Positive',
+    referenceImage: 'Reference image',
     sampler: 'Sampler',
     seed: 'Seed',
     steps: 'Steps',
