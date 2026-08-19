@@ -16,7 +16,7 @@ export const imageRoutes = new Elysia({ name: 'image-routes', prefix: '/image' }
     .get(
         '/',
         async ({ database, query, status }) => {
-            const result = await imageService.listReferences(database, query)
+            const result = await imageService.listImages(database, query)
 
             if (!result.ok) {
                 return status(422, {

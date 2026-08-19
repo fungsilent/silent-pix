@@ -1,5 +1,6 @@
 import { images, taskImages, tasks } from '@silent-pix/db'
-import { and, desc, eq, inArray, isNull, like, or, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, exists, gt, inArray, isNull, like, lt, ne, or, sql } from 'drizzle-orm'
+import { alias } from 'drizzle-orm/sqlite-core'
 
 import { loadConfig } from '#/config'
 import { hashBytes } from '#/lib/image/image.hash'
@@ -13,7 +14,10 @@ import type { ImageApi } from '@silent-pix/shared'
 
 const config = loadConfig()
 
-type ImageCursor = { createdAt: number, id: string }
+type ImageCursor = { usedAt: number, sortIndex: number, id: string }
+
+/* mask / control 還沒有 UI，對外只承認這兩種 */
+const displayTypes = ['input', 'output'] as const
 
 export const imageService = {
     /*
@@ -87,111 +91,127 @@ export const imageService = {
             .get()
     },
 
-    /*
-     * picker 的清單。一列是一次引用而不是一張圖，所以同一張圖被多個 task 用就會
-     * 出現多次——那正是「依 task 名稱搜尋」要的行為。
-     */
-    async listReferences(database: DatabaseClient, query: ImageApi.GetImagesQuery) {
+    /* picker 的清單：一格一張圖。同一張圖被多個 task 用只出現一次，取最早那一次引用。 */
+    async listImages(database: DatabaseClient, query: ImageApi.GetImagesQuery) {
         const cursor = query.cursor === undefined ? undefined : decodeCursor(query.cursor)
         if (query.cursor !== undefined && !cursor) {
             return fail('INVALID_IMAGE_CURSOR')
         }
 
         const search = query.search?.trim()
+        const earliest = alias(taskImages, 'earliest')
+        const searched = alias(taskImages, 'searched')
+        const searchedTask = alias(tasks, 'searchedTask')
 
         const rows = await database.db
             .select({
-                referenceId: taskImages.id,
                 taskId: taskImages.taskId,
                 taskName: tasks.name,
                 type: taskImages.type,
                 sortIndex: taskImages.sortIndex,
-                /* cursor 走的是「引用」的時間，不是圖片內容的建立時間 */
                 usedAt: taskImages.createdAt,
+                referenceId: taskImages.id,
                 image: images,
             })
             .from(taskImages)
             .innerJoin(images, eq(images.id, taskImages.imageId))
             .innerJoin(tasks, eq(tasks.id, taskImages.taskId))
             .where(and(
-                inArray(taskImages.type, ['input', 'output']),
+                inArray(taskImages.type, displayTypes),
+                /* 只留每張圖最早的那一次引用，這就是「一格一張圖」的實作 */
+                eq(taskImages.id, database.db
+                    .select({ id: earliest.id })
+                    .from(earliest)
+                    .where(and(
+                        eq(earliest.imageId, taskImages.imageId),
+                        inArray(earliest.type, displayTypes),
+                    ))
+                    .orderBy(asc(earliest.createdAt), asc(earliest.id))
+                    .limit(1)),
                 /*
-                 * keyset seek：一次 batch 的 output 是在同一個 transaction 插入的，
-                 * createdAt 完全相同，所以一定要用 id 當第二個比較欄位補成全序，
-                 * 否則分頁邊界會漏掉或重複整批圖。
+                 * 排序是混合方向（時間新的在前、批次內序號小的在前），row value
+                 * 比較只支援同方向，所以要展開成三段。
                  */
                 cursor
-                    ? sql`(${taskImages.createdAt}, ${taskImages.id}) < (${cursor.createdAt}, ${cursor.id})`
+                    ? or(
+                        lt(taskImages.createdAt, cursor.usedAt),
+                        and(
+                            eq(taskImages.createdAt, cursor.usedAt),
+                            gt(taskImages.sortIndex, cursor.sortIndex),
+                        ),
+                        and(
+                            eq(taskImages.createdAt, cursor.usedAt),
+                            eq(taskImages.sortIndex, cursor.sortIndex),
+                            sql`${taskImages.id} < ${cursor.id}`,
+                        ),
+                    )
                     : undefined,
+                /* 圖片本身沒有名字，所以搜尋是搜「用過它的 task」，不限最早那一次 */
                 search
-                    ? or(like(tasks.name, `%${search}%`), like(tasks.id, `%${search}%`))
+                    ? exists(
+                        database.db
+                            .select({ one: sql`1` })
+                            .from(searched)
+                            .innerJoin(searchedTask, eq(searchedTask.id, searched.taskId))
+                            .where(and(
+                                eq(searched.imageId, taskImages.imageId),
+                                or(
+                                    like(searchedTask.name, `%${search}%`),
+                                    like(searchedTask.id, `%${search}%`),
+                                ),
+                            )),
+                    )
                     : undefined,
             ))
-            .orderBy(desc(taskImages.createdAt), desc(taskImages.id))
+            .orderBy(desc(taskImages.createdAt), asc(taskImages.sortIndex), desc(taskImages.id))
             /* 多撈一筆就知道還有沒有下一頁，不必另外 count */
             .limit(query.limit + 1)
             .all()
 
         const hasMore = rows.length > query.limit
         const page = hasMore ? rows.slice(0, query.limit) : rows
-
-        const items = page.flatMap(row => {
-            const type = toImageUsageType(row.type)
-            if (!type) {
-                return []
-            }
-
-            return [{
-                usage: {
-                    referenceId: row.referenceId,
-                    taskId: row.taskId,
-                    taskName: row.taskName,
-                    type,
-                    sortIndex: row.sortIndex,
-                },
-                image: toImageResource(row.image),
-            }]
-        })
-
         const last = page.at(-1)
 
         return done({
-            items,
+            items: page.flatMap(row => {
+                const type = toImageUsageType(row.type)
+
+                return type
+                    ? [{
+                        image: toImageResource(row.image),
+                        origin: {
+                            taskId: row.taskId,
+                            taskName: row.taskName,
+                            type,
+                            sortIndex: row.sortIndex,
+                        },
+                    }]
+                    : []
+            }),
             ...(hasMore && last
-                ? { nextCursor: encodeCursor({ createdAt: last.usedAt, id: last.referenceId }) }
+                ? {
+                    nextCursor: encodeCursor({
+                        usedAt: last.usedAt,
+                        sortIndex: last.sortIndex,
+                        id: last.referenceId,
+                    }),
+                }
                 : {}),
         })
     },
 
-    /* 找出這張圖是哪個 task 生成的 */
+    /*
+     * 這張圖最早被誰用過。excludeTaskId 是呼叫端自己——一張剛上傳的圖只有
+     * 自己這一次引用，那不構成出處，回 undefined 讓 UI 不畫來源按鈕。
+     */
     async findOrigin(
         database: DatabaseClient,
         imageId: UUID,
+        excludeTaskId?: UUID,
     ): Promise<ImageApi.ImageUsage | undefined> {
-        const row = await database.db
-            .select({
-                referenceId: taskImages.id,
-                taskId: taskImages.taskId,
-                taskName: tasks.name,
-                type: taskImages.type,
-                sortIndex: taskImages.sortIndex,
-            })
-            .from(taskImages)
-            .innerJoin(tasks, eq(tasks.id, taskImages.taskId))
-            .where(and(
-                eq(taskImages.imageId, imageId),
-                eq(taskImages.type, 'output'),
-            ))
-            .orderBy(taskImages.createdAt, taskImages.id)
-            .get()
+        const rows = await selectOrigins(database, [imageId], excludeTaskId)
 
-        if (!row) {
-            return undefined
-        }
-
-        const type = toImageUsageType(row.type)
-
-        return type ? { ...row, type } : undefined
+        return rows[0]?.usage
     },
 
     /*
@@ -227,6 +247,45 @@ export const imageService = {
     },
 }
 
+async function selectOrigins(
+    database: DatabaseClient,
+    imageIds: UUID[],
+    excludeTaskId?: UUID,
+) {
+    const rows = await database.db
+        .select({
+            imageId: taskImages.imageId,
+            taskId: taskImages.taskId,
+            taskName: tasks.name,
+            type: taskImages.type,
+            sortIndex: taskImages.sortIndex,
+        })
+        .from(taskImages)
+        .innerJoin(tasks, eq(tasks.id, taskImages.taskId))
+        .where(and(
+            inArray(taskImages.imageId, imageIds),
+            excludeTaskId ? ne(taskImages.taskId, excludeTaskId) : undefined,
+        ))
+        .orderBy(asc(taskImages.createdAt), asc(taskImages.id))
+        .all()
+
+    return rows.flatMap(row => {
+        const type = toImageUsageType(row.type)
+
+        return type
+            ? [{
+                imageId: row.imageId,
+                usage: {
+                    taskId: row.taskId,
+                    taskName: row.taskName,
+                    type,
+                    sortIndex: row.sortIndex,
+                },
+            }]
+            : []
+    })
+}
+
 function isImageCursor(value: unknown): value is ImageCursor {
     if (!value || typeof value !== 'object') {
         return false
@@ -234,7 +293,9 @@ function isImageCursor(value: unknown): value is ImageCursor {
 
     const cursor = value as Record<string, unknown>
 
-    return Number.isInteger(cursor.createdAt) && typeof cursor.id === 'string'
+    return Number.isInteger(cursor.usedAt)
+        && Number.isInteger(cursor.sortIndex)
+        && typeof cursor.id === 'string'
 }
 
 function encodeCursor(cursor: ImageCursor): string {

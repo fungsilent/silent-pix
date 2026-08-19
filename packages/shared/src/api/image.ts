@@ -17,12 +17,7 @@ export const imageResource = z.object({
 
 export type ImageResource = z.output<typeof imageResource>
 
-/*
- * 某個 task 對某張圖的一次引用。同一張圖被 A 產出、被 B 當輸入，就是兩個 usage、
- * 一份內容，所以 UI 顯示來源時要的是 usage 而不是 image。
- */
 export const imageUsage = z.object({
-    referenceId: z.uuid(),
     taskId: z.uuid(),
     taskName: z.string().nullable(),
     type: z.enum(['input', 'output']),
@@ -31,12 +26,12 @@ export const imageUsage = z.object({
 
 export type ImageUsage = z.output<typeof imageUsage>
 
-export const imageReference = z.object({
-    usage: imageUsage,
+export const imageListItem = z.object({
     image: imageResource,
+    origin: imageUsage.nullable(),
 })
 
-export type ImageReference = z.output<typeof imageReference>
+export type ImageListItem = z.output<typeof imageListItem>
 
 export const getImagesQuery = z.object({
     cursor: z.string().max(512).optional(),
@@ -49,9 +44,8 @@ export const getImagesQuery = z.object({
 
 export type GetImagesQuery = z.output<typeof getImagesQuery>
 
-/* picker 一列是一次引用不是一張圖：同一張圖被多個 task 用就會出現多次 */
 export const getImagesResponse = z.object({
-    items: z.array(imageReference),
+    items: z.array(imageListItem),
     nextCursor: z.string().optional(),
 })
 

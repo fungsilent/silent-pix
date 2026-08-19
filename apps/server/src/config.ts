@@ -23,7 +23,7 @@ export function loadConfig(): ServerConfig {
         serverPort: Number(envValue('SERVER_PORT', process.env.SERVER_PORT)),
         appDataDir: resolveePath(envValue('APP_DATA_DIR', process.env.APP_DATA_DIR)),
         comfyuiBaseUrl: envValue('COMFYUI_BASE_URL', process.env.COMFYUI_BASE_URL),
-        comfyuiStoragePrefix: envValue('COMFYUI_STORAGE_PREFIX', process.env.COMFYUI_STORAGE_PREFIX),
+        comfyuiStoragePrefix: absolutePrefix(envValue('COMFYUI_STORAGE_PREFIX', process.env.COMFYUI_STORAGE_PREFIX)),
     }
 }
 
@@ -33,4 +33,12 @@ export function resolveePath(pathValue: string): string {
     }
 
     return resolve(config.repoRoot, pathValue)
+}
+
+function absolutePrefix(value: string): string {
+    if (!/^([a-zA-Z]:|\\|\/)/.test(value)) {
+        throw new Error('[Env] COMFYUI_STORAGE_PREFIX must be an absolute path ComfyUI can open')
+    }
+
+    return value
 }

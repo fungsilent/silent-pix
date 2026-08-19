@@ -47,8 +47,8 @@ export const taskImages = sqliteTable('task_images', {
     uniqueIndex('task_images_slot_idx').on(table.taskId, table.type, table.sortIndex),
     /* 反向查「這張圖還有誰在用」；刪 task 後的零引用判定與 GC 都走這裡 */
     index('task_images_image_id_idx').on(table.imageId),
-    /* picker 分頁的 keyset cursor：createdAt 定義順序、id 確保唯一 */
-    index('task_images_cursor_idx').on(table.createdAt, table.id),
+    /* picker 的排序與 keyset cursor：新的 task 在前，同一批內 sortIndex 小的在前。 */
+    index('task_images_picker_idx').on(table.createdAt, table.sortIndex),
 ])
 
 export type TaskImageSelect = typeof taskImages.$inferSelect

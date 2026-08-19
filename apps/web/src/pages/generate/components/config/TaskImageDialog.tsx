@@ -18,7 +18,7 @@ type TaskImageDialogProps = {
 
 export function TaskImageDialog(props: TaskImageDialogProps) {
     const [keyword, setKeyword] = createSignal('')
-    const [selected, setSelected] = createSignal<ImageApi.ImageReference>()
+    const [selected, setSelected] = createSignal<ImageApi.ImageListItem>()
     const query = useImageListQuery(() => props.open, keyword)
 
     createEffect(() => {
@@ -28,7 +28,7 @@ export function TaskImageDialog(props: TaskImageDialogProps) {
         }
     })
 
-    /* 一格是一次引用不是一張圖，所以同一張圖被多個 task 用就會出現多次 */
+    /* 一格一張圖：同一張圖被多個 task 用也只出現一次，標籤取最早的那一次 */
     const items = () => query.data?.pages.flatMap(page => page.items) ?? []
 
     const apply = () => {
@@ -37,7 +37,7 @@ export function TaskImageDialog(props: TaskImageDialogProps) {
             return
         }
 
-        props.onSelect({ type: 'asset', image: item.image, origin: item.usage })
+        props.onSelect({ type: 'asset', image: item.image, origin: item.origin })
         props.onOpenChange(false)
     }
 
@@ -52,7 +52,7 @@ export function TaskImageDialog(props: TaskImageDialogProps) {
                     <Show when={selected()}>
                         {item => (
                             <span class='min-w-0 truncate text-xs text-fg-secondary'>
-                                {item().image.width} × {item().image.height} · {item().usage.type}
+                                {item().image.width} × {item().image.height}
                             </span>
                         )}
                     </Show>
@@ -106,7 +106,7 @@ export function TaskImageDialog(props: TaskImageDialogProps) {
                                     type='button'
                                     class={cn(
                                         'relative aspect-square overflow-hidden rounded-md border bg-active',
-                                        selected()?.usage.referenceId === item.usage.referenceId
+                                        selected()?.image.id === item.image.id
                                             ? 'border-accent ring-2 ring-accent/40'
                                             : 'border-transparent hover:border-white/20',
                                     )}
@@ -118,16 +118,22 @@ export function TaskImageDialog(props: TaskImageDialogProps) {
                                         alt=''
                                         loading='lazy'
                                     />
-                                    {/* 縮圖本身看不出它是輸入還是輸出，所以這個標常駐 */}
-                                    <span class='absolute left-1.5 top-1.5 rounded bg-black/70 px-1.5 text-[9.5px] font-bold uppercase tracking-wide text-white/75 backdrop-blur-[3px]'>
-                                        {item.usage.type}
-                                    </span>
-                                    <span class='absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/85 to-transparent px-2 pb-1.5 pt-4 text-left text-[11px] text-white'>
-                                        {item.usage.taskName ?? item.usage.taskId.slice(0, 8)}
-                                        <Show when={item.usage.type === 'output'}>
-                                            {' '}#{item.usage.sortIndex + 1}
-                                        </Show>
-                                    </span>
+                                    <Show when={item.origin}>
+                                        {origin => (
+                                            <>
+                                                {/* 縮圖本身看不出它是輸入還是輸出，所以這個標常駐 */}
+                                                <span class='absolute left-1.5 top-1.5 rounded bg-black/70 px-1.5 text-[9.5px] font-bold uppercase tracking-wide text-white/75 backdrop-blur-[3px]'>
+                                                    {origin().type}
+                                                </span>
+                                                <span class='absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/85 to-transparent px-2 pb-1.5 pt-4 text-left text-[11px] text-white'>
+                                                    {origin().taskName ?? origin().taskId.slice(0, 8)}
+                                                    <Show when={origin().type === 'output'}>
+                                                        {' '}#{origin().sortIndex + 1}
+                                                    </Show>
+                                                </span>
+                                            </>
+                                        )}
+                                    </Show>
                                 </button>
                             )}
                         </For>

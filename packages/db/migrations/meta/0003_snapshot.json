@@ -1,0 +1,440 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "f74da0a6-ccac-4105-9294-86e0cf9b3e28",
+  "prevId": "de561dbe-1ee2-48c7-858a-19b3c4cfafbd",
+  "tables": {
+    "images": {
+      "name": "images",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "hash": {
+          "name": "hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "path": {
+          "name": "path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "mime": {
+          "name": "mime",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "width": {
+          "name": "width",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "height": {
+          "name": "height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "size_bytes": {
+          "name": "size_bytes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "images_hash_idx": {
+          "name": "images_hash_idx",
+          "columns": [
+            "hash"
+          ],
+          "isUnique": true
+        },
+        "images_created_at_idx": {
+          "name": "images_created_at_idx",
+          "columns": [
+            "created_at"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "images_id_uuid_check": {
+          "name": "images_id_uuid_check",
+          "value": "\n    length(\"images\".\"id\") = 36\n    AND substr(\"images\".\"id\", 9, 1) = '-'\n    AND substr(\"images\".\"id\", 14, 1) = '-'\n    AND substr(\"images\".\"id\", 19, 1) = '-'\n    AND substr(\"images\".\"id\", 24, 1) = '-'\n    AND lower(\"images\".\"id\") NOT GLOB '*[^0-9a-f-]*'\n"
+        },
+        "images_hash_check": {
+          "name": "images_hash_check",
+          "value": "length(\"images\".\"hash\") = 64 AND lower(\"images\".\"hash\") NOT GLOB '*[^0-9a-f]*'"
+        },
+        "images_mime_check": {
+          "name": "images_mime_check",
+          "value": "\"images\".\"mime\" in ('image/png', 'image/jpeg')"
+        },
+        "images_dimension_check": {
+          "name": "images_dimension_check",
+          "value": "\"images\".\"width\" > 0 AND \"images\".\"height\" > 0"
+        },
+        "images_size_check": {
+          "name": "images_size_check",
+          "value": "\"images\".\"size_bytes\" > 0"
+        }
+      }
+    },
+    "tasks": {
+      "name": "tasks",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "workflow_id": {
+          "name": "workflow_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "config": {
+          "name": "config",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "comfy_prompt_id": {
+          "name": "comfy_prompt_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "error_code": {
+          "name": "error_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "error_message": {
+          "name": "error_message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "tasks_created_at_id_idx": {
+          "name": "tasks_created_at_id_idx",
+          "columns": [
+            "created_at",
+            "id"
+          ],
+          "isUnique": false
+        },
+        "tasks_status_idx": {
+          "name": "tasks_status_idx",
+          "columns": [
+            "status"
+          ],
+          "isUnique": false
+        },
+        "tasks_comfy_prompt_id_idx": {
+          "name": "tasks_comfy_prompt_id_idx",
+          "columns": [
+            "comfy_prompt_id"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "tasks_workflow_id_workflows_id_fk": {
+          "name": "tasks_workflow_id_workflows_id_fk",
+          "tableFrom": "tasks",
+          "tableTo": "workflows",
+          "columnsFrom": [
+            "workflow_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "tasks_id_uuid_check": {
+          "name": "tasks_id_uuid_check",
+          "value": "\n    length(\"tasks\".\"id\") = 36\n    AND substr(\"tasks\".\"id\", 9, 1) = '-'\n    AND substr(\"tasks\".\"id\", 14, 1) = '-'\n    AND substr(\"tasks\".\"id\", 19, 1) = '-'\n    AND substr(\"tasks\".\"id\", 24, 1) = '-'\n    AND lower(\"tasks\".\"id\") NOT GLOB '*[^0-9a-f-]*'\n"
+        },
+        "tasks_workflow_id_uuid_check": {
+          "name": "tasks_workflow_id_uuid_check",
+          "value": "\n    length(\"tasks\".\"workflow_id\") = 36\n    AND substr(\"tasks\".\"workflow_id\", 9, 1) = '-'\n    AND substr(\"tasks\".\"workflow_id\", 14, 1) = '-'\n    AND substr(\"tasks\".\"workflow_id\", 19, 1) = '-'\n    AND substr(\"tasks\".\"workflow_id\", 24, 1) = '-'\n    AND lower(\"tasks\".\"workflow_id\") NOT GLOB '*[^0-9a-f-]*'\n"
+        },
+        "tasks_config_json_check": {
+          "name": "tasks_config_json_check",
+          "value": "json_valid(\"tasks\".\"config\")"
+        },
+        "tasks_status_check": {
+          "name": "tasks_status_check",
+          "value": "\"tasks\".\"status\" in ('queued', 'running', 'done', 'failed', 'cancelled')"
+        }
+      }
+    },
+    "task_images": {
+      "name": "task_images",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "task_id": {
+          "name": "task_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "image_id": {
+          "name": "image_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sort_index": {
+          "name": "sort_index",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "task_images_slot_idx": {
+          "name": "task_images_slot_idx",
+          "columns": [
+            "task_id",
+            "type",
+            "sort_index"
+          ],
+          "isUnique": true
+        },
+        "task_images_image_id_idx": {
+          "name": "task_images_image_id_idx",
+          "columns": [
+            "image_id"
+          ],
+          "isUnique": false
+        },
+        "task_images_picker_idx": {
+          "name": "task_images_picker_idx",
+          "columns": [
+            "created_at",
+            "sort_index"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "task_images_task_id_tasks_id_fk": {
+          "name": "task_images_task_id_tasks_id_fk",
+          "tableFrom": "task_images",
+          "tableTo": "tasks",
+          "columnsFrom": [
+            "task_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "task_images_image_id_images_id_fk": {
+          "name": "task_images_image_id_images_id_fk",
+          "tableFrom": "task_images",
+          "tableTo": "images",
+          "columnsFrom": [
+            "image_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "task_images_task_id_uuid_check": {
+          "name": "task_images_task_id_uuid_check",
+          "value": "\n    length(\"task_images\".\"task_id\") = 36\n    AND substr(\"task_images\".\"task_id\", 9, 1) = '-'\n    AND substr(\"task_images\".\"task_id\", 14, 1) = '-'\n    AND substr(\"task_images\".\"task_id\", 19, 1) = '-'\n    AND substr(\"task_images\".\"task_id\", 24, 1) = '-'\n    AND lower(\"task_images\".\"task_id\") NOT GLOB '*[^0-9a-f-]*'\n"
+        },
+        "task_images_image_id_uuid_check": {
+          "name": "task_images_image_id_uuid_check",
+          "value": "\n    length(\"task_images\".\"image_id\") = 36\n    AND substr(\"task_images\".\"image_id\", 9, 1) = '-'\n    AND substr(\"task_images\".\"image_id\", 14, 1) = '-'\n    AND substr(\"task_images\".\"image_id\", 19, 1) = '-'\n    AND substr(\"task_images\".\"image_id\", 24, 1) = '-'\n    AND lower(\"task_images\".\"image_id\") NOT GLOB '*[^0-9a-f-]*'\n"
+        },
+        "task_images_type_check": {
+          "name": "task_images_type_check",
+          "value": "\"task_images\".\"type\" in ('input', 'output', 'mask', 'control')"
+        },
+        "task_images_sort_index_check": {
+          "name": "task_images_sort_index_check",
+          "value": "\"task_images\".\"sort_index\" >= 0"
+        }
+      }
+    },
+    "workflows": {
+      "name": "workflows",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "graph": {
+          "name": "graph",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "config_schema": {
+          "name": "config_schema",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "workflows_id_uuid_check": {
+          "name": "workflows_id_uuid_check",
+          "value": "\n    length(\"workflows\".\"id\") = 36\n    AND substr(\"workflows\".\"id\", 9, 1) = '-'\n    AND substr(\"workflows\".\"id\", 14, 1) = '-'\n    AND substr(\"workflows\".\"id\", 19, 1) = '-'\n    AND substr(\"workflows\".\"id\", 24, 1) = '-'\n    AND lower(\"workflows\".\"id\") NOT GLOB '*[^0-9a-f-]*'\n"
+        },
+        "workflows_graph_json_check": {
+          "name": "workflows_graph_json_check",
+          "value": "json_valid(\"workflows\".\"graph\")"
+        },
+        "workflows_config_schema_json_check": {
+          "name": "workflows_config_schema_json_check",
+          "value": "json_valid(\"workflows\".\"config_schema\")"
+        }
+      }
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}

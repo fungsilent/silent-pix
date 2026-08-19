@@ -130,7 +130,12 @@ export const getTaskResponse = z.object({
 
 export type GetTaskResponse = z.output<typeof getTaskResponse>
 
-const createTaskBase = z.object({
+/*
+ * 非檔案的欄位全部包在 payload 裡。Eden 把 body 轉成 FormData 時，空陣列會
+ * 逐個元素 append 零次而整個欄位消失，null 與數字則被轉成字串——包成一個物件
+ * 之後它只會被整包 JSON.stringify，裡面的值原樣保留。
+ */
+export const createTaskPayload = z.object({
     name: z.string().trim().min(1).max(120).nullable(),
     workflowId: z.uuid(),
     config: taskConfig.extend({
@@ -138,42 +143,20 @@ const createTaskBase = z.object({
     }),
     lora: z.array(taskLora),
     prompt: taskPrompt,
+    /* 挑既有的圖用這個；上傳新檔案走 multipart 的 referenceImage，兩者互斥 */
+    referenceImageId: z.uuid().nullable().default(null),
 })
 
-/* 「這個欄位不該出現」：可以缺席，出現的話只能是 undefined 或 null */
-const absent = z.union([z.undefined(), z.null()]).optional()
-
-// txt2img：沒有參考圖
-const createTaskFromText = createTaskBase.extend({
-    referenceImageId: absent,
-    referenceImage: absent,
-})
-
-// img2img：挑一張已經在庫裡的圖
-const createTaskFromImageId = createTaskBase.extend({
-    referenceImageId: z.uuid(),
-    referenceImage: absent,
-})
-
-// img2img：上傳新檔案，Eden 會自動改走 multipart
-const createTaskFromImageFile = createTaskBase.extend({
-    referenceImageId: absent,
-    referenceImage: z.file(),
-})
-
-export type CreateTaskFromText = z.output<typeof createTaskFromText>
-export type CreateTaskFromImageId = z.output<typeof createTaskFromImageId>
-export type CreateTaskFromImageFile = z.output<typeof createTaskFromImageFile>
+export type CreateTaskPayload = z.output<typeof createTaskPayload>
 
 /*
- * 三選一而不是三個欄位自由組合：兩個 reference 都給就不符合任何一個 variant，
- * 互斥是結構性的，不必在 service 裡再寫一次 cross-field 檢查。
+ * 帶 File 時 Eden 自動改走 multipart，Elysia 的 formData parser 會把 payload
+ * 這個欄位 JSON.parse 回物件；沒帶 File 就是單純的 JSON。同一份 contract 兩種傳輸。
  */
-export const createTaskRequest = z.union([
-    createTaskFromText,
-    createTaskFromImageId,
-    createTaskFromImageFile,
-])
+export const createTaskRequest = z.object({
+    payload: createTaskPayload,
+    referenceImage: z.file().optional(),
+})
 
 export type CreateTaskRequest = z.output<typeof createTaskRequest>
 
