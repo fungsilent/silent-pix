@@ -10,6 +10,7 @@ import { and, asc, desc, eq, inArray } from 'drizzle-orm'
 
 import { loadConfig } from '#/config'
 import { ComfyError } from '#/lib/comfy/comfy.client'
+import { removeComfyImage } from '#/lib/comfy/comfy.output'
 import { buildComfyPrompt, resolveSeed, txt2imgRuntime } from '#/lib/comfy/comfy.prompt'
 import { absolutePath } from '#/lib/image/image.store'
 import { done, fail } from '#/lib/service-result'
@@ -443,12 +444,13 @@ export const taskService = {
 
             const downloaded = await Promise.all(
                 outputImages.map(async (image, index) => ({
+                    image,
                     index,
                     bytes: await client.downloadImage(image),
                 })),
             )
 
-            for (const { index, bytes } of downloaded) {
+            for (const { image, index, bytes } of downloaded) {
                 const ingested = await imageService.ingest(database, bytes)
 
                 if (!ingested.ok) {
@@ -463,6 +465,8 @@ export const taskService = {
                 }
 
                 outputs.push({ imageId: ingested.data.image.id, sortIndex: index })
+
+                await removeComfyImage(config.comfyuiOutputDir, image)
             }
 
             await taskService.complete(database, taskId, outputs, pushEvent)
