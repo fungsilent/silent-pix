@@ -35,9 +35,9 @@
 
 ## Current Task API Scope
 
-- The task API exposes list, detail, create, image, sampler, and LoRA endpoints through the shared contracts and frontend `taskApi` wrapper.
-- `task.created` announces new tasks to clients other than the creator; `task.changed` carries realtime lifecycle updates to all clients. Other task lifecycle events remain out of scope unless explicitly requested.
-- Backend mock task-list data is non-durable and must satisfy the shared Zod response schema.
+- The task API exposes list, detail, create, rename, delete, sampler, and LoRA endpoints. Images have their own resource: `GET /api/image` lists one entry per stored image with its earliest use, `GET /api/image/:imageId` serves the bytes as immutable with a sha256 ETag.
+- Task create is one request. A reference image is either an id of a stored image or a file uploaded alongside the payload; sending both matches no contract variant, sending neither is txt2img.
+- `task.created` announces new tasks; `task.changed` carries realtime lifecycle updates. Creator filtering is not implemented yet - `task.created` currently reaches everyone, and the web insert is idempotent so the creator's own echo is a no-op. Other task lifecycle events remain out of scope unless explicitly requested.
 - Use stable opaque task IDs consistently across backend fixtures and temporary frontend fixtures; do not add frontend ID translation.
 - TanStack Query owns task-list pages, loading, errors, fetch state, and pagination state.
 - Do not copy Query data into a Solid store. The task store may own frontend choices such as `selectedTaskId` only.
@@ -63,9 +63,12 @@
 - Backend is the source of truth for durable state. Frontend state is UI state only.
 - WebSocket event contracts live under `packages/shared/src/event`, divided by domain module.
 - The server validates every outbound event through the shared aggregate schema before broadcast.
-- Each web client uses one UUID for its WebSocket `clientId` query and task-create `x-event-client-id` header. Server-side broadcast filters exclude the creator from `task.created`.
+- Client ids are not implemented. When they are, the same UUID goes on the WebSocket query and the task-create header so the server can exclude the creator from `task.created`.
 - `task.created` and `task.changed` carry the task fields required by list and detail caches. Created events idempotently insert feed entries, changed events patch existing entries, and the web invalidates task queries once after WebSocket reconnection to recover missed events.
 - Store image files on the filesystem and metadata in SQLite. Do not store image binary data in SQLite.
+- Images are content-addressed by sha256 and stored once. `images` owns the content, `task_images` owns what a task does with it. An image row and its file are deleted only when the last reference is gone, and the database commits before the filesystem unlinks.
+- Image metadata is sniffed from the bytes. Never trust the client's declared type, and never derive it from a filename.
+- ComfyUI reads reference images from Silent Pix storage by absolute path. It is never sent bytes, and it never keeps a copy.
 - Do not assume cwd is repo root. Resolve runtime paths explicitly and keep production app data overrides possible.
 
 ## Plan Documents
