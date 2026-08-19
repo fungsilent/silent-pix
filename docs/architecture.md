@@ -8,7 +8,7 @@ Silent Pix is a local-first desktop/web app. The backend owns task state, persis
 
 ```txt
 SQLite     = durable state and metadata
-Filesystem = images, uploads, thumbnails, workflow snapshots
+Filesystem = image bytes, addressed by content hash
 Memory     = active runtime state only
 REST       = actions and queries
 Realtime   = validated cache-update snapshots
@@ -120,7 +120,7 @@ Owns backend entrypoint.
 Allowed:
 
 ```txt
-- Hono app
+- Elysia app
 - REST routes
 - config/env
 - server lifecycle
@@ -132,14 +132,14 @@ Forbidden:
 
 ```txt
 - large domain logic inside routes
-- direct DB queries inside routes after repositories exist
+- direct DB queries inside routes
 - UI logic
 ```
 
 Preferred flow:
 
 ```txt
-route ??service/use-case ??repository ??SQLite
+route -> service -> Drizzle -> SQLite
 ```
 
 ---
@@ -192,7 +192,7 @@ Forbidden:
 - browser-only code
 - DB access
 - filesystem access
-- Hono logic
+- Elysia logic
 ```
 
 ---
@@ -212,7 +212,7 @@ Forbidden:
 
 ```txt
 - DB access
-- Hono routes
+- Elysia routes
 - ComfyUI client
 - task lifecycle logic
 - durable state
@@ -230,14 +230,14 @@ Allowed:
 - Drizzle schema
 - migrations
 - SQLite client creation
-- repositories
 - DB init helpers
+- maintenance scripts (seed, reset, gc)
 ```
 
 Forbidden:
 
 ```txt
-- Hono routes
+- Elysia routes
 - UI code
 - ComfyUI client
 - desktop shell code
@@ -250,7 +250,7 @@ Forbidden:
 Use:
 
 ```txt
-Hono on Node.js
+Elysia on Node.js
 ```
 
 Do not introduce:
@@ -262,7 +262,7 @@ Do not introduce:
 - Bun as required runtime
 ```
 
-Hono must stay thin. Domain logic belongs in services/use-cases.
+Routes must stay thin. Domain logic belongs in services.
 
 ---
 
@@ -297,17 +297,43 @@ PRAGMA busy_timeout = 5000;
 
 ## Storage
 
-Use filesystem for:
+Images are content-addressed. One file per distinct sha256, no matter how many
+tasks reference it.
 
 ```txt
 storage/
     images/
-    thumbnails/
-    uploads/
-    workflows/
+        <first 2 hex of hash>/
+            <sha256>.<png|jpg>
 ```
 
-DB should store relative paths, not absolute paths.
+The two-character bucket keeps any single directory listable; backup, sync and
+`db:gc` all have to enumerate it. Hash prefixes distribute evenly with no
+bookkeeping, the same reason git shards loose objects.
+
+Rules:
+
+- The DB stores the relative path (`images/ab/ab12….png`), never an absolute one.
+- Files are published with temp + rename. Readers trust the content address
+  absolutely, so a half-written file is a permanently poisoned entry, not a
+  retryable failure.
+- The mime type comes from sniffing the bytes. Never from the client's
+  `Content-Type` and never from a filename.
+- JPEG EXIF orientation is normalised into the stored width and height, so the
+  browser preview, the row and the tensor ComfyUI decodes all agree. The bytes
+  are never transcoded.
+
+Ownership lives in `task_images`, a join carrying the role (`input` / `output`,
+with `mask` / `control` reserved) and the batch position:
+
+- `images.hash` is UNIQUE. That index, not application code, is what enforces
+  "the same image is never stored twice".
+- `task_images.image_id` is `ON DELETE RESTRICT`, so deleting a task can never
+  remove a file another task still uses.
+- An image row and its file are deleted only when the last reference is gone.
+- The database commits before the filesystem unlinks, never the reverse. The
+  other order leaves a row pointing at a missing file, which never self-heals;
+  this order leaves an orphan file, which `pnpm db:gc` sweeps.
 
 Production data must live in OS app data directory. Dev data may use `./.local/data`.
 
@@ -363,6 +389,24 @@ Frontend must not know:
 ```
 
 Backend translates Silent Pix tasks into ComfyUI execution.
+
+Reference images are handed over as an absolute path, not as bytes. ComfyUI
+opens the file directly out of Silent Pix storage, so nothing is copied,
+re-encoded or retained on its side.
+
+```txt
+COMFYUI_STORAGE_PREFIX = the same directory as APP_STORAGE_DIR, spelled the way
+                         ComfyUI sees it
+```
+
+The two processes may run under different operating systems, so that second
+spelling cannot be derived with `node:path` and has to be configured. It must be
+absolute: a relative path resolves against ComfyUI's own working directory,
+finds nothing, and the loader answers with a black image instead of an error.
+
+The graph decides txt2img versus img2img by itself - an empty path takes the
+empty-latent branch, a real path takes the encode branch - so the server sets one
+string and there is no mode flag to keep in sync.
 
 ---
 

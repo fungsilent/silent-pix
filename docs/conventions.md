@@ -152,7 +152,7 @@ Do not mix ownership.
 Use:
 
 ```txt
-route ??service/use-case ??repository ??database
+route -> service -> Drizzle -> database
 ```
 
 Route handles:
@@ -184,20 +184,17 @@ Repository handles:
 
 ## API Shape
 
-Success:
+Success returns the resource itself. No envelope.
 
 ```json
-{
-    "ok": true,
-    "data": {}
-}
+{ "id": "...", "name": "...", "status": "done" }
 ```
 
-Error:
+The HTTP status carries success or failure. Errors carry a code the client can
+branch on:
 
 ```json
 {
-    "ok": false,
     "error": {
         "code": "ERROR_CODE",
         "message": "Human readable message"
@@ -205,7 +202,29 @@ Error:
 }
 ```
 
-Do not leak raw internal errors.
+Declare a Zod schema for the request and for every response status. Do not leak
+raw internal errors.
+
+### Multipart
+
+A request that may carry a file keeps every other field inside one object:
+
+```ts
+z.object({
+    payload: createTaskPayload,
+    referenceImage: z.file().optional(),
+})
+```
+
+Eden switches to `FormData` as soon as it sees a `File`, and `FormData` values
+are strings. Arrays are appended element by element, so an empty one appends
+nothing and the field disappears; `null` and numbers arrive as `"null"` and
+`"0"`. A single object is stringified whole, so everything inside it survives.
+Only the file belongs at the top level.
+
+Elysia's formData parser runs `JSON.parse` over each field, so the payload is
+already an object by the time the handler sees it. Declare it as one - a
+`z.string()` will fail validation, and no manual parsing is needed.
 
 ---
 
@@ -378,7 +397,7 @@ Rules:
 
 ```txt
 - migrations for schema changes
-- repositories own query details
+- services query Drizzle directly; there is no repository layer
 - explicit transactions for multi-write consistency
 - no image binary in DB
 - no Prisma
@@ -390,30 +409,32 @@ Rules:
 
 ## File Storage
 
-Filesystem stores:
+Filesystem stores image bytes, addressed by content hash. Nothing else.
 
 ```txt
-images
-thumbnails
-uploads
-workflow snapshots
+storage/images/<first 2 hex>/<sha256>.<png|jpg>
 ```
 
-SQLite stores:
+SQLite splits it in two, because content and ownership are different facts:
 
 ```txt
-id
-task id
-kind
-relative path
-width
-height
-mime
-size bytes
-timestamps
+images        id, hash (UNIQUE), relative path, mime, width, height, size bytes, created at
+task_images   id, task id, image id, type, sort index, created at
 ```
 
-Prefer relative paths.
+Rules:
+
+```txt
+- prefer relative paths
+- the same bytes are stored once, whoever they came from
+- an image row and its file are deleted only when the last reference is gone
+- the database commits before the filesystem unlinks, never the reverse
+- image metadata is sniffed from the bytes, never trusted from the client
+```
+
+`images` knows nothing about tasks. `task_images` carries what a task does with a
+picture - the role and the position in a batch - which is why the same file can
+be one task's output and another's input without being copied.
 
 ---
 
