@@ -13,6 +13,7 @@ export type ServerConfig = BaseConfig & {
     appDataDir: string
     comfyuiBaseUrl: string
     comfyuiStoragePrefix: string
+    comfyuiOutputDir: string
 }
 
 export function loadConfig(): ServerConfig {
@@ -24,6 +25,7 @@ export function loadConfig(): ServerConfig {
         appDataDir: resolveePath(envValue('APP_DATA_DIR', process.env.APP_DATA_DIR)),
         comfyuiBaseUrl: envValue('COMFYUI_BASE_URL', process.env.COMFYUI_BASE_URL),
         comfyuiStoragePrefix: absolutePrefix(envValue('COMFYUI_STORAGE_PREFIX', process.env.COMFYUI_STORAGE_PREFIX)),
+        comfyuiOutputDir: resolveePath(envValue('COMFYUI_OUTPUT_DIR', process.env.COMFYUI_OUTPUT_DIR)),
     }
 }
 
