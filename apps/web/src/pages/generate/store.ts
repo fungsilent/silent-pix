@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { createStore } from '#/lib/store'
 
 import type { TaskApi } from '@silent-pix/shared'
-import type { ViewerImage } from '#/pages/generate/components/workspace/ImageViewer'
+import type { ViewerImage } from '#/pages/generate/components/workspace/shared/ImageViewer'
 import type { JSX } from 'solid-js'
 import type { z as zod } from 'zod'
 
