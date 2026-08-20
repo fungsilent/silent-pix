@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { createStore } from '#/lib/store'
 
 import type { TaskApi } from '@silent-pix/shared'
+import type { ViewerImage } from '#/pages/generate/components/workspace/ImageViewer'
 import type { JSX } from 'solid-js'
 import type { z as zod } from 'zod'
 
@@ -87,15 +88,20 @@ export const draftTask: GenerateTask = {
         negative: [
             {
                 id: 'draft-negative-quality',
-                label: 'Quality',
-                text: 'low quality, worst quality, lowres, blurry',
+                label: '畫質',
+                text: `nsfw, worst quality, low quality,
+bad anatomy, bad hands, malformed hands, extra fingers, missing fingers,
+extra limbs, twisted body, poorly drawn face, asymmetrical eyes,
+blurry, messy lineart, flat shading, low detail,
+wrong outfit, inaccurate clothing details, wrong colors,
+extra accessories, text, watermark, logo, cropped, out of frame,`,
             },
         ],
         positive: [
             {
                 id: 'draft-positive-quality',
-                label: 'Quality',
-                text: 'masterpiece, best quality, ultra detailed',
+                label: '畫質',
+                text: 'masterpiece, best quality, score_9, score_8, highres, anime screenshot,',
             },
         ],
     },
@@ -117,6 +123,16 @@ export function referenceSize(reference: ReferenceImage) {
 
 export function referencePreviewUrl(reference: ReferenceImage): string {
     return reference.type === 'local' ? reference.previewUrl : reference.image.url
+}
+
+export function toViewerImage(reference: ReferenceImage): ViewerImage {
+    const size = referenceSize(reference)
+
+    return {
+        url: referencePreviewUrl(reference),
+        width: size.width,
+        height: size.height,
+    }
 }
 
 type GenerateState = {
@@ -161,13 +177,13 @@ function normalizeSampler(value: string): string {
 export function toCreateTaskRequest(values: GenerateValues): TaskApi.CreateTaskRequest {
     const reference = values.referenceImage
     const seed = values.seed.trim()
-    const name = values.name.trim()
 
     return {
         /* 上傳新檔案就把 File 放在外層，Eden 會因此改走 multipart */
         ...(reference?.type === 'local' ? { referenceImage: reference.file } : {}),
         payload: {
-            name: name === '' ? null : name,
+            /* name 是 task 建立後的手動標籤，不從 draft / base task 帶入 */
+            name: null,
             workflowId: values.workflowId,
             referenceImageId: reference?.type === 'asset' ? reference.image.id : null,
             config: {

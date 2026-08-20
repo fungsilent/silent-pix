@@ -1,11 +1,12 @@
-import { ImagePlus, RotateCcw, Search, X } from 'lucide-solid'
+import { Expand, ImagePlus, RotateCcw, Search, X } from 'lucide-solid'
 import { createEffect, createSignal, on, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { SectionTitle } from '#/components/base/SectionTitle'
 import { FileDrop, Number, Slider } from '#/components/field'
 import { TaskImageDialog } from '#/pages/generate/components/config/TaskImageDialog'
-import { referencePreviewUrl, useGenerateStore } from '#/pages/generate/store'
+import { ImageViewer } from '#/pages/generate/components/workspace/ImageViewer'
+import { referencePreviewUrl, toViewerImage, useGenerateStore } from '#/pages/generate/store'
 
 import type { FileUploadFileRejection } from '@ark-ui/solid'
 import type { GenerateTask, ReferenceImage } from '#/pages/generate/store'
@@ -153,6 +154,7 @@ type ReferenceSlotProps = {
 
 function ReferenceSlot(props: ReferenceSlotProps) {
     const origin = () => (props.reference.type === 'asset' ? props.reference.origin : null)
+    const [expanded, setExpanded] = createSignal(false)
 
     return (
         <>
@@ -162,10 +164,22 @@ function ReferenceSlot(props: ReferenceSlotProps) {
                     src={referencePreviewUrl(props.reference)}
                     alt='Reference image'
                 />
-                <button
-                    type='button'
+                <Button
+                    variant='ghost'
+                    aria-label='Expand reference image'
+                    classes={{ root: 'absolute right-9 top-1.5 size-6 rounded-md border-0 bg-black/60 p-0 text-fg-secondary backdrop-blur-[3px] hover:bg-active hover:text-white' }}
+                    onClick={() => setExpanded(true)}
+                >
+                    <Expand
+                        size={13}
+                        strokeWidth={1.8}
+                        aria-hidden='true'
+                    />
+                </Button>
+                <Button
+                    variant='ghost'
                     aria-label='Remove reference image'
-                    class='absolute right-1.5 top-1.5 grid size-6 place-items-center rounded-md bg-black/60 text-fg-secondary backdrop-blur-[3px] hover:bg-danger/35 hover:text-white'
+                    classes={{ root: 'absolute right-1.5 top-1.5 size-6 rounded-md border-0 bg-black/60 p-0 text-fg-secondary backdrop-blur-[3px] hover:bg-danger/35 hover:text-white' }}
                     onClick={props.onRemove}
                 >
                     <X
@@ -173,7 +187,7 @@ function ReferenceSlot(props: ReferenceSlotProps) {
                         strokeWidth={2}
                         aria-hidden='true'
                     />
-                </button>
+                </Button>
             </div>
 
             <Show when={origin()}>
@@ -187,6 +201,16 @@ function ReferenceSlot(props: ReferenceSlotProps) {
                         {originLabel(usage())}
                     </Button>
                 )}
+            </Show>
+
+            <Show when={expanded()}>
+                <ImageViewer
+                    images={[toViewerImage(props.reference)]}
+                    selectedIndex={0}
+                    actions={null}
+                    onClose={() => setExpanded(false)}
+                    onSelect={() => undefined}
+                />
             </Show>
         </>
     )

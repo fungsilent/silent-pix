@@ -178,6 +178,9 @@ export function createImageZoom() {
             setDragging(false)
         },
 
+        /* 圖片尺寸切換時保留 zoom，但把舊圖片的超界平移收回新邊界 */
+        clampOffset: () => setOffset(current => clamp(current)),
+
         moveTo: (value: Offset) => setOffset(clamp(value)),
 
         onPointerDown: (event: PointerEvent) => {

@@ -58,7 +58,7 @@ export function TaskInfo(props: TaskInfoProps) {
             <DetailRow label='Name'>
                 <div class='flex min-w-0 flex-col gap-1'>
                     <Editable
-                        disabled={renameMutation.isPending}
+                        disabled={props.task.status === null || renameMutation.isPending}
                         label='Name'
                         value={store.state.values.name}
                         onChange={value => {
@@ -70,6 +70,9 @@ export function TaskInfo(props: TaskInfoProps) {
                             root: 'w-full',
                         }}
                     />
+                    <Show when={props.task.status === null}>
+                        <p class='m-0 text-xs text-fg-muted'>Name is set after the task exists.</p>
+                    </Show>
                     <Show when={renameError()}>
                         {message => (
                             <p class='m-0 truncate text-xs text-danger-fg'>{message()}</p>
