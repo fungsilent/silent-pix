@@ -42,6 +42,7 @@
 - TanStack Query owns task-list pages, loading, errors, fetch state, and pagination state.
 - Do not copy Query data into a Solid store. The task store may own frontend choices such as `selectedTaskId` only.
 - REST provides initial and recovery synchronization. A successful task-create response seeds the originating client's feed and detail caches; `task.created` inserts tasks for other clients and `task.changed` updates existing cache entries.
+- Web task creation does not send `name`; name is a post-create manual label and must not be inherited from the base task.
 
 ## Web UI and State
 
