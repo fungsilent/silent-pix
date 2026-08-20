@@ -1,9 +1,12 @@
-import { Menu } from 'lucide-solid'
+import { Columns2, Menu, Sparkles } from 'lucide-solid'
 
 import { Button } from '#/components/base/Button'
 import { useHealthQuery } from '#/features/app/app.query'
 import { cn } from '#/lib/cn'
 import { appStore, serviceHealth } from '#/store/app'
+import { workspaceStore } from '#/store/workspace'
+
+import type { JSX } from 'solid-js'
 
 /* MARK: Header */
 export function Header() {
@@ -22,10 +25,67 @@ export function Header() {
             </Button>
             <span class='text-[13px] font-semibold tracking-[0.02em] text-fg'>Silent Pix</span>
 
+            <div
+                class='ml-1 flex h-[30px] items-center gap-0.5 rounded-md border border-line-subtle bg-elevated p-0.5'
+                role='group'
+                aria-label='Workspace mode'
+            >
+                <ModeButton
+                    active={workspaceStore.state.mode === 'generate'}
+                    label='Generate'
+                    onClick={() => workspaceStore.setMode('generate')}
+                >
+                    <Sparkles
+                        size={13}
+                        strokeWidth={1.6}
+                        aria-hidden='true'
+                    />
+                </ModeButton>
+                <ModeButton
+                    active={workspaceStore.state.mode === 'compare'}
+                    label='Compare'
+                    onClick={() => workspaceStore.setMode('compare')}
+                >
+                    <Columns2
+                        size={13}
+                        strokeWidth={1.6}
+                        aria-hidden='true'
+                    />
+                </ModeButton>
+            </div>
+
             <div class='flex-1' />
 
             <ServiceStatus />
         </header>
+    )
+}
+
+type ModeButtonProps = {
+    active: boolean
+    children: JSX.Element
+    label: string
+    onClick: () => void
+}
+
+function ModeButton(props: ModeButtonProps) {
+    return (
+        <Button
+            variant='ghost'
+            aria-pressed={props.active}
+            classes={{
+                root: cn(
+                    'h-6 gap-1.5 rounded px-2.5 py-0 text-xs font-medium',
+                    props.active
+                        ? 'bg-active text-fg shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]'
+                        : 'text-fg-muted',
+                ),
+            }}
+            onClick={props.onClick}
+        >
+            {props.children}
+            {props.label}
+        </Button>
     )
 }
 

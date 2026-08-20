@@ -3,8 +3,8 @@ import { createEffect, createSignal, on, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { cn } from '#/lib/cn'
-import { IssueChip } from '#/pages/generate/components/workspace/IssueChip'
-import { PromptTabs } from '#/pages/generate/components/workspace/PromptTabs'
+import { IssueChip } from '#/pages/generate/components/workspace/generate/IssueChip'
+import { PromptTabs } from '#/pages/generate/components/workspace/generate/PromptTabs'
 import { useOptionIssues } from '#/pages/generate/issue'
 import { useGenerateStore } from '#/pages/generate/store'
 
@@ -201,7 +201,7 @@ export function PromptPanel(props: PromptPanelProps) {
     }
 
     return (
-        <section class='flex shrink-0 flex-col overflow-hidden border-b border-line-subtle bg-surface pb-1'>
+        <section class='flex shrink-0 flex-col overflow-hidden border-b border-line-subtle bg-surface'>
             <div class='flex min-h-12 shrink-0 items-center justify-between gap-3 px-4 py-2'>
                 <div class='flex shrink-0 items-center gap-2'>
                     <h2 class='m-0 text-sm font-bold leading-none text-fg'>Prompt</h2>

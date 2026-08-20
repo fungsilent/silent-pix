@@ -5,7 +5,7 @@ import { Button } from '#/components/base/Button'
 import { SectionTitle } from '#/components/base/SectionTitle'
 import { FileDrop, Number, Slider } from '#/components/field'
 import { TaskImageDialog } from '#/pages/generate/components/config/TaskImageDialog'
-import { ImageViewer } from '#/pages/generate/components/workspace/ImageViewer'
+import { ImageViewer } from '#/pages/generate/components/workspace/shared/ImageViewer'
 import { referencePreviewUrl, toViewerImage, useGenerateStore } from '#/pages/generate/store'
 
 import type { FileUploadFileRejection } from '@ark-ui/solid'
