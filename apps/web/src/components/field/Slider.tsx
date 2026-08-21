@@ -3,6 +3,7 @@ import { Slider as ArkSlider } from '@ark-ui/solid'
 import { cn } from '#/lib/cn'
 
 type SliderProps = {
+    disabled?: boolean
     label: string
     value: number
     min?: number
@@ -22,6 +23,7 @@ export function Slider(props: SliderProps) {
     return (
         <ArkSlider.Root
             aria-label={[props.label]}
+            disabled={props.disabled}
             min={props.min}
             max={props.max}
             step={props.step}
@@ -33,7 +35,7 @@ export function Slider(props: SliderProps) {
                     props.onChange?.(nextValue)
                 }
             }}
-            class={cn('min-w-0 touch-none', props.classes?.root)}
+            class={cn('min-w-0 touch-none data-[disabled]:cursor-default data-[disabled]:opacity-60', props.classes?.root)}
         >
             <ArkSlider.Control class={cn('relative flex h-5 w-full min-w-0 items-center', props.classes?.control)}>
                 <ArkSlider.Track class={cn('h-2 w-full rounded-full border border-line bg-elevated', props.classes?.track)}>

@@ -8,10 +8,12 @@ import { TaskDelete } from '#/pages/generate/components/config/TaskDelete'
 import { TaskStatus } from '#/pages/generate/components/TaskStatus'
 import { useGenerateStore } from '#/pages/generate/store'
 
+import type { TaskDetailMode } from '#/pages/generate/components/config/TaskDetailMode'
 import type { GenerateTask } from '#/pages/generate/store'
 import type { JSX } from 'solid-js'
 
 type TaskInfoProps = {
+    mode: TaskDetailMode
     task: GenerateTask
 }
 
@@ -27,7 +29,7 @@ export function TaskInfo(props: TaskInfoProps) {
         store.setValue('name', name)
         setRenameError()
 
-        if (props.task.status === null || renameMutation.isPending) {
+        if (props.mode === 'view' || props.task.status === null || renameMutation.isPending) {
             return
         }
 
@@ -58,7 +60,7 @@ export function TaskInfo(props: TaskInfoProps) {
             <DetailRow label='Name'>
                 <div class='flex min-w-0 flex-col gap-1'>
                     <Editable
-                        disabled={props.task.status === null || renameMutation.isPending}
+                        disabled={props.mode === 'view' || props.task.status === null || renameMutation.isPending}
                         label='Name'
                         value={store.state.values.name}
                         onChange={value => {
@@ -100,7 +102,7 @@ export function TaskInfo(props: TaskInfoProps) {
                 </span>
             </DetailRow>
 
-            <Show when={props.task.status !== null}>
+            <Show when={props.task.status !== null && props.mode !== 'view'}>
                 <TaskDelete task={props.task} />
             </Show>
         </section>

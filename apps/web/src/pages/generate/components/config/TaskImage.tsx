@@ -10,9 +10,11 @@ import { originLabel } from '#/pages/generate/label'
 import { referencePreviewUrl, toViewerImage, useGenerateStore } from '#/pages/generate/store'
 
 import type { FileUploadFileRejection } from '@ark-ui/solid'
+import type { TaskDetailMode } from '#/pages/generate/components/config/TaskDetailMode'
 import type { GenerateTask, ReferenceImage } from '#/pages/generate/store'
 
 type TaskImageProps = {
+    mode: TaskDetailMode
     task: GenerateTask
 }
 
@@ -22,6 +24,7 @@ export function TaskImage(props: TaskImageProps) {
     const store = useGenerateStore()
     const [pickerOpen, setPickerOpen] = createSignal(false)
     const [error, setError] = createSignal<string>()
+    const isView = () => props.mode === 'view'
 
     const reference = () => store.state.values.referenceImage
 
@@ -69,6 +72,7 @@ export function TaskImage(props: TaskImageProps) {
                     <>
                         <FileDrop
                             accept={acceptedMimes}
+                            disabled={isView()}
                             onAccept={acceptFile}
                             onReject={rejectFile}
                         >
@@ -81,6 +85,7 @@ export function TaskImage(props: TaskImageProps) {
                             <span class='text-[11px]'>PNG · JPEG</span>
                         </FileDrop>
                         <Button
+                            disabled={isView()}
                             classes={{ root: 'w-full border border-dashed border-line bg-transparent' }}
                             onClick={() => setPickerOpen(true)}
                         >
@@ -96,6 +101,7 @@ export function TaskImage(props: TaskImageProps) {
             >
                 {value => (
                     <ReferenceSlot
+                        mode={props.mode}
                         reference={value()}
                         onRemove={store.clearReferenceImage}
                     />
@@ -116,6 +122,7 @@ export function TaskImage(props: TaskImageProps) {
                             max={1}
                             step={0.05}
                             value={store.state.values.denoise}
+                            disabled={isView()}
                             onChange={value => store.setValue('denoise', value)}
                             classes={{ root: 'flex-1' }}
                         />
@@ -125,6 +132,7 @@ export function TaskImage(props: TaskImageProps) {
                             max={1}
                             step={0.05}
                             value={store.state.values.denoise}
+                            disabled={isView()}
                             onChange={value => store.setValue('denoise', value)}
                             classes={{
                                 root: 'w-16 flex-none',
@@ -150,6 +158,7 @@ export function TaskImage(props: TaskImageProps) {
 }
 
 type ReferenceSlotProps = {
+    mode: TaskDetailMode
     reference: ReferenceImage
     onRemove: () => void
 }
@@ -157,6 +166,7 @@ type ReferenceSlotProps = {
 function ReferenceSlot(props: ReferenceSlotProps) {
     const origin = () => (props.reference.type === 'asset' ? props.reference.origin : null)
     const [expanded, setExpanded] = createSignal(false)
+    const isView = () => props.mode === 'view'
 
     return (
         <>
@@ -167,6 +177,7 @@ function ReferenceSlot(props: ReferenceSlotProps) {
                     alt='Reference image'
                 />
                 <Button
+                    disabled={isView()}
                     variant='ghost'
                     aria-label='Expand reference image'
                     classes={{ root: 'absolute right-9 top-1.5 size-6 rounded-md border-0 bg-black/60 p-0 text-fg-secondary backdrop-blur-[3px] hover:bg-active hover:text-white' }}
@@ -179,6 +190,7 @@ function ReferenceSlot(props: ReferenceSlotProps) {
                     />
                 </Button>
                 <Button
+                    disabled={isView()}
                     variant='ghost'
                     aria-label='Remove reference image'
                     classes={{ root: 'absolute right-1.5 top-1.5 size-6 rounded-md border-0 bg-black/60 p-0 text-fg-secondary backdrop-blur-[3px] hover:bg-danger/35 hover:text-white' }}
@@ -194,7 +206,10 @@ function ReferenceSlot(props: ReferenceSlotProps) {
 
             <Show when={origin()}>
                 {usage => (
-                    <Button classes={{ root: 'w-full border border-line bg-transparent' }}>
+                    <Button
+                        disabled={isView()}
+                        classes={{ root: 'w-full border border-line bg-transparent' }}
+                    >
                         <RotateCcw
                             size={13}
                             strokeWidth={1.7}

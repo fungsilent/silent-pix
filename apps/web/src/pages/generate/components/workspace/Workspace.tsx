@@ -4,11 +4,7 @@ import { CompareWorkspace } from '#/pages/generate/components/workspace/compare/
 import { GenerateWorkspace } from '#/pages/generate/components/workspace/generate/GenerateWorkspace'
 import { workspaceStore } from '#/store/workspace'
 
-import type { GenerateWorkspaceProps } from '#/pages/generate/components/workspace/generate/GenerateWorkspace'
-
-export type WorkspaceProps = GenerateWorkspaceProps
-
-export function Workspace(props: WorkspaceProps) {
+export function Workspace() {
     return (
         <section
             class='flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-canvas'
@@ -16,7 +12,7 @@ export function Workspace(props: WorkspaceProps) {
         >
             <Switch>
                 <Match when={workspaceStore.state.mode === 'generate'}>
-                    <GenerateWorkspace {...props} />
+                    <GenerateWorkspace />
                 </Match>
                 <Match when={workspaceStore.state.mode === 'compare'}>
                     <CompareWorkspace />

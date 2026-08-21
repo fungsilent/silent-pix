@@ -5,6 +5,7 @@ import { cn } from '#/lib/cn'
 import type { JSX } from 'solid-js'
 
 type TextProps = {
+    disabled?: boolean
     label: string
     value: string
     action?: JSX.Element
@@ -41,9 +42,11 @@ export function Text(props: TextProps) {
                     <Field.Input
                         type='text'
                         value={props.value}
+                        disabled={props.disabled}
                         placeholder={props.placeholder}
                         class={cn(
                             'h-8 w-full min-w-0 rounded-md border border-transparent bg-active px-3 text-xs leading-none text-fg outline-none placeholder:text-fg-muted focus:border-accent focus:ring-3 focus:ring-accent/40',
+                            'disabled:cursor-default disabled:border-line-subtle disabled:bg-white/[0.02] disabled:text-fg-muted',
                             props.icon && 'pl-9',
                             props.classes?.input,
                         )}

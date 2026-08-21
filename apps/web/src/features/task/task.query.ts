@@ -87,6 +87,7 @@ export function useCreateTaskMutation() {
     const queryClient = useQueryClient()
 
     return useMutation(() => ({
+        mutationKey: taskKeys.create(),
         mutationFn: (request: TaskApi.CreateTaskRequest) => taskApi.create(request),
         onSuccess: task => {
             cacheCreatedTaskResponse(queryClient, task)

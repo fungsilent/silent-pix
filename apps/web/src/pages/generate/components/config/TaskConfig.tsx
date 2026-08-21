@@ -7,9 +7,11 @@ import { Number, Select, Text } from '#/components/field'
 import { useSamplerListQuery, useWorkflowListQuery } from '#/features/task/task.query'
 import { useGenerateStore } from '#/pages/generate/store'
 
+import type { TaskDetailMode } from '#/pages/generate/components/config/TaskDetailMode'
 import type { GenerateTask } from '#/pages/generate/store'
 
 type TaskConfigProps = {
+    mode: TaskDetailMode
     task: GenerateTask
 }
 
@@ -19,6 +21,7 @@ export function TaskConfig(props: TaskConfigProps) {
     const workflowQuery = useWorkflowListQuery()
     const samplerOptions = () => samplerQuery.data?.options ?? []
     const hasReference = () => store.state.values.referenceImage !== null
+    const isView = () => props.mode === 'view'
     const workflowOptions = () => workflowQuery.data?.options.map(workflow => ({
         label: workflow.name,
         value: workflow.id,
@@ -45,7 +48,7 @@ export function TaskConfig(props: TaskConfigProps) {
                 label='Workflow Template'
                 value={store.state.values.workflowId}
                 options={workflowOptions()}
-                disabled={workflowQuery.isLoading || workflowQuery.isError || workflowOptions().length === 0}
+                disabled={isView() || workflowQuery.isLoading || workflowQuery.isError || workflowOptions().length === 0}
                 onChange={value => store.setValue('workflowId', value)}
             />
 
@@ -58,10 +61,11 @@ export function TaskConfig(props: TaskConfigProps) {
                 label='Seed'
                 value={store.state.values.seed}
                 placeholder={props.task.config.seed ?? 'Random'}
+                disabled={isView()}
                 onInput={value => store.setValue('seed', value)}
                 action={(
                     <Button
-                        disabled={!props.task.config.seed}
+                        disabled={isView() || !props.task.config.seed}
                         classes={{ root: 'size-8 p-0' }}
                         onClick={() => {
                             if (props.task.config.seed) {
@@ -84,6 +88,7 @@ export function TaskConfig(props: TaskConfigProps) {
                     min={1}
                     max={100}
                     value={store.state.values.steps}
+                    disabled={isView()}
                     onChange={value => store.setValue('steps', value)}
                 />
                 <Number
@@ -91,6 +96,7 @@ export function TaskConfig(props: TaskConfigProps) {
                     min={0}
                     max={100}
                     value={store.state.values.cfg}
+                    disabled={isView()}
                     onChange={value => store.setValue('cfg', value)}
                 />
             </div>
@@ -100,7 +106,7 @@ export function TaskConfig(props: TaskConfigProps) {
                     label='Width'
                     min={64}
                     max={4096}
-                    disabled={hasReference()}
+                    disabled={isView() || hasReference()}
                     value={store.state.values.width}
                     onChange={value => store.setValue('width', value)}
                 />
@@ -108,7 +114,7 @@ export function TaskConfig(props: TaskConfigProps) {
                     label='Height'
                     min={64}
                     max={4096}
-                    disabled={hasReference()}
+                    disabled={isView() || hasReference()}
                     value={store.state.values.height}
                     onChange={value => store.setValue('height', value)}
                 />
@@ -118,7 +124,7 @@ export function TaskConfig(props: TaskConfigProps) {
                 label='Batch'
                 min={1}
                 max={16}
-                disabled={hasReference()}
+                disabled={isView() || hasReference()}
                 value={store.state.values.batch}
                 onChange={value => store.setValue('batch', value)}
             />
@@ -126,7 +132,7 @@ export function TaskConfig(props: TaskConfigProps) {
                 label='Sampler'
                 value={store.state.values.sampler}
                 options={samplerOptions()}
-                disabled={samplerQuery.isLoading || samplerQuery.isError || samplerOptions().length === 0}
+                disabled={isView() || samplerQuery.isLoading || samplerQuery.isError || samplerOptions().length === 0}
                 onChange={value => store.setValue('sampler', value)}
             />
             <Show when={samplerQuery.isLoading}>

@@ -13,7 +13,7 @@ type SelectProps = {
     label: string
     options: SelectOption[]
     value: string
-    disabled?: boolean | undefined
+    disabled?: boolean
     onChange?: (value: string) => void
     classes?: {
         root?: string
