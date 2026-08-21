@@ -7,10 +7,16 @@ import { Number, Slider } from '#/components/field'
 import { LoraDialog } from '#/pages/generate/components/config/LoraDialog'
 import { useGenerateStore } from '#/pages/generate/store'
 
-export function TaskLora() {
+import type { TaskDetailMode } from '#/pages/generate/components/config/TaskDetailMode'
+type TaskLoraProps = {
+    mode: TaskDetailMode
+}
+
+export function TaskLora(props: TaskLoraProps) {
     const store = useGenerateStore()
     const [dialogOpen, setDialogOpen] = createSignal(false)
     const loras = () => store.state.values.lora
+    const isView = () => props.mode === 'view'
 
     return (
         <section class='flex flex-col gap-2 pt-1'>
@@ -30,6 +36,7 @@ export function TaskLora() {
                                     {lora.name}
                                 </span>
                                 <Button
+                                    disabled={isView()}
                                     variant='ghost'
                                     aria-label={`Remove ${lora.name}`}
                                     classes={{ root: 'size-6 shrink-0 rounded p-0 hover:bg-red-500/12 hover:text-red-400' }}
@@ -49,6 +56,7 @@ export function TaskLora() {
                                     min={0}
                                     max={2}
                                     step={0.05}
+                                    disabled={isView()}
                                     onChange={value => store.setLoraWeight(lora.id, value)}
                                     classes={{
                                         root: 'flex-1',
@@ -60,6 +68,7 @@ export function TaskLora() {
                                     min={0}
                                     max={2}
                                     step={0.05}
+                                    disabled={isView()}
                                     onChange={value => store.setLoraWeight(lora.id, value)}
                                     classes={{
                                         root: 'w-[64px]',
@@ -78,6 +87,7 @@ export function TaskLora() {
             </Show>
 
             <Button
+                disabled={isView()}
                 type='button'
                 variant='accent'
                 onClick={() => setDialogOpen(true)}

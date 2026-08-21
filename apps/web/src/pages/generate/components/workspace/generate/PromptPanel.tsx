@@ -1,15 +1,16 @@
+import { useIsMutating } from '@tanstack/solid-query'
 import { Sparkles } from 'lucide-solid'
 import { createEffect, createSignal, on, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
+import { taskKeys } from '#/features/task/task.key'
 import { cn } from '#/lib/cn'
 import { IssueChip } from '#/pages/generate/components/workspace/generate/IssueChip'
 import { PromptTabs } from '#/pages/generate/components/workspace/generate/PromptTabs'
 import { useOptionIssues } from '#/pages/generate/issue'
 import { useGenerateStore } from '#/pages/generate/store'
 
-import type { GenerateIssue } from '#/pages/generate/issue'
-import type { GenerateTask, GenerateValues } from '#/pages/generate/store'
+import type { GenerateValues } from '#/pages/generate/store'
 
 /* MARK: PromptPanel */
 type PromptKind = 'positive' | 'negative'
@@ -18,25 +19,18 @@ type PromptGroupState = {
     visible: boolean
 }
 
-type PromptPanelProps = {
-    task: GenerateTask
-    isSubmitting?: boolean | undefined
-    submitIssues: GenerateIssue[]
-    submitToken: number
-}
-
-
 const promptLabel: Record<PromptKind, string> = {
     negative: 'Negative',
     positive: 'Positive',
 }
 
 
-export function PromptPanel(props: PromptPanelProps) {
+export function PromptPanel() {
     const store = useGenerateStore()
+    const createTaskCount = useIsMutating(() => ({ mutationKey: taskKeys.create() }))
     const optionIssues = useOptionIssues()
     const [issuesOpen, setIssuesOpen] = createSignal(false)
-    const issues = () => [...optionIssues(), ...props.submitIssues]
+    const issues = () => [...optionIssues(), ...store.state.submitIssues]
     const [positive, setPositive] = createSignal<PromptGroupState>({
         visible: true,
     })
@@ -44,8 +38,8 @@ export function PromptPanel(props: PromptPanelProps) {
         visible: true,
     })
     const [selected, setSelected] = createSignal<Record<PromptKind, string | undefined>>({
-        negative: props.task.prompt.negative[0]?.id,
-        positive: props.task.prompt.positive[0]?.id,
+        negative: store.state.values.negative[0]?.id,
+        positive: store.state.values.positive[0]?.id,
     })
     const [dragged, setDragged] = createSignal<Record<PromptKind, string | undefined>>({
         negative: undefined,
@@ -53,7 +47,7 @@ export function PromptPanel(props: PromptPanelProps) {
     })
 
     createEffect(() => {
-        const task = props.task
+        const _taskId = store.state.taskId
 
         setPositive({
             visible: true,
@@ -62,8 +56,8 @@ export function PromptPanel(props: PromptPanelProps) {
             visible: true,
         })
         setSelected({
-            negative: task.prompt.negative[0]?.id,
-            positive: task.prompt.positive[0]?.id,
+            negative: store.state.values.negative[0]?.id,
+            positive: store.state.values.positive[0]?.id,
         })
         setDragged({
             negative: undefined,
@@ -76,7 +70,7 @@ export function PromptPanel(props: PromptPanelProps) {
      * 使用者什麼都沒做時變動，那時候彈開等於無故打擾。
      */
     createEffect(on(
-        () => props.submitToken,
+        () => store.state.submitToken,
         token => {
             if (token > 0) {
                 setIssuesOpen(issues().length > 1)
@@ -228,7 +222,7 @@ export function PromptPanel(props: PromptPanelProps) {
                 <Button
                     type='submit'
                     variant='primary'
-                    disabled={props.isSubmitting}
+                    disabled={createTaskCount() > 0}
                     classes={{
                         root: 'px-4 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-60'
                     }}
@@ -237,7 +231,7 @@ export function PromptPanel(props: PromptPanelProps) {
                         size={16}
                         strokeWidth={2.2}
                     />
-                    {props.isSubmitting ? 'Creating...' : 'Generate'}
+                    {createTaskCount() > 0 ? 'Creating...' : 'Generate'}
                 </Button>
             </div>
 

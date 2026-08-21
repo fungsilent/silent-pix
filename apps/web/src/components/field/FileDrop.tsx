@@ -8,7 +8,7 @@ import type { JSX } from 'solid-js'
 type FileDropProps = {
     accept: string[]
     children: JSX.Element
-    disabled?: boolean | undefined
+    disabled?: boolean
     maxFileSize?: number | undefined
     onAccept: (file: File) => void
     onReject: (rejection: FileUploadFileRejection) => void

@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { createStore } from '#/lib/store'
 
 import type { TaskApi } from '@silent-pix/shared'
+import type { GenerateIssue } from '#/pages/generate/issue'
 import type { ViewerImage } from '#/store/workspace'
 import type { JSX } from 'solid-js'
 import type { z as zod } from 'zod'
@@ -136,6 +137,9 @@ export function toViewerImage(reference: ReferenceImage): ViewerImage {
 }
 
 type GenerateState = {
+    submitIssues: GenerateIssue[]
+    submitToken: number
+    taskId: string
     values: GenerateValues
 }
 
@@ -215,12 +219,24 @@ const cloneGenerateValues = (values: GenerateValues): GenerateValues => ({
     positive: values.positive.map(tag => ({ ...tag })),
 })
 
-export function createGenerateStore(initialValues: GenerateValues) {
+export function createGenerateStore(initialTask: GenerateTask) {
     const initialState: GenerateState = {
-        values: cloneGenerateValues(initialValues),
+        submitIssues: [],
+        submitToken: 0,
+        taskId: initialTask.id,
+        values: cloneGenerateValues(toGenerateValues(initialTask)),
     }
 
     return createStore(initialState, store => ({
+        clearSubmitIssues() {
+            store.set('submitIssues', [])
+        },
+
+        reportSubmitIssues(issues: GenerateIssue[]) {
+            store.set('submitIssues', issues)
+            store.set('submitToken', token => token + 1)
+        },
+
         /* Task */
         setValue<TKey extends keyof GenerateValues>(key: TKey, value: GenerateValues[TKey]) {
             store.set('values', key, value)
@@ -228,7 +244,10 @@ export function createGenerateStore(initialValues: GenerateValues) {
 
         loadTask(task: GenerateTask) {
             releaseLocalPreview(store.state.values.referenceImage)
-            store.set({ values: cloneGenerateValues(toGenerateValues(task)) })
+            store.set({
+                taskId: task.id,
+                values: cloneGenerateValues(toGenerateValues(task)),
+            })
         },
 
         /* Reference image */

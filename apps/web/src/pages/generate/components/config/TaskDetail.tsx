@@ -1,13 +1,17 @@
 import { Line } from '#/components/base/Line'
 import { CollapseButton, Panel, PanelContent, PanelHeader } from '#/components/base/Panel'
 import { TaskConfig } from '#/pages/generate/components/config/TaskConfig'
+import { type TaskDetailMode } from '#/pages/generate/components/config/TaskDetailMode'
 import { TaskImage } from '#/pages/generate/components/config/TaskImage'
 import { TaskInfo } from '#/pages/generate/components/config/TaskInfo'
 import { TaskLora } from '#/pages/generate/components/config/TaskLora'
 
 import type { GenerateTask } from '#/pages/generate/store'
 
+export type { TaskDetailMode } from '#/pages/generate/components/config/TaskDetailMode'
+
 type TaskDetailProps = {
+    mode: TaskDetailMode
     task: GenerateTask
 }
 
@@ -45,13 +49,22 @@ export function TaskDetail(props: TaskDetailProps) {
                                 content: 'gap-3 px-4 pt-0 pb-5',
                             }}
                         >
-                            <TaskInfo task={props.task} />
+                            <TaskInfo
+                                mode={props.mode}
+                                task={props.task}
+                            />
                             <Line />
-                            <TaskImage task={props.task} />
+                            <TaskImage
+                                mode={props.mode}
+                                task={props.task}
+                            />
                             <Line />
-                            <TaskConfig task={props.task} />
+                            <TaskConfig
+                                mode={props.mode}
+                                task={props.task}
+                            />
                             <Line />
-                            <TaskLora />
+                            <TaskLora mode={props.mode} />
                         </PanelContent>
                     </div>
                 )
