@@ -5,10 +5,15 @@ import { CollapseButton, Panel, PanelContent, PanelHeader } from '#/components/b
 import { useTaskFeedQuery } from '#/features/task/task.query'
 import { TaskItem } from '#/pages/generate/components/task/TaskItem'
 import { taskStore } from '#/store/task'
+import { workspaceStore } from '#/store/workspace'
 
 export function TaskList() {
     const taskFeedQuery = useTaskFeedQuery()
     const tasks = createMemo(() => taskFeedQuery.data?.pages.flatMap(page => page.items) ?? [])
+    const selectTask = (taskId: string) => {
+        taskStore.selectTask(taskId)
+        workspaceStore.setMode('generate')
+    }
 
     return (
         <Panel
@@ -48,7 +53,7 @@ export function TaskList() {
                                     selected={task.id === taskStore.state.selectedTaskId}
                                     task={task}
                                     thumbnailOnly={panel.isCollapsed()}
-                                    onSelect={() => taskStore.selectTask(task.id)}
+                                    onSelect={() => selectTask(task.id)}
                                 />
                             )}
                         </For>
