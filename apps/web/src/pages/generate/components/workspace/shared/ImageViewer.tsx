@@ -18,6 +18,8 @@ type ImageViewerProps = {
     onClose: () => void
     onSelect: (index: number) => void
     actions?: JSX.Element | null
+    header?: JSX.Element | null
+    thumbnailLabel?: (image: ViewerImage, index: number) => string | null
 }
 
 const glass = 'border-white/[0.09] bg-surface/75 backdrop-blur-[8px]'
@@ -88,10 +90,17 @@ export function ImageViewer(props: ImageViewerProps) {
                 aria-label='Image viewer'
                 onClick={closeOnBackdrop}
             >
-                <Show when={hasMany()}>
-                    <span class={cn('absolute left-6 top-6 z-10 rounded-md border px-2.5 py-1 text-xs text-fg-secondary tabular-nums', glass)}>
-                        {props.selectedIndex + 1} / {props.images.length}
-                    </span>
+                <Show
+                    when={props.header !== undefined}
+                    fallback={(
+                        <Show when={hasMany()}>
+                            <span class={cn('absolute left-6 top-6 z-10 rounded-md border px-2.5 py-1 text-xs text-fg-secondary tabular-nums', glass)}>
+                                {props.selectedIndex + 1} / {props.images.length}
+                            </span>
+                        </Show>
+                    )}
+                >
+                    {props.header}
                 </Show>
 
                 <div class='absolute right-6 top-6 z-10 flex items-center gap-2'>
@@ -181,7 +190,7 @@ export function ImageViewer(props: ImageViewerProps) {
                                     aria-pressed={index() === props.selectedIndex}
                                     classes={{
                                         root: cn(
-                                            'h-full w-auto shrink-0 overflow-hidden rounded-md p-0',
+                                            'relative h-full w-auto shrink-0 overflow-hidden rounded-md p-0',
                                             index() === props.selectedIndex
                                                 ? 'opacity-100 ring-2 ring-accent'
                                                 : 'opacity-60 hover:opacity-100',
@@ -194,6 +203,17 @@ export function ImageViewer(props: ImageViewerProps) {
                                         src={thumbnail.url}
                                         alt=''
                                     />
+                                    <Show when={props.thumbnailLabel}>
+                                        {getLabel => (
+                                            <Show when={getLabel()(thumbnail, index())}>
+                                                {label => (
+                                                    <span class='absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/90 to-transparent px-2 pb-1 pt-4 text-left text-[10px] text-white'>
+                                                        {label()}
+                                                    </span>
+                                                )}
+                                            </Show>
+                                        )}
+                                    </Show>
                                 </Button>
                             )}
                         </For>

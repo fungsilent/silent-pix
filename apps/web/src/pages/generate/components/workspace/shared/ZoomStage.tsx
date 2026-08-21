@@ -1,4 +1,4 @@
-import { createEffect, For, Show } from 'solid-js'
+import { createEffect, createSignal, For, Show } from 'solid-js'
 
 import { cn } from '#/lib/cn'
 
@@ -16,6 +16,7 @@ type ZoomStageProps = {
 
 export function ZoomStage(props: ZoomStageProps) {
     const image = () => props.images[props.selectedIndex] ?? props.images[0]
+    const [failedUrls, setFailedUrls] = createSignal(new Set<string>())
 
     createEffect(() => {
         const selected = image()
@@ -46,7 +47,7 @@ export function ZoomStage(props: ZoomStageProps) {
                     <img
                         class={cn(
                             'absolute max-w-none select-none',
-                            index() === props.selectedIndex
+                            index() === props.selectedIndex && !failedUrls().has(source.url)
                                 ? 'opacity-100'
                                 : 'pointer-events-none opacity-0',
                             index() === props.selectedIndex && props.zoom.overflows()
@@ -66,20 +67,25 @@ export function ZoomStage(props: ZoomStageProps) {
                         onPointerDown={props.zoom.onPointerDown}
                         onPointerMove={props.zoom.onPointerMove}
                         onPointerUp={props.zoom.endDrag}
+                        onError={() => setFailedUrls(current => new Set([...current, source.url]))}
                     />
                 )}
             </For>
 
-            <Show when={props.zoom.overflows() && image()}>
-                {source => (
-                    <Minimap
-                        offset={props.zoom.offset()}
-                        scaled={props.zoom.scaled()}
-                        source={source().url}
-                        viewport={props.zoom.viewport()}
-                        onMove={props.zoom.moveTo}
-                    />
-                )}
+            <Show when={image() && failedUrls().has(image()!.url)}>
+                <div class='absolute inset-0 grid place-items-center text-sm text-fg-muted'>
+                    Image unavailable
+                </div>
+            </Show>
+
+            <Show when={props.zoom.overflows() && image() && !failedUrls().has(image()!.url)}>
+                <Minimap
+                    offset={props.zoom.offset()}
+                    scaled={props.zoom.scaled()}
+                    source={image()?.url ?? ''}
+                    viewport={props.zoom.viewport()}
+                    onMove={props.zoom.moveTo}
+                />
             </Show>
         </div>
     )
