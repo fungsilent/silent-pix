@@ -4,8 +4,9 @@ import { createEffect, createSignal, on, Show } from 'solid-js'
 import { Button } from '#/components/base/Button'
 import { SectionTitle } from '#/components/base/SectionTitle'
 import { FileDrop, Number, Slider } from '#/components/field'
-import { TaskImageDialog } from '#/pages/generate/components/config/TaskImageDialog'
+import { ImagePickerDialog } from '#/pages/generate/components/ImagePickerDialog'
 import { ImageViewer } from '#/pages/generate/components/workspace/shared/ImageViewer'
+import { originLabel } from '#/pages/generate/label'
 import { referencePreviewUrl, toViewerImage, useGenerateStore } from '#/pages/generate/store'
 
 import type { FileUploadFileRejection } from '@ark-ui/solid'
@@ -135,7 +136,8 @@ export function TaskImage(props: TaskImageProps) {
                 </div>
             </Show>
 
-            <TaskImageDialog
+            <ImagePickerDialog
+                mode='single'
                 open={pickerOpen()}
                 onOpenChange={setPickerOpen}
                 onSelect={reference => {
@@ -214,11 +216,4 @@ function ReferenceSlot(props: ReferenceSlotProps) {
             </Show>
         </>
     )
-}
-
-/* 顯示規則跟左側 TaskItem 一致：有名字用名字，沒有就用短 id */
-function originLabel(usage: { taskId: string, taskName: string | null, sortIndex: number }): string {
-    const name = usage.taskName ?? usage.taskId.slice(0, 8)
-
-    return `${name} #${usage.sortIndex + 1}`
 }

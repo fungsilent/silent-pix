@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Expand, ImagePlus, Star, Trash2 } from 'lucide-solid'
+import { ChevronLeft, ChevronRight, Columns2, Expand, ImagePlus, Star, Trash2 } from 'lucide-solid'
 import { For, onCleanup, onMount, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
@@ -10,6 +10,7 @@ type ImageStageProps = {
     images: ImageApi.ImageResource[]
     keyboardEnabled: boolean
     selectedIndex: number
+    onCompare: (image: ImageApi.ImageResource) => void
     onExpand: () => void
     onSelect: (index: number) => void
     onUseAsReference: (image: ImageApi.ImageResource) => void
@@ -100,6 +101,23 @@ export function ImageStage(props: ImageStageProps) {
                         onClick={props.onExpand}
                     >
                         <Expand
+                            size={15}
+                            strokeWidth={1.8}
+                            aria-hidden='true'
+                        />
+                    </Button>
+                    <Button
+                        variant='ghost'
+                        aria-label='Compare image'
+                        classes={{ root: cn('size-8 rounded-md border p-0', glass) }}
+                        onClick={() => {
+                            const image = selectedImage()
+                            if (image) {
+                                props.onCompare(image)
+                            }
+                        }}
+                    >
+                        <Columns2
                             size={15}
                             strokeWidth={1.8}
                             aria-hidden='true'

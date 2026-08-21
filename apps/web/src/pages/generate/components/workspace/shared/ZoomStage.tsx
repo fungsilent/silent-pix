@@ -3,7 +3,7 @@ import { createEffect, For, Show } from 'solid-js'
 import { cn } from '#/lib/cn'
 
 import type { createImageZoom, Offset, Size } from '#/lib/imageZoom'
-import type { ViewerImage } from '#/pages/generate/components/workspace/shared/ImageViewer'
+import type { ViewerImage } from '#/store/workspace'
 
 type Zoom = ReturnType<typeof createImageZoom>
 
