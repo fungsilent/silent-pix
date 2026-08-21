@@ -1,4 +1,4 @@
-import { Expand, ImagePlus, RotateCcw, Search, X } from 'lucide-solid'
+import { ImagePlus, RotateCcw, Search, X } from 'lucide-solid'
 import { createEffect, createSignal, on, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
@@ -175,20 +175,10 @@ function ReferenceSlot(props: ReferenceSlotProps) {
                     class='absolute inset-0 size-full object-contain'
                     src={referencePreviewUrl(props.reference)}
                     alt='Reference image'
-                />
-                <Button
-                    disabled={isView()}
-                    variant='ghost'
-                    aria-label='Expand reference image'
-                    classes={{ root: 'absolute right-9 top-1.5 size-6 rounded-md border-0 bg-black/60 p-0 text-fg-secondary backdrop-blur-[3px] hover:bg-active hover:text-white' }}
+                    role='button'
+                    tabIndex={0}
                     onClick={() => setExpanded(true)}
-                >
-                    <Expand
-                        size={13}
-                        strokeWidth={1.8}
-                        aria-hidden='true'
-                    />
-                </Button>
+                />
                 <Button
                     disabled={isView()}
                     variant='ghost'
