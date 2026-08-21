@@ -9,13 +9,8 @@ import { ZoomControls } from '#/pages/generate/components/workspace/shared/ZoomC
 import { ZoomStage } from '#/pages/generate/components/workspace/shared/ZoomStage'
 import { workspaceStore } from '#/store/workspace'
 
+import type { ViewerImage } from '#/store/workspace'
 import type { JSX } from 'solid-js'
-
-export type ViewerImage = {
-    url: string
-    width: number
-    height: number
-}
 
 type ImageViewerProps = {
     images: ViewerImage[]
