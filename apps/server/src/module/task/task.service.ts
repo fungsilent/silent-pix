@@ -470,6 +470,13 @@ export const taskService = {
             }
 
             await taskService.complete(database, taskId, outputs, pushEvent)
+
+            try {
+                await client.deleteHistory(result.promptId)
+            }
+            catch (error) {
+                console.error(`Failed to remove Comfy history for task ${taskId}.`, error)
+            }
         }
         catch (error) {
             console.error(`Task ${taskId} generation failed.`, error)

@@ -158,6 +158,33 @@ export class ComfyClient {
         return new Uint8Array(await response.arrayBuffer())
     }
 
+    async deleteHistory(promptId: string): Promise<void> {
+        let response: Response
+
+        try {
+            response = await fetch(new URL('history', this.baseUrl), {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({
+                    delete: [promptId],
+                }),
+            })
+        }
+        catch {
+            throw new ComfyError(
+                'ComfyUI is unavailable.',
+                'COMFY_UNAVAILABLE',
+            )
+        }
+
+        if (!response.ok) {
+            throw new ComfyError(
+                `Comfy history deletion returned HTTP ${response.status}.`,
+                'COMFY_HISTORY_DELETE_ERROR',
+            )
+        }
+    }
+
     async getSamplerNames(): Promise<string[]> {
         this.assertConnected()
 
