@@ -19,7 +19,7 @@ type SharedDialogProps = {
 
 export type CompareCandidate = {
     image: ImageApi.ImageResource
-    originLabel: string | null
+    origin: ImageApi.ImageUsage | null
 }
 
 export type ImagePickerDialogProps = SharedDialogProps & (
@@ -104,7 +104,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
         else {
             props.onSelect(selectedMultiple().map(item => ({
                 image: item.image,
-                originLabel: originLabel(item.origin),
+                origin: item.origin,
             })))
         }
 

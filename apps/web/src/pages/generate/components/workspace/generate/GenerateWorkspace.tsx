@@ -3,7 +3,6 @@ import { createEffect, createMemo, createSignal, Show } from 'solid-js'
 import { ImageStage } from '#/pages/generate/components/workspace/generate/ImageStage'
 import { PromptPanel } from '#/pages/generate/components/workspace/generate/PromptPanel'
 import { ImageViewer } from '#/pages/generate/components/workspace/shared/ImageViewer'
-import { originLabel } from '#/pages/generate/label'
 import { useGenerateStore } from '#/pages/generate/store'
 import { workspaceStore } from '#/store/workspace'
 
@@ -43,16 +42,13 @@ export function GenerateWorkspace(props: GenerateWorkspaceProps) {
                 selectedIndex={selectedImageIndex()}
                 onCompare={image => {
                     workspaceStore.addCompare([{
-                        url: image.url,
-                        width: image.width,
-                        height: image.height,
-                        imageId: image.id,
-                        originLabel: originLabel({
+                        image,
+                        origin: {
                             taskId: props.task.id,
                             taskName: props.task.name,
                             type: 'output',
                             sortIndex: selectedImageIndex(),
-                        }),
+                        },
                         hidden: false,
                     }])
                     workspaceStore.setMode('compare')

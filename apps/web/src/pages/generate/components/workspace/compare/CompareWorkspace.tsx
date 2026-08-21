@@ -8,6 +8,7 @@ import { ImagePickerDialog } from '#/pages/generate/components/ImagePickerDialog
 import { ImageViewer } from '#/pages/generate/components/workspace/shared/ImageViewer'
 import { ZoomControls } from '#/pages/generate/components/workspace/shared/ZoomControls'
 import { ZoomStage } from '#/pages/generate/components/workspace/shared/ZoomStage'
+import { originLabel } from '#/pages/generate/label'
 import { workspaceStore } from '#/store/workspace'
 
 import type { CompareCandidate } from '#/pages/generate/components/ImagePickerDialog'
@@ -21,13 +22,13 @@ export function CompareWorkspace() {
     const entries = createMemo(() => workspaceStore.visibleCompare())
     const allEntries = createMemo(() => workspaceStore.state.compare)
     const images = createMemo(() => entries().map(entry => ({
-        url: entry.url,
-        width: entry.width,
-        height: entry.height,
+        url: entry.image.url,
+        width: entry.image.width,
+        height: entry.image.height,
     })))
     const selectedIndex = createMemo(() => {
         const selectedId = workspaceStore.state.selectedCompareImageId
-        const index = entries().findIndex(entry => entry.imageId === selectedId)
+        const index = entries().findIndex(entry => entry.image.id === selectedId)
         return index >= 0 ? index : 0
     })
     const selectedEntry = () => entries()[selectedIndex()]
@@ -41,7 +42,7 @@ export function CompareWorkspace() {
         const index = (selectedIndex() - 1 + entries().length) % entries().length
         const entry = entries()[index]
         if (entry) {
-            workspaceStore.selectCompare(entry.imageId)
+            workspaceStore.selectCompare(entry.image.id)
         }
     }
 
@@ -53,7 +54,7 @@ export function CompareWorkspace() {
         const index = (selectedIndex() + 1) % entries().length
         const entry = entries()[index]
         if (entry) {
-            workspaceStore.selectCompare(entry.imageId)
+            workspaceStore.selectCompare(entry.image.id)
         }
     }
 
@@ -97,11 +98,8 @@ export function CompareWorkspace() {
 
     const applyPickerSelection = (candidates: CompareCandidate[]) => {
         workspaceStore.addCompare(candidates.map(candidate => ({
-            url: candidate.image.url,
-            width: candidate.image.width,
-            height: candidate.image.height,
-            imageId: candidate.image.id,
-            originLabel: candidate.originLabel,
+            image: candidate.image,
+            origin: candidate.origin,
             hidden: false,
         })))
         setPickerOpen(false)
@@ -110,7 +108,7 @@ export function CompareWorkspace() {
     const selectViewerImage = (index: number) => {
         const entry = entries()[index]
         if (entry) {
-            workspaceStore.selectCompare(entry.imageId)
+            workspaceStore.selectCompare(entry.image.id)
         }
     }
 
@@ -219,7 +217,10 @@ export function CompareWorkspace() {
                             index={selectedIndex()}
                         />
                     )}
-                    thumbnailLabel={(_, index) => entries()[index]?.originLabel ?? null}
+                    thumbnailLabel={(_, index) => {
+                        const entry = entries()[index]
+                        return entry ? originLabel(entry.origin) : null
+                    }}
                     onClose={() => setExpanded(false)}
                     onSelect={selectViewerImage}
                 />
@@ -228,7 +229,7 @@ export function CompareWorkspace() {
             <ImagePickerDialog
                 mode='multiple'
                 open={pickerOpen()}
-                disabledImageIds={allEntries().map(entry => entry.imageId)}
+                disabledImageIds={allEntries().map(entry => entry.image.id)}
                 onOpenChange={setPickerOpen}
                 onSelect={applyPickerSelection}
             />
@@ -310,14 +311,15 @@ function CompareThumbnailStrip(props: CompareThumbnailStripProps) {
         <div class='flex h-20 shrink-0 items-center justify-center gap-2 overflow-x-auto border-t border-white/[0.07] bg-[#101010] px-3 py-2'>
             <For each={props.entries}>
                 {(entry, index) => {
-                    const selected = () => entry.imageId === props.selectedId
-                    const failed = () => props.failedImageIds.has(entry.imageId)
+                    const selected = () => entry.image.id === props.selectedId
+                    const failed = () => props.failedImageIds.has(entry.image.id)
+                    const label = () => originLabel(entry.origin) ?? entry.image.id.slice(0, 8)
 
                     return (
                         <div class='group relative flex h-full w-auto shrink-0'>
                             <Button
                                 variant='ghost'
-                                aria-label={`Show ${entry.originLabel ?? entry.imageId.slice(0, 8)}`}
+                                aria-label={`Show ${label()}`}
                                 aria-pressed={selected()}
                                 classes={{
                                     root: cn(
@@ -326,13 +328,13 @@ function CompareThumbnailStrip(props: CompareThumbnailStripProps) {
                                         entry.hidden && 'opacity-40 grayscale',
                                     ),
                                 }}
-                                onClick={() => props.onSelect(entry.imageId)}
+                                onClick={() => props.onSelect(entry.image.id)}
                             >
                                 <img
                                     class='h-full w-auto object-contain'
-                                    src={entry.url}
+                                    src={entry.image.url}
                                     alt=''
-                                    onError={() => props.onImageError(entry.imageId)}
+                                    onError={() => props.onImageError(entry.image.id)}
                                 />
                                 <Show when={failed()}>
                                     <span class='absolute inset-0 grid place-items-center bg-black/60 px-2 text-center text-[10px] text-white/80'>
@@ -345,7 +347,7 @@ function CompareThumbnailStrip(props: CompareThumbnailStripProps) {
                                         entry.hidden && 'line-through',
                                     )}
                                 >
-                                    {entry.originLabel ?? entry.imageId.slice(0, 8)}
+                                    {label()}
                                 </span>
                                 <span class='absolute left-1.5 top-1.5 rounded bg-black/70 px-1.5 text-[10px] font-bold tabular-nums text-white'>
                                     {entry.hidden ? '—' : index() + 1}
@@ -360,7 +362,7 @@ function CompareThumbnailStrip(props: CompareThumbnailStripProps) {
                                         entry.hidden ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-visible:opacity-100',
                                     ),
                                 }}
-                                onClick={() => props.onToggleHidden(entry.imageId)}
+                                onClick={() => props.onToggleHidden(entry.image.id)}
                             >
                                 {entry.hidden
                                     ? (
@@ -382,7 +384,7 @@ function CompareThumbnailStrip(props: CompareThumbnailStripProps) {
                                 variant='ghost'
                                 aria-label='Remove image'
                                 classes={{ root: 'absolute right-1 top-1 z-10 size-6 rounded-md border-0 bg-black/70 p-0 text-white opacity-0 backdrop-blur-[3px] group-hover:opacity-100 focus-visible:opacity-100 hover:text-red-300' }}
-                                onClick={() => props.onRemove(entry.imageId)}
+                                onClick={() => props.onRemove(entry.image.id)}
                             >
                                 <X
                                     size={13}
@@ -409,9 +411,9 @@ function CurrentCompareImage(props: CurrentCompareImageProps) {
             <span class='grid size-4 shrink-0 place-items-center rounded bg-accent text-[10px] font-bold text-white'>
                 {props.index + 1}
             </span>
-            <span class='truncate'>{props.entry.originLabel ?? props.entry.imageId.slice(0, 8)}</span>
+            <span class='truncate'>{originLabel(props.entry.origin) ?? props.entry.image.id.slice(0, 8)}</span>
             <span class='shrink-0 text-fg-muted tabular-nums'>
-                · {props.entry.width} × {props.entry.height}
+                · {props.entry.image.width} × {props.entry.image.height}
             </span>
         </div>
     )
