@@ -52,6 +52,73 @@ export const workspaceStore = createStore(initialState, store => ({
         }
     },
 
+    removeCompare(imageId: string) {
+        const current = store.state.compare
+        const removedIndex = current.findIndex(entry => entry.imageId === imageId)
+        if (removedIndex < 0) {
+            return
+        }
+
+        const selectedId = store.state.selectedCompareImageId
+        const next = current.filter(entry => entry.imageId !== imageId)
+        store.set('compare', next)
+
+        if (selectedId !== imageId) {
+            return
+        }
+
+        const visible = next.filter(entry => !entry.hidden)
+        const oldVisible = current.filter(entry => !entry.hidden)
+        const visibleIndex = oldVisible.findIndex(entry => entry.imageId === imageId)
+        const replacement = visible[visibleIndex] ?? visible[visibleIndex - 1]
+        store.set('selectedCompareImageId', replacement?.imageId ?? null)
+    },
+
+    toggleCompareHidden(imageId: string) {
+        const current = store.state.compare
+        const entry = current.find(item => item.imageId === imageId)
+        if (!entry) {
+            return
+        }
+
+        if (!entry.hidden) {
+            const visible = current.filter(item => !item.hidden)
+            const visibleIndex = visible.findIndex(item => item.imageId === imageId)
+            const remaining = visible.filter(item => item.imageId !== imageId)
+            const replacement = remaining[visibleIndex] ?? remaining[visibleIndex - 1]
+
+            store.set('compare', current.map(item => item.imageId === imageId
+                ? { ...item, hidden: true }
+                : item))
+
+            if (store.state.selectedCompareImageId === imageId) {
+                store.set('selectedCompareImageId', replacement?.imageId ?? null)
+            }
+            return
+        }
+
+        store.set('compare', current.map(item => item.imageId === imageId
+            ? { ...item, hidden: false }
+            : item))
+
+        if (!store.state.selectedCompareImageId) {
+            store.set('selectedCompareImageId', imageId)
+        }
+    },
+
+    showAllCompare() {
+        store.set('compare', current => current.map(entry => ({ ...entry, hidden: false })))
+
+        if (!store.state.selectedCompareImageId) {
+            store.set('selectedCompareImageId', store.state.compare[0]?.imageId ?? null)
+        }
+    },
+
+    clearCompare() {
+        store.set('compare', [])
+        store.set('selectedCompareImageId', null)
+    },
+
     visibleCompare() {
         return store.state.compare.filter(entry => !entry.hidden)
     },
