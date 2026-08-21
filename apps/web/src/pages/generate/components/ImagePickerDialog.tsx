@@ -3,6 +3,7 @@ import { createEffect, createSignal, For, onCleanup, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { Dialog } from '#/components/base/Dialog'
+import { PanelContent } from '#/components/base/Panel'
 import { Text } from '#/components/field'
 import { useImageListQuery } from '#/features/image/image.query'
 import { cn } from '#/lib/cn'
@@ -120,7 +121,10 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
             open={props.open}
             title={props.mode === 'multiple' ? 'Add images to compare' : 'Choose reference image'}
             onOpenChange={props.onOpenChange}
-            classes={{ content: 'w-[960px] max-w-full', body: 'min-h-0' }}
+            classes={{
+                content: 'h-[100vh] w-[960px] max-w-full',
+                body: 'flex min-h-0 flex-col overflow-hidden',
+            }}
             footer={(
                 <div class='flex w-full items-center gap-3'>
                     <Show
@@ -158,22 +162,27 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                 </div>
             )}
         >
-            <div class='flex min-h-0 flex-col gap-3'>
-                <Text
-                    label='Search'
-                    value={keyword()}
-                    placeholder='task name or task ID...'
-                    icon={(
-                        <Search
-                            size={14}
-                            strokeWidth={1.7}
-                            aria-hidden='true'
-                        />
-                    )}
-                    classes={{ label: 'sr-only' }}
-                    onInput={setKeyword}
-                />
+            <Text
+                label='Search'
+                value={keyword()}
+                placeholder='task name or task ID...'
+                icon={(
+                    <Search
+                        size={14}
+                        strokeWidth={1.7}
+                        aria-hidden='true'
+                    />
+                )}
+                classes={{ root: 'shrink-0', label: 'sr-only' }}
+                onInput={setKeyword}
+            />
 
+            <PanelContent
+                classes={{
+                    root: '-mx-4 mt-3 flex-auto',
+                    content: 'gap-3 p-4 pt-0',
+                }}
+            >
                 <Show
                     when={items().length > 0}
                     fallback={(
@@ -254,7 +263,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                         </Button>
                     </Show>
                 </Show>
-            </div>
+            </PanelContent>
         </Dialog>
     )
 }

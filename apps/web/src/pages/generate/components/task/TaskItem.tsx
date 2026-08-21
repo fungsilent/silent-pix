@@ -61,7 +61,7 @@ export function TaskItem(props: TaskItemProps) {
             aria-pressed={props.selected}
             classes={{
                 root: cn(
-                    'w-full justify-start gap-2.5 rounded-lg text-left p-1',
+                    'w-fit gap-2.5 rounded-lg text-left p-1.5',
                     props.selected
                         ? 'border-accent/60 bg-active shadow-[0_0_0_1px_rgba(37,99,235,0.14),0_1px_12px_rgba(37,99,235,0.12)]'
                         : 'hover:bg-elevated',
@@ -71,7 +71,7 @@ export function TaskItem(props: TaskItemProps) {
         >
             <div
                 class={cn(
-                    'size-14 shrink-0 overflow-hidden rounded-md border',
+                    'size-18 shrink-0 overflow-hidden rounded-md border',
                     props.task.thumbnail
                         ? 'border-line-subtle bg-elevated'
                         : placeholder().class,
@@ -83,7 +83,6 @@ export function TaskItem(props: TaskItemProps) {
                             <img
                                 class='h-full w-full object-cover'
                                 src={props.task.thumbnail}
-                                alt=''
                             />
                         )
                         : <TaskThumbnailPlaceholder meta={placeholder()} />

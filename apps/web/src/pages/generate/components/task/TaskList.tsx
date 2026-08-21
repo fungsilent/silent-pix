@@ -36,7 +36,7 @@ export function TaskList() {
                     />
                     <PanelContent
                         classes={{
-                            content: 'gap-1 px-2 pt-1 pb-3',
+                            content: 'items-center gap-1',
                         }}
                     >
                         <Show when={taskFeedQuery.isLoading}>
