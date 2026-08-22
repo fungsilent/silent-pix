@@ -46,24 +46,25 @@ export function PromptPanel() {
         positive: undefined,
     })
 
-    createEffect(() => {
-        const _taskId = store.state.taskId
-
-        setPositive({
-            visible: true,
-        })
-        setNegative({
-            visible: true,
-        })
-        setSelected({
-            negative: store.state.values.negative[0]?.id,
-            positive: store.state.values.positive[0]?.id,
-        })
-        setDragged({
-            negative: undefined,
-            positive: undefined,
-        })
-    })
+    createEffect(on(
+        () => store.state.taskId,
+        () => {
+            setPositive({
+                visible: true,
+            })
+            setNegative({
+                visible: true,
+            })
+            setSelected({
+                negative: store.state.values.negative[0]?.id,
+                positive: store.state.values.positive[0]?.id,
+            })
+            setDragged({
+                negative: undefined,
+                positive: undefined,
+            })
+        },
+    ))
 
     /*
      * 只有「剛按下 Generate」才自動展開。常駐來源（選項載入失敗）會讓計數在
@@ -118,6 +119,7 @@ export function PromptPanel() {
     const syncTagValues = (kind: PromptKind, tagValues: string[]) => {
         const current = tags(kind)
         const taken = new Set<number>()
+        let addedTagId: string | undefined
 
         const byLabel = tagValues.map(value => {
             const index = current.findIndex((tag, tagIndex) => (
@@ -144,14 +146,21 @@ export function PromptPanel() {
                 return { ...renamed, label }
             }
 
+            addedTagId = `${kind}-${crypto.randomUUID()}`
             return {
-                id: `${kind}-${crypto.randomUUID()}`,
+                id: addedTagId,
                 label,
                 text: '',
             }
         })
 
         updateTags(kind, nextTags)
+        if (addedTagId) {
+            setSelected(value => ({
+                ...value,
+                [kind]: addedTagId,
+            }))
+        }
     }
 
     const updateSelectedText = (kind: PromptKind, text: string) => {
@@ -243,7 +252,6 @@ export function PromptPanel() {
                     selectedId={selectedTag('positive')?.id}
                     text={selectedTag('positive')?.text ?? ''}
                     draggedId={dragged().positive}
-                    onAddTag={() => syncTagValues('positive', [...tags('positive').map(tag => tag.label), 'New Tag'])}
                     onDragEnd={() => setDragged(value => ({ ...value, positive: undefined }))}
                     onDragStart={tagId => setDragged(value => ({ ...value, positive: tagId }))}
                     onDrop={tagId => moveTag('positive', tagId)}
@@ -259,7 +267,6 @@ export function PromptPanel() {
                     selectedId={selectedTag('negative')?.id}
                     text={selectedTag('negative')?.text ?? ''}
                     draggedId={dragged().negative}
-                    onAddTag={() => syncTagValues('negative', [...tags('negative').map(tag => tag.label), 'New Tag'])}
                     onDragEnd={() => setDragged(value => ({ ...value, negative: undefined }))}
                     onDragStart={tagId => setDragged(value => ({ ...value, negative: tagId }))}
                     onDrop={tagId => moveTag('negative', tagId)}
@@ -313,7 +320,6 @@ type PromptGroupProps = {
     text: string
     textAreaMaxHeight: string
     visible: boolean
-    onAddTag: () => void
     onDragEnd: () => void
     onDragStart: (tagId: string) => void
     onDrop: (tagId: string) => void
