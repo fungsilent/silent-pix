@@ -24,6 +24,42 @@ description: Write an implementation plan document for this repo — where it go
 
 Rough calibration: a feature touching ~20 files lands around 400 lines, of which more than half is code, tables, and diagrams.
 
+## Phased delivery and review gates
+
+Every implementation plan must be split into the smallest independently reviewable **PHASEs**. A trivial change may have one PHASE; do not invent ceremony where there is no meaningful boundary.
+
+Each PHASE must leave the workspace in a coherent, testable state and include all four items:
+
+| Item | Required content |
+|---|---|
+| Scope | Exact files/boundaries changed in this PHASE |
+| Automated validation | Commands the agent runs before handoff |
+| User review | Observable manual checks the user can perform now |
+| Gate | `STOP → wait for PHASE N confirmed` |
+
+Use this execution contract:
+
+```text
+PHASE N implementation
+    ↓
+agent runs phase-scoped tests + repository checks
+    ↓
+agent reports changed files, results, known limits, and user review steps
+    ↓
+STOP
+    ├─ user reports issue  → remain in PHASE N and fix it
+    └─ user confirms       → PHASE N+1 may begin
+```
+
+> Never implement, scaffold, or make preparatory edits for PHASE N+1 before the user explicitly confirms PHASE N.
+
+- A failing review stays in the current PHASE until corrected and confirmed.
+- A requested scope change updates the plan before work continues.
+- A PHASE boundary must not knowingly leave typecheck, lint, build, migrations, or runtime contracts broken; name any check that is intentionally deferred and the PHASE that owns it.
+- Put headless contracts/engines before UI integration when this gives the user a meaningful test boundary.
+- Put destructive actions in their own PHASE with backup and recovery commands.
+- Do not equate an agent's automated tests with user confirmation.
+
 ## Sections
 
 Use these in this order. Drop any that would be empty; do not invent extras.
@@ -67,9 +103,11 @@ One per boundary the change crosses — typically 資料模型 / 後端 / Contra
 
 Everything the plan cannot execute: work outside the repo, external tools, and decisions still owed. State each as an action, and say exactly what you need back. Do not bury these in the body.
 
+For phased plans, include the exact confirmation expected after every user review, such as `PHASE 2 confirmed`, and state that reported problems remain in that PHASE.
+
 ### `## 執行順序`
 
-A numbered list inside a fenced block, one line per step, naming files not prose. Mark steps that **must land in the same commit** and steps that are **spikes before committing to a contract**.
+Organize execution under `### PHASE N — Outcome` headings. Within each PHASE, use a numbered list inside a fenced block, one line per step, naming files not prose. Mark steps that **must land in the same commit** and steps that are **spikes before committing to a contract**.
 
 ```
 4.  packages/shared  api/image.ts、api/task.ts、event/task.ts     ← 與 7 同一個 commit
@@ -77,6 +115,8 @@ A numbered list inside a fenced block, one line per step, naming files not prose
 ```
 
 Anything destructive (reset, migration, deleting data) gets its own paragraph here with the backup command spelled out.
+
+End every PHASE with its automated validation, user review checklist, and explicit STOP gate. Do not place all review work only in the final PHASE.
 
 ### `## 驗證`
 
@@ -93,3 +133,5 @@ A table: `# | 風險 | 處置`. Every unverified assumption goes here, including
 - No section is pure prose.
 - Decisions the user made in conversation are all in 已定案.
 - 你要做的事 is repeated in the chat reply — that is the part they act on today.
+- Every PHASE has scope, automated validation, user review, and a STOP gate.
+- No PHASE contains preparatory work owned by a later unconfirmed PHASE.
