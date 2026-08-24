@@ -1,4 +1,4 @@
-import { createGroupId, groupEnd, groupIndexAt } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
+import { createGroupId, groupEnd, groupIndexAt, isTokenDisabled, tokenAt } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
 import { promptMeta, promptMetaEffect } from '#/pages/generate/components/workspace/generate/prompt/prompt.state'
 
 import type { EditorState } from '@codemirror/state'
@@ -158,4 +158,41 @@ export function removeGroupBoundary(view: EditorView, groupId: string): boolean 
         groups,
         disabledTokens: meta.disabledTokens,
     }), 'prompt.removeGroupBoundary')
+}
+
+/* MARK: toggle token */
+
+/*
+ * 只改 metadata，document 完全不動 —— 所以 Prompt 文字、selection 與游標
+ * 都不受影響，Undo 也只回復這一個狀態。
+ */
+export function toggleTokenAt(view: EditorView, position: number): boolean {
+    const meta = promptMeta(view.state)
+    const hit = tokenAt(meta, view.state.doc, position)
+    if (!hit) return false
+
+    const { token, group } = hit
+    const disabled = isTokenDisabled(meta, token)
+
+    const disabledTokens = disabled
+        ? meta.disabledTokens.filter(range => (
+            range.from !== token.contentFrom || range.to !== token.contentTo
+        ))
+        : [
+            ...meta.disabledTokens,
+            {
+                from: token.contentFrom,
+                to: token.contentTo,
+                value: { id: `token-${crypto.randomUUID()}`, groupId: group.id },
+            },
+        ].sort((a, b) => a.from - b.from)
+
+    return dispatchMeta(view, { groups: meta.groups, disabledTokens }, 'prompt.toggleToken')
+}
+
+/* Alt-click 在部分 Linux window manager 會被系統攔截，這是等價的鍵盤入口 */
+export function toggleTokenAtCursor(view: EditorView): boolean {
+    const selection = view.state.selection.main
+    if (!selection.empty) return false
+    return toggleTokenAt(view, selection.head)
 }

@@ -200,6 +200,34 @@ export const promptTheme = EditorView.theme({
      * 方磚邊長 10√2 ≈ 14.1421px：-45° 下 gradient line 長度剛好 20px，
      * 正好是兩個 10px 週期，左右上下都無縫。
      */
+    /*
+     * Disabled Token：降兩階灰 + 1px 實線底線，線在字下方 4px 不穿過字身。
+     * 無背景色。
+     */
+    '.cm-prompt-token-off': {
+        color: 'var(--sp-fg-muted)',
+        textDecoration: 'underline solid 1px',
+        textDecorationColor: 'currentColor',
+        textUnderlineOffset: '4px',
+    },
+    /*
+     * Group 關掉時 token 保留底線，但文字色跟隨整組 —— 兩個狀態靠形狀分開，
+     * 不需要互相遮蔽，使用者在 Group 關閉時仍看得見哪些 token 原本就關著。
+     */
+    '.cm-line.cm-prompt-group-off .cm-prompt-token-off': {
+        color: 'inherit',
+    },
+
+    /* 按住 Alt 才進入 token 模式：游標變手指，hover 的 token 才有底色 */
+    '&.cm-prompt-alt .cm-content': {
+        cursor: 'pointer',
+    },
+    '&.cm-prompt-alt .cm-prompt-token:hover': {
+        borderRadius: '3px',
+        backgroundColor: 'color-mix(in srgb, var(--sp-accent) 34%, transparent)',
+        color: 'var(--sp-fg)',
+    },
+
     '.cm-prompt-hatch': {
         backgroundImage: 'repeating-linear-gradient(-45deg, rgb(255 255 255 / 1.5%) 0 7px, rgb(255 255 255 / 6.5%) 7px 10px)',
         backgroundSize: '14.1421px 14.1421px',

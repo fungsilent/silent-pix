@@ -7,6 +7,7 @@ import { serializePromptDocument } from '#/pages/generate/components/workspace/g
 import { promptGutters } from '#/pages/generate/components/workspace/generate/prompt/prompt.gutter'
 import { initialPromptMeta, promptMeta, promptMetaEffect, promptStateExtensions } from '#/pages/generate/components/workspace/generate/prompt/prompt.state'
 import { promptTheme } from '#/pages/generate/components/workspace/generate/prompt/prompt.theme'
+import { promptTokens } from '#/pages/generate/components/workspace/generate/prompt/prompt.token'
 
 import type { PromptDocument } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
 import type { JSX } from 'solid-js'
@@ -46,6 +47,7 @@ export function PromptEditor(props: PromptEditorProps) {
                 doc: props.initialDocument.text,
                 extensions: [
                     promptGutters(),
+                    promptTokens(),
                     EditorView.lineWrapping,
                     history(),
                     keymap.of([...defaultKeymap, ...historyKeymap]),

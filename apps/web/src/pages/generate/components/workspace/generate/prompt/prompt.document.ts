@@ -111,6 +111,70 @@ export function groupIndexAt(meta: PromptEditorMeta, position: number): number {
     return found
 }
 
+export type TokenHit = {
+    token: ParsedToken
+    group: PromptEditorGroup
+    groupIndex: number
+}
+
+/*
+ * 命中判定用 raw range（含前後空白、不含逗號）而不是 content range：
+ * segment 彼此不重疊，所以「點在這一段的任何地方」都能唯一對應到一個 token，
+ * 點在 tag 之間的空白也不會落空。
+ *
+ * 但 raw range 會從 segment 起點算起，而換行不是 delimiter，所以下一行第一個
+ * token 的 raw 其實是從上一行行尾的 `\n` 開始的。只靠 raw 判定的話，游標停在
+ * 上一行行尾會命中下一行的 token。因此再要求 content 與游標所在行有交集：
+ * 真的橫跨兩行的 token 兩行都命中，只是「借」到換行字元的則不會。
+ */
+export function tokenAt(meta: PromptEditorMeta, text: Text, position: number): TokenHit | undefined {
+    const groupIndex = groupIndexAt(meta, position)
+    const group = meta.groups[groupIndex]
+    if (!group) return undefined
+
+    const from = group.start
+    const to = groupEnd(meta, groupIndex, text.length)
+    if (position < from || position > to) return undefined
+
+    const line = text.lineAt(position)
+    const token = parseTokens(text.sliceString(from, to), from).find(item => (
+        position >= item.rawFrom
+        && position <= item.rawTo
+        && item.contentTo >= line.from
+        && item.contentFrom <= line.to
+    ))
+
+    return token ? { token, group, groupIndex } : undefined
+}
+
+export function isTokenDisabled(meta: PromptEditorMeta, token: ParsedToken): boolean {
+    return meta.disabledTokens.some(range => (
+        range.from === token.contentFrom && range.to === token.contentTo
+    ))
+}
+
+/* 目前 viewport 範圍內所有非空 token，供 decoration 使用 */
+export function tokensInRange(
+    meta: PromptEditorMeta,
+    text: Text,
+    from: number,
+    to: number,
+): ParsedToken[] {
+    const tokens: ParsedToken[] = []
+
+    meta.groups.forEach((group, index) => {
+        const groupFrom = group.start
+        const groupTo = groupEnd(meta, index, text.length)
+        if (groupTo < from || groupFrom > to) return
+
+        parseTokens(text.sliceString(groupFrom, groupTo), groupFrom).forEach(token => {
+            if (token.contentTo >= from && token.contentFrom <= to) tokens.push(token)
+        })
+    })
+
+    return tokens
+}
+
 /* MARK: persistent ↔ transient */
 
 export function createGroupId(): string {
