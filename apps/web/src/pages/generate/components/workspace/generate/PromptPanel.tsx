@@ -184,9 +184,9 @@ function PromptSection(props: PromptSectionProps) {
             <span class='pb-1.5 text-xs leading-none text-fg-muted'>
                 {promptLabel[props.kind]}
             </span>
-            <div class='overflow-hidden rounded-md border border-transparent bg-canvas focus-within:border-accent focus-within:ring-3 focus-within:ring-accent/40'>
+            <div class='overflow-hidden rounded-md border border-line-subtle bg-canvas'>
                 <PromptEditor
-                    class='scrollbar-thin block w-full'
+                    class='block w-full'
                     style={{ height: props.height }}
                     documentKey={props.documentKey}
                     initialDocument={props.initialDocument}

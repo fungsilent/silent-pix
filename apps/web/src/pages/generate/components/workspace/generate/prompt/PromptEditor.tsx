@@ -4,6 +4,7 @@ import { EditorView, keymap, lineNumbers } from '@codemirror/view'
 import { createEffect, on, onCleanup } from 'solid-js'
 
 import { serializePromptDocument } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
+import { promptGroupGutter } from '#/pages/generate/components/workspace/generate/prompt/prompt.gutter'
 import { initialPromptMeta, promptMeta, promptMetaEffect, promptStateExtensions } from '#/pages/generate/components/workspace/generate/prompt/prompt.state'
 import { promptTheme } from '#/pages/generate/components/workspace/generate/prompt/prompt.theme'
 
@@ -45,6 +46,8 @@ export function PromptEditor(props: PromptEditorProps) {
                 doc: props.initialDocument.text,
                 extensions: [
                     lineNumbers(),
+                    promptGroupGutter(),
+                    EditorView.lineWrapping,
                     history(),
                     keymap.of([...defaultKeymap, ...historyKeymap]),
                     promptTheme,
@@ -64,6 +67,8 @@ export function PromptEditor(props: PromptEditorProps) {
             })
 
             view = new EditorView({ state, parent: host })
+            /* 真正在捲的是 .cm-scroller，沿用 app 既有的原生 scrollbar 樣式 */
+            view.scrollDOM.classList.add('scrollbar-thin')
         },
     ))
 
