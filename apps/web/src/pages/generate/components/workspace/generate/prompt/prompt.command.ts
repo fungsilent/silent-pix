@@ -1,9 +1,11 @@
-import { createGroupId, groupEnd, groupIndexAt, isTokenDisabled, tokenAt } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
+import { ChangeSet } from '@codemirror/state'
+
+import { createGroupId, groupEnd, groupIndexAt, isTokenDisabled, parseTokens, tokenAt } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
 import { promptMeta, promptMetaEffect } from '#/pages/generate/components/workspace/generate/prompt/prompt.state'
 
 import type { EditorState, Text } from '@codemirror/state'
 import type { EditorView } from '@codemirror/view'
-import type { DisabledTokenRange, DisabledTokenValue, PromptEditorGroup, PromptEditorMeta } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
+import type { DisabledTokenRange, DisabledTokenValue, ParsedToken, PromptEditorGroup, PromptEditorMeta } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
 
 export const defaultGroupName = 'Group'
 
@@ -315,6 +317,167 @@ export function moveGroup(view: EditorView, groupId: string, targetIndex: number
         effects: promptMetaEffect.of(spec.meta),
         selection: { anchor: spec.selection },
         userEvent: 'prompt.moveGroup',
+        scrollIntoView: true,
+    })
+
+    return true
+}
+
+/* MARK: move token */
+
+export type TokenDropTarget = {
+    groupId: string
+    /* 插在該組第 beforeIndex 個 token 之前；等於 token 數量表示接到該組結尾 */
+    beforeIndex: number
+}
+
+export function groupTokens(meta: PromptEditorMeta, doc: Text, groupIndex: number) {
+    const group = meta.groups[groupIndex]
+    if (!group) return []
+    const from = group.start
+    return parseTokens(doc.sliceString(from, groupEnd(meta, groupIndex, doc.length)), from)
+}
+
+/* 含換行的 token 不給拖：搬走它會少一行，group 的行覆蓋就會跟著變 */
+export function isTokenDraggable(doc: Text, token: ParsedToken): boolean {
+    return !doc.sliceString(token.contentFrom, token.contentTo).includes('\n')
+}
+
+/*
+ * 規則 A · 刪除：token 內容 + 同一行上的前導空白 + 後面那個逗號；
+ * 沒有後面的就吃前面那個。刻意不跨行掃描，否則會把換行也吃掉。
+ */
+function removalRange(doc: Text, token: ParsedToken) {
+    const line = doc.lineAt(token.contentFrom)
+    let from = token.contentFrom
+    while (from > line.from && /[ \t]/.test(doc.sliceString(from - 1, from))) from -= 1
+
+    if (doc.sliceString(token.rawTo, token.rawTo + 1) === ',') {
+        let to = token.rawTo + 1
+        /*
+         * 前面沒有空白可吸收（例如整行的第一個 token），就改吸收逗號後面的空白，
+         * 否則下一個 token 的前導空白會變成整行的縮排。
+         */
+        if (from === line.from) {
+            while (to < line.to && /[ \t]/.test(doc.sliceString(to, to + 1))) to += 1
+        }
+        return { from, to }
+    }
+
+    if (from > 0 && doc.sliceString(from - 1, from) === ',') {
+        return { from: from - 1, to: token.rawTo }
+    }
+
+    return { from, to: token.rawTo }
+}
+
+/* 規則 A · 插入：一律補成完整的 "<content>," 形式，不留雙空白或雙逗號 */
+function insertion(doc: Text, meta: PromptEditorMeta, target: TokenDropTarget, content: string) {
+    const groupIndex = meta.groups.findIndex(group => group.id === target.groupId)
+    if (groupIndex < 0) return undefined
+
+    const tokens = groupTokens(meta, doc, groupIndex)
+    const before = tokens[target.beforeIndex]
+
+    if (before) {
+        return { at: before.contentFrom, text: `${content}, `, contentOffset: 0 }
+    }
+
+    const last = tokens[tokens.length - 1]
+    if (!last) {
+        return { at: meta.groups[groupIndex]!.start, text: `${content},`, contentOffset: 0 }
+    }
+
+    if (doc.sliceString(last.rawTo, last.rawTo + 1) === ',') {
+        return { at: last.rawTo + 1, text: ` ${content},`, contentOffset: 1 }
+    }
+
+    return { at: last.rawTo, text: `, ${content}`, contentOffset: 2 }
+}
+
+export type TokenMoveSpec = {
+    changes: { from: number, to?: number, insert?: string }[]
+    meta: PromptEditorMeta
+    selection: { from: number, to: number }
+}
+
+export function tokenMoveSpec(
+    state: EditorState,
+    sourcePosition: number,
+    target: TokenDropTarget,
+): TokenMoveSpec | undefined {
+    const meta = promptMeta(state)
+    const doc = state.doc
+
+    const hit = tokenAt(meta, doc, sourcePosition)
+    if (!hit || !isTokenDraggable(doc, hit.token)) return undefined
+
+    const content = doc.sliceString(hit.token.contentFrom, hit.token.contentTo)
+    const removal = removalRange(doc, hit.token)
+    const insert = insertion(doc, meta, target, content)
+    if (!insert) return undefined
+
+    /* 放回原處：不動 document，也不產生 history event */
+    if (insert.at >= removal.from && insert.at <= removal.to) return undefined
+    if (target.groupId === hit.group.id
+        && (target.beforeIndex === hit.token.index || target.beforeIndex === hit.token.index + 1)) {
+        return undefined
+    }
+
+    const wasDisabled = isTokenDisabled(meta, hit.token)
+
+    const changes = insert.at <= removal.from
+        ? [{ from: insert.at, insert: insert.text }, { from: removal.from, to: removal.to }]
+        : [{ from: removal.from, to: removal.to }, { from: insert.at, insert: insert.text }]
+
+    const changeSet = ChangeSet.of(changes, doc.length)
+    const insertedStart = changeSet.mapPos(insert.at, -1) + insert.contentOffset
+    const insertedEnd = insertedStart + content.length
+
+    /*
+     * 行數不變（規則 B、C 保證），所以 group 的 start 只要映射過去就仍在行首。
+     * 其他 disabled anchor 一併映射；被搬動的那個直接改綁新位置與新 group。
+     */
+    const groups = meta.groups.map((group, index) => ({
+        ...group,
+        start: index === 0 ? 0 : changeSet.mapPos(group.start, -1),
+    }))
+
+    const disabledTokens = meta.disabledTokens
+        .filter(range => range.from !== hit.token.contentFrom || range.to !== hit.token.contentTo)
+        .map(range => ({
+            ...range,
+            from: changeSet.mapPos(range.from, -1),
+            to: changeSet.mapPos(range.to, 1),
+        }))
+        .filter(range => range.from < range.to)
+
+    if (wasDisabled) {
+        disabledTokens.push({
+            from: insertedStart,
+            to: insertedEnd,
+            value: { id: `token-${crypto.randomUUID()}`, groupId: target.groupId },
+        })
+    }
+
+    disabledTokens.sort((a, b) => a.from - b.from)
+
+    return {
+        changes,
+        meta: { groups, disabledTokens },
+        selection: { from: insertedStart, to: insertedEnd },
+    }
+}
+
+export function moveToken(view: EditorView, sourcePosition: number, target: TokenDropTarget): boolean {
+    const spec = tokenMoveSpec(view.state, sourcePosition, target)
+    if (!spec) return false
+
+    view.dispatch({
+        changes: spec.changes,
+        effects: promptMetaEffect.of(spec.meta),
+        selection: { anchor: spec.selection.from, head: spec.selection.to },
+        userEvent: 'prompt.moveToken',
         scrollIntoView: true,
     })
 

@@ -228,3 +228,18 @@ body {
 .cm-prompt-drag-ghost .cm-prompt-group-dot[data-enabled='false'] {
     background: var(--sp-fg-muted);
 }
+
+/* Token drag ghost，同樣掛在 body 上 */
+.cm-prompt-token-ghost {
+    position: fixed;
+    z-index: 60;
+    padding: 1px 7px;
+    border: 1px solid color-mix(in srgb, var(--sp-accent-hover) 65%, transparent);
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--sp-surface) 94%, transparent);
+    box-shadow: 0 6px 16px rgb(0 0 0 / 62%);
+    color: var(--sp-fg);
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    font-size: 11px;
+    pointer-events: none;
+}

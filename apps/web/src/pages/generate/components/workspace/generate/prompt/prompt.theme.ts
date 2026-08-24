@@ -185,6 +185,21 @@ export const promptTheme = EditorView.theme({
         boxShadow: '0 0 8px color-mix(in srgb, var(--sp-accent) 70%, transparent)',
     },
 
+    /*
+     * Token 落點是 2px 直立 caret，只佔一個字元寬 —— 跟 group move 的全寬橫線
+     * 刻意不同軸，兩種拖曳同時存在也不會認錯。
+     */
+    '.cm-prompt-token-caret': {
+        width: '2px',
+        backgroundColor: 'var(--sp-accent-hover)',
+        boxShadow: '0 0 6px color-mix(in srgb, var(--sp-accent) 70%, transparent)',
+    },
+    /* 拖到 group name cell = 接到該組結尾，目標比逗號縫大得多 */
+    '&.cm-prompt-drop-group .cm-prompt-group-cell[data-group-id]:hover': {
+        backgroundColor: 'color-mix(in srgb, var(--sp-accent) 20%, transparent)',
+        boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--sp-accent-hover) 55%, transparent)',
+    },
+
     /* 拖曳預覽：藍色選取只在 line-number gutter，text area 只給極低對比 wash */
     '.cm-lineNumbers .cm-gutterElement.cm-prompt-line-pending': {
         color: 'var(--sp-accent-fg)',
