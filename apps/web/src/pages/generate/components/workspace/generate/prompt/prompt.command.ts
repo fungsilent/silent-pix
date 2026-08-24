@@ -1,9 +1,9 @@
 import { createGroupId, groupEnd, groupIndexAt, isTokenDisabled, tokenAt } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
 import { promptMeta, promptMetaEffect } from '#/pages/generate/components/workspace/generate/prompt/prompt.state'
 
-import type { EditorState } from '@codemirror/state'
+import type { EditorState, Text } from '@codemirror/state'
 import type { EditorView } from '@codemirror/view'
-import type { PromptEditorGroup, PromptEditorMeta } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
+import type { DisabledTokenRange, DisabledTokenValue, PromptEditorGroup, PromptEditorMeta } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
 
 export const defaultGroupName = 'Group'
 
@@ -195,4 +195,128 @@ export function toggleTokenAtCursor(view: EditorView): boolean {
     const selection = view.state.selection.main
     if (!selection.empty) return false
     return toggleTokenAt(view, selection.head)
+}
+
+/* MARK: move group */
+
+type GroupBlock = {
+    group: PromptEditorGroup
+    /* 該組的文字，不含結尾換行 —— 首末組的換行歸屬不同，統一在這裡剝掉 */
+    body: string
+    /* 每個 disabled token 相對於該組起點的位移 */
+    tokens: { fromOffset: number, toOffset: number, value: DisabledTokenValue }[]
+}
+
+function groupBlocks(meta: PromptEditorMeta, doc: Text): GroupBlock[] {
+    return meta.groups.map((group, index) => {
+        const from = group.start
+        const to = groupEnd(meta, index, doc.length)
+        const slice = doc.sliceString(from, to)
+
+        return {
+            group,
+            body: slice.endsWith('\n') ? slice.slice(0, -1) : slice,
+            tokens: meta.disabledTokens
+                .filter(range => range.from >= from && range.to <= to)
+                .map(range => ({
+                    fromOffset: range.from - from,
+                    toOffset: range.to - from,
+                    value: range.value,
+                })),
+        }
+    })
+}
+
+/*
+ * 把整個 group 的完整行 block 搬到 targetIndex 之前（等於 groups.length 表示搬到最後）。
+ *
+ * 換行的歸屬是這裡唯一的陷阱：非末組的 block 自帶結尾換行，末組沒有，
+ * 所以刪除末組時要連前面那個換行一起吃掉，插入到文件末端時則要先補一個換行。
+ * body 一律不含換行，兩端各自補齊，first/middle/last/single 就走同一條路。
+ */
+export type GroupMoveSpec = {
+    changes: { from: number, to?: number, insert?: string }[]
+    meta: PromptEditorMeta
+    selection: number
+}
+
+export function groupMoveSpec(state: EditorState, groupId: string, targetIndex: number): GroupMoveSpec | undefined {
+    const meta = promptMeta(state)
+    const doc = state.doc
+    if (meta.groups.length < 2) return undefined
+
+    const index = meta.groups.findIndex(group => group.id === groupId)
+    if (index < 0) return undefined
+    /* 放回原位：不動 document，也不產生 history event */
+    if (targetIndex === index || targetIndex === index + 1) return undefined
+
+    const blocks = groupBlocks(meta, doc)
+    const moving = blocks[index]
+    if (!moving) return undefined
+
+    const from = moving.group.start
+    const to = groupEnd(meta, index, doc.length)
+    const isLast = index === meta.groups.length - 1
+
+    const deleteFrom = isLast ? Math.max(from - 1, 0) : from
+    const deleteTo = to
+
+    const appending = targetIndex >= meta.groups.length
+    const at = appending ? doc.length : (meta.groups[targetIndex]?.start ?? doc.length)
+    const insert = appending ? `\n${moving.body}` : `${moving.body}\n`
+
+    /* CodeMirror 要求 change 依位置排序且不重疊 */
+    const changes = at <= deleteFrom
+        ? [{ from: at, insert }, { from: deleteFrom, to: deleteTo }]
+        : [{ from: deleteFrom, to: deleteTo }, { from: at, insert }]
+
+    /*
+     * metadata 自己算，不交給 transactionExtender —— 它只會把舊 start 映射過去，
+     * 搬動後的順序它推不出來。
+     */
+    const ordered = blocks.filter((_, blockIndex) => blockIndex !== index)
+    ordered.splice(targetIndex > index ? targetIndex - 1 : targetIndex, 0, moving)
+
+    const groups: PromptEditorGroup[] = []
+    const disabledTokens: DisabledTokenRange[] = []
+    let cursor = 0
+    let movedStart = 0
+
+    ordered.forEach(block => {
+        groups.push({ ...block.group, start: cursor })
+        if (block === moving) movedStart = cursor
+
+        block.tokens.forEach(token => {
+            disabledTokens.push({
+                from: cursor + token.fromOffset,
+                to: cursor + token.toOffset,
+                value: token.value,
+            })
+        })
+
+        cursor += block.body.length + 1
+    })
+
+    disabledTokens.sort((a, b) => a.from - b.from)
+
+    return {
+        changes,
+        meta: { groups, disabledTokens },
+        selection: movedStart,
+    }
+}
+
+export function moveGroup(view: EditorView, groupId: string, targetIndex: number): boolean {
+    const spec = groupMoveSpec(view.state, groupId, targetIndex)
+    if (!spec) return false
+
+    view.dispatch({
+        changes: spec.changes,
+        effects: promptMetaEffect.of(spec.meta),
+        selection: { anchor: spec.selection },
+        userEvent: 'prompt.moveGroup',
+        scrollIntoView: true,
+    })
+
+    return true
 }

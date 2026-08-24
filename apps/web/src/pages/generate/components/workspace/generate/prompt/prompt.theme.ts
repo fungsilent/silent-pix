@@ -174,6 +174,17 @@ export const promptTheme = EditorView.theme({
         font: '11px/1 inherit',
     },
 
+    /* Group Move：cell 本身是 drag handle */
+    '.cm-prompt-group-cell[data-renaming="false"]:hover': {
+        cursor: 'grab',
+    },
+    /* 落點是全寬橫線，跟 token 拖曳的直立 caret 刻意不同軸 */
+    '.cm-prompt-drop-line': {
+        height: '2px',
+        backgroundColor: 'var(--sp-accent-hover)',
+        boxShadow: '0 0 8px color-mix(in srgb, var(--sp-accent) 70%, transparent)',
+    },
+
     /* 拖曳預覽：藍色選取只在 line-number gutter，text area 只給極低對比 wash */
     '.cm-lineNumbers .cm-gutterElement.cm-prompt-line-pending': {
         color: 'var(--sp-accent-fg)',
