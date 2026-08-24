@@ -13,9 +13,20 @@ export const promptLineHeight = 24
 
 export const promptTheme = EditorView.theme({
     '&': {
+        /*
+         * 未拖曳前高度由內容決定（height: 100% 在 auto 高度的容器裡會算成 auto），
+         * 使用者拉過之後容器有了明確高度，editor 就填滿它。
+         * 寫死 height 會讓每個 editor 直接吃滿上限，把下方的圖片區壓掉。
+         */
         height: '100%',
+        minHeight: '80px',
+        maxHeight: 'var(--prompt-max-height, none)',
         color: 'var(--sp-fg)',
-        backgroundColor: 'var(--sp-canvas)',
+        /*
+         * 文字區比其他輸入框（--sp-active）暗一階：Prompt 是一大塊區域，
+         * 用輸入框的亮度會太淺。gutter 再降到 --sp-surface，兩區才分得開。
+         */
+        backgroundColor: 'var(--sp-elevated)',
         fontSize: '12px',
     },
     '&.cm-focused': {
@@ -28,7 +39,6 @@ export const promptTheme = EditorView.theme({
         lineHeight: `${promptLineHeight}px`,
     },
     '.cm-content': {
-        minHeight: '100%',
         padding: '6px 10px',
         caretColor: 'var(--sp-fg)',
     },
@@ -49,7 +59,7 @@ export const promptTheme = EditorView.theme({
     '.cm-gutters': {
         border: 'none',
         color: 'var(--sp-fg-muted)',
-        backgroundColor: 'var(--sp-canvas)',
+        backgroundColor: 'var(--sp-surface)',
     },
     '.cm-gutter.cm-lineNumbers': {
         boxSizing: 'border-box',

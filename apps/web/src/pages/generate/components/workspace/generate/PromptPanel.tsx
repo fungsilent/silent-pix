@@ -69,7 +69,7 @@ export function PromptPanel() {
     }
 
     const openCount = () => (positiveVisible() ? 1 : 0) + (negativeVisible() ? 1 : 0)
-    const editorHeight = () => `max(96px, calc((100dvh - 460px) / ${openCount() || 1}))`
+    const editorMaxHeight = () => `max(96px, calc((100dvh - 460px) / ${openCount() || 1}))`
 
     return (
         <section class='flex shrink-0 flex-col overflow-hidden border-b border-line-subtle bg-surface'>
@@ -118,7 +118,7 @@ export function PromptPanel() {
                     visible={visible('positive')}
                     documentKey={`${store.state.taskId}:positive`}
                     initialDocument={store.state.values.positive}
-                    height={editorHeight()}
+                    maxHeight={editorMaxHeight()}
                     onDocumentChange={document => store.setPromptDocument('positive', document)}
                 />
                 <PromptSection
@@ -126,7 +126,7 @@ export function PromptPanel() {
                     visible={visible('negative')}
                     documentKey={`${store.state.taskId}:negative`}
                     initialDocument={store.state.values.negative}
-                    height={editorHeight()}
+                    maxHeight={editorMaxHeight()}
                     onDocumentChange={document => store.setPromptDocument('negative', document)}
                 />
             </div>
@@ -168,7 +168,7 @@ function PromptToggle(props: PromptToggleProps) {
 /* MARK: PromptSection */
 type PromptSectionProps = {
     documentKey: string
-    height: string
+    maxHeight: string
     initialDocument: PromptDocument
     kind: PromptKind
     visible: boolean
@@ -184,10 +184,13 @@ function PromptSection(props: PromptSectionProps) {
             <span class='pb-1.5 text-xs leading-none text-fg-muted'>
                 {promptLabel[props.kind]}
             </span>
-            <div class='overflow-hidden rounded-md border border-line-subtle bg-canvas'>
+            <div class='overflow-hidden rounded-md border border-transparent bg-elevated'>
                 <PromptEditor
-                    class='block w-full'
-                    style={{ height: props.height }}
+                    class='resizer-hidden block w-full resize-y overflow-hidden'
+                    style={{
+                        '--prompt-max-height': props.maxHeight,
+                        'max-height': props.maxHeight,
+                    }}
                     documentKey={props.documentKey}
                     initialDocument={props.initialDocument}
                     onDocumentChange={props.onDocumentChange}
