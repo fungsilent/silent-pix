@@ -1,29 +1,24 @@
 import { useIsMutating } from '@tanstack/solid-query'
 import { Sparkles } from 'lucide-solid'
-import { createEffect, createSignal, on, Show } from 'solid-js'
+import { createEffect, createSignal, on } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { taskKeys } from '#/features/task/task.key'
 import { cn } from '#/lib/cn'
 import { IssueChip } from '#/pages/generate/components/workspace/generate/IssueChip'
-import { PromptTabs } from '#/pages/generate/components/workspace/generate/PromptTabs'
+import { PromptEditor } from '#/pages/generate/components/workspace/generate/prompt/PromptEditor'
 import { useOptionIssues } from '#/pages/generate/issue'
 import { useGenerateStore } from '#/pages/generate/store'
 
-import type { GenerateValues } from '#/pages/generate/store'
+import type { PromptDocument } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
 
 /* MARK: PromptPanel */
 type PromptKind = 'positive' | 'negative'
-
-type PromptGroupState = {
-    visible: boolean
-}
 
 const promptLabel: Record<PromptKind, string> = {
     negative: 'Negative',
     positive: 'Positive',
 }
-
 
 export function PromptPanel() {
     const store = useGenerateStore()
@@ -31,38 +26,14 @@ export function PromptPanel() {
     const optionIssues = useOptionIssues()
     const [issuesOpen, setIssuesOpen] = createSignal(false)
     const issues = () => [...optionIssues(), ...store.state.submitIssues]
-    const [positive, setPositive] = createSignal<PromptGroupState>({
-        visible: true,
-    })
-    const [negative, setNegative] = createSignal<PromptGroupState>({
-        visible: true,
-    })
-    const [selected, setSelected] = createSignal<Record<PromptKind, string | undefined>>({
-        negative: store.state.values.negative[0]?.id,
-        positive: store.state.values.positive[0]?.id,
-    })
-    const [dragged, setDragged] = createSignal<Record<PromptKind, string | undefined>>({
-        negative: undefined,
-        positive: undefined,
-    })
+    const [positiveVisible, setPositiveVisible] = createSignal(true)
+    const [negativeVisible, setNegativeVisible] = createSignal(true)
 
     createEffect(on(
         () => store.state.taskId,
         () => {
-            setPositive({
-                visible: true,
-            })
-            setNegative({
-                visible: true,
-            })
-            setSelected({
-                negative: store.state.values.negative[0]?.id,
-                positive: store.state.values.positive[0]?.id,
-            })
-            setDragged({
-                negative: undefined,
-                positive: undefined,
-            })
+            setPositiveVisible(true)
+            setNegativeVisible(true)
         },
     ))
 
@@ -87,121 +58,18 @@ export function PromptPanel() {
         }
     })
 
-    const group = (kind: PromptKind) => kind === 'positive' ? positive() : negative()
-    const setGroup = (kind: PromptKind, value: PromptGroupState) => {
-        if (kind === 'positive') {
-            setPositive(value)
-            return
-        }
-
-        setNegative(value)
-    }
-    const tags = (kind: PromptKind) => store.state.values[kind]
-    const selectedTag = (kind: PromptKind) => tags(kind).find(tag => tag.id === selected()[kind]) ?? tags(kind)[0]
-
-    const updateTags = (kind: PromptKind, nextTags: GenerateValues[PromptKind]) => {
-        store.setValue(kind, nextTags)
-
-        const selectedId = selected()[kind]
-        if (!nextTags.some(tag => tag.id === selectedId)) {
-            setSelected(value => ({
-                ...value,
-                [kind]: nextTags[0]?.id,
-            }))
-        }
-    }
-
-    /*
-     * Ark 只回傳 label 陣列，所以先用 label 對位（涵蓋新增、刪除、重排），
-     * 對不到的再用位置對位——那代表這一格是改名，必須沿用原本的 id 與 text，
-     * 否則改名會被當成新分頁，textarea 內容整段消失。
-     */
-    const syncTagValues = (kind: PromptKind, tagValues: string[]) => {
-        const current = tags(kind)
-        const taken = new Set<number>()
-        let addedTagId: string | undefined
-
-        const byLabel = tagValues.map(value => {
-            const index = current.findIndex((tag, tagIndex) => (
-                !taken.has(tagIndex) && tag.label === value
-            ))
-
-            if (index < 0) {
-                return undefined
-            }
-
-            taken.add(index)
-            return current[index]
-        })
-
-        const nextTags = byLabel.map((tag, index) => {
-            const label = tagValues[index] ?? ''
-            if (tag) {
-                return tag
-            }
-
-            const renamed = current[index]
-            if (renamed && !taken.has(index)) {
-                taken.add(index)
-                return { ...renamed, label }
-            }
-
-            addedTagId = `${kind}-${crypto.randomUUID()}`
-            return {
-                id: addedTagId,
-                label,
-                text: '',
-            }
-        })
-
-        updateTags(kind, nextTags)
-        if (addedTagId) {
-            setSelected(value => ({
-                ...value,
-                [kind]: addedTagId,
-            }))
-        }
-    }
-
-    const updateSelectedText = (kind: PromptKind, text: string) => {
-        updateTags(kind, tags(kind).map(tag => (
-            tag.id === selectedTag(kind)?.id
-                ? { ...tag, text }
-                : tag
-        )))
-    }
-
-    const moveTag = (kind: PromptKind, targetId: string) => {
-        const sourceId = dragged()[kind]
-        if (!sourceId || sourceId === targetId) {
-            return
-        }
-
-        const current = tags(kind)
-        const sourceIndex = current.findIndex(tag => tag.id === sourceId)
-        const targetIndex = current.findIndex(tag => tag.id === targetId)
-        if (sourceIndex < 0 || targetIndex < 0) {
-            return
-        }
-
-        const nextTags = [...current]
-        const [item] = nextTags.splice(sourceIndex, 1)
-        if (!item) {
-            return
-        }
-
-        nextTags.splice(targetIndex, 0, item)
-        updateTags(kind, nextTags)
-    }
-
-    const openCount = () => (positive().visible ? 1 : 0) + (negative().visible ? 1 : 0)
-    const textAreaMaxHeight = () => `max(56px, calc((100dvh - 460px) / ${openCount() || 1}))`
-
+    const visible = (kind: PromptKind) => kind === 'positive' ? positiveVisible() : negativeVisible()
     const toggleVisible = (kind: PromptKind) => {
-        setGroup(kind, {
-            visible: !group(kind).visible,
-        })
+        if (kind === 'positive') {
+            setPositiveVisible(value => !value)
+            return
+        }
+
+        setNegativeVisible(value => !value)
     }
+
+    const openCount = () => (positiveVisible() ? 1 : 0) + (negativeVisible() ? 1 : 0)
+    const editorHeight = () => `max(96px, calc((100dvh - 460px) / ${openCount() || 1}))`
 
     return (
         <section class='flex shrink-0 flex-col overflow-hidden border-b border-line-subtle bg-surface'>
@@ -210,12 +78,12 @@ export function PromptPanel() {
                     <h2 class='m-0 text-sm font-bold leading-none text-fg'>Prompt</h2>
                     <PromptToggle
                         kind='positive'
-                        visible={positive().visible}
+                        visible={positiveVisible()}
                         onClick={() => toggleVisible('positive')}
                     />
                     <PromptToggle
                         kind='negative'
-                        visible={negative().visible}
+                        visible={negativeVisible()}
                         onClick={() => toggleVisible('negative')}
                     />
                 </div>
@@ -245,35 +113,21 @@ export function PromptPanel() {
             </div>
 
             <div class='flex flex-col gap-1'>
-                <PromptGroup
+                <PromptSection
                     kind='positive'
-                    tags={tags('positive')}
-                    visible={positive().visible}
-                    selectedId={selectedTag('positive')?.id}
-                    text={selectedTag('positive')?.text ?? ''}
-                    draggedId={dragged().positive}
-                    onDragEnd={() => setDragged(value => ({ ...value, positive: undefined }))}
-                    onDragStart={tagId => setDragged(value => ({ ...value, positive: tagId }))}
-                    onDrop={tagId => moveTag('positive', tagId)}
-                    onSelect={tagId => setSelected(value => ({ ...value, positive: tagId }))}
-                    textAreaMaxHeight={textAreaMaxHeight()}
-                    onTextInput={text => updateSelectedText('positive', text)}
-                    onValuesChange={tagValues => syncTagValues('positive', tagValues)}
+                    visible={visible('positive')}
+                    documentKey={`${store.state.taskId}:positive`}
+                    initialDocument={store.state.values.positive}
+                    height={editorHeight()}
+                    onDocumentChange={document => store.setPromptDocument('positive', document)}
                 />
-                <PromptGroup
+                <PromptSection
                     kind='negative'
-                    tags={tags('negative')}
-                    visible={negative().visible}
-                    selectedId={selectedTag('negative')?.id}
-                    text={selectedTag('negative')?.text ?? ''}
-                    draggedId={dragged().negative}
-                    onDragEnd={() => setDragged(value => ({ ...value, negative: undefined }))}
-                    onDragStart={tagId => setDragged(value => ({ ...value, negative: tagId }))}
-                    onDrop={tagId => moveTag('negative', tagId)}
-                    onSelect={tagId => setSelected(value => ({ ...value, negative: tagId }))}
-                    textAreaMaxHeight={textAreaMaxHeight()}
-                    onTextInput={text => updateSelectedText('negative', text)}
-                    onValuesChange={tagValues => syncTagValues('negative', tagValues)}
+                    visible={visible('negative')}
+                    documentKey={`${store.state.taskId}:negative`}
+                    initialDocument={store.state.values.negative}
+                    height={editorHeight()}
+                    onDocumentChange={document => store.setPromptDocument('negative', document)}
                 />
             </div>
         </section>
@@ -311,54 +165,34 @@ function PromptToggle(props: PromptToggleProps) {
     )
 }
 
-/* MARK: PromptGroup */
-type PromptGroupProps = {
-    draggedId: string | undefined
+/* MARK: PromptSection */
+type PromptSectionProps = {
+    documentKey: string
+    height: string
+    initialDocument: PromptDocument
     kind: PromptKind
-    selectedId: string | undefined
-    tags: GenerateValues[PromptKind]
-    text: string
-    textAreaMaxHeight: string
     visible: boolean
-    onDragEnd: () => void
-    onDragStart: (tagId: string) => void
-    onDrop: (tagId: string) => void
-    onSelect: (tagId: string) => void
-    onTextInput: (text: string) => void
-    onValuesChange: (values: string[]) => void
+    onDocumentChange: (document: PromptDocument) => void
 }
 
-function PromptGroup(props: PromptGroupProps) {
+function PromptSection(props: PromptSectionProps) {
     return (
-        <Show when={props.visible}>
-            <section class='flex flex-col px-4 pb-2'>
-                <div class='flex min-w-0 items-end gap-2'>
-                    <span class='w-[54px] shrink-0 pb-2 text-xs leading-none text-fg-muted'>
-                        {promptLabel[props.kind]}
-                    </span>
-                    <PromptTabs
-                        classes={{
-                            root: 'flex-1',
-                        }}
-                        draggedId={props.draggedId}
-                        items={props.tags}
-                        selectedId={props.selectedId}
-                        onDragEnd={props.onDragEnd}
-                        onDragStart={props.onDragStart}
-                        onDrop={props.onDrop}
-                        onSelect={props.onSelect}
-                        onValuesChange={props.onValuesChange}
-                    />
-                </div>
-                <div class='rounded-md border border-transparent bg-active px-3 py-2 focus-within:border-accent focus-within:ring-3 focus-within:ring-accent/40'>
-                    <textarea
-                        class='scrollbar-thin resizer-hidden block h-20 min-h-14 w-full resize-y bg-transparent text-xs leading-5 text-fg outline-none'
-                        style={{ 'max-height': props.textAreaMaxHeight }}
-                        value={props.text}
-                        onInput={event => props.onTextInput(event.currentTarget.value)}
-                    />
-                </div>
-            </section>
-        </Show>
+        <section
+            class='flex flex-col px-4 pb-2'
+            classList={{ hidden: !props.visible }}
+        >
+            <span class='pb-1.5 text-xs leading-none text-fg-muted'>
+                {promptLabel[props.kind]}
+            </span>
+            <div class='overflow-hidden rounded-md border border-transparent bg-canvas focus-within:border-accent focus-within:ring-3 focus-within:ring-accent/40'>
+                <PromptEditor
+                    class='scrollbar-thin block w-full'
+                    style={{ height: props.height }}
+                    documentKey={props.documentKey}
+                    initialDocument={props.initialDocument}
+                    onDocumentChange={props.onDocumentChange}
+                />
+            </div>
+        </section>
     )
 }

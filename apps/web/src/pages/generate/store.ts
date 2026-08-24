@@ -3,17 +3,27 @@ import { createContext, useContext } from 'solid-js'
 import { z } from 'zod'
 
 import { createStore } from '#/lib/store'
+import { clonePromptDocument, emptyPromptDocument } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
 
 import type { TaskApi } from '@silent-pix/shared'
+import type { PromptDocument, PromptGroup } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
 import type { GenerateIssue } from '#/pages/generate/issue'
 import type { ViewerImage } from '#/store/workspace'
 import type { JSX } from 'solid-js'
 import type { z as zod } from 'zod'
 
-const promptTagSchema = z.object({
+const promptGroupSchema = z.object({
     id: z.string().min(1),
-    label: z.string().min(1),
+    name: z.string().min(1),
+    fromLine: z.number().int().min(1),
+    toLine: z.number().int().min(1),
+    enabled: z.boolean(),
+    disabledTokenIndexes: z.array(z.number().int().nonnegative()),
+})
+
+const promptDocumentSchema = z.object({
     text: z.string(),
+    groups: z.array(promptGroupSchema).min(1),
 })
 
 const loraSchema = z.object({
@@ -49,8 +59,8 @@ export const generateSchema = z.object({
     cfg: z.number().finite().min(0).max(100),
     height: z.number().int().min(64).max(4096),
     lora: z.array(loraSchema),
-    negative: z.array(promptTagSchema),
-    positive: z.array(promptTagSchema),
+    negative: promptDocumentSchema,
+    positive: promptDocumentSchema,
     sampler: z.string().trim().min(1).max(120),
     seed: z.string().max(64),
     steps: z.number().int().min(1).max(100),
@@ -149,8 +159,8 @@ export const toGenerateValues = (task: GenerateTask): GenerateValues => ({
     cfg: task.config.cfg,
     height: task.config.height,
     lora: task.lora.map(lora => ({ ...lora })),
-    negative: task.prompt.negative.map(tag => ({ ...tag })),
-    positive: task.prompt.positive.map(tag => ({ ...tag })),
+    negative: fromLegacyPromptTags(task.prompt.negative),
+    positive: fromLegacyPromptTags(task.prompt.positive),
     sampler: normalizeSampler(task.config.sampler),
     seed: '',
     steps: task.config.steps,
@@ -166,6 +176,51 @@ export const toGenerateValues = (task: GenerateTask): GenerateValues => ({
         : null,
     workflowId: task.workflowId ?? '',
 })
+
+/* MARK: legacy prompt adapter */
+
+/*
+ * PHASE 1–6 期間 Server 仍只認 TaskPromptTag[]，所以在 store boundary 兩邊轉換。
+ * PHASE 7 contract 落地後這兩個函式必須整組刪掉，不得滲入 editor 或 component。
+ */
+export function fromLegacyPromptTags(tags: TaskApi.TaskPromptTag[]): PromptDocument {
+    if (tags.length === 0) {
+        return emptyPromptDocument()
+    }
+
+    const groups: PromptGroup[] = []
+    const blocks: string[] = []
+    let cursorLine = 1
+
+    tags.forEach(tag => {
+        const block = tag.text
+        const lineCount = block.split('\n').length
+
+        groups.push({
+            id: tag.id,
+            name: tag.label,
+            fromLine: cursorLine,
+            toLine: cursorLine + lineCount - 1,
+            enabled: true,
+            disabledTokenIndexes: [],
+        })
+
+        blocks.push(block)
+        cursorLine += lineCount
+    })
+
+    return { text: blocks.join('\n'), groups }
+}
+
+export function toLegacyPromptTags(document: PromptDocument): TaskApi.TaskPromptTag[] {
+    const lines = document.text.split('\n')
+
+    return document.groups.map(group => ({
+        id: group.id,
+        label: group.name,
+        text: lines.slice(group.fromLine - 1, group.toLine).join('\n'),
+    }))
+}
 
 function normalizeSampler(value: string): string {
     switch (value) {
@@ -203,8 +258,8 @@ export function toCreateTaskRequest(values: GenerateValues): TaskApi.CreateTaskR
             },
             lora: values.lora,
             prompt: {
-                positive: values.positive,
-                negative: values.negative,
+                positive: toLegacyPromptTags(values.positive),
+                negative: toLegacyPromptTags(values.negative),
             },
         },
     }
@@ -215,8 +270,8 @@ const defaultLoraWeight = 0.7
 const cloneGenerateValues = (values: GenerateValues): GenerateValues => ({
     ...values,
     lora: values.lora.map(lora => ({ ...lora })),
-    negative: values.negative.map(tag => ({ ...tag })),
-    positive: values.positive.map(tag => ({ ...tag })),
+    negative: clonePromptDocument(values.negative),
+    positive: clonePromptDocument(values.positive),
 })
 
 export function createGenerateStore(initialTask: GenerateTask) {
@@ -240,6 +295,14 @@ export function createGenerateStore(initialTask: GenerateTask) {
         /* Task */
         setValue<TKey extends keyof GenerateValues>(key: TKey, value: GenerateValues[TKey]) {
             store.set('values', key, value)
+        },
+
+        /*
+         * Editor 是 uncontrolled 的：這裡只單向接收 snapshot，
+         * 不回寫 CodeMirror，否則會產生 echo transaction 並汙染 history。
+         */
+        setPromptDocument(kind: 'positive' | 'negative', document: PromptDocument) {
+            store.set('values', kind, clonePromptDocument(document))
         },
 
         loadTask(task: GenerateTask) {
