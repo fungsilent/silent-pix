@@ -1,10 +1,10 @@
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
 import { EditorState } from '@codemirror/state'
-import { EditorView, keymap, lineNumbers } from '@codemirror/view'
+import { EditorView, keymap } from '@codemirror/view'
 import { createEffect, on, onCleanup } from 'solid-js'
 
 import { serializePromptDocument } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
-import { promptGroupGutter } from '#/pages/generate/components/workspace/generate/prompt/prompt.gutter'
+import { promptGutters } from '#/pages/generate/components/workspace/generate/prompt/prompt.gutter'
 import { initialPromptMeta, promptMeta, promptMetaEffect, promptStateExtensions } from '#/pages/generate/components/workspace/generate/prompt/prompt.state'
 import { promptTheme } from '#/pages/generate/components/workspace/generate/prompt/prompt.theme'
 
@@ -45,8 +45,7 @@ export function PromptEditor(props: PromptEditorProps) {
             const state = EditorState.create({
                 doc: props.initialDocument.text,
                 extensions: [
-                    lineNumbers(),
-                    promptGroupGutter(),
+                    promptGutters(),
                     EditorView.lineWrapping,
                     history(),
                     keymap.of([...defaultKeymap, ...historyKeymap]),
