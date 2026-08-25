@@ -9,12 +9,9 @@ const extensionByMime: Record<ImageApi.ImageMime, string> = {
     'image/png': 'png',
 }
 
-/*
- * images/<hash 前兩碼>/<hash>.<ext>。前兩碼分成 256 個桶，讓任何單一目錄都還列得動——
- * 備份、rsync 與 db:gc 的掃描都要列舉它。hash 的分佈天生均勻，不需要任何簿記。
- */
+/* images/<hash>.<ext>，單層平放 */
 export function contentPath(hash: string, mime: ImageApi.ImageMime): string {
-    return `images/${hash.slice(0, 2)}/${hash}.${extensionByMime[mime]}`
+    return `images/${hash}.${extensionByMime[mime]}`
 }
 
 export function absolutePath(storageRoot: string, relativePath: string): string {

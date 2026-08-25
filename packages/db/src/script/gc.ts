@@ -64,8 +64,8 @@ async function sweepOrphanRows(): Promise<number> {
 
 /* Pass 2：磁碟上沒有對應 images 列的檔案 */
 async function sweepOrphanFiles(): Promise<number> {
-    const buckets = await readdirQuietly(imagesRoot)
-    if (buckets === undefined) {
+    const entries = await readdirQuietly(imagesRoot)
+    if (entries === undefined) {
         return 0
     }
 
@@ -76,26 +76,18 @@ async function sweepOrphanFiles(): Promise<number> {
 
     let removed = 0
 
-    for (const bucket of buckets) {
-        if (!bucket.isDirectory()) {
+    for (const entry of entries) {
+        if (!entry.isFile()) {
             continue
         }
 
-        const entries = await readdirQuietly(join(imagesRoot, bucket.name)) ?? []
-
-        for (const entry of entries) {
-            if (!entry.isFile()) {
-                continue
-            }
-
-            /* images.path 一律是 posix 相對路徑，比對時不能用 platform 的 separator */
-            if (knownPaths.has(`images/${bucket.name}/${entry.name}`)) {
-                continue
-            }
-
-            await unlinkQuietly(join(imagesRoot, bucket.name, entry.name))
-            removed += 1
+        /* images.path 一律是 posix 相對路徑，比對時不能用 platform 的 separator */
+        if (knownPaths.has(`images/${entry.name}`)) {
+            continue
         }
+
+        await unlinkQuietly(join(imagesRoot, entry.name))
+        removed += 1
     }
 
     return removed

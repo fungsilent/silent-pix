@@ -412,7 +412,7 @@ Rules:
 Filesystem stores image bytes, addressed by content hash. Nothing else.
 
 ```txt
-storage/images/<first 2 hex>/<sha256>.<png|jpg>
+storage/images/<sha256>.<png|jpg>
 ```
 
 SQLite splits it in two, because content and ownership are different facts:

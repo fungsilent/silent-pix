@@ -303,17 +303,12 @@ tasks reference it.
 ```txt
 storage/
     images/
-        <first 2 hex of hash>/
-            <sha256>.<png|jpg>
+        <sha256>.<png|jpg>
 ```
-
-The two-character bucket keeps any single directory listable; backup, sync and
-`db:gc` all have to enumerate it. Hash prefixes distribute evenly with no
-bookkeeping, the same reason git shards loose objects.
 
 Rules:
 
-- The DB stores the relative path (`images/ab/ab12….png`), never an absolute one.
+- The DB stores the relative path (`images/ab12….png`), never an absolute one.
 - Files are published with temp + rename. Readers trust the content address
   absolutely, so a half-written file is a permanently poisoned entry, not a
   retryable failure.
