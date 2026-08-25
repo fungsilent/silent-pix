@@ -184,9 +184,16 @@ const tokenCaretLayer = layer({
 
 /* MARK: interaction */
 
+/*
+ * blur 有可能是 DOM 重繪順帶觸發的，那時候還在 update 裡；延後一拍再 dispatch，
+ * 避免撞上 CodeMirror 的 "update in progress"。
+ */
 function syncAlt(view: EditorView, held: boolean): void {
     if (view.state.field(altHeldField) === held) return
-    view.dispatch({ effects: setAltHeld.of(held) })
+    setTimeout(() => {
+        if (view.state.field(altHeldField) === held) return
+        view.dispatch({ effects: setAltHeld.of(held) })
+    }, 0)
 }
 
 const dragThreshold = 4

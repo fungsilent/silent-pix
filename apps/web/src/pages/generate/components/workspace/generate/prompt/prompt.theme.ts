@@ -2,22 +2,22 @@ import { EditorView } from '@codemirror/view'
 
 /* MARK: geometry */
 
-export const promptGutterWidth = {
+const promptGutterWidth = {
     lineNumber: 42,
     groupName: 128,
 } as const
 
-export const promptLineHeight = 24
+const promptLineHeight = 24
 
 /* .cm-content 的上下 padding，min-height 要一起算進去才會剛好是整數行 */
 const promptContentPaddingY = 6
 
 /* 預設高度固定顯示幾行，內容超過就捲動；使用者仍可拖曳改變 */
-export const promptDefaultLines = 4
+const promptDefaultLines = 4
 export const promptDefaultHeight = promptLineHeight * promptDefaultLines + promptContentPaddingY * 2
 
 /* 拖曳能縮到的下限：一行 */
-export const promptMinLines = 1
+const promptMinLines = 1
 export const promptMinHeight = promptLineHeight * promptMinLines + promptContentPaddingY * 2
 
 /* MARK: theme */

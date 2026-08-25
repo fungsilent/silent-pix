@@ -12,7 +12,7 @@ export const promptMetaEffect = StateEffect.define<PromptEditorMeta>()
 
 /* MARK: field */
 
-export const promptStateField = StateField.define<PromptEditorMeta>({
+const promptStateField = StateField.define<PromptEditorMeta>({
     create() {
         return { groups: [], disabledTokens: [] }
     },
@@ -42,7 +42,7 @@ export function initialPromptMeta(document: PromptDocument, text: Text): PromptE
  * 文字變動後把 group start 與 disabled token anchor 映射到新位置。
  * 沒有 command 明確覆寫 snapshot 時，這是唯一維護 metadata 的地方。
  */
-export function reconcilePromptMeta(
+function reconcilePromptMeta(
     meta: PromptEditorMeta,
     changes: ChangeDesc,
     text: Text,

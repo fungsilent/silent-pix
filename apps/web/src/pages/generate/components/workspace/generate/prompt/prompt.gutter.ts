@@ -1,7 +1,7 @@
 import { RangeSet, StateEffect, StateField } from '@codemirror/state'
 import { Decoration, gutter, GutterMarker, layer, lineNumberMarkers, lineNumbers, ViewPlugin } from '@codemirror/view'
 
-import { createGroup, defaultGroupName, lineRange, moveGroup, removeGroupBoundary, renameGroup, toggleGroup } from '#/pages/generate/components/workspace/generate/prompt/prompt.command'
+import { createGroup, lineRange, moveGroup, removeGroupBoundary, renameGroup, toggleGroup } from '#/pages/generate/components/workspace/generate/prompt/prompt.command'
 import { groupEnd } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
 import { promptMeta } from '#/pages/generate/components/workspace/generate/prompt/prompt.state'
 
@@ -155,13 +155,23 @@ function renameInput(view: EditorView, group: PromptEditorGroup): HTMLInputEleme
     input.spellcheck = false
     input.setAttribute('aria-label', `Rename ${group.name}`)
 
-    const close = () => view.dispatch({ effects: setRenaming.of(null) })
+    /*
+     * Enter/Escape 走完之後 marker 會重繪，input 被移出 DOM 就會補一個 blur。
+     * 那個 blur 落在同一次 update 裡，再 dispatch 會撞上 CodeMirror 的
+     * "update in progress"，所以先立旗標讓它自己跳過。
+     */
+    let settled = false
+    const close = () => {
+        settled = true
+        view.dispatch({ effects: setRenaming.of(null) })
+    }
 
     input.addEventListener('mousedown', event => event.stopPropagation())
 
     input.addEventListener('keydown', event => {
         if (event.key === 'Enter') {
             event.preventDefault()
+            settled = true
             renameGroup(view, group.id, input.value)
             close()
             view.focus()
@@ -175,11 +185,18 @@ function renameInput(view: EditorView, group: PromptEditorGroup): HTMLInputEleme
         }
     })
 
-    /* blur 與 Enter 同樣提交；空字串不提交，group 保留原名 */
+    /* 點到別處也視為提交；空字串不提交，group 保留原名 */
     input.addEventListener('blur', () => {
+        if (settled) return
         if (view.state.field(renamingField) !== group.id) return
-        renameGroup(view, group.id, input.value)
-        close()
+        settled = true
+
+        /* blur 可能是 DOM 重繪帶出來的，延後一拍才 dispatch 才不會撞進 update */
+        const value = input.value
+        setTimeout(() => {
+            renameGroup(view, group.id, value)
+            if (view.state.field(renamingField) === group.id) close()
+        }, 0)
     })
 
     setTimeout(() => {
@@ -695,5 +712,3 @@ export function promptGutters(): Extension {
         dropLineLayer,
     ]
 }
-
-export { defaultGroupName }

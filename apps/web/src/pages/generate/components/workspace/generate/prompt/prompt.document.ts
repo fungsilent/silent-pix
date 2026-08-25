@@ -3,7 +3,7 @@ import type { TaskApi } from '@silent-pix/shared'
 
 /* MARK: persistent shape */
 
-export type PromptGroup = TaskApi.TaskPromptGroup
+type PromptGroup = TaskApi.TaskPromptGroup
 export type PromptDocument = TaskApi.TaskPromptDocument
 
 /* MARK: transient shape */
@@ -97,7 +97,7 @@ export function groupIndexAt(meta: PromptEditorMeta, position: number): number {
     return found
 }
 
-export type TokenHit = {
+type TokenHit = {
     token: ParsedToken
     group: PromptEditorGroup
     groupIndex: number

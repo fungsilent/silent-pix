@@ -7,7 +7,7 @@ import type { EditorState, Text } from '@codemirror/state'
 import type { EditorView } from '@codemirror/view'
 import type { DisabledTokenRange, DisabledTokenValue, ParsedToken, PromptEditorGroup, PromptEditorMeta } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
 
-export const defaultGroupName = 'Group'
+const defaultGroupName = 'Group'
 
 /*
  * 所有 group command 都是「只帶 effect、不帶 changes」的 transaction。
@@ -236,13 +236,13 @@ function groupBlocks(meta: PromptEditorMeta, doc: Text): GroupBlock[] {
  * 所以刪除末組時要連前面那個換行一起吃掉，插入到文件末端時則要先補一個換行。
  * body 一律不含換行，兩端各自補齊，first/middle/last/single 就走同一條路。
  */
-export type GroupMoveSpec = {
+type GroupMoveSpec = {
     changes: { from: number, to?: number, insert?: string }[]
     meta: PromptEditorMeta
     selection: number
 }
 
-export function groupMoveSpec(state: EditorState, groupId: string, targetIndex: number): GroupMoveSpec | undefined {
+function groupMoveSpec(state: EditorState, groupId: string, targetIndex: number): GroupMoveSpec | undefined {
     const meta = promptMeta(state)
     const doc = state.doc
     if (meta.groups.length < 2) return undefined
@@ -395,13 +395,13 @@ function insertion(doc: Text, meta: PromptEditorMeta, target: TokenDropTarget, c
     return { at: last.rawTo, text: `, ${content}`, contentOffset: 2 }
 }
 
-export type TokenMoveSpec = {
+type TokenMoveSpec = {
     changes: { from: number, to?: number, insert?: string }[]
     meta: PromptEditorMeta
     selection: { from: number, to: number }
 }
 
-export function tokenMoveSpec(
+function tokenMoveSpec(
     state: EditorState,
     sourcePosition: number,
     target: TokenDropTarget,
