@@ -9,13 +9,12 @@ import {
 import { uuidCheck } from '#/schema/schema.util'
 import { createUUID } from '#/uuid'
 
+import type { WorkflowApi } from '@silent-pix/shared'
 import type { JsonObject, UpdateData } from '#/schema/schema.util'
 import type { UUID } from '#/uuid'
 
-export type ConfigSchema = Record<string, {
-    input: string
-    nodeId: string
-}>
+/* mapping 的形狀由 contract 決定，這裡不另外寫一份 */
+export type ConfigSchema = WorkflowApi.ConfigSchema
 
 export const workflows = sqliteTable('workflows', {
     id: text('id').$type<UUID>().primaryKey().$defaultFn(createUUID),

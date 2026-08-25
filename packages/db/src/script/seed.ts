@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
+import { workflowApi } from '@silent-pix/shared'
 import { eq } from 'drizzle-orm'
 
 import { createDatabaseClient } from '#/client'
@@ -52,6 +53,10 @@ function readWorkflow(directoryName: string): WorkflowSeed {
     const configSchema: ConfigSchema = {}
 
     for (const [key, mapping] of Object.entries(rawConfigSchema)) {
+        if (!workflowApi.isGeneratorField(key)) {
+            throw new Error(`Unknown config field: ${directory}/config-schema.json.${key}`)
+        }
+
         if (!isRecord(mapping) || typeof mapping.nodeId !== 'string' || typeof mapping.input !== 'string') {
             throw new Error(`Invalid config mapping: ${directory}/config-schema.json.${key}`)
         }

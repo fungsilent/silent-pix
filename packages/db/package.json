@@ -31,6 +31,7 @@
     "dependencies": {
         "@libsql/client": "^0.17.4",
         "@silent-pix/env": "workspace:*",
+        "@silent-pix/shared": "workspace:*",
         "dotenv": "^17.4.2",
         "drizzle-orm": "^0.45.2",
         "uuid": "^14.0.1"
