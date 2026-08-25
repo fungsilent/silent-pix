@@ -3,19 +3,27 @@ import { createStore } from '#/lib/store'
 import type { EventConnectionStatus } from '@silent-pix/event/client'
 import type { Event } from '@silent-pix/shared'
 
+type AppPage = 'generate' | 'workflow'
+
 type AppState = {
+    page: AppPage
     connection: EventConnectionStatus
     snapshot: Event.Health.Snapshot | undefined
     hasConnected: boolean
 }
 
 const initialState: AppState = {
+    page: 'generate',
     connection: 'disconnected',
     snapshot: undefined,
     hasConnected: false,
 }
 
 export const appStore = createStore(initialState, store => ({
+    setPage(page: AppPage) {
+        store.set('page', page)
+    },
+
     setConnection(connection: EventConnectionStatus) {
         store.set('connection', connection)
 

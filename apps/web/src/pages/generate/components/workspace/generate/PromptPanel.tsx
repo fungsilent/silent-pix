@@ -3,9 +3,9 @@ import { Sparkles } from 'lucide-solid'
 import { createEffect, createSignal, on } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
+import { IssueChip } from '#/components/base/IssueChip'
 import { taskKeys } from '#/features/task/task.key'
 import { cn } from '#/lib/cn'
-import { IssueChip } from '#/pages/generate/components/workspace/generate/IssueChip'
 import { promptDefaultHeight, promptMinHeight } from '#/pages/generate/components/workspace/generate/prompt/prompt.theme'
 import { PromptEditor } from '#/pages/generate/components/workspace/generate/prompt/PromptEditor'
 import { useOptionIssues } from '#/pages/generate/issue'
@@ -77,6 +77,7 @@ export function PromptPanel() {
 
                 <div class='flex min-w-0 flex-1 justify-end'>
                     <IssueChip
+                        label='generate'
                         issues={issues()}
                         open={issuesOpen()}
                         onOpenChange={setIssuesOpen}

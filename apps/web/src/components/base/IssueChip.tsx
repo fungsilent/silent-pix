@@ -5,12 +5,14 @@ import { Portal } from 'solid-js/web'
 
 import { Button } from '#/components/base/Button'
 import { cn } from '#/lib/cn'
-import { sortIssues } from '#/pages/generate/issue'
+import { sortIssues } from '#/lib/issue'
 
-import type { GenerateIssue, IssueTone } from '#/pages/generate/issue'
+import type { AppIssue, IssueTone } from '#/lib/issue'
 
 type IssueChipProps = {
-    issues: GenerateIssue[]
+    issues: AppIssue[]
+    /* 只用在 aria-label，讓螢幕閱讀器聽得出是哪一區的問題 */
+    label?: string
     open: boolean
     onOpenChange: (open: boolean) => void
 }
@@ -43,7 +45,7 @@ export function IssueChip(props: IssueChipProps) {
                 onOpenChange={details => props.onOpenChange(details.open)}
             >
                 <Popover.Trigger
-                    aria-label={`${count()} generate ${count() === 1 ? 'issue' : 'issues'}`}
+                    aria-label={`${count()} ${props.label ?? ''} ${count() === 1 ? 'issue' : 'issues'}`.replace(/\s+/g, ' ')}
                     class={cn(
                         'issue-chip group flex h-7 min-w-0 cursor-pointer items-center gap-1.5 rounded-md border pl-[9px] pr-2 text-xs leading-none outline-none transition-colors duration-[140ms] ease-out focus-visible:ring-3 focus-visible:ring-accent/40',
                         chipToneClass[tone()],
@@ -70,7 +72,7 @@ export function IssueChip(props: IssueChipProps) {
                     />
                 </Popover.Trigger>
 
-                {/* PromptPanel 是 overflow-hidden，浮層必須 portal 出去才不會被裁掉 */}
+                {/* 宿主面板多半是 overflow-hidden，浮層必須 portal 出去才不會被裁掉 */}
                 <Portal>
                     <Popover.Positioner class='z-50'>
                         <Popover.Content class='issue-popover w-80 max-w-[calc(100vw-2rem)] rounded-lg border border-white/[0.09] bg-surface/95 p-1 shadow-[0_12px_32px_rgba(0,0,0,0.55)] outline-none backdrop-blur-[8px]'>

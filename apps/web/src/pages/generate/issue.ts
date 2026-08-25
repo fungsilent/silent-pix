@@ -14,22 +14,11 @@ import { hasLostConnection, serviceHealth } from '#/store/app'
 
 import type { QueryClient } from '@tanstack/solid-query'
 import type { ZodIssue } from '#/lib/error'
+import type { AppIssue } from '#/lib/issue'
 import type { GenerateValues } from '#/pages/generate/store'
 import type { Accessor } from 'solid-js'
 
-/*
- * error   擋住生成，沒有這個就按不出東西
- * warning 降級，表單仍可送出，只是少了某些選項
- */
-export type IssueTone = 'error' | 'warning'
-
-export type GenerateIssue = {
-    id: string
-    tone: IssueTone
-    field?: string | undefined
-    message: string
-    onRetry?: (() => void) | undefined
-}
+export type GenerateIssue = AppIssue
 
 const fieldLabel: Record<keyof GenerateValues, string> = {
     batch: 'Batch',
@@ -46,16 +35,6 @@ const fieldLabel: Record<keyof GenerateValues, string> = {
     steps: 'Steps',
     width: 'Width',
     workflowId: 'Workflow',
-}
-
-const toneOrder: Record<IssueTone, number> = {
-    error: 0,
-    warning: 1,
-}
-
-/* 紅色排在琥珀之前；同色維持原順序 */
-export function sortIssues(issues: GenerateIssue[]): GenerateIssue[] {
-    return [...issues].sort((left, right) => toneOrder[left.tone] - toneOrder[right.tone])
 }
 
 export function toValidationIssues(issues: ZodIssue[]): GenerateIssue[] {

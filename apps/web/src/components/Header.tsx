@@ -1,4 +1,4 @@
-import { Columns2, Menu, Sparkles } from 'lucide-solid'
+import { Columns2, Menu, Sparkles, Workflow } from 'lucide-solid'
 
 import { Button } from '#/components/base/Button'
 import { useHealthQuery } from '#/features/app/app.query'
@@ -10,6 +10,8 @@ import type { JSX } from 'solid-js'
 
 /* MARK: Header */
 export function Header() {
+    const isGenerate = () => appStore.state.page === 'generate'
+
     return (
         <header class='flex h-12 shrink-0 items-center gap-3 border-b border-line-subtle bg-surface pl-2.5 pr-3'>
             <Button
@@ -28,12 +30,15 @@ export function Header() {
             <div
                 class='ml-1 flex h-[30px] items-center gap-0.5 rounded-md border border-line-subtle bg-elevated p-0.5'
                 role='group'
-                aria-label='Workspace mode'
+                aria-label='Workspace'
             >
                 <ModeButton
-                    active={workspaceStore.state.mode === 'generate'}
+                    active={isGenerate() && workspaceStore.state.mode === 'generate'}
                     label='Generate'
-                    onClick={() => workspaceStore.setMode('generate')}
+                    onClick={() => {
+                        appStore.setPage('generate')
+                        workspaceStore.setMode('generate')
+                    }}
                 >
                     <Sparkles
                         size={13}
@@ -42,11 +47,25 @@ export function Header() {
                     />
                 </ModeButton>
                 <ModeButton
-                    active={workspaceStore.state.mode === 'compare'}
+                    active={isGenerate() && workspaceStore.state.mode === 'compare'}
                     label='Compare'
-                    onClick={() => workspaceStore.setMode('compare')}
+                    onClick={() => {
+                        appStore.setPage('generate')
+                        workspaceStore.setMode('compare')
+                    }}
                 >
                     <Columns2
+                        size={13}
+                        strokeWidth={1.6}
+                        aria-hidden='true'
+                    />
+                </ModeButton>
+                <ModeButton
+                    active={appStore.state.page === 'workflow'}
+                    label='Workflow'
+                    onClick={() => appStore.setPage('workflow')}
+                >
+                    <Workflow
                         size={13}
                         strokeWidth={1.6}
                         aria-hidden='true'

@@ -1,12 +1,13 @@
 import { createEventClient, createSameOriginEventsUrl } from '@silent-pix/event/client'
 import { event } from '@silent-pix/shared'
 import { useQueryClient } from '@tanstack/solid-query'
-import { onCleanup, onMount } from 'solid-js'
+import { Match, onCleanup, onMount, Switch } from 'solid-js'
 
 import { Header } from '#/components/Header'
 import { taskKeys } from '#/features/task/task.key'
 import { handleServerEvent } from '#/lib/event'
 import { GeneratePage } from '#/pages/generate/GeneratePage'
+import { WorkflowPage } from '#/pages/workflow/WorkflowPage'
 import { appStore } from '#/store/app'
 
 import type { Event } from '@silent-pix/shared'
@@ -55,7 +56,14 @@ export function App() {
     return (
         <main class='flex flex-col overflow-hidden bg-canvas text-fg'>
             <Header />
-            <GeneratePage />
+            <Switch>
+                <Match when={appStore.state.page === 'generate'}>
+                    <GeneratePage />
+                </Match>
+                <Match when={appStore.state.page === 'workflow'}>
+                    <WorkflowPage />
+                </Match>
+            </Switch>
         </main>
     )
 }
