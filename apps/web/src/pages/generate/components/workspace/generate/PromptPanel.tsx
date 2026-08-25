@@ -6,15 +6,15 @@ import { Button } from '#/components/base/Button'
 import { taskKeys } from '#/features/task/task.key'
 import { cn } from '#/lib/cn'
 import { IssueChip } from '#/pages/generate/components/workspace/generate/IssueChip'
+import { promptDefaultHeight, promptMinHeight } from '#/pages/generate/components/workspace/generate/prompt/prompt.theme'
 import { PromptEditor } from '#/pages/generate/components/workspace/generate/prompt/PromptEditor'
 import { useOptionIssues } from '#/pages/generate/issue'
 import { useGenerateStore } from '#/pages/generate/store'
 
 import type { PromptDocument } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
+import type { PromptKind } from '#/pages/generate/store'
 
 /* MARK: PromptPanel */
-type PromptKind = 'positive' | 'negative'
-
 const promptLabel: Record<PromptKind, string> = {
     negative: 'Negative',
     positive: 'Positive',
@@ -26,17 +26,6 @@ export function PromptPanel() {
     const optionIssues = useOptionIssues()
     const [issuesOpen, setIssuesOpen] = createSignal(false)
     const issues = () => [...optionIssues(), ...store.state.submitIssues]
-    const [positiveVisible, setPositiveVisible] = createSignal(true)
-    const [negativeVisible, setNegativeVisible] = createSignal(true)
-
-    createEffect(on(
-        () => store.state.taskId,
-        () => {
-            setPositiveVisible(true)
-            setNegativeVisible(true)
-        },
-    ))
-
     /*
      * 只有「剛按下 Generate」才自動展開。常駐來源（選項載入失敗）會讓計數在
      * 使用者什麼都沒做時變動，那時候彈開等於無故打擾。
@@ -58,18 +47,16 @@ export function PromptPanel() {
         }
     })
 
-    const visible = (kind: PromptKind) => kind === 'positive' ? positiveVisible() : negativeVisible()
-    const toggleVisible = (kind: PromptKind) => {
-        if (kind === 'positive') {
-            setPositiveVisible(value => !value)
-            return
-        }
-
-        setNegativeVisible(value => !value)
-    }
-
-    const openCount = () => (positiveVisible() ? 1 : 0) + (negativeVisible() ? 1 : 0)
-    const editorMaxHeight = () => `max(96px, calc((100dvh - 460px) / ${openCount() || 1}))`
+    const visible = (kind: PromptKind) => store.state.promptVisible[kind]
+    const openCount = () => (visible('positive') ? 1 : 0) + (visible('negative') ? 1 : 0)
+    /*
+     * 上限而非固定高度：editor 隨內容長高，超過才捲動。
+     * 地板必須等於預設高度，否則視窗矮時上限會低於下限，
+     * host 是 overflow: hidden，會直接把 editor 切掉且不出現捲軸。
+     */
+    const editorMaxHeight = () => (
+        `max(${promptDefaultHeight}px, calc((100dvh - 460px) / ${openCount() || 1}))`
+    )
 
     return (
         <section class='flex shrink-0 flex-col overflow-hidden border-b border-line-subtle bg-surface'>
@@ -78,13 +65,13 @@ export function PromptPanel() {
                     <h2 class='m-0 text-sm font-bold leading-none text-fg'>Prompt</h2>
                     <PromptToggle
                         kind='positive'
-                        visible={positiveVisible()}
-                        onClick={() => toggleVisible('positive')}
+                        visible={visible('positive')}
+                        onClick={() => store.togglePromptVisible('positive')}
                     />
                     <PromptToggle
                         kind='negative'
-                        visible={negativeVisible()}
-                        onClick={() => toggleVisible('negative')}
+                        visible={visible('negative')}
+                        onClick={() => store.togglePromptVisible('negative')}
                     />
                 </div>
 
@@ -188,7 +175,9 @@ function PromptSection(props: PromptSectionProps) {
                 <PromptEditor
                     class='resizer-hidden block w-full resize-y overflow-hidden'
                     style={{
-                        '--prompt-max-height': props.maxHeight,
+                        /* 固定預設高度，內容超過就捲動；拖曳可在一行與 max-height 之間調整 */
+                        height: `${promptDefaultHeight}px`,
+                        'min-height': `${promptMinHeight}px`,
                         'max-height': props.maxHeight,
                     }}
                     documentKey={props.documentKey}

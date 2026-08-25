@@ -9,6 +9,17 @@ export const promptGutterWidth = {
 
 export const promptLineHeight = 24
 
+/* .cm-content 的上下 padding，min-height 要一起算進去才會剛好是整數行 */
+const promptContentPaddingY = 6
+
+/* 預設高度固定顯示幾行，內容超過就捲動；使用者仍可拖曳改變 */
+export const promptDefaultLines = 4
+export const promptDefaultHeight = promptLineHeight * promptDefaultLines + promptContentPaddingY * 2
+
+/* 拖曳能縮到的下限：一行 */
+export const promptMinLines = 1
+export const promptMinHeight = promptLineHeight * promptMinLines + promptContentPaddingY * 2
+
 /* MARK: theme */
 
 export const promptTheme = EditorView.theme({
@@ -18,9 +29,8 @@ export const promptTheme = EditorView.theme({
          * 使用者拉過之後容器有了明確高度，editor 就填滿它。
          * 寫死 height 會讓每個 editor 直接吃滿上限，把下方的圖片區壓掉。
          */
+        /* 高度由 host 決定：預設 4 行，使用者拉大之後 host 有明確高度，這裡填滿它 */
         height: '100%',
-        minHeight: '80px',
-        maxHeight: 'var(--prompt-max-height, none)',
         color: 'var(--sp-fg)',
         /*
          * 文字區比其他輸入框（--sp-active）暗一階：Prompt 是一大塊區域，
@@ -39,7 +49,7 @@ export const promptTheme = EditorView.theme({
         lineHeight: `${promptLineHeight}px`,
     },
     '.cm-content': {
-        padding: '6px 10px',
+        padding: `${promptContentPaddingY}px 10px`,
         caretColor: 'var(--sp-fg)',
     },
     '.cm-line': {
