@@ -15,10 +15,6 @@
         "nodeId": "99:59",
         "input": "sampler_name"
     },
-    "scheduler": {
-        "nodeId": "99:59",
-        "input": "scheduler"
-    },
     "denoise": {
         "nodeId": "99:59",
         "input": "denoise"

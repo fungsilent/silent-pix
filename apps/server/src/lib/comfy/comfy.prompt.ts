@@ -22,7 +22,6 @@ type GeneratorInput = {
     steps: number
     cfg: number
     samplerName: string
-    scheduler: string
     width: number
     height: number
     batchSize: number
@@ -60,6 +59,10 @@ export function buildComfyPrompt(
     const input = toGeneratorInput(generateConfig, runtime)
 
     for (const [key, mapping] of Object.entries(configSchema)) {
+        if (!(key in input)) {
+            continue
+        }
+
         const node = prompt[mapping.nodeId]
 
         if (!isComfyNode(node)) {
@@ -72,13 +75,7 @@ export function buildComfyPrompt(
             )
         }
 
-        const value = input[key as keyof GeneratorInput]
-
-        if (value === undefined) {
-            throw new ComfyPromptError(`Generator input "${key}" is not supported.`)
-        }
-
-        node.inputs[mapping.input] = value
+        node.inputs[mapping.input] = input[key as keyof GeneratorInput]
     }
 
     return prompt as ComfyPrompt
@@ -92,7 +89,6 @@ function toGeneratorInput(taskConfig: GenerateConfig, runtime: GenerateRuntime):
         steps: taskConfig.config.steps,
         cfg: taskConfig.config.cfg,
         samplerName: taskConfig.config.sampler,
-        scheduler: 'simple',
         width: taskConfig.config.width,
         height: taskConfig.config.height,
         batchSize: taskConfig.config.batch,
