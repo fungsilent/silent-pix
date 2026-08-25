@@ -1,24 +1,10 @@
 import type { Text } from '@codemirror/state'
+import type { TaskApi } from '@silent-pix/shared'
 
 /* MARK: persistent shape */
 
-/*
- * PHASE 1–6 的 page-scoped 形狀。PHASE 7 shared contract 落地後直接換成
- * TaskApi.TaskPromptDocument，欄位刻意保持一致，避免屆時還要改 call site。
- */
-export type PromptGroup = {
-    id: string
-    name: string
-    fromLine: number
-    toLine: number
-    enabled: boolean
-    disabledTokenIndexes: number[]
-}
-
-export type PromptDocument = {
-    text: string
-    groups: PromptGroup[]
-}
+export type PromptGroup = TaskApi.TaskPromptGroup
+export type PromptDocument = TaskApi.TaskPromptDocument
 
 /* MARK: transient shape */
 
@@ -179,20 +165,6 @@ export function tokensInRange(
 
 export function createGroupId(): string {
     return `group-${crypto.randomUUID()}`
-}
-
-export function emptyPromptDocument(name = 'Prompt'): PromptDocument {
-    return {
-        text: '',
-        groups: [{
-            id: createGroupId(),
-            name,
-            fromLine: 1,
-            toLine: 1,
-            enabled: true,
-            disabledTokenIndexes: [],
-        }],
-    }
 }
 
 export function clonePromptDocument(document: PromptDocument): PromptDocument {

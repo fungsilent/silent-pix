@@ -132,16 +132,50 @@ function createRandomSeed(): number {
     return high * 2 ** 32 + view.getUint32(4)
 }
 
-function serializePrompt(tags: TaskApi.TaskPromptTag[]): string {
+/*
+ * 每個 group 都輸出一個 row，關掉的組靠 enabled: false 表達，不是把它抽掉 ——
+ * 這樣 Prompt Stack 的列數與畫面上的 group 一一對應。
+ * Task 的 text 永遠原樣保存，只有 row text 會排除 disabled token。
+ */
+export function serializePrompt(document: TaskApi.TaskPromptDocument): string {
+    const lines = document.text.split('\n')
+
     return JSON.stringify({
         version: 1,
-        rows: tags.map(tag => ({
-            enabled: true,
-            label: tag.label,
-            text: tag.text,
+        rows: document.groups.map(group => ({
+            enabled: group.enabled,
+            label: group.name,
+            text: serializeGroupText(
+                lines.slice(group.fromLine - 1, group.toLine).join('\n'),
+                group.disabledTokenIndexes,
+            ),
         })),
         separator: ', ',
     })
+}
+
+/*
+ * 逗號切段後逐段重組：只有「trim 後非空」的段落才佔一個 index，
+ * 被停用的那幾段連同它的逗號一起消失，其餘一字不改。
+ */
+function serializeGroupText(text: string, disabledTokenIndexes: number[]): string {
+    if (disabledTokenIndexes.length === 0) return text
+
+    const disabled = new Set(disabledTokenIndexes)
+    const segments = text.split(',')
+    const kept: string[] = []
+    let tokenIndex = 0
+
+    segments.forEach(segment => {
+        const isToken = segment.trim().length > 0
+        const skip = isToken && disabled.has(tokenIndex)
+        if (isToken) tokenIndex += 1
+
+        if (skip) return
+        kept.push(segment)
+    })
+
+    return kept.join(',')
 }
 
 function isComfyNode(value: unknown): value is ComfyNode {

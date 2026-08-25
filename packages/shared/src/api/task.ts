@@ -16,13 +16,95 @@ export const taskListItem = z.object({
 
 export type TaskListItem = z.output<typeof taskListItem>
 
-export const taskPromptTag = z.object({
-    id: z.string(),
-    label: z.string(),
-    text: z.string(),
+export const taskPromptGroup = z.object({
+    id: z.string().trim().min(1).max(160),
+    name: z.string().trim().min(1).max(120),
+    fromLine: z.number().int().min(1),
+    toLine: z.number().int().min(1),
+    enabled: z.boolean(),
+    disabledTokenIndexes: z.array(z.number().int().nonnegative()),
 })
 
-export type TaskPromptTag = z.output<typeof taskPromptTag>
+export type TaskPromptGroup = z.output<typeof taskPromptGroup>
+
+/* 逗號是唯一 delimiter */
+export function countPromptTokens(text: string): number {
+    return text.split(',').filter(segment => segment.trim().length > 0).length
+}
+
+/*
+ * 文件級 invariant：group 依序、無 gap、無 overlap、完整覆蓋每一行、id 唯一，
+ * disabled token index 嚴格遞增且落在該組的 token 數量內。
+ * 少了這些檢查，畫面上的文字就可能漏掉某些行，永遠不會進 Prompt Stack。
+ */
+function validatePromptDocument(
+    document: { text: string, groups: TaskPromptGroup[] },
+    context: z.RefinementCtx,
+): void {
+    const lines = document.text.split('\n')
+    const ids = new Set<string>()
+
+    document.groups.forEach((group, index) => {
+        const expectedFromLine = index === 0 ? 1 : (document.groups[index - 1]?.toLine ?? 0) + 1
+
+        if (group.fromLine !== expectedFromLine) {
+            context.addIssue({
+                code: 'custom',
+                message: 'Prompt groups must be ordered without gaps or overlaps.',
+                path: ['groups', index, 'fromLine'],
+            })
+        }
+
+        if (group.toLine < group.fromLine) {
+            context.addIssue({
+                code: 'custom',
+                message: 'Prompt group must cover at least one line.',
+                path: ['groups', index, 'toLine'],
+            })
+        }
+
+        if (ids.has(group.id)) {
+            context.addIssue({
+                code: 'custom',
+                message: 'Prompt group ids must be unique.',
+                path: ['groups', index, 'id'],
+            })
+        }
+        ids.add(group.id)
+
+        const tokenCount = countPromptTokens(
+            lines.slice(group.fromLine - 1, group.toLine).join('\n'),
+        )
+        let previous = -1
+
+        group.disabledTokenIndexes.forEach((tokenIndex, position) => {
+            if (tokenIndex <= previous || tokenIndex >= tokenCount) {
+                context.addIssue({
+                    code: 'custom',
+                    message: 'Disabled token indexes must be sorted, unique and in range.',
+                    path: ['groups', index, 'disabledTokenIndexes', position],
+                })
+            }
+            previous = tokenIndex
+        })
+    })
+
+    const last = document.groups[document.groups.length - 1]
+    if (last && last.toLine !== lines.length) {
+        context.addIssue({
+            code: 'custom',
+            message: 'Prompt groups must cover every line of the document.',
+            path: ['groups', document.groups.length - 1, 'toLine'],
+        })
+    }
+}
+
+export const taskPromptDocument = z.object({
+    text: z.string(),
+    groups: z.array(taskPromptGroup).min(1),
+}).superRefine(validatePromptDocument)
+
+export type TaskPromptDocument = z.output<typeof taskPromptDocument>
 
 export const taskLora = z.object({
     id: z.string(),
@@ -33,8 +115,8 @@ export const taskLora = z.object({
 export type TaskLora = z.output<typeof taskLora>
 
 export const taskPrompt = z.object({
-    positive: z.array(taskPromptTag),
-    negative: z.array(taskPromptTag),
+    positive: taskPromptDocument,
+    negative: taskPromptDocument,
 })
 
 export type TaskPrompt = z.output<typeof taskPrompt>
