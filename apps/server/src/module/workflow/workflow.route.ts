@@ -10,8 +10,16 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
         '/',
         async ({ database }) => {
             const workflows = await workflowService.list(database)
+
             return {
-                options: workflows,
+                options: workflows.map(workflow => ({
+                    id: workflow.id,
+                    name: workflow.name,
+                    revision: workflow.revision,
+                    archivedAt: workflow.archivedAt === null
+                        ? null
+                        : new Date(workflow.archivedAt).toISOString(),
+                })),
             }
         },
         {

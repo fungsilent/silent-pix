@@ -21,6 +21,8 @@ export const workflows = sqliteTable('workflows', {
     name: text('name').notNull(),
     graph: text('graph', { mode: 'json' }).$type<JsonObject>().notNull(),
     configSchema: text('config_schema', { mode: 'json' }).$type<ConfigSchema>().notNull(),
+    revision: integer('revision').notNull().default(1),
+    archivedAt: integer('archived_at'),
     createdAt: integer('created_at').notNull(),
     updatedAt: integer('updated_at').notNull(),
 }, table => [

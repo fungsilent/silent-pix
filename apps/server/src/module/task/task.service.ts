@@ -108,6 +108,8 @@ export const taskService = {
             createdAt: item.task.createdAt.toISOString(),
             workflowId: item.task.workflowId,
             workflow: item.workflow.name,
+            workflowRevision: item.task.workflowRevision,
+            currentWorkflowRevision: item.workflow.revision,
             config: item.task.config.config,
             lora: item.task.config.lora,
             prompt: item.task.config.prompt,

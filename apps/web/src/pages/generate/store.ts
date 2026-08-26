@@ -71,6 +71,9 @@ export const draftTask: GenerateTask = {
     status: null,
     createdAt: null,
     workflow: '',
+    /* draft 還沒有 workflow，兩個都是 0：TaskDetail 看到 0 就不提示 drift */
+    workflowRevision: 0,
+    currentWorkflowRevision: 1,
     config: {
         seed: null,
         steps: 40,

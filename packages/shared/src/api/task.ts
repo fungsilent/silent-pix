@@ -198,6 +198,8 @@ export const getTaskResponse = z.object({
     createdAt: z.iso.datetime(),
     workflowId: z.uuid().optional(),
     workflow: z.string(),
+    workflowRevision: z.number().int().nonnegative(),
+    currentWorkflowRevision: z.number().int().positive(),
     config: taskConfig,
     lora: z.array(taskLora),
     prompt: taskPrompt,

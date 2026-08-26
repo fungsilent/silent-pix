@@ -28,6 +28,7 @@ export const tasks = sqliteTable('tasks', {
         onUpdate: 'cascade',
     }),
     config: text('config', { mode: 'json' }).$type<JsonObject>().notNull(),
+    workflowRevision: integer('workflow_revision').notNull().default(0),
     createdAt: integer('created_at').notNull(),
     updatedAt: integer('updated_at').notNull(),
     comfyPromptId: text('comfy_prompt_id'),
