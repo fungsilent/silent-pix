@@ -135,6 +135,7 @@ apps/desktop
 
 packages/shared
     shared contracts only.
+    Domain modules live at the root; REST modules live under `api/`.
 
 packages/event
     event contracts and WebSocket helpers only.
@@ -144,6 +145,35 @@ packages/db
 ```
 
 Do not mix ownership.
+
+### Shared module layout
+
+```txt
+packages/shared/src/
+    config.ts       generator fields the web can control; ConfigSchema
+    comfy.ts        ComfyUI API graph format, parsing, mapping validation
+    api/<module>.ts REST request/response only
+    event/<module>.ts server-to-web event contracts
+    index.ts        root exports
+```
+
+Dependency runs one way: `api/* -> comfy -> config`. A domain module never
+imports an API module.
+
+A type belongs to the module that defines its shape, not the module it appears
+in most often. `ConfigSchema` and `Comfy.Graph` are the shape the database
+column requires; REST is a consumer of them, so they are root types and
+`workflowApi` composes its schemas from them. Never re-export a domain type
+through an API namespace - `WorkflowApi.ComfyGraph` was exactly that mistake.
+
+Root exports use a namespace when the module owns a cluster of related types
+(`Comfy.Graph`, `Comfy.Node`, `Comfy.MappingIssue`) and flat types when the
+names already stand alone (`ConfigSchema`, `GeneratorField`, `Mapping`).
+
+Inside `packages/shared`, imports use the `#shared/*` alias, not `#/*`. Every
+package defines its own `#/*`, and tsx applies the entry package's tsconfig
+paths to every file it loads, so a shared file importing `#/config` resolves to
+the server's `src/config.ts`.
 
 ---
 
@@ -179,6 +209,56 @@ Repository handles:
 - transactions
 - persistence details
 ```
+
+Model handles:
+
+```txt
+- DB row -> domain model cast
+- domain-only types
+```
+
+`<module>.model.ts` may import a contract schema to parse persisted JSON - that
+is still the database side of the boundary. It must not build response payloads.
+A model knows the database, not the wire.
+
+### Response shaping
+
+A service method returns a domain result. Only a dedicated `get<X>Response`
+method narrows to an API response type.
+
+```ts
+findWorkflow(database, workflowId)        // WorkflowModel | null
+getWorkflowResponse(database, workflowId) // GetWorkflowResponse | undefined
+create(database, payload)                 // WorkflowModel
+update(database, id, revision, payload)   // done(WorkflowModel) | fail(code)
+```
+
+A mutation writes and returns the domain model. The route then re-reads the
+response, the same way the web invalidates a query after a mutation:
+
+```ts
+const result = await workflowService.update(database, workflowId, body.revision, payload)
+
+if (!result.ok) {
+    return status(failure.status, { error: { code: result.error, message: failure.message } })
+}
+
+const workflow = await workflowService.getWorkflowResponse(database, result.data.id)
+
+if (!workflow) {
+    throw new Error('Updated workflow could not be loaded.')
+}
+
+return workflow
+```
+
+One read path means one shape. Fields the mutation never computed - `taskCount`,
+joined names, image lists - come back for free, and detail, event and mutation
+payloads cannot drift apart. The extra SELECT is the price of that guarantee.
+
+Do not extract a projection helper just to share it between two call sites.
+Either the projection belongs to a `get<X>Response`, or each response site
+writes its own fields.
 
 ---
 
