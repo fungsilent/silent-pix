@@ -3,6 +3,7 @@ import { Check, ChevronDown } from 'lucide-solid'
 import { createMemo, For } from 'solid-js'
 
 import { cn } from '#/lib/cn'
+import { fieldTheme } from '#/lib/theme'
 
 type SelectOption = {
     label: string
@@ -49,7 +50,8 @@ export function Select(props: SelectProps) {
             <ArkSelect.Control>
                 <ArkSelect.Trigger
                     class={cn(
-                        'flex h-8 w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-transparent bg-active px-3 text-left text-xs leading-none text-fg outline-none focus:border-accent focus:ring-3 focus:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-60',
+                        'flex h-8 w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-transparent bg-active px-3 text-left text-xs leading-none text-fg outline-none focus:border-accent focus:ring-3 focus:ring-accent/40',
+                        fieldTheme.disabled,
                         props.classes?.trigger,
                     )}
                 >

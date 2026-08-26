@@ -1,6 +1,7 @@
 import { Field } from '@ark-ui/solid'
 
 import { cn } from '#/lib/cn'
+import { fieldTheme } from '#/lib/theme'
 
 type NumberProps = {
     label: string
@@ -32,7 +33,7 @@ export function Number(props: NumberProps) {
                 disabled={props.disabled}
                 class={cn(
                     'number-input h-8 min-w-0 rounded-md border border-transparent bg-active px-3 text-xs leading-none text-fg outline-none focus:border-accent focus:ring-3 focus:ring-accent/40',
-                    'disabled:cursor-default disabled:border-line-subtle disabled:bg-white/[0.02] disabled:text-fg-muted',
+                    fieldTheme.disabled,
                     props.classes?.input,
                 )}
                 onInput={event => props.onChange?.(event.currentTarget.valueAsNumber)}

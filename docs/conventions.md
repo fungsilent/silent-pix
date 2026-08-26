@@ -301,6 +301,7 @@ Rules:
 - shared low-level primitives go in `apps/web/src/components/base`
 - shared form/control primitives go in `apps/web/src/components/field`
 - shared detail-panel primitives go in `apps/web/src/components/detail`
+- shared class recipes live in `apps/web/src/lib/theme.ts` beside `cn.ts`; tokens stay in `styles.css`
 - app-level chrome such as `Header` lives in `apps/web/src/components` and is used from `App.tsx`
 - page-specific components go in `apps/web/src/pages/<page>/components`
 - a `components` folder holds components only
@@ -389,6 +390,8 @@ components/field/*
 
 lib/*
     Non-component browser logic with no page-specific knowledge: class merging, stores, event dispatch, error mapping, image zoom/pan.
+    lib/theme.ts is the exception that is not logic: shared class recipes such as the disabled field look. styles.css owns the tokens;
+    theme.ts owns which tokens combine into a role, so components do not each keep a copy.
 
 pages/generate/store.ts, pages/generate/issue.ts
     Generate-page-wide non-component logic: form state and the issue model feeding the issue chip.

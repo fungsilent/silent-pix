@@ -2,6 +2,7 @@ import { Editable as ArkEditable } from '@ark-ui/solid'
 import { Pencil } from 'lucide-solid'
 
 import { cn } from '#/lib/cn'
+import { fieldTheme } from '#/lib/theme'
 
 type EditableProps = {
     disabled?: boolean
@@ -35,6 +36,7 @@ export function Editable(props: EditableProps) {
                 <ArkEditable.Preview
                     class={cn(
                         'flex h-8 w-full cursor-text items-center truncate rounded-md border border-transparent bg-active px-3 text-xs leading-none text-fg data-[placeholder-shown]:text-fg-muted',
+                        fieldTheme.disabledData,
                         props.classes?.preview,
                     )}
                 />

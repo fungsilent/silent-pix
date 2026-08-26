@@ -5,6 +5,7 @@ import { Button } from '#/components/base/Button'
 import { FieldHint } from '#/components/base/FieldHint'
 import { DetailSection } from '#/components/detail'
 import { Number, Slider } from '#/components/field'
+import { cn } from '#/lib/cn'
 import { LoraDialog } from '#/pages/generate/components/config/LoraDialog'
 import { useGenerateStore } from '#/pages/generate/store'
 
@@ -27,27 +28,32 @@ export function TaskLora(props: TaskLoraProps) {
             <div class='flex flex-col gap-2'>
                 <For each={loras()}>
                     {lora => (
-                        <div class='flex flex-col gap-2 rounded-lg bg-active px-2.5 py-2'>
-                            <div class='flex items-center gap-1.5'>
+                        <div class='flex flex-col gap-2 rounded-lg bg-elevated px-2.5 py-2'>
+                            {/* 固定高度：X 在唯讀時消失，卡片高度不該跟著塌 */}
+                            <div class='flex h-6 items-center gap-1.5'>
                                 <span
-                                    class='min-w-0 flex-1 truncate text-xs leading-none text-fg'
+                                    class={cn(
+                                        'min-w-0 flex-1 truncate text-xs leading-none',
+                                        isView() ? 'text-fg-secondary' : 'text-fg',
+                                    )}
                                     title={lora.name}
                                 >
                                     {lora.name}
                                 </span>
-                                <Button
-                                    disabled={isView()}
-                                    variant='ghost'
-                                    aria-label={`Remove ${lora.name}`}
-                                    classes={{ root: 'size-6 shrink-0 rounded p-0 hover:bg-red-500/12 hover:text-red-400' }}
-                                    onClick={() => store.removeLora(lora.id)}
-                                >
-                                    <X
-                                        size={13}
-                                        strokeWidth={1.8}
-                                        aria-hidden='true'
-                                    />
-                                </Button>
+                                <Show when={!isView()}>
+                                    <Button
+                                        variant='ghost'
+                                        aria-label={`Remove ${lora.name}`}
+                                        classes={{ root: 'size-6 shrink-0 rounded p-0 hover:bg-danger/15 hover:text-danger-fg' }}
+                                        onClick={() => store.removeLora(lora.id)}
+                                    >
+                                        <X
+                                            size={13}
+                                            strokeWidth={1.8}
+                                            aria-hidden='true'
+                                        />
+                                    </Button>
+                                </Show>
                             </div>
                             <div class='flex items-center gap-2.5'>
                                 <Slider
@@ -73,7 +79,7 @@ export function TaskLora(props: TaskLoraProps) {
                                     classes={{
                                         root: 'w-[64px]',
                                         label: 'sr-only',
-                                        input: 'h-6 w-full bg-elevated px-2 text-center text-xs',
+                                        input: 'h-6 w-full px-2 text-center text-xs',
                                     }}
                                 />
                             </div>
