@@ -6,6 +6,7 @@ import { DetailRow, DetailSection } from '#/components/detail'
 import { Editable } from '#/components/field/Editable'
 import { useRenameTaskMutation } from '#/features/task/task.query'
 import { toErrorMessage } from '#/lib/error'
+import { formatDateTime } from '#/lib/format'
 import { TaskDelete } from '#/pages/generate/components/config/TaskDelete'
 import { TaskStatus } from '#/pages/generate/components/TaskStatus'
 import { useGenerateStore } from '#/pages/generate/store'
@@ -99,7 +100,7 @@ export function TaskInfo(props: TaskInfoProps) {
                         'text-fg-muted': props.task.createdAt === null,
                     }}
                 >
-                    {props.task.createdAt ? new Date(props.task.createdAt).toLocaleString() : '-'}
+                    {props.task.createdAt ? formatDateTime(props.task.createdAt) : '-'}
                 </span>
             </DetailRow>
 

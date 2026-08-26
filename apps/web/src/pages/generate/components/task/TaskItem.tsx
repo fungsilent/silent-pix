@@ -2,6 +2,7 @@ import { Ban, CircleX, Hourglass, Image as ImageIcon, LoaderCircle } from 'lucid
 
 import { Button } from '#/components/base/Button'
 import { cn } from '#/lib/cn'
+import { formatDateTime } from '#/lib/format'
 import { TaskStatus } from '#/pages/generate/components/TaskStatus'
 
 import type { TaskApi } from '@silent-pix/shared'
@@ -61,7 +62,11 @@ export function TaskItem(props: TaskItemProps) {
             aria-pressed={props.selected}
             classes={{
                 root: cn(
-                    'w-fit gap-2.5 rounded-lg text-left p-1.5',
+                    /*
+                     * w-full 而不是 w-fit：每列寬度若隨名稱長度變化，items-center
+                     * 會把每列各自置中，縮圖就對不齊；收合時全部變同寬又會跳一下。
+                     */
+                    'w-full gap-2.5 rounded-lg text-left p-1.5',
                     props.selected
                         ? 'border-accent/60 bg-active shadow-[0_0_0_1px_rgba(37,99,235,0.14),0_1px_12px_rgba(37,99,235,0.12)]'
                         : 'hover:bg-elevated',
@@ -99,7 +104,7 @@ export function TaskItem(props: TaskItemProps) {
                     </span>
                     <TaskStatus status={props.task.status} />
                     <span class='max-w-full truncate text-[11px] leading-none text-fg-muted'>
-                        {new Date(props.task.createdAt).toLocaleString()}
+                        {formatDateTime(props.task.createdAt)}
                     </span>
                 </div>
             )}

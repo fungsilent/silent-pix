@@ -2,6 +2,7 @@ import { Line } from '#/components/base/Line'
 import { CollapseButton, CollapsedBar, Panel, PanelContent, PanelHeader } from '#/components/base/Panel'
 import { DetailRow, DetailSection } from '#/components/detail'
 import { Number } from '#/components/field'
+import { formatDateTime } from '#/lib/format'
 
 import type { ImageApi } from '@silent-pix/shared'
 
@@ -61,7 +62,7 @@ function ReferenceImageContent(props: ReferenceImageContentProps) {
                 </DetailRow>
                 <DetailRow label='Created'>
                     <span class='text-xs leading-none text-fg-secondary'>
-                        {new Date(props.image.createdAt).toLocaleString()}
+                        {formatDateTime(props.image.createdAt)}
                     </span>
                 </DetailRow>
             </DetailSection>
