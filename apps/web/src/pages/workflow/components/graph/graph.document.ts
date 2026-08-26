@@ -117,8 +117,8 @@ export function toLineMarks(
     const brokenFields = new Set(issues.map(issue => issue.field))
     const marks = new Map<number, LineMark>()
 
-    for (const definition of config.generatorFieldDefinitions) {
-        const binding = schema[definition.field]
+    for (const field of config.generatorFields) {
+        const binding = schema[field]
 
         if (!binding) {
             continue
@@ -131,8 +131,8 @@ export function toLineMarks(
         }
 
         marks.set(line, {
-            field: definition.field,
-            broken: brokenFields.has(definition.field),
+            field,
+            broken: brokenFields.has(field),
         })
     }
 

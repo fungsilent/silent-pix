@@ -6,8 +6,6 @@ export * as config from '#shared/config'
 export type {
     ConfigSchema,
     GeneratorField,
-    GeneratorFieldGroup,
-    GeneratorFieldGroupLabel,
     Mapping,
 } from '#shared/config'
 

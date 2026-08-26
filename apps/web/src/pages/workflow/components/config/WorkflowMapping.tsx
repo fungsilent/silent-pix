@@ -1,16 +1,16 @@
-import { config } from '@silent-pix/shared'
 import { For, Show } from 'solid-js'
 
 import { Line } from '#/components/base/Line'
 import { DetailGroup, DetailLabel, DetailSection } from '#/components/detail'
 import { Select } from '#/components/field'
+import { fieldGroups } from '#/pages/workflow/generator-field'
 import { useWorkflowStore } from '#/pages/workflow/store'
 
 import type { Comfy, GeneratorField, Mapping } from '@silent-pix/shared'
 
 const unboundValue = ''
 
-/* 對應 TaskConfig：右欄的設定區，分組順序由 shared 的 field metadata 決定 */
+/* 對應 TaskConfig：右欄的設定區，分組順序見 pages/workflow/generator-field.ts */
 export function WorkflowMapping() {
     const store = useWorkflowStore()
 
@@ -22,7 +22,7 @@ export function WorkflowMapping() {
                 <span>Input</span>
             </div>
 
-            <For each={config.generatorFieldGroups}>
+            <For each={fieldGroups}>
                 {(group, index) => (
                     <>
                         <Show when={index() > 0}>

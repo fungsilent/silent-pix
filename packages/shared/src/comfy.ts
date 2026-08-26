@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { generatorField, generatorFieldDefinitions } from '#shared/config'
+import { generatorField, generatorFields } from '#shared/config'
 
 import type { ConfigSchema } from '#shared/config'
 
@@ -79,8 +79,8 @@ export type MappingIssue = z.output<typeof mappingIssue>
 export function validateMapping(value: Graph, schema: ConfigSchema): MappingIssue[] {
     const issues: MappingIssue[] = []
 
-    for (const definition of generatorFieldDefinitions) {
-        const binding = schema[definition.field]
+    for (const field of generatorFields) {
+        const binding = schema[field]
 
         /* 沒綁定是合法狀態，不是問題 */
         if (!binding) {
@@ -88,7 +88,7 @@ export function validateMapping(value: Graph, schema: ConfigSchema): MappingIssu
         }
 
         const issue = (reason: MappingIssueReason): MappingIssue => ({
-            field: definition.field,
+            field,
             reason,
             nodeId: binding.nodeId,
             input: binding.input,
