@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
-import { workflowApi } from '@silent-pix/shared'
+import { comfy, config } from '@silent-pix/shared'
 import { eq } from 'drizzle-orm'
 
 import { createDatabaseClient } from '#/client'
@@ -9,16 +9,16 @@ import { loadConfig } from '#/config'
 import { workflows } from '#/schema/schema.export'
 import { assertUUID } from '#/uuid'
 
-import type { ConfigSchema, JsonObject, } from '#/schema/schema.export'
+import type { Comfy, ConfigSchema } from '@silent-pix/shared'
 import type { UUID } from '#/uuid'
 
-const config = loadConfig()
-const seedRoot = resolve(config.packageRoot, 'seed', 'workflows')
+const dbConfig = loadConfig()
+const seedRoot = resolve(dbConfig.packageRoot, 'seed', 'workflows')
 
 type WorkflowSeed = {
     id: UUID
     name: string
-    graph: JsonObject
+    graph: Comfy.Graph
     configSchema: ConfigSchema
 }
 
@@ -42,8 +42,10 @@ function readWorkflow(directoryName: string): WorkflowSeed {
 
     assertUUID(metadata.id, `${directory}/metadata.json.id`)
 
-    if (!isRecord(graph)) {
-        throw new Error(`Workflow graph must be an object: ${directory}/graph.json`)
+    const parsedGraph = comfy.parseApiGraph(graph)
+
+    if (!parsedGraph.ok) {
+        throw new Error(`Workflow graph is not a ComfyUI API graph (${parsedGraph.reason}): ${directory}/graph.json`)
     }
 
     if (!isRecord(rawConfigSchema)) {
@@ -53,7 +55,7 @@ function readWorkflow(directoryName: string): WorkflowSeed {
     const configSchema: ConfigSchema = {}
 
     for (const [key, mapping] of Object.entries(rawConfigSchema)) {
-        if (!workflowApi.isGeneratorField(key)) {
+        if (!config.isGeneratorField(key)) {
             throw new Error(`Unknown config field: ${directory}/config-schema.json.${key}`)
         }
 
@@ -70,12 +72,12 @@ function readWorkflow(directoryName: string): WorkflowSeed {
     return {
         id: metadata.id,
         name: metadata.name,
-        graph,
+        graph: parsedGraph.graph,
         configSchema,
     }
 }
 
-const database = await createDatabaseClient(config.databasePath)
+const database = await createDatabaseClient(dbConfig.databasePath)
 
 try {
     const workflowDirectories = readdirSync(seedRoot, { withFileTypes: true })

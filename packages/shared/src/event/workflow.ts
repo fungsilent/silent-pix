@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { workflowSummary } from '#/api/workflow'
+import { workflowSummary } from '#shared/api/workflow'
 
 export const changed = z.object({
     type: z.literal('workflow.changed'),

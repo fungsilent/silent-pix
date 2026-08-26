@@ -9,17 +9,14 @@ import {
 import { uuidCheck } from '#/schema/schema.util'
 import { createUUID } from '#/uuid'
 
-import type { WorkflowApi } from '@silent-pix/shared'
-import type { JsonObject, UpdateData } from '#/schema/schema.util'
+import type { Comfy, ConfigSchema } from '@silent-pix/shared'
+import type { UpdateData } from '#/schema/schema.util'
 import type { UUID } from '#/uuid'
-
-/* mapping 的形狀由 contract 決定，這裡不另外寫一份 */
-export type ConfigSchema = WorkflowApi.ConfigSchema
 
 export const workflows = sqliteTable('workflows', {
     id: text('id').$type<UUID>().primaryKey().$defaultFn(createUUID),
     name: text('name').notNull(),
-    graph: text('graph', { mode: 'json' }).$type<JsonObject>().notNull(),
+    graph: text('graph', { mode: 'json' }).$type<Comfy.Graph>().notNull(),
     configSchema: text('config_schema', { mode: 'json' }).$type<ConfigSchema>().notNull(),
     revision: integer('revision').notNull().default(1),
     archivedAt: integer('archived_at'),

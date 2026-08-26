@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { imageResource, imageUsage } from '#/api/image'
+import { imageResource, imageUsage } from '#shared/api/image'
 
 export const taskStatus = z.enum(['queued', 'running', 'done', 'failed', 'cancelled'])
 

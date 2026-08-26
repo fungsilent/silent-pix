@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
-import { imageResource } from '#/api/image'
-import { taskListItem } from '#/api/task'
+import { imageResource } from '#shared/api/image'
+import { taskListItem } from '#shared/api/task'
 
 /*
  * 目前廣播給所有 client，包含建立者自己。建立者的 cache 已由 POST 回應填好，

@@ -1,12 +1,12 @@
-import { workflowApi } from '@silent-pix/shared'
+import { comfy, config } from '@silent-pix/shared'
 
-import type { WorkflowApi } from '@silent-pix/shared'
+import type { Comfy, ConfigSchema, GeneratorField } from '@silent-pix/shared'
 
 export type GraphParse =
     | { status: 'empty' }
     | { status: 'invalid-json', message: string }
-    | { status: 'invalid-graph', reason: WorkflowApi.ParseApiGraphFailure }
-    | { status: 'ok', graph: WorkflowApi.ComfyGraph, text: string }
+    | { status: 'invalid-graph', reason: Comfy.ParseApiGraphFailure }
+    | { status: 'ok', graph: Comfy.Graph, text: string }
 
 /*
  * 貼上之後一律用 JSON.stringify(_, null, 2) 重新排版。原始排版對機器產生的 JSON
@@ -30,7 +30,7 @@ export function parseGraphText(text: string): GraphParse {
         }
     }
 
-    const result = workflowApi.parseApiGraph(value)
+    const result = comfy.parseApiGraph(value)
 
     if (!result.ok) {
         return { status: 'invalid-graph', reason: result.reason }
@@ -100,7 +100,7 @@ export function toInputLines(text: string): InputLines {
 }
 
 export type LineMark = {
-    field: WorkflowApi.GeneratorField
+    field: GeneratorField
     broken: boolean
 }
 
@@ -110,14 +110,14 @@ export type LineMark = {
  */
 export function toLineMarks(
     text: string,
-    schema: WorkflowApi.ConfigSchema,
-    issues: WorkflowApi.MappingIssue[],
+    schema: ConfigSchema,
+    issues: Comfy.MappingIssue[],
 ): Map<number, LineMark> {
     const inputLines = toInputLines(text)
     const brokenFields = new Set(issues.map(issue => issue.field))
     const marks = new Map<number, LineMark>()
 
-    for (const definition of workflowApi.generatorFieldDefinitions) {
+    for (const definition of config.generatorFieldDefinitions) {
         const binding = schema[definition.field]
 
         if (!binding) {

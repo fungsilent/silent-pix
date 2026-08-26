@@ -5,7 +5,7 @@
     "type": "module",
     "main": "./dist/index.js",
     "imports": {
-        "#/*": {
+        "#shared/*": {
             "development": "./src/*.ts",
             "types": "./src/*.ts",
             "default": "./dist/*.js"

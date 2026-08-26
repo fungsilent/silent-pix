@@ -1,11 +1,11 @@
-import { workflowApi } from '@silent-pix/shared'
+import { comfy } from '@silent-pix/shared'
 import { createContext, createMemo, useContext } from 'solid-js'
 
 import { createStore } from '#/lib/store'
 import { parseGraphText, toLineMarks } from '#/pages/workflow/components/graph/graph.document'
 import { workflowFixtures } from '#/pages/workflow/fixture'
 
-import type { WorkflowApi } from '@silent-pix/shared'
+import type { Comfy, ConfigSchema, GeneratorField, Mapping } from '@silent-pix/shared'
 import type { GraphParse, LineMark } from '#/pages/workflow/components/graph/graph.document'
 import type { JSX } from 'solid-js'
 
@@ -14,14 +14,14 @@ export type WorkflowRecord = {
     name: string
     archivedAt: number | null
     graphText: string
-    configSchema: WorkflowApi.ConfigSchema
+    configSchema: ConfigSchema
 }
 
 export type WorkflowDraft = {
     id: string
     name: string
     graphText: string
-    configSchema: WorkflowApi.ConfigSchema
+    configSchema: ConfigSchema
     /* 還沒建立的那一筆：Enter 才成為 record，Esc 直接丟掉 */
     isNew: boolean
 }
@@ -151,7 +151,7 @@ export function createWorkflowStore() {
             })
         },
 
-        setMapping(field: WorkflowApi.GeneratorField, value: WorkflowApi.Mapping | undefined) {
+        setMapping(field: GeneratorField, value: Mapping | undefined) {
             ensureDraft(core)
             core.produce('draft', draft => {
                 if (!draft) {
@@ -202,12 +202,12 @@ export function createWorkflowStore() {
             }
         }
 
-        const mappingIssues = workflowApi.validateMapping(parse.graph, configSchema)
+        const mappingIssues = comfy.validateMapping(parse.graph, configSchema)
 
         return {
             parse,
             graph: parse.graph,
-            nodeOptions: workflowApi.toNodeOptions(parse.graph),
+            nodeOptions: comfy.toNodeOptions(parse.graph),
             mappingIssues,
             /* 標記算在「畫面上那份文字」上，不是正規化後的版本，否則行號會對不上 */
             lineMarks: toLineMarks(graphText, configSchema, mappingIssues),
@@ -252,7 +252,7 @@ export type WorkflowSelection = {
     name: string
     archivedAt: number | null
     graphText: string
-    configSchema: WorkflowApi.ConfigSchema
+    configSchema: ConfigSchema
     isNew: boolean
     isDirty: boolean
     isArchived: boolean
@@ -260,8 +260,8 @@ export type WorkflowSelection = {
 
 export type WorkflowGraphState = {
     parse: GraphParse
-    graph: WorkflowApi.ComfyGraph | undefined
-    nodeOptions: WorkflowApi.ComfyNodeOption[]
-    mappingIssues: WorkflowApi.MappingIssue[]
+    graph: Comfy.Graph | undefined
+    nodeOptions: Comfy.NodeOption[]
+    mappingIssues: Comfy.MappingIssue[]
     lineMarks: Map<number, LineMark>
 }

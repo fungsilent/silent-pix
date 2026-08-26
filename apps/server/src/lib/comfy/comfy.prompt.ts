@@ -1,5 +1,4 @@
-import type { ConfigSchema, JsonObject } from '@silent-pix/db'
-import type { TaskApi } from '@silent-pix/shared'
+import type { Comfy, ConfigSchema, TaskApi } from '@silent-pix/shared'
 
 export type ComfyNode = {
     class_type: string
@@ -50,7 +49,7 @@ export class ComfyPromptError extends Error {
 }
 
 export function buildComfyPrompt(
-    graph: JsonObject,
+    graph: Comfy.Graph,
     configSchema: ConfigSchema,
     generateConfig: GenerateConfig,
     runtime: GenerateRuntime,

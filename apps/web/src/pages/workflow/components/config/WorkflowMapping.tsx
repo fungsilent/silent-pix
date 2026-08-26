@@ -1,4 +1,4 @@
-import { workflowApi } from '@silent-pix/shared'
+import { config } from '@silent-pix/shared'
 import { For, Show } from 'solid-js'
 
 import { Line } from '#/components/base/Line'
@@ -6,7 +6,7 @@ import { DetailGroup, DetailLabel, DetailSection } from '#/components/detail'
 import { Select } from '#/components/field'
 import { useWorkflowStore } from '#/pages/workflow/store'
 
-import type { WorkflowApi } from '@silent-pix/shared'
+import type { Comfy, GeneratorField, Mapping } from '@silent-pix/shared'
 
 const unboundValue = ''
 
@@ -22,7 +22,7 @@ export function WorkflowMapping() {
                 <span>Input</span>
             </div>
 
-            <For each={workflowApi.generatorFieldGroups}>
+            <For each={config.generatorFieldGroups}>
                 {(group, index) => (
                     <>
                         <Show when={index() > 0}>
@@ -49,11 +49,11 @@ export function WorkflowMapping() {
 }
 
 type MappingRowProps = {
-    field: WorkflowApi.GeneratorField
-    binding: WorkflowApi.Mapping | undefined
-    nodeOptions: WorkflowApi.ComfyNodeOption[]
+    field: GeneratorField
+    binding: Mapping | undefined
+    nodeOptions: Comfy.NodeOption[]
     readOnly: boolean
-    onChange: (field: WorkflowApi.GeneratorField, value: WorkflowApi.Mapping | undefined) => void
+    onChange: (field: GeneratorField, value: Mapping | undefined) => void
 }
 
 function MappingRow(props: MappingRowProps) {
