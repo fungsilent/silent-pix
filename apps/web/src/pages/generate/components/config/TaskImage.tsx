@@ -2,7 +2,8 @@ import { ImagePlus, RotateCcw, Search, X } from 'lucide-solid'
 import { createEffect, createSignal, on, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
-import { SectionTitle } from '#/components/base/SectionTitle'
+import { FieldHint } from '#/components/base/FieldHint'
+import { DetailSection } from '#/components/detail'
 import { FileDrop, Number, Slider } from '#/components/field'
 import { ImagePickerDialog } from '#/pages/generate/components/ImagePickerDialog'
 import { ImageViewer } from '#/pages/generate/components/workspace/shared/ImageViewer'
@@ -61,10 +62,7 @@ export function TaskImage(props: TaskImageProps) {
     }
 
     return (
-        <section class='flex flex-col gap-2'>
-            <div class='flex flex-col gap-1 py-1'>
-                <SectionTitle>Image</SectionTitle>
-            </div>
+        <DetailSection title='Image'>
 
             <Show
                 when={reference()}
@@ -109,7 +107,7 @@ export function TaskImage(props: TaskImageProps) {
             </Show>
 
             <Show when={error()}>
-                {message => <p class='m-0 text-xs text-danger-fg'>{message()}</p>}
+                {message => <FieldHint tone='danger'>{message()}</FieldHint>}
             </Show>
 
             <Show when={reference()}>
@@ -153,7 +151,7 @@ export function TaskImage(props: TaskImageProps) {
                     store.setReferenceImage(reference)
                 }}
             />
-        </section>
+        </DetailSection>
     )
 }
 

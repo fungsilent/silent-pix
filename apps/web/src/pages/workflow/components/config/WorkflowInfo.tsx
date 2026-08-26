@@ -1,10 +1,10 @@
 import { Show } from 'solid-js'
 
+import { DetailRow, DetailSection } from '#/components/detail'
 import { Editable } from '#/components/field'
 import { WorkflowDelete } from '#/pages/workflow/components/config/WorkflowDelete'
 import { useWorkflowStore } from '#/pages/workflow/store'
 
-import type { JSX } from 'solid-js'
 
 /* 對應 TaskInfo：identity 與破壞性動作放在右欄最上面，沒有自己的標題 */
 export function WorkflowInfo() {
@@ -18,7 +18,7 @@ export function WorkflowInfo() {
     }
 
     return (
-        <section class='flex flex-col gap-2'>
+        <DetailSection>
             <DetailRow label='Name'>
                 <Editable
                     disabled={store.selection().isArchived}
@@ -33,20 +33,6 @@ export function WorkflowInfo() {
             <Show when={!store.selection().isArchived}>
                 <WorkflowDelete />
             </Show>
-        </section>
-    )
-}
-
-type DetailRowProps = {
-    children: JSX.Element
-    label: string
-}
-
-function DetailRow(props: DetailRowProps) {
-    return (
-        <div class='grid min-w-0 grid-cols-[74px_minmax(0,1fr)] items-center gap-3'>
-            <span class='text-xs leading-none text-fg-muted'>{props.label}</span>
-            <div class='min-w-0'>{props.children}</div>
-        </div>
+        </DetailSection>
     )
 }

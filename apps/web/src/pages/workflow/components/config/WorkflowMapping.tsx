@@ -2,7 +2,7 @@ import { workflowApi } from '@silent-pix/shared'
 import { For, Show } from 'solid-js'
 
 import { Line } from '#/components/base/Line'
-import { SectionTitle } from '#/components/base/SectionTitle'
+import { DetailGroup, DetailLabel, DetailSection } from '#/components/detail'
 import { Select } from '#/components/field'
 import { useWorkflowStore } from '#/pages/workflow/store'
 
@@ -15,7 +15,7 @@ export function WorkflowMapping() {
     const store = useWorkflowStore()
 
     return (
-        <section class='flex flex-col gap-3'>
+        <DetailSection title='Mapping'>
             <div class='grid grid-cols-[112px_1fr_168px] items-center gap-2 text-xs leading-none text-fg-muted'>
                 <span>Field</span>
                 <span>Node</span>
@@ -28,22 +28,23 @@ export function WorkflowMapping() {
                         <Show when={index() > 0}>
                             <Line />
                         </Show>
-                        <SectionTitle>{group.label}</SectionTitle>
-                        <For each={group.fields}>
-                            {field => (
-                                <MappingRow
-                                    field={field}
-                                    binding={store.selection().configSchema[field]}
-                                    nodeOptions={store.graphState().nodeOptions}
-                                    readOnly={store.selection().isArchived}
-                                    onChange={(target, value) => store.setMapping(target, value)}
-                                />
-                            )}
-                        </For>
+                        <DetailGroup title={group.label}>
+                            <For each={group.fields}>
+                                {field => (
+                                    <MappingRow
+                                        field={field}
+                                        binding={store.selection().configSchema[field]}
+                                        nodeOptions={store.graphState().nodeOptions}
+                                        readOnly={store.selection().isArchived}
+                                        onChange={(target, value) => store.setMapping(target, value)}
+                                    />
+                                )}
+                            </For>
+                        </DetailGroup>
                     </>
                 )}
             </For>
-        </section>
+        </DetailSection>
     )
 }
 
@@ -103,7 +104,7 @@ function MappingRow(props: MappingRowProps) {
 
     return (
         <div class='grid grid-cols-[112px_1fr_168px] items-center gap-2'>
-            <span class='truncate text-xs leading-none text-fg'>{props.field}</span>
+            <DetailLabel>{props.field}</DetailLabel>
 
             <Select
                 label={`${props.field} node`}

@@ -1,9 +1,9 @@
 import { createMemo, Show } from 'solid-js'
 
-import { CollapseButton, Panel, PanelContent, PanelHeader } from '#/components/base/Panel'
+import { CollapseButton, CollapsedBar, Panel, PanelContent, PanelHeader } from '#/components/base/Panel'
 import { useTaskDetailQuery } from '#/features/task/task.query'
 import { TaskDetail } from '#/pages/generate/components/config/TaskDetail'
-import { InputImageDetail } from '#/pages/generate/components/workspace/compare/InputImageDetail'
+import { ReferenceImageDetail } from '#/pages/generate/components/workspace/compare/ReferenceImageDetail'
 import { createGenerateStore, GenerateStoreProvider } from '#/pages/generate/store'
 import { workspaceStore } from '#/store/workspace'
 
@@ -34,7 +34,7 @@ export function CompareDetail() {
             {entry => (
                 <Show
                     when={entry().origin?.type === 'output'}
-                    fallback={<InputImageDetail image={entry().image} />}
+                    fallback={<ReferenceImageDetail image={entry().image} />}
                 >
                     <Show
                         when={taskDetail()}
@@ -76,12 +76,7 @@ function DetailStatus(props: DetailStatusProps) {
         >
             {panel => (
                 panel.isCollapsed() ? (
-                    <div class='flex h-12 items-center justify-center'>
-                        <CollapseButton
-                            collapsed={panel.isCollapsed()}
-                            onClick={panel.toggle}
-                        />
-                    </div>
+                    <CollapsedBar onClick={panel.toggle} />
                 ) : (
                     <div class='flex h-full min-h-0 flex-col'>
                         <PanelHeader

@@ -1,0 +1,5 @@
+export { DetailGroup } from '#/components/detail/DetailGroup'
+export { DetailLabel } from '#/components/detail/DetailLabel'
+export { DetailRow } from '#/components/detail/DetailRow'
+export { DetailSection } from '#/components/detail/DetailSection'
+export { DetailTitle } from '#/components/detail/DetailTitle'

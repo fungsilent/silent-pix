@@ -3,6 +3,7 @@ import { createSignal, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { Dialog } from '#/components/base/Dialog'
+import { FieldHint } from '#/components/base/FieldHint'
 import { useDeleteTaskMutation } from '#/features/task/task.query'
 import { toErrorMessage } from '#/lib/error'
 
@@ -64,7 +65,7 @@ export function TaskDelete(props: TaskDeleteProps) {
                     <div class='flex w-full items-center justify-between gap-3'>
                         <Show when={error()}>
                             {message => (
-                                <p class='m-0 min-w-0 truncate text-xs text-danger-fg'>{message()}</p>
+                                <FieldHint tone='danger'>{message()}</FieldHint>
                             )}
                         </Show>
                         <div class='ml-auto flex shrink-0 gap-2'>

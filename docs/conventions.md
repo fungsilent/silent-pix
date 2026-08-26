@@ -300,6 +300,7 @@ Rules:
 ```txt
 - shared low-level primitives go in `apps/web/src/components/base`
 - shared form/control primitives go in `apps/web/src/components/field`
+- shared detail-panel primitives go in `apps/web/src/components/detail`
 - app-level chrome such as `Header` lives in `apps/web/src/components` and is used from `App.tsx`
 - page-specific components go in `apps/web/src/pages/<page>/components`
 - a `components` folder holds components only
@@ -316,7 +317,40 @@ Rules:
 - page editor state should be page-scoped through context
 - Zod validates submit/API payload boundaries; do not add a generic form abstraction
 - prefer `classes`/named class slots for reusable components when one `class` string is too vague
+- composition vs configuration: children whose structure varies take `children`; components where only values vary take props
+- a `classes` slot map growing past three keys means that component wants composition, not another slot
 ```
+
+### Composition or configuration
+
+Ark UI already ships compound components. A wrapper over one exists to
+**narrow** that API, not to republish it, so wrapping `Select` in five named
+parts buys nothing and lets every call site drift.
+
+Decide per component by asking what varies:
+
+```txt
+structure of the children varies  → composition (children / render prop / sub-components)
+only values vary                  → configuration (flat props + classes slots)
+```
+
+Applied to what exists today:
+
+```txt
+field/Select, field/Number, field/Slider   values only          → configuration
+base/Dialog                                body differs per use → children + footer
+base/Panel                                 collapsed swaps all  → render prop
+detail/*                                   rows/groups/grids    → composition
+```
+
+Two warning signs that a configuration component is outgrowing itself: the
+`classes` slot map passing three keys, and a prop that exists for exactly one
+call site. Neither is a reason to convert on the spot — wait for a third call
+site that wants a different internal structure, then convert.
+
+Dot-notation namespaces (`Detail.Row`) are export ergonomics, not composition.
+Flat named exports through a folder barrel are the default; introduce a
+namespace only once the parts also share context.
 
 Current component roles:
 
@@ -338,6 +372,17 @@ components/base/Panel.tsx
 
 components/base/Badge.tsx
     Small badge/tag primitive.
+
+components/base/Dialog.tsx
+    Modal primitive. Takes children and footer so each caller composes its own body.
+
+components/base/IssueChip.tsx
+    Shared issue popover chip. Consumers pass `AppIssue[]` from `lib/issue.ts`.
+
+components/detail/*
+    Detail-panel composition primitives: DetailTitle, DetailSection, DetailGroup,
+    DetailRow, DetailLabel. Every detail panel is built from these so labels,
+    section spacing, and title hierarchy match across pages.
 
 components/field/*
     Shared Ark UI-based form/control primitives. Keep them generic and reusable; page-specific label groups, rows, and mock data belong in page components.

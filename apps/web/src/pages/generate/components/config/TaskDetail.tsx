@@ -1,5 +1,5 @@
 import { Line } from '#/components/base/Line'
-import { CollapseButton, Panel, PanelContent, PanelHeader } from '#/components/base/Panel'
+import { CollapseButton, CollapsedBar, Panel, PanelContent, PanelHeader } from '#/components/base/Panel'
 import { TaskConfig } from '#/pages/generate/components/config/TaskConfig'
 import { type TaskDetailMode } from '#/pages/generate/components/config/TaskDetailMode'
 import { TaskImage } from '#/pages/generate/components/config/TaskImage'
@@ -27,12 +27,7 @@ export function TaskDetail(props: TaskDetailProps) {
         >
             {panel => (
                 panel.isCollapsed() ? (
-                    <div class='flex h-12 items-center justify-center'>
-                        <CollapseButton
-                            collapsed={panel.isCollapsed()}
-                            onClick={panel.toggle}
-                        />
-                    </div>
+                    <CollapsedBar onClick={panel.toggle} />
                 ) : (
                     <div class='flex h-full min-h-0 flex-col'>
                         <PanelHeader

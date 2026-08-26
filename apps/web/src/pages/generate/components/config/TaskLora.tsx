@@ -2,7 +2,8 @@ import { Plus, X } from 'lucide-solid'
 import { createSignal, For, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
-import { SectionTitle } from '#/components/base/SectionTitle'
+import { FieldHint } from '#/components/base/FieldHint'
+import { DetailSection } from '#/components/detail'
 import { Number, Slider } from '#/components/field'
 import { LoraDialog } from '#/pages/generate/components/config/LoraDialog'
 import { useGenerateStore } from '#/pages/generate/store'
@@ -19,11 +20,10 @@ export function TaskLora(props: TaskLoraProps) {
     const isView = () => props.mode === 'view'
 
     return (
-        <section class='flex flex-col gap-2 pt-1'>
-            <SectionTitle count={loras().length >= 2 ? loras().length : undefined}>
-                LoRA
-            </SectionTitle>
-
+        <DetailSection
+            title='LoRA'
+            count={loras().length >= 2 ? loras().length : undefined}
+        >
             <div class='flex flex-col gap-2'>
                 <For each={loras()}>
                     {lora => (
@@ -83,7 +83,7 @@ export function TaskLora(props: TaskLoraProps) {
             </div>
 
             <Show when={loras().length === 0}>
-                <p class='m-0 text-xs text-fg-muted'>No LoRA selected.</p>
+                <FieldHint>No LoRA selected.</FieldHint>
             </Show>
 
             <Button
@@ -103,6 +103,6 @@ export function TaskLora(props: TaskLoraProps) {
                 open={dialogOpen()}
                 onOpenChange={setDialogOpen}
             />
-        </section>
+        </DetailSection>
     )
 }

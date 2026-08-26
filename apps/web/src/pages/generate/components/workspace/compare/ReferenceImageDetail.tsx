@@ -1,16 +1,15 @@
 import { Line } from '#/components/base/Line'
-import { CollapseButton, Panel, PanelContent, PanelHeader } from '#/components/base/Panel'
-import { SectionTitle } from '#/components/base/SectionTitle'
+import { CollapseButton, CollapsedBar, Panel, PanelContent, PanelHeader } from '#/components/base/Panel'
+import { DetailRow, DetailSection } from '#/components/detail'
 import { Number } from '#/components/field'
 
 import type { ImageApi } from '@silent-pix/shared'
-import type { JSX } from 'solid-js'
 
-type InputImageDetailProps = {
+type ReferenceImageDetailProps = {
     image?: ImageApi.ImageResource | undefined
 }
 
-export function InputImageDetail(props: InputImageDetailProps) {
+export function ReferenceImageDetail(props: ReferenceImageDetailProps) {
     return (
         <Panel
             classes={{
@@ -21,12 +20,7 @@ export function InputImageDetail(props: InputImageDetailProps) {
         >
             {panel => (
                 panel.isCollapsed() ? (
-                    <div class='flex h-12 items-center justify-center'>
-                        <CollapseButton
-                            collapsed={panel.isCollapsed()}
-                            onClick={panel.toggle}
-                        />
-                    </div>
+                    <CollapsedBar onClick={panel.toggle} />
                 ) : (
                     <div class='flex h-full min-h-0 flex-col'>
                         <PanelHeader
@@ -43,7 +37,7 @@ export function InputImageDetail(props: InputImageDetailProps) {
                                 content: 'gap-3 px-4 pt-0 pb-5',
                             }}
                         >
-                            {props.image && <InputImageContent image={props.image} />}
+                            {props.image && <ReferenceImageContent image={props.image} />}
                         </PanelContent>
                     </div>
                 )
@@ -52,14 +46,14 @@ export function InputImageDetail(props: InputImageDetailProps) {
     )
 }
 
-type InputImageContentProps = {
+type ReferenceImageContentProps = {
     image: ImageApi.ImageResource
 }
 
-function InputImageContent(props: InputImageContentProps) {
+function ReferenceImageContent(props: ReferenceImageContentProps) {
     return (
         <>
-            <section class='flex flex-col gap-2'>
+            <DetailSection>
                 <DetailRow label='ID'>
                     <span class='block truncate font-mono text-[11px] font-medium leading-none text-fg'>
                         {props.image.id}
@@ -70,29 +64,23 @@ function InputImageContent(props: InputImageContentProps) {
                         {new Date(props.image.createdAt).toLocaleString()}
                     </span>
                 </DetailRow>
-            </section>
+            </DetailSection>
 
             <Line />
 
-            <section class='flex flex-col gap-2'>
-                <div class='flex flex-col gap-1 py-1'>
-                    <SectionTitle>IMAGE</SectionTitle>
-                </div>
+            <DetailSection title='IMAGE'>
                 <div class='flex h-40 items-center justify-center overflow-hidden rounded-md bg-active'>
                     <img
                         class='max-h-full max-w-full object-contain'
                         src={props.image.url}
-                        alt='Selected input image'
+                        alt='Selected reference image'
                     />
                 </div>
-            </section>
+            </DetailSection>
 
             <Line />
 
-            <section class='flex flex-col gap-3'>
-                <div class='flex flex-col gap-1 py-1'>
-                    <SectionTitle>Config</SectionTitle>
-                </div>
+            <DetailSection title='Config'>
                 <div class='grid grid-cols-2 gap-2'>
                     <Number
                         label='Width'
@@ -105,21 +93,8 @@ function InputImageContent(props: InputImageContentProps) {
                         disabled
                     />
                 </div>
-            </section>
+            </DetailSection>
         </>
     )
 }
 
-type DetailRowProps = {
-    children: JSX.Element
-    label: string
-}
-
-function DetailRow(props: DetailRowProps) {
-    return (
-        <div class='grid min-w-0 grid-cols-[74px_minmax(0,1fr)] items-center gap-3'>
-            <span class='text-xs leading-none text-fg-muted'>{props.label}</span>
-            <div class='min-w-0'>{props.children}</div>
-        </div>
-    )
-}

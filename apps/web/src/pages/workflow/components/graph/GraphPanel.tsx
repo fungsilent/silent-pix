@@ -1,3 +1,4 @@
+import { PanelHeader } from '#/components/base/Panel'
 import { GraphEditor } from '#/pages/workflow/components/graph/GraphEditor'
 import { useWorkflowStore } from '#/pages/workflow/store'
 
@@ -7,9 +8,10 @@ export function GraphPanel() {
 
     return (
         <section class='flex min-w-0 flex-1 flex-col overflow-hidden border-r border-line bg-surface'>
-            <div class='flex h-12 flex-none items-center gap-2 px-4'>
-                <h2 class='m-0 text-[13px] font-semibold leading-none text-fg'>API JSON</h2>
-            </div>
+            <PanelHeader
+                title='API JSON'
+                classes={{ root: 'px-4' }}
+            />
 
             <div class='flex min-h-0 flex-1 flex-col px-4 pb-3'>
                 <span class='pb-1.5 text-xs leading-none text-fg-muted'>Graph</span>

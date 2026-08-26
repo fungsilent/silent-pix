@@ -1,11 +1,11 @@
 import type { JSX } from 'solid-js'
 
-type SectionTitleProps = {
+type DetailTitleProps = {
     children: JSX.Element
     count?: number | undefined
 }
 
-export function SectionTitle(props: SectionTitleProps) {
+export function DetailTitle(props: DetailTitleProps) {
     return (
         <h3 class='m-0 flex items-center gap-1.5 text-[11px] font-semibold uppercase leading-none tracking-[0.08em] text-fg-title'>
             {props.children}

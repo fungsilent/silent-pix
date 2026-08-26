@@ -1,6 +1,8 @@
 import { createEffect, createSignal, on, Show } from 'solid-js'
 
 import { Badge } from '#/components/base/Badge'
+import { FieldHint } from '#/components/base/FieldHint'
+import { DetailRow, DetailSection } from '#/components/detail'
 import { Editable } from '#/components/field/Editable'
 import { useRenameTaskMutation } from '#/features/task/task.query'
 import { toErrorMessage } from '#/lib/error'
@@ -10,7 +12,6 @@ import { useGenerateStore } from '#/pages/generate/store'
 
 import type { TaskDetailMode } from '#/pages/generate/components/config/TaskDetailMode'
 import type { GenerateTask } from '#/pages/generate/store'
-import type { JSX } from 'solid-js'
 
 type TaskInfoProps = {
     mode: TaskDetailMode
@@ -50,7 +51,7 @@ export function TaskInfo(props: TaskInfoProps) {
     }
 
     return (
-        <section class='flex flex-col gap-2'>
+        <DetailSection>
             <DetailRow label='ID'>
                 <span class='block truncate font-mono text-[11px] font-medium leading-none text-fg'>
                     {props.task.id}
@@ -73,11 +74,11 @@ export function TaskInfo(props: TaskInfoProps) {
                         }}
                     />
                     <Show when={props.task.status === null}>
-                        <p class='m-0 text-xs text-fg-muted'>Name is set after the task exists.</p>
+                        <FieldHint>Name is set after the task exists.</FieldHint>
                     </Show>
                     <Show when={renameError()}>
                         {message => (
-                            <p class='m-0 truncate text-xs text-danger-fg'>{message()}</p>
+                            <FieldHint tone='danger'>{message()}</FieldHint>
                         )}
                     </Show>
                 </div>
@@ -105,20 +106,7 @@ export function TaskInfo(props: TaskInfoProps) {
             <Show when={props.task.status !== null && props.mode !== 'view'}>
                 <TaskDelete task={props.task} />
             </Show>
-        </section>
+        </DetailSection>
     )
 }
 
-type DetailRowProps = {
-    children: JSX.Element
-    label: string
-}
-
-function DetailRow(props: DetailRowProps) {
-    return (
-        <div class='grid min-w-0 grid-cols-[74px_minmax(0,1fr)] items-center gap-3'>
-            <span class='text-xs leading-none text-fg-muted'>{props.label}</span>
-            <div class='min-w-0'>{props.children}</div>
-        </div>
-    )
-}

@@ -3,7 +3,8 @@ import { For, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { Line } from '#/components/base/Line'
-import { SectionTitle } from '#/components/base/SectionTitle'
+import { PanelHeader } from '#/components/base/Panel'
+import { DetailTitle } from '#/components/detail'
 import { cn } from '#/lib/cn'
 import { useWorkflowStore } from '#/pages/workflow/store'
 
@@ -15,22 +16,24 @@ export function WorkflowList() {
 
     return (
         <aside class='flex w-[200px] flex-none flex-col overflow-hidden border-r border-line bg-surface'>
-            <div class='flex h-12 flex-none items-center gap-2 pl-3 pr-2'>
-                <h2 class='m-0 truncate text-[13px] font-semibold leading-none text-fg'>Workflows</h2>
-                <div class='flex-1' />
-                <Button
-                    variant='ghost'
-                    aria-label='New workflow'
-                    classes={{ root: 'size-8 shrink-0 p-0' }}
-                    onClick={() => store.startCreate()}
-                >
-                    <Plus
-                        size={15}
-                        strokeWidth={1.8}
-                        aria-hidden='true'
-                    />
-                </Button>
-            </div>
+            <PanelHeader
+                title='Workflows'
+                classes={{ root: 'pl-3 pr-2' }}
+                action={(
+                    <Button
+                        variant='ghost'
+                        aria-label='New workflow'
+                        classes={{ root: 'size-8 shrink-0 p-0' }}
+                        onClick={() => store.startCreate()}
+                    >
+                        <Plus
+                            size={15}
+                            strokeWidth={1.8}
+                            aria-hidden='true'
+                        />
+                    </Button>
+                )}
+            />
 
             <div class='scrollbar-thin flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-2 pb-3'>
                 <For each={active()}>
@@ -56,7 +59,7 @@ export function WorkflowList() {
                 <Show when={archived().length > 0}>
                     <Line />
                     <div class='px-2.5 py-1'>
-                        <SectionTitle>Archived</SectionTitle>
+                        <DetailTitle>Archived</DetailTitle>
                     </div>
                     <For each={archived()}>
                         {record => (

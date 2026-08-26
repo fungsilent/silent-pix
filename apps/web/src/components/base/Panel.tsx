@@ -67,16 +67,36 @@ export function Panel(props: PanelProps) {
 type PanelHeaderProps = {
     title?: string
     action?: JSX.Element
+    classes?: {
+        root?: string
+        title?: string
+    }
 }
 
 export function PanelHeader(props: PanelHeaderProps) {
     return (
-        // 無底線：整個版面只留 top bar 底線與欄分隔線
-        <div class='flex h-12 items-center justify-between gap-2 px-2'>
-            <h2 class='m-0 truncate text-[13px] font-semibold leading-none text-fg'>
+        <div class={cn('flex h-12 flex-none items-center justify-between gap-2 px-2', props.classes?.root)}>
+            <h2 class={cn('m-0 truncate text-[13px] font-semibold leading-none text-fg', props.classes?.title)}>
                 {props.title}
             </h2>
             {props.action}
+        </div>
+    )
+}
+
+/* MARK: CollapsedBar */
+type CollapsedBarProps = {
+    onClick: () => void
+}
+
+/* 收合後只留一顆展開按鈕的面板長這樣。TaskList 那種有自己的收合樣貌就不用它 */
+export function CollapsedBar(props: CollapsedBarProps) {
+    return (
+        <div class='flex h-12 items-center justify-center'>
+            <CollapseButton
+                collapsed
+                onClick={props.onClick}
+            />
         </div>
     )
 }

@@ -2,7 +2,8 @@ import { Undo2 } from 'lucide-solid'
 import { createEffect, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
-import { SectionTitle } from '#/components/base/SectionTitle'
+import { FieldHint } from '#/components/base/FieldHint'
+import { DetailSection } from '#/components/detail'
 import { Number, Select, Text } from '#/components/field'
 import { useSamplerListQuery, useWorkflowListQuery } from '#/features/task/task.query'
 import { useGenerateStore } from '#/pages/generate/store'
@@ -39,10 +40,7 @@ export function TaskConfig(props: TaskConfigProps) {
     })
 
     return (
-        <section class='flex flex-col gap-3'>
-            <div class='flex flex-col gap-1 py-1'>
-                <SectionTitle>Config</SectionTitle>
-            </div>
+        <DetailSection title='Config'>
 
             <Select
                 label='Workflow Template'
@@ -54,7 +52,7 @@ export function TaskConfig(props: TaskConfigProps) {
 
             {/* 錯誤與空狀態改由 PromptPanel 的 issue chip 統一顯示 */}
             <Show when={workflowQuery.isLoading}>
-                <p class='m-0 text-xs text-fg-muted'>Loading workflows...</p>
+                <FieldHint>Loading workflows...</FieldHint>
             </Show>
 
             <Text
@@ -136,8 +134,8 @@ export function TaskConfig(props: TaskConfigProps) {
                 onChange={value => store.setValue('sampler', value)}
             />
             <Show when={samplerQuery.isLoading}>
-                <p class='m-0 text-xs text-fg-muted'>Loading samplers...</p>
+                <FieldHint>Loading samplers...</FieldHint>
             </Show>
-        </section>
+        </DetailSection>
     )
 }
