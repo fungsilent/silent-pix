@@ -115,7 +115,7 @@ export const workflowService = {
         database: DatabaseClient,
         workflowId: WorkflowModel['id'],
         expectedRevision: number,
-        payload: Pick<WorkflowInsert, 'graph' | 'configSchema'>,
+        payload: Pick<WorkflowInsert, 'name' | 'graph' | 'configSchema'>,
     ) {
         const current = await workflowService.findWorkflow(database, workflowId)
 
@@ -131,13 +131,14 @@ export const workflowService = {
             return fail('WORKFLOW_REVISION_CONFLICT')
         }
 
-        /* 內容沒變就不推 revision，否則按一次 Save 就讓所有 task 顯示 drift */
+        /* 內容沒變就不推 revision，*/
         const unchanged = stringify(current.graph) === stringify(payload.graph)
             && stringify(current.configSchema) === stringify(payload.configSchema)
 
         const [updated] = await database.db
             .update(workflows)
             .set({
+                name: payload.name,
                 graph: payload.graph,
                 configSchema: payload.configSchema,
                 ...(unchanged ? {} : { revision: sql`${workflows.revision} + 1` }),

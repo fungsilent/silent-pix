@@ -1,3 +1,6 @@
+import { ApiError } from '#/api/api.client'
+import { toErrorMessage } from '#/lib/error'
+
 import type { Comfy } from '@silent-pix/shared'
 import type { AppIssue } from '#/lib/issue'
 import type { GraphParse } from '#/pages/workflow/components/graph/graph.document'
@@ -43,4 +46,83 @@ export function toMappingIssues(issues: Comfy.MappingIssue[]): AppIssue[] {
         field: issue.field,
         message: mappingIssueMessage[issue.reason](issue),
     }))
+}
+
+export function toRequirementIssues(input: {
+    isDirty: boolean
+    name: string
+    parse: GraphParse
+}): AppIssue[] {
+    if (!input.isDirty) {
+        return []
+    }
+
+    const issues: AppIssue[] = []
+
+    if (input.name.trim().length === 0) {
+        issues.push({
+            id: 'name-required',
+            tone: 'error',
+            field: 'Name',
+            message: 'Give the workflow a name before saving.',
+        })
+    }
+
+    if (input.parse.status === 'empty') {
+        issues.push({
+            id: 'graph-empty',
+            tone: 'error',
+            field: 'API JSON',
+            message: 'Paste the graph. In ComfyUI use Workflow → Export (API), then paste it here.',
+        })
+    }
+
+    return issues
+}
+
+export function toLoadIssues(error: unknown): AppIssue[] {
+    if (!error) {
+        return []
+    }
+
+    return [{
+        id: 'workflow-load',
+        tone: 'error',
+        field: 'Workflow',
+        message: toErrorMessage(error),
+    }]
+}
+
+export function toSaveIssues(input: {
+    conflict: boolean
+    error: unknown
+}): AppIssue[] {
+    if (input.conflict) {
+        return [{
+            id: 'save-conflict',
+            tone: 'error',
+            field: 'Save',
+            message: 'This workflow changed elsewhere. Reload to see it, or copy your JSON out first.',
+        }]
+    }
+
+    if (!input.error) {
+        return []
+    }
+
+    if (input.error instanceof ApiError && input.error.code === 'WORKFLOW_REVISION_CONFLICT') {
+        return [{
+            id: 'save-conflict',
+            tone: 'error',
+            field: 'Save',
+            message: 'This workflow changed elsewhere. Reload to see it, or copy your JSON out first.',
+        }]
+    }
+
+    return [{
+        id: 'save-failed',
+        tone: 'error',
+        field: 'Save',
+        message: toErrorMessage(input.error),
+    }]
 }

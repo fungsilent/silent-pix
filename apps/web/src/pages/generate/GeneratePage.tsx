@@ -2,7 +2,8 @@ import { useQueryClient } from '@tanstack/solid-query'
 import { createEffect, Match, on, Show, Switch } from 'solid-js'
 
 import { ApiError } from '#/api/api.client'
-import { useCreateTaskMutation, useTaskDetailQuery, workflowKeys } from '#/features/task/task.query'
+import { useCreateTaskMutation, useTaskDetailQuery } from '#/features/task/task.query'
+import { workflowKeys } from '#/features/workflow/workflow.key'
 import { TaskDetail } from '#/pages/generate/components/config/TaskDetail'
 import { TaskList } from '#/pages/generate/components/task/TaskList'
 import { CompareDetail } from '#/pages/generate/components/workspace/compare/CompareDetail'
@@ -61,7 +62,7 @@ export function GeneratePage() {
         catch (error) {
             /* 清單過期是能自動修的，直接刷新，不要只丟一句話叫使用者自己去弄 */
             if (error instanceof ApiError && error.code === 'WORKFLOW_NOT_FOUND') {
-                void queryClient.refetchQueries({ queryKey: workflowKeys.list(), type: 'all' })
+                void queryClient.refetchQueries({ queryKey: workflowKeys.lists(), type: 'all' })
             }
 
             generateStore.reportSubmitIssues([toSubmitIssue(error)])

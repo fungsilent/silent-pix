@@ -1,7 +1,6 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/solid-query'
 
 import { taskApi } from '#/api/task'
-import { workflowApi } from '#/api/workflow'
 import { cacheCreatedTaskResponse, cacheTaskRenamed } from '#/features/task/task.cache'
 import { applyTaskRemoved } from '#/features/task/task.event'
 import { taskKeys } from '#/features/task/task.key'
@@ -10,11 +9,6 @@ import type { TaskApi } from '@silent-pix/shared'
 import type { Accessor } from 'solid-js'
 
 const taskFeedLimit = 30
-
-export const workflowKeys = {
-    all: ['workflows'] as const,
-    list: () => [...workflowKeys.all, 'list'] as const,
-}
 
 export const samplerKeys = {
     all: ['samplers'] as const,
@@ -59,13 +53,6 @@ export function useTaskDetailQuery(taskId: Accessor<string | undefined>) {
             },
         }
     })
-}
-
-export function useWorkflowListQuery() {
-    return useQuery(() => ({
-        queryKey: workflowKeys.list(),
-        queryFn: () => workflowApi.list(),
-    }))
 }
 
 export function useSamplerListQuery() {

@@ -1,17 +1,22 @@
 import { Plus } from 'lucide-solid'
 import { For, Show } from 'solid-js'
 
+import { Badge } from '#/components/base/Badge'
 import { Button } from '#/components/base/Button'
 import { Line } from '#/components/base/Line'
 import { PanelHeader } from '#/components/base/Panel'
 import { DetailTitle } from '#/components/detail'
 import { cn } from '#/lib/cn'
+import { toErrorMessage } from '#/lib/error'
 import { useWorkflowStore } from '#/pages/workflow/store'
+
+import type { JSX } from 'solid-js'
 
 export function WorkflowList() {
     const store = useWorkflowStore()
-    const active = () => store.state.records.filter(record => record.archivedAt === null)
-    const archived = () => store.state.records.filter(record => record.archivedAt !== null)
+    const listQuery = store.listQuery
+    const active = () => store.summaries().filter(item => item.archivedAt === null)
+    const archived = () => store.summaries().filter(item => item.archivedAt !== null)
     const draft = () => store.state.draft
 
     return (
@@ -36,11 +41,23 @@ export function WorkflowList() {
             />
 
             <div class='scrollbar-thin flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-2 pb-3'>
+                <Show when={listQuery.isPending}>
+                    <Notice>Loading…</Notice>
+                </Show>
+
+                <Show when={listQuery.isError}>
+                    <Notice>{toErrorMessage(listQuery.error)}</Notice>
+                </Show>
+
+                <Show when={listQuery.isSuccess && store.summaries().length === 0 && !draft()}>
+                    <Notice>No workflows yet. Use + to add one.</Notice>
+                </Show>
+
                 <For each={active()}>
-                    {record => (
+                    {item => (
                         <Row
-                            id={record.id}
-                            name={record.name}
+                            id={item.id}
+                            name={item.name}
                             archived={false}
                         />
                     )}
@@ -62,10 +79,10 @@ export function WorkflowList() {
                         <DetailTitle>Archived</DetailTitle>
                     </div>
                     <For each={archived()}>
-                        {record => (
+                        {item => (
                             <Row
-                                id={record.id}
-                                name={record.name}
+                                id={item.id}
+                                name={item.name}
                                 archived
                             />
                         )}
@@ -76,24 +93,31 @@ export function WorkflowList() {
     )
 }
 
+function Notice(props: { children: JSX.Element }) {
+    return (
+        <p class='px-2.5 py-2 text-xs leading-relaxed text-fg-muted'>
+            {props.children}
+        </p>
+    )
+}
+
 type RowProps = {
     id: string
     name: string
     archived: boolean
 }
 
-/*
- * 清單只負責選取。改名與刪除都在右欄，跟 Task 一樣。
- * 封存的列可以選取檢視，但唯讀，也沒有 Restore。
- */
 function Row(props: RowProps) {
     const store = useWorkflowStore()
     const selected = () => store.state.selectedId === props.id
+    const label = () => store.state.draft?.id === props.id
+        ? store.draftLabel()
+        : null
 
     return (
         <div
             class={cn(
-                'flex h-[34px] shrink-0 cursor-pointer items-center rounded-md px-2.5',
+                'flex h-[34px] shrink-0 cursor-pointer items-center gap-2 rounded-md px-2.5',
                 selected()
                     ? 'bg-active text-fg shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]'
                     : 'text-fg-secondary hover:bg-elevated',
@@ -102,6 +126,10 @@ function Row(props: RowProps) {
             onClick={() => store.selectWorkflow(props.id)}
         >
             <span class='min-w-0 flex-1 truncate text-xs leading-none'>{props.name}</span>
+
+            <Show when={label()}>
+                {value => <Badge tone='accent'>{value()}</Badge>}
+            </Show>
         </div>
     )
 }

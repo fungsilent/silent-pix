@@ -1,5 +1,5 @@
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
-import { Compartment, EditorState } from '@codemirror/state'
+import { Annotation, Compartment, EditorState } from '@codemirror/state'
 import { EditorView, keymap, lineNumbers, placeholder } from '@codemirror/view'
 import { createEffect, onCleanup, onMount } from 'solid-js'
 
@@ -14,6 +14,13 @@ import { workflowEditorTheme } from '#/pages/workflow/components/graph/graph.the
 import { workflowTokens } from '#/pages/workflow/components/graph/graph.token'
 
 import type { LineMark } from '#/pages/workflow/components/graph/graph.document'
+
+/*
+ * 標記「這次 doc 變動是程式同步進來的」。沒有它的話，載入一筆 workflow
+ * 就會走成：props.value 變 → dispatch → updateListener → onChange →
+ * store 以為使用者改了東西，於是什麼都還沒動就顯示 Unsaved。
+ */
+const syncFromProps = Annotation.define<boolean>()
 
 type GraphEditorProps = {
     value: string
@@ -45,6 +52,10 @@ export function GraphEditor(props: GraphEditorProps) {
                 readOnlyCompartment.of(EditorState.readOnly.of(props.readOnly)),
                 EditorView.updateListener.of(update => {
                     if (!update.docChanged) return
+
+                    if (update.transactions.some(transaction => transaction.annotation(syncFromProps))) {
+                        return
+                    }
 
                     const text = update.state.doc.toString()
 
@@ -90,6 +101,7 @@ export function GraphEditor(props: GraphEditorProps) {
 
         view.dispatch({
             changes: { from: 0, to: view.state.doc.length, insert: value },
+            annotations: syncFromProps.of(true),
         })
     })
 

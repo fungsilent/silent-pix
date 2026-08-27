@@ -108,6 +108,7 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
                 toUUID(params.workflowId, 'workflowId'),
                 body.revision,
                 {
+                    name: body.name,
                     graph: checked.data,
                     configSchema: body.configSchema,
                 },

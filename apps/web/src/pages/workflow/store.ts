@@ -1,18 +1,21 @@
-import { comfy } from '@silent-pix/shared'
-import { createContext, createMemo, useContext } from 'solid-js'
+import { comfy, config } from '@silent-pix/shared'
+import { createContext, createEffect, createMemo, on, useContext } from 'solid-js'
 
+import { useWorkflowDetailQuery, useWorkflowListQuery } from '#/features/workflow/workflow.query'
 import { createStore } from '#/lib/store'
 import { parseGraphText, toLineMarks } from '#/pages/workflow/components/graph/graph.document'
-import { workflowFixtures } from '#/pages/workflow/fixture'
 
-import type { Comfy, ConfigSchema, GeneratorField, Mapping } from '@silent-pix/shared'
+import type { Comfy, ConfigSchema, GeneratorField, Mapping, WorkflowApi } from '@silent-pix/shared'
 import type { GraphParse, LineMark } from '#/pages/workflow/components/graph/graph.document'
 import type { JSX } from 'solid-js'
 
 export type WorkflowRecord = {
     id: string
     name: string
-    archivedAt: number | null
+    revision: number
+    archivedAt: string | null
+    taskCount: number
+    graph: Comfy.Graph
     graphText: string
     configSchema: ConfigSchema
 }
@@ -22,23 +25,37 @@ export type WorkflowDraft = {
     name: string
     graphText: string
     configSchema: ConfigSchema
-    /* 還沒建立的那一筆：Enter 才成為 record，Esc 直接丟掉 */
+    revision: number
     isNew: boolean
 }
 
+/* store 只擁有 UI 狀態。遠端資料的擁有者是 query cache。 */
 type WorkflowState = {
-    records: WorkflowRecord[]
     selectedId: string | null
     draft: WorkflowDraft | null
 }
 
-const initialState: WorkflowState = {
-    records: workflowFixtures,
-    selectedId: workflowFixtures[0]?.id ?? null,
-    draft: null,
+function createInitialState(): WorkflowState {
+    return {
+        selectedId: null,
+        draft: null,
+    }
 }
 
 let draftSequence = 0
+
+export function toWorkflowRecord(detail: WorkflowApi.GetWorkflowResponse): WorkflowRecord {
+    return {
+        id: detail.id,
+        name: detail.name,
+        revision: detail.revision,
+        archivedAt: detail.archivedAt,
+        taskCount: detail.taskCount,
+        graph: detail.graph,
+        graphText: `${JSON.stringify(detail.graph, null, 2)}\n`,
+        configSchema: detail.configSchema,
+    }
+}
 
 function toDraft(record: WorkflowRecord): WorkflowDraft {
     return {
@@ -46,52 +63,70 @@ function toDraft(record: WorkflowRecord): WorkflowDraft {
         name: record.name,
         graphText: record.graphText,
         configSchema: { ...record.configSchema },
+        revision: record.revision,
         isNew: false,
     }
 }
 
+function sameConfigSchema(left: ConfigSchema, right: ConfigSchema): boolean {
+    return config.generatorFields.every(field => {
+        const a = left[field]
+        const b = right[field]
+
+        return a?.nodeId === b?.nodeId && a?.input === b?.input
+    })
+}
+
 export function createWorkflowStore() {
-    const store = createStore(initialState, core => ({
-        /*
-         * 兩個 derived 掛在 store 上，面板各自 useWorkflowStore() 取用。
-         * 放在頁面層再往下傳的話，每個面板的標題列都要多接幾個 prop。
-         */
-        selection: createMemo((): WorkflowSelection => {
-            const draft = core.state.draft
-            const record = core.state.records.find(item => item.id === core.state.selectedId)
-            const archivedAt = record?.archivedAt ?? null
+    const core = createStore(createInitialState())
 
-            if (draft) {
-                return {
-                    id: draft.id,
-                    name: draft.name,
-                    archivedAt,
-                    graphText: draft.graphText,
-                    configSchema: draft.configSchema,
-                    isNew: draft.isNew,
-                    isDirty: true,
-                    isArchived: archivedAt !== null,
-                }
-            }
+    const remoteId = createMemo(() => core.state.draft?.isNew
+        ? null
+        : core.state.selectedId)
 
-            return {
-                id: record?.id ?? null,
-                name: record?.name ?? '',
-                archivedAt,
-                graphText: record?.graphText ?? '',
-                configSchema: record?.configSchema ?? {},
-                isNew: false,
-                isDirty: false,
-                isArchived: archivedAt !== null,
-            }
-        }),
+    const listQuery = useWorkflowListQuery('all')
+    const detailQuery = useWorkflowDetailQuery(remoteId)
 
+    const summaries = createMemo((): WorkflowApi.WorkflowSummary[] => listQuery.data?.options ?? [])
+
+    const record = createMemo((): WorkflowRecord | null => {
+        const detail = detailQuery.data
+
+        return detail && detail.id === remoteId()
+            ? toWorkflowRecord(detail)
+            : null
+    })
+
+    function ensureDraft() {
+        if (core.state.draft) {
+            return
+        }
+
+        const current = record()
+
+        if (current) {
+            core.set('draft', toDraft(current))
+        }
+    }
+
+    function currentName(): string {
+        return core.state.draft?.name ?? record()?.name ?? ''
+    }
+
+    function currentGraphText(): string {
+        return core.state.draft?.graphText ?? record()?.graphText ?? ''
+    }
+
+    const actions = {
         selectWorkflow(id: string) {
+            if (core.state.selectedId === id) {
+                return
+            }
+
             core.set('selectedId', id)
             core.set('draft', null)
         },
 
-        /* + 建立一筆未持久化的 draft，名稱在右欄的 Name 欄位輸入 */
         startCreate() {
             draftSequence += 1
             const id = `draft-${draftSequence}`
@@ -101,6 +136,7 @@ export function createWorkflowStore() {
                 name: '',
                 graphText: '',
                 configSchema: {},
+                revision: 0,
                 isNew: true,
             })
             core.set('selectedId', id)
@@ -112,38 +148,41 @@ export function createWorkflowStore() {
             }
 
             core.set('draft', null)
-            core.set('selectedId', core.state.records[0]?.id ?? null)
+            core.set('selectedId', summaries()[0]?.id ?? null)
         },
 
-        commitName(id: string, value: string) {
-            const name = value.trim()
-
-            if (name.length === 0 || name.length > 120) {
+        setName(value: string) {
+            if (currentName() === value) {
                 return
             }
 
-            const draft = core.state.draft
+            ensureDraft()
+            core.produce('draft', draft => {
+                if (draft) {
+                    draft.name = value.slice(0, 120)
+                }
+            })
+        },
 
-            if (draft && draft.id === id) {
-                core.produce('draft', value => {
-                    if (value) {
-                        value.name = name
-                    }
-                })
+        commitName(value: string) {
+            if (currentName() === value.trim()) {
                 return
             }
 
-            core.produce('records', records => {
-                const record = records.find(item => item.id === id)
-
-                if (record) {
-                    record.name = name
+            ensureDraft()
+            core.produce('draft', draft => {
+                if (draft) {
+                    draft.name = value.trim().slice(0, 120)
                 }
             })
         },
 
         setGraphText(text: string) {
-            ensureDraft(core)
+            if (currentGraphText() === text) {
+                return
+            }
+
+            ensureDraft()
             core.produce('draft', draft => {
                 if (draft) {
                     draft.graphText = text
@@ -152,7 +191,13 @@ export function createWorkflowStore() {
         },
 
         setMapping(field: GeneratorField, value: Mapping | undefined) {
-            ensureDraft(core)
+            const current = (core.state.draft ?? record())?.configSchema[field]
+
+            if (current?.nodeId === value?.nodeId && current?.input === value?.input) {
+                return
+            }
+
+            ensureDraft()
             core.produce('draft', draft => {
                 if (!draft) {
                     return
@@ -167,29 +212,50 @@ export function createWorkflowStore() {
             })
         },
 
+        applySaved(detail: WorkflowApi.GetWorkflowResponse) {
+            core.set('draft', null)
+            core.set('selectedId', detail.id)
+        },
+
         discardDraft() {
             core.set('draft', null)
         },
-    }))
-
-    /*
-     * draft 只在真的動到內容時才建立。沒有 draft 就直接讀 record，
-     * dirty 判斷因此不必逐欄比對。
-     */
-    function ensureDraft(core: { state: WorkflowState, set: (key: 'draft', value: WorkflowDraft | null) => void }) {
-        if (core.state.draft) {
-            return
-        }
-
-        const record = core.state.records.find(item => item.id === core.state.selectedId)
-
-        if (record) {
-            core.set('draft', toDraft(record))
-        }
     }
 
+    const selection = createMemo((): WorkflowSelection => {
+        const draft = core.state.draft
+        const current = record()
+        const archivedAt = current?.archivedAt ?? null
+
+        if (draft) {
+            return {
+                id: draft.id,
+                name: draft.name,
+                archivedAt: draft.isNew ? null : archivedAt,
+                graphText: draft.graphText,
+                configSchema: draft.configSchema,
+                revision: draft.revision,
+                taskCount: draft.isNew ? 0 : current?.taskCount ?? 0,
+                isNew: draft.isNew,
+                isArchived: !draft.isNew && archivedAt !== null,
+            }
+        }
+
+        return {
+            id: current?.id ?? null,
+            name: current?.name ?? '',
+            archivedAt,
+            graphText: current?.graphText ?? '',
+            configSchema: current?.configSchema ?? {},
+            revision: current?.revision ?? 0,
+            taskCount: current?.taskCount ?? 0,
+            isNew: false,
+            isArchived: archivedAt !== null,
+        }
+    })
+
     const graphState = createMemo((): WorkflowGraphState => {
-        const { graphText, configSchema } = store.selection()
+        const { graphText, configSchema } = selection()
         const parse = parseGraphText(graphText)
 
         if (parse.status !== 'ok') {
@@ -214,7 +280,98 @@ export function createWorkflowStore() {
         }
     })
 
-    return { ...store, graphState }
+    const isDirty = createMemo(() => {
+        const draft = core.state.draft
+
+        if (!draft) {
+            return false
+        }
+
+        if (draft.isNew) {
+            return true
+        }
+
+        const current = record()
+
+        if (!current || current.id !== draft.id) {
+            return true
+        }
+
+        if (draft.name !== current.name) {
+            return true
+        }
+
+        if (!sameConfigSchema(draft.configSchema, current.configSchema)) {
+            return true
+        }
+
+        const graph = graphState().graph
+
+        /* parse 不過就是有改動——存得進去的東西一定 parse 得過 */
+        if (!graph) {
+            return true
+        }
+
+        /* 兩邊都經過同一個 Zod schema，key 順序一致，直接比字串就夠 */
+        return JSON.stringify(graph) !== JSON.stringify(current.graph)
+    })
+
+    const draftLabel = createMemo((): 'Draft' | 'Unsaved' | null => {
+        if (core.state.draft?.isNew) {
+            return 'Draft'
+        }
+
+        return isDirty() ? 'Unsaved' : null
+    })
+
+    /* draft 的 base revision 落後遠端，代表別人在你編輯期間存過了 */
+    const isConflict = createMemo(() => {
+        const draft = core.state.draft
+        const current = record()
+
+        return Boolean(
+            draft
+            && !draft.isNew
+            && current
+            && draft.id === current.id
+            && draft.revision !== current.revision,
+        )
+    })
+
+    const summaryIds = createMemo(() => summaries().map(item => item.id).join(','))
+
+    createEffect(on(summaryIds, ids => {
+        const options = summaries()
+
+        if (ids.length === 0 || core.state.draft?.isNew) {
+            return
+        }
+
+        if (options.some(item => item.id === core.state.selectedId)) {
+            return
+        }
+
+        const first = options[0]
+
+        if (first) {
+            actions.selectWorkflow(first.id)
+        }
+    }))
+
+    return {
+        ...core,
+        ...actions,
+        detailQuery,
+        draftLabel,
+        graphState,
+        isConflict,
+        isDirty,
+        listQuery,
+        record,
+        remoteId,
+        selection,
+        summaries,
+    }
 }
 
 export type WorkflowStore = ReturnType<typeof createWorkflowStore>
@@ -250,11 +407,12 @@ export function useWorkflowStore() {
 export type WorkflowSelection = {
     id: string | null
     name: string
-    archivedAt: number | null
+    archivedAt: string | null
     graphText: string
     configSchema: ConfigSchema
+    revision: number
+    taskCount: number
     isNew: boolean
-    isDirty: boolean
     isArchived: boolean
 }
 

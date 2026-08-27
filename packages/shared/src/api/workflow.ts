@@ -52,8 +52,8 @@ export const createWorkflowResponse = getWorkflowResponse
 export type CreateWorkflowResponse = z.output<typeof createWorkflowResponse>
 
 export const updateWorkflowRequest = z.object({
-    /* 期待的 revision；對不上就是別人先存了，回 409 */
     revision: z.number().int().positive(),
+    name: workflowName,
     graph: comfy.graph,
     configSchema,
 })

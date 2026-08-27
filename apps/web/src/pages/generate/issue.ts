@@ -6,9 +6,9 @@ import {
     samplerKeys,
     useLoraListQuery,
     useSamplerListQuery,
-    useWorkflowListQuery,
-    workflowKeys,
 } from '#/features/task/task.query'
+import { workflowKeys } from '#/features/workflow/workflow.key'
+import { useWorkflowListQuery } from '#/features/workflow/workflow.query'
 import { toErrorMessage, toIssueMessage } from '#/lib/error'
 import { hasLostConnection, serviceHealth } from '#/store/app'
 
@@ -105,7 +105,7 @@ export function useOptionIssues(): Accessor<GenerateIssue[]> {
                 tone: 'error',
                 field: fieldLabel.workflowId,
                 message: toErrorMessage(workflowQuery.error),
-                onRetry: refetch(queryClient, workflowKeys.list()),
+                onRetry: refetch(queryClient, workflowKeys.lists()),
             })
         }
         else if (workflowQuery.isSuccess && workflowQuery.data.options.length === 0) {
@@ -114,7 +114,7 @@ export function useOptionIssues(): Accessor<GenerateIssue[]> {
                 tone: 'error',
                 field: fieldLabel.workflowId,
                 message: 'No workflows available. Add one in ComfyUI, then retry.',
-                onRetry: refetch(queryClient, workflowKeys.list()),
+                onRetry: refetch(queryClient, workflowKeys.lists()),
             })
         }
 
