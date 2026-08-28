@@ -33,7 +33,7 @@ Each PHASE must leave the workspace in a coherent, testable state and include al
 | Item | Required content |
 |---|---|
 | Scope | Exact files/boundaries changed in this PHASE |
-| Automated validation | Commands the agent runs before handoff |
+| Automated validation | Typecheck/build/lint and any test commands the repository actually provides |
 | User review | Observable manual checks the user can perform now |
 | Gate | `STOP → wait for PHASE N confirmed` |
 
@@ -42,7 +42,8 @@ Use this execution contract:
 ```text
 PHASE N implementation
     ↓
-agent runs phase-scoped tests + repository checks
+agent runs repository checks + available phase-scoped tests
+    └─ no repository test script → report the absence; do not invent one
     ↓
 agent reports changed files, results, known limits, and user review steps
     ↓
@@ -56,6 +57,9 @@ STOP
 - A failing review stays in the current PHASE until corrected and confirmed.
 - A requested scope change updates the plan before work continues.
 - A PHASE boundary must not knowingly leave typecheck, lint, build, migrations, or runtime contracts broken; name any check that is intentionally deferred and the PHASE that owns it.
+- When the repository has no test script, state that in automated validation
+  and make the user-review checklist cover the PHASE's observable behavior.
+  Do not add a test runner solely to satisfy plan ceremony.
 - Put headless contracts/engines before UI integration when this gives the user a meaningful test boundary.
 - Put destructive actions in their own PHASE with backup and recovery commands.
 - Do not equate an agent's automated tests with user confirmation.

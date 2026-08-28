@@ -77,3 +77,8 @@
 - Implementation plans live in `temp/<feature>-<author>-plan.md`. `temp/` is gitignored; plans are working documents, not repo history.
 - Before writing one, read `.agents/skills/plan-doc/SKILL.md`. It defines the required sections, and the density rule: show the change as schema sketches, ASCII layouts, and tables; do not argue for it in prose.
 - Never overwrite the user's own requirement sketch in `temp/`.
+
+## Phased Implementation
+
+- When executing an approved phased plan or when the user requests the Sol / Luna / Terra sub-agent workflow, read `.agents/skills/phased-implementation/SKILL.md` before implementation.
+- The user is the only PHASE gate authority. Automated validation and agent review never advance a PHASE without explicit user confirmation.

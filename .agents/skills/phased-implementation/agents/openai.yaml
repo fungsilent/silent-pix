@@ -1,0 +1,4 @@
+interface:
+  display_name: "Phased Implementation"
+  short_description: "以人工 gate 編排 sub-agent 的分階段實作"
+  default_prompt: "Use $phased-implementation 依已批准的 plan 逐一執行 PHASE、驗證並停在人工 gate。"
