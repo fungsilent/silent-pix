@@ -7,7 +7,7 @@ import { FieldHint } from '#/components/base/FieldHint'
 import { useDeleteTaskMutation } from '#/features/task/task.query'
 import { toErrorMessage } from '#/lib/error'
 
-import type { GenerateTask } from '#/pages/generate/store'
+import type { GenerateTask } from '#/pages/generate/form'
 
 type TaskDeleteProps = {
     task: GenerateTask

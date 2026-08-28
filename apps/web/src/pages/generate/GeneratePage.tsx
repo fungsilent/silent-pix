@@ -8,13 +8,11 @@ import { TaskDetail } from '#/pages/generate/components/config/TaskDetail'
 import { TaskList } from '#/pages/generate/components/task/TaskList'
 import { CompareDetail } from '#/pages/generate/components/workspace/compare/CompareDetail'
 import { Workspace } from '#/pages/generate/components/workspace/Workspace'
-import { toSubmitIssue, toValidationIssues } from '#/pages/generate/issue'
+import { draftTask, toCreateTaskRequest } from '#/pages/generate/form'
+import { toSubmitIssue } from '#/pages/generate/issue'
 import {
     createGenerateStore,
-    draftTask,
-    generateSchema,
     GenerateStoreProvider,
-    toCreateTaskRequest,
 } from '#/pages/generate/store'
 import { taskStore } from '#/store/task'
 import { workspaceStore } from '#/store/workspace'
@@ -26,7 +24,13 @@ export function GeneratePage() {
     const activeTask = () => taskStore.state.selectedTaskId
         ? taskDetailQuery.data
         : draftTask
-    const generateStore = createGenerateStore(draftTask)
+    const generateStore = createGenerateStore(draftTask, {
+        onSubmit: async values => {
+            const response = await createTaskMutation.mutateAsync(toCreateTaskRequest(values))
+            taskStore.selectTask(response.id)
+        },
+    })
+    const isSubmitting = generateStore.form.useSelector(state => state.isSubmitting)
 
     /*
      * 只在「換了另一個 task」時重載，不是每次 detail query 有新資料就重載。
@@ -34,11 +38,12 @@ export function GeneratePage() {
      * ——包含正在跑的那個 task 自己的進度更新——把使用者打到一半的表單抹掉。
      */
     createEffect(on(
-        () => activeTask()?.id,
-        () => {
-            const task = activeTask()
+        () => [taskStore.state.selectedTaskId, taskDetailQuery.data?.id] as const,
+        ([selectedTaskId]) => {
+            const task = selectedTaskId ? taskDetailQuery.data : draftTask
 
-            if (task) {
+            /* query refetch 暫時沒有 data 時，保留同一 task 的編輯內容。 */
+            if (task && (!selectedTaskId || task.id === selectedTaskId)) {
                 generateStore.loadTask(task)
             }
         },
@@ -46,18 +51,16 @@ export function GeneratePage() {
 
     const handleSubmit = async (event: SubmitEvent) => {
         event.preventDefault()
-        generateStore.clearSubmitIssues()
 
-        const result = generateSchema.safeParse(generateStore.state.values)
-
-        if (!result.success) {
-            generateStore.reportSubmitIssues(toValidationIssues(result.error.issues))
+        /* Generate 按鈕本身已經 disabled，這條是鍵盤 Enter 的保險 */
+        if (isSubmitting()) {
             return
         }
 
+        generateStore.clearSubmitIssues()
+
         try {
-            const response = await createTaskMutation.mutateAsync(toCreateTaskRequest(result.data))
-            taskStore.selectTask(response.id)
+            await generateStore.form.handleSubmit()
         }
         catch (error) {
             /* 清單過期是能自動修的，直接刷新，不要只丟一句話叫使用者自己去弄 */

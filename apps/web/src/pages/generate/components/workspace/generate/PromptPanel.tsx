@@ -1,10 +1,8 @@
-import { useIsMutating } from '@tanstack/solid-query'
 import { Sparkles } from 'lucide-solid'
 import { createEffect, createSignal, on } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { IssueChip } from '#/components/base/IssueChip'
-import { taskKeys } from '#/features/task/task.key'
 import { cn } from '#/lib/cn'
 import { promptDefaultHeight, promptMinHeight } from '#/pages/generate/components/workspace/generate/prompt/prompt.theme'
 import { PromptEditor } from '#/pages/generate/components/workspace/generate/prompt/PromptEditor'
@@ -12,7 +10,7 @@ import { useOptionIssues } from '#/pages/generate/issue'
 import { useGenerateStore } from '#/pages/generate/store'
 
 import type { PromptDocument } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
-import type { PromptKind } from '#/pages/generate/store'
+import type { PromptKind } from '#/pages/generate/form'
 
 /* MARK: PromptPanel */
 const promptLabel: Record<PromptKind, string> = {
@@ -22,7 +20,8 @@ const promptLabel: Record<PromptKind, string> = {
 
 export function PromptPanel() {
     const store = useGenerateStore()
-    const createTaskCount = useIsMutating(() => ({ mutationKey: taskKeys.create() }))
+    const form = store.form
+    const isSubmitting = form.useSelector(state => state.isSubmitting)
     const optionIssues = useOptionIssues()
     const [issuesOpen, setIssuesOpen] = createSignal(false)
     const issues = () => [...optionIssues(), ...store.state.submitIssues]
@@ -87,7 +86,7 @@ export function PromptPanel() {
                 <Button
                     type='submit'
                     variant='primary'
-                    disabled={createTaskCount() > 0}
+                    disabled={isSubmitting()}
                     classes={{
                         root: 'px-4 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-60'
                     }}
@@ -96,27 +95,35 @@ export function PromptPanel() {
                         size={16}
                         strokeWidth={2.2}
                     />
-                    {createTaskCount() > 0 ? 'Creating...' : 'Generate'}
+                    {isSubmitting() ? 'Creating...' : 'Generate'}
                 </Button>
             </div>
 
             <div class='flex flex-col gap-1'>
-                <PromptSection
-                    kind='positive'
-                    visible={visible('positive')}
-                    documentKey={`${store.state.taskId}:positive`}
-                    initialDocument={store.state.values.positive}
-                    maxHeight={editorMaxHeight()}
-                    onDocumentChange={document => store.setPromptDocument('positive', document)}
-                />
-                <PromptSection
-                    kind='negative'
-                    visible={visible('negative')}
-                    documentKey={`${store.state.taskId}:negative`}
-                    initialDocument={store.state.values.negative}
-                    maxHeight={editorMaxHeight()}
-                    onDocumentChange={document => store.setPromptDocument('negative', document)}
-                />
+                <form.Field name='positive'>
+                    {field => (
+                        <PromptSection
+                            kind='positive'
+                            visible={visible('positive')}
+                            documentKey={`${store.state.taskId}:positive`}
+                            initialDocument={field().state.value}
+                            maxHeight={editorMaxHeight()}
+                            onDocumentChange={field().handleChange}
+                        />
+                    )}
+                </form.Field>
+                <form.Field name='negative'>
+                    {field => (
+                        <PromptSection
+                            kind='negative'
+                            visible={visible('negative')}
+                            documentKey={`${store.state.taskId}:negative`}
+                            initialDocument={field().state.value}
+                            maxHeight={editorMaxHeight()}
+                            onDocumentChange={field().handleChange}
+                        />
+                    )}
+                </form.Field>
             </div>
         </section>
     )

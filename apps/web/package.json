@@ -19,6 +19,7 @@
         "@elysia/eden": "^1.4.10",
         "@silent-pix/event": "workspace:*",
         "@silent-pix/shared": "workspace:*",
+        "@tanstack/solid-form": "^1.33.5",
         "@tanstack/solid-query": "^5.101.2",
         "clsx": "^2.1.1",
         "lucide-solid": "^1.23.0",

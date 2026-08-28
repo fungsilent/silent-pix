@@ -12,7 +12,7 @@ import { TaskStatus } from '#/pages/generate/components/TaskStatus'
 import { useGenerateStore } from '#/pages/generate/store'
 
 import type { TaskDetailMode } from '#/pages/generate/components/config/TaskDetailMode'
-import type { GenerateTask } from '#/pages/generate/store'
+import type { GenerateTask } from '#/pages/generate/form'
 
 type TaskInfoProps = {
     mode: TaskDetailMode
@@ -20,36 +20,11 @@ type TaskInfoProps = {
 }
 
 export function TaskInfo(props: TaskInfoProps) {
-    const store = useGenerateStore()
+    const form = useGenerateStore().form
     const renameMutation = useRenameTaskMutation()
     const [renameError, setRenameError] = createSignal<string>()
 
     createEffect(on(() => props.task.id, () => setRenameError()))
-
-    const commitName = async (value: string) => {
-        const name = value.trim()
-        store.setValue('name', name)
-        setRenameError()
-
-        if (props.mode === 'view' || props.task.status === null || renameMutation.isPending) {
-            return
-        }
-
-        const currentName = props.task.name ?? ''
-        if (name === currentName) {
-            return
-        }
-
-        try {
-            await renameMutation.mutateAsync({
-                taskId: props.task.id,
-                name: name === '' ? null : name,
-            })
-        }
-        catch (cause) {
-            setRenameError(toErrorMessage(cause))
-        }
-    }
 
     return (
         <DetailSection>
@@ -61,19 +36,50 @@ export function TaskInfo(props: TaskInfoProps) {
 
             <DetailRow label='Name'>
                 <div class='flex min-w-0 flex-col gap-1'>
-                    <Editable
-                        disabled={props.mode === 'view' || props.task.status === null || renameMutation.isPending}
-                        label='Name'
-                        value={store.state.values.name}
-                        onChange={value => {
-                            setRenameError()
-                            store.setValue('name', value)
+                    <form.Field name='name'>
+                        {field => {
+                            const commitName = async (value: string) => {
+                                const name = value.trim()
+                                field().handleChange(name)
+                                setRenameError()
+
+                                if (props.mode === 'view' || props.task.status === null || renameMutation.isPending) {
+                                    return
+                                }
+
+                                const currentName = props.task.name ?? ''
+                                if (name === currentName) {
+                                    return
+                                }
+
+                                try {
+                                    await renameMutation.mutateAsync({
+                                        taskId: props.task.id,
+                                        name: name === '' ? null : name,
+                                    })
+                                }
+                                catch (cause) {
+                                    setRenameError(toErrorMessage(cause))
+                                }
+                            }
+
+                            return (
+                                <Editable
+                                    disabled={props.mode === 'view' || props.task.status === null || renameMutation.isPending}
+                                    label='Name'
+                                    value={field().state.value}
+                                    onChange={value => {
+                                        setRenameError()
+                                        field().handleChange(value)
+                                    }}
+                                    onCommit={value => void commitName(value)}
+                                    classes={{
+                                        root: 'w-full',
+                                    }}
+                                />
+                            )
                         }}
-                        onCommit={value => void commitName(value)}
-                        classes={{
-                            root: 'w-full',
-                        }}
-                    />
+                    </form.Field>
                     <Show when={props.task.status === null}>
                         <FieldHint>Name is set after the task exists.</FieldHint>
                     </Show>
@@ -110,4 +116,3 @@ export function TaskInfo(props: TaskInfoProps) {
         </DetailSection>
     )
 }
-

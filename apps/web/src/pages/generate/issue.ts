@@ -15,7 +15,7 @@ import { hasLostConnection, serviceHealth } from '#/store/app'
 import type { QueryClient } from '@tanstack/solid-query'
 import type { ZodIssue } from '#/lib/error'
 import type { AppIssue } from '#/lib/issue'
-import type { GenerateValues } from '#/pages/generate/store'
+import type { GenerateValues } from '#/pages/generate/form'
 import type { Accessor } from 'solid-js'
 
 export type GenerateIssue = AppIssue

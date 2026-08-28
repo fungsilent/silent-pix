@@ -1,9 +1,11 @@
-import { createMemo, Show } from 'solid-js'
+import { createEffect, createMemo, on } from 'solid-js'
+import { Show } from 'solid-js'
 
 import { CollapseButton, CollapsedBar, Panel, PanelContent, PanelHeader } from '#/components/base/Panel'
 import { useTaskDetailQuery } from '#/features/task/task.query'
 import { TaskDetail } from '#/pages/generate/components/config/TaskDetail'
 import { ReferenceImageDetail } from '#/pages/generate/components/workspace/compare/ReferenceImageDetail'
+import { draftTask, toGenerateValues } from '#/pages/generate/form'
 import { createGenerateStore, GenerateStoreProvider } from '#/pages/generate/store'
 import { workspaceStore } from '#/store/workspace'
 
@@ -14,50 +16,58 @@ export function CompareDetail() {
         return origin?.type === 'output' ? origin.taskId : undefined
     })
     const taskDetailQuery = useTaskDetailQuery(taskId)
+    const detailStore = createGenerateStore(draftTask)
     const taskDetail = createMemo(() => {
         const task = taskDetailQuery.data
         if (!task || task.id !== taskId()) {
             return undefined
         }
 
-        return {
-            store: createGenerateStore(task),
-            task,
-        }
+        return task
     })
 
+    createEffect(on(
+        () => taskDetail(),
+        task => {
+            if (task) {
+                /* Compare 是唯讀檢視，同一 task 的 accepted query record 也要更新。 */
+                detailStore.form.reset(toGenerateValues(task))
+            }
+        },
+    ))
+
     return (
-        <Show
-            when={selected()}
-            fallback={<DetailStatus />}
-        >
-            {entry => (
-                <Show
-                    when={entry().origin?.type === 'output'}
-                    fallback={<ReferenceImageDetail image={entry().image} />}
-                >
+        <GenerateStoreProvider store={detailStore}>
+            <Show
+                when={selected()}
+                fallback={<DetailStatus />}
+            >
+                {entry => (
                     <Show
-                        when={taskDetail()}
-                        fallback={(
-                            <DetailStatus
-                                message={taskDetailQuery.isError
-                                    ? 'Failed to load task detail.'
-                                    : 'Loading task detail...'}
-                            />
-                        )}
+                        when={entry().origin?.type === 'output'}
+                        fallback={<ReferenceImageDetail image={entry().image} />}
                     >
-                        {detail => (
-                            <GenerateStoreProvider store={detail().store}>
+                        <Show
+                            when={taskDetail()}
+                            fallback={(
+                                <DetailStatus
+                                    message={taskDetailQuery.isError
+                                        ? 'Failed to load task detail.'
+                                        : 'Loading task detail...'}
+                                />
+                            )}
+                        >
+                            {detail => (
                                 <TaskDetail
                                     mode='view'
-                                    task={detail().task}
+                                    task={detail()}
                                 />
-                            </GenerateStoreProvider>
-                        )}
+                            )}
+                        </Show>
                     </Show>
-                </Show>
-            )}
-        </Show>
+                )}
+            </Show>
+        </GenerateStoreProvider>
     )
 }
 

@@ -15,6 +15,7 @@ type LoraDialogProps = {
 
 export function LoraDialog(props: LoraDialogProps) {
     const store = useGenerateStore()
+    const loraNames = store.form.useSelector(({ values }) => values.lora.map(lora => lora.name))
     const query = useLoraListQuery(() => props.open)
     const [selected, setSelected] = createSignal<string[]>([])
     const [keyword, setKeyword] = createSignal('')
@@ -24,7 +25,7 @@ export function LoraDialog(props: LoraDialogProps) {
             return
         }
 
-        setSelected(store.state.values.lora.map(lora => lora.name))
+        setSelected(loraNames())
         setKeyword('')
     })
 
@@ -48,7 +49,7 @@ export function LoraDialog(props: LoraDialogProps) {
     }
 
     const apply = () => {
-        store.setLoraNames(selected())
+        store.applyLoraSelection(selected())
         props.onOpenChange(false)
     }
 

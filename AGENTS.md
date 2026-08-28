@@ -48,7 +48,10 @@
 
 - Web UI uses SolidJS, Ark UI for headless primitives, Tailwind CSS utilities, `clsx` for conditional class composition, and `lucide-solid` for icons.
 - Web state uses Solid native stores through `apps/web/src/lib/store.ts`; read `store.state` directly and keep actions flattened on returned stores, not inside reactive state.
-- Do not add a generic form abstraction. Page editor state should be page-scoped through context, and Zod validates untyped submit boundaries.
+- Generate form state uses TanStack Form through page-scoped context. The Workflow editor remains page-scoped/context state pending its migration.
+- Do not add another generic form abstraction.
+- Solid stores own UI/query lifecycle state only, not duplicated form values.
+- Zod validates submit boundaries; domain diagnostics may remain live where required.
 - Prefer flex layout as the default web layout primitive.
 - App-level chrome such as `Header` belongs in `App.tsx`; page components should not own the app header.
 - Reusable web components should expose named class slots such as `classes` when one generic class string is too vague.

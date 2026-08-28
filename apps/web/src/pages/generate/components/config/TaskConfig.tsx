@@ -10,7 +10,7 @@ import { useWorkflowListQuery } from '#/features/workflow/workflow.query'
 import { useGenerateStore } from '#/pages/generate/store'
 
 import type { TaskDetailMode } from '#/pages/generate/components/config/TaskDetailMode'
-import type { GenerateTask } from '#/pages/generate/store'
+import type { GenerateTask } from '#/pages/generate/form'
 
 type TaskConfigProps = {
     mode: TaskDetailMode
@@ -19,10 +19,12 @@ type TaskConfigProps = {
 
 export function TaskConfig(props: TaskConfigProps) {
     const store = useGenerateStore()
+    const form = store.form
     const samplerQuery = useSamplerListQuery()
     const workflowQuery = useWorkflowListQuery()
     const samplerOptions = () => samplerQuery.data?.options ?? []
-    const hasReference = () => store.state.values.referenceImage !== null
+    const workflowId = form.useSelector(({ values }) => values.workflowId)
+    const hasReference = form.useSelector(({ values }) => values.referenceImage !== null)
     const isView = () => props.mode === 'view'
     const workflowOptions = () => workflowQuery.data?.options.map(workflow => ({
         label: workflow.name,
@@ -30,110 +32,142 @@ export function TaskConfig(props: TaskConfigProps) {
     })) ?? []
 
     createEffect(() => {
-        if (store.state.values.workflowId) {
+        if (workflowId()) {
             return
         }
 
         const firstWorkflow = workflowOptions()[0]
         if (firstWorkflow) {
-            store.setValue('workflowId', firstWorkflow.value)
+            form.setFieldValue('workflowId', firstWorkflow.value)
         }
     })
 
     return (
         <DetailSection title='Config'>
 
-            <Select
-                label='Workflow Template'
-                value={store.state.values.workflowId}
-                options={workflowOptions()}
-                disabled={isView() || workflowQuery.isLoading || workflowQuery.isError || workflowOptions().length === 0}
-                onChange={value => store.setValue('workflowId', value)}
-            />
+            <form.Field name='workflowId'>
+                {field => (
+                    <Select
+                        label='Workflow Template'
+                        value={field().state.value}
+                        options={workflowOptions()}
+                        disabled={isView() || workflowQuery.isLoading || workflowQuery.isError || workflowOptions().length === 0}
+                        onChange={field().handleChange}
+                    />
+                )}
+            </form.Field>
 
             {/* 錯誤與空狀態改由 PromptPanel 的 issue chip 統一顯示 */}
             <Show when={workflowQuery.isLoading}>
                 <FieldHint>Loading workflows...</FieldHint>
             </Show>
 
-            <Text
-                label='Seed'
-                value={store.state.values.seed}
-                placeholder={props.task.config.seed ?? 'Random'}
-                disabled={isView()}
-                onInput={value => store.setValue('seed', value)}
-                action={(
-                    <Button
-                        disabled={isView() || !props.task.config.seed}
-                        classes={{ root: 'size-8 p-0' }}
-                        onClick={() => {
-                            if (props.task.config.seed) {
-                                store.setValue('seed', props.task.config.seed)
-                            }
-                        }}
-                    >
-                        <Undo2
-                            size={13}
-                            strokeWidth={2}
-                            aria-hidden='true'
-                        />
-                    </Button>
+            <form.Field name='seed'>
+                {field => (
+                    <Text
+                        label='Seed'
+                        value={field().state.value}
+                        placeholder={props.task.config.seed ?? 'Random'}
+                        disabled={isView()}
+                        onInput={field().handleChange}
+                        action={(
+                            <Button
+                                disabled={isView() || !props.task.config.seed}
+                                classes={{ root: 'size-8 p-0' }}
+                                onClick={() => {
+                                    if (props.task.config.seed) {
+                                        field().handleChange(props.task.config.seed)
+                                    }
+                                }}
+                            >
+                                <Undo2
+                                    size={13}
+                                    strokeWidth={2}
+                                    aria-hidden='true'
+                                />
+                            </Button>
+                        )}
+                    />
                 )}
-            />
+            </form.Field>
 
             <div class='grid min-w-0 grid-cols-2 gap-2'>
-                <Number
-                    label='Steps'
-                    min={1}
-                    max={100}
-                    value={store.state.values.steps}
-                    disabled={isView()}
-                    onChange={value => store.setValue('steps', value)}
-                />
-                <Number
-                    label='CFG'
-                    min={0}
-                    max={100}
-                    value={store.state.values.cfg}
-                    disabled={isView()}
-                    onChange={value => store.setValue('cfg', value)}
-                />
+                <form.Field name='steps'>
+                    {field => (
+                        <Number
+                            label='Steps'
+                            min={1}
+                            max={100}
+                            value={field().state.value}
+                            disabled={isView()}
+                            onChange={field().handleChange}
+                        />
+                    )}
+                </form.Field>
+                <form.Field name='cfg'>
+                    {field => (
+                        <Number
+                            label='CFG'
+                            min={0}
+                            max={100}
+                            value={field().state.value}
+                            disabled={isView()}
+                            onChange={field().handleChange}
+                        />
+                    )}
+                </form.Field>
             </div>
 
             <div class='grid min-w-0 grid-cols-2 gap-2'>
-                <Number
-                    label='Width'
-                    min={64}
-                    max={4096}
-                    disabled={isView() || hasReference()}
-                    value={store.state.values.width}
-                    onChange={value => store.setValue('width', value)}
-                />
-                <Number
-                    label='Height'
-                    min={64}
-                    max={4096}
-                    disabled={isView() || hasReference()}
-                    value={store.state.values.height}
-                    onChange={value => store.setValue('height', value)}
-                />
+                <form.Field name='width'>
+                    {field => (
+                        <Number
+                            label='Width'
+                            min={64}
+                            max={4096}
+                            disabled={isView() || hasReference()}
+                            value={field().state.value}
+                            onChange={field().handleChange}
+                        />
+                    )}
+                </form.Field>
+                <form.Field name='height'>
+                    {field => (
+                        <Number
+                            label='Height'
+                            min={64}
+                            max={4096}
+                            disabled={isView() || hasReference()}
+                            value={field().state.value}
+                            onChange={field().handleChange}
+                        />
+                    )}
+                </form.Field>
             </div>
 
-            <Number
-                label='Batch'
-                min={1}
-                max={16}
-                disabled={isView() || hasReference()}
-                value={store.state.values.batch}
-                onChange={value => store.setValue('batch', value)}
-            />
-            <Select
-                label='Sampler'
-                value={store.state.values.sampler}
-                options={samplerOptions()}
-                disabled={isView() || samplerQuery.isLoading || samplerQuery.isError || samplerOptions().length === 0}
-                onChange={value => store.setValue('sampler', value)}
-            />
+            <form.Field name='batch'>
+                {field => (
+                    <Number
+                        label='Batch'
+                        min={1}
+                        max={16}
+                        disabled={isView() || hasReference()}
+                        value={field().state.value}
+                        onChange={field().handleChange}
+                    />
+                )}
+            </form.Field>
+            <form.Field name='sampler'>
+                {field => (
+                    <Select
+                        label='Sampler'
+                        value={field().state.value}
+                        options={samplerOptions()}
+                        disabled={isView() || samplerQuery.isLoading || samplerQuery.isError || samplerOptions().length === 0}
+                        onChange={field().handleChange}
+                    />
+                )}
+            </form.Field>
             <Show when={samplerQuery.isLoading}>
                 <FieldHint>Loading samplers...</FieldHint>
             </Show>

@@ -1,5 +1,5 @@
 import { ImagePlus, RotateCcw, Search, X } from 'lucide-solid'
-import { createEffect, createSignal, on, Show } from 'solid-js'
+import { createEffect, createSignal, on, onCleanup, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { FieldHint } from '#/components/base/FieldHint'
@@ -7,12 +7,13 @@ import { DetailSection } from '#/components/detail'
 import { FileDrop, Number, Slider } from '#/components/field'
 import { ImagePickerDialog } from '#/pages/generate/components/ImagePickerDialog'
 import { ImageViewer } from '#/pages/generate/components/workspace/shared/ImageViewer'
+import { referencePreviewUrl, toViewerImage } from '#/pages/generate/form'
 import { originLabel } from '#/pages/generate/label'
-import { referencePreviewUrl, toViewerImage, useGenerateStore } from '#/pages/generate/store'
+import { useGenerateStore } from '#/pages/generate/store'
 
 import type { FileUploadFileRejection } from '@ark-ui/solid'
 import type { TaskDetailMode } from '#/pages/generate/components/config/TaskDetailMode'
-import type { GenerateTask, ReferenceImage } from '#/pages/generate/store'
+import type { GenerateTask, ReferenceImage } from '#/pages/generate/form'
 
 type TaskImageProps = {
     mode: TaskDetailMode
@@ -23,22 +24,58 @@ const acceptedMimes = ['image/png', 'image/jpeg']
 
 export function TaskImage(props: TaskImageProps) {
     const store = useGenerateStore()
+    const form = store.form
     const [pickerOpen, setPickerOpen] = createSignal(false)
     const [error, setError] = createSignal<string>()
     const isView = () => props.mode === 'view'
+    let probeToken = 0
+    let pendingPreviewUrl: string | undefined
 
-    const reference = () => store.state.values.referenceImage
+    const revokePendingPreview = (previewUrl: string) => {
+        if (pendingPreviewUrl !== previewUrl) {
+            return
+        }
 
-    /* 換 task 時清掉上一張圖留下的錯誤，跟 TaskInfo 的 rename error 同一個做法 */
-    createEffect(on(() => props.task.id, () => setError()))
+        pendingPreviewUrl = undefined
+        URL.revokeObjectURL(previewUrl)
+    }
+
+    const releasePendingProbe = () => {
+        probeToken += 1
+        const previewUrl = pendingPreviewUrl
+
+        if (previewUrl) {
+            revokePendingPreview(previewUrl)
+        }
+    }
+
+    /* 換 task 時撤銷尚未完成的 probe，避免舊圖片完成後寫入新 task。 */
+    createEffect(on(() => props.task.id, () => {
+        releasePendingProbe()
+        setError()
+    }))
+
+    onCleanup(() => {
+        releasePendingProbe()
+    })
 
     const acceptFile = (file: File) => {
+        releasePendingProbe()
         setError()
 
         const previewUrl = URL.createObjectURL(file)
+        const currentTaskId = props.task.id
+        const currentProbeToken = probeToken
+        pendingPreviewUrl = previewUrl
         const probe = new Image()
 
         probe.addEventListener('load', () => {
+            if (currentProbeToken !== probeToken || currentTaskId !== props.task.id) {
+                revokePendingPreview(previewUrl)
+                return
+            }
+
+            pendingPreviewUrl = undefined
             store.setReferenceImage({
                 type: 'local',
                 file,
@@ -49,7 +86,12 @@ export function TaskImage(props: TaskImageProps) {
             })
         })
         probe.addEventListener('error', () => {
-            URL.revokeObjectURL(previewUrl)
+            if (currentProbeToken !== probeToken || currentTaskId !== props.task.id) {
+                revokePendingPreview(previewUrl)
+                return
+            }
+
+            revokePendingPreview(previewUrl)
             setError('That file could not be read as an image.')
         })
         probe.src = previewUrl
@@ -61,85 +103,103 @@ export function TaskImage(props: TaskImageProps) {
             : 'That file cannot be used as a reference image.')
     }
 
+    const clearReference = () => {
+        releasePendingProbe()
+        store.clearReferenceImage()
+    }
+
     return (
         <DetailSection title='Image'>
+            <form.Field name='referenceImage'>
+                {referenceField => {
+                    const reference = () => referenceField().state.value
 
-            <Show
-                when={reference()}
-                fallback={(
-                    <>
-                        <FileDrop
-                            accept={acceptedMimes}
-                            disabled={isView()}
-                            onAccept={acceptFile}
-                            onReject={rejectFile}
-                        >
-                            <ImagePlus
-                                size={20}
-                                strokeWidth={1.5}
-                                aria-hidden='true'
-                            />
-                            <span class='text-xs text-fg-secondary'>Drop an image or click to browse</span>
-                            <span class='text-[11px]'>PNG · JPEG</span>
-                        </FileDrop>
-                        <Button
-                            disabled={isView()}
-                            classes={{ root: 'w-full border border-dashed border-line bg-transparent' }}
-                            onClick={() => setPickerOpen(true)}
-                        >
-                            <Search
-                                size={13}
-                                strokeWidth={1.8}
-                                aria-hidden='true'
-                            />
-                            Search image library
-                        </Button>
-                    </>
-                )}
-            >
-                {value => (
-                    <ReferenceSlot
-                        mode={props.mode}
-                        reference={value()}
-                        onRemove={store.clearReferenceImage}
-                    />
-                )}
-            </Show>
+                    return (
+                        <>
+                            <Show
+                                when={reference()}
+                                fallback={(
+                                    <>
+                                        <FileDrop
+                                            accept={acceptedMimes}
+                                            disabled={isView()}
+                                            onAccept={acceptFile}
+                                            onReject={rejectFile}
+                                        >
+                                            <ImagePlus
+                                                size={20}
+                                                strokeWidth={1.5}
+                                                aria-hidden='true'
+                                            />
+                                            <span class='text-xs text-fg-secondary'>Drop an image or click to browse</span>
+                                            <span class='text-[11px]'>PNG · JPEG</span>
+                                        </FileDrop>
+                                        <Button
+                                            disabled={isView()}
+                                            classes={{ root: 'w-full border border-dashed border-line bg-transparent' }}
+                                            onClick={() => setPickerOpen(true)}
+                                        >
+                                            <Search
+                                                size={13}
+                                                strokeWidth={1.8}
+                                                aria-hidden='true'
+                                            />
+                                            Search image library
+                                        </Button>
+                                    </>
+                                )}
+                            >
+                                {value => (
+                                    <ReferenceSlot
+                                        mode={props.mode}
+                                        reference={value()}
+                                        onRemove={clearReference}
+                                    />
+                                )}
+                            </Show>
+
+                            <Show when={reference()}>
+                                <div class='flex flex-col gap-1'>
+                                    <span class='text-xs leading-none text-fg-muted'>Denoise</span>
+                                    <form.Field name='denoise'>
+                                        {denoiseField => (
+                                            <div class='flex items-center gap-2.5'>
+                                                <Slider
+                                                    label='Denoise'
+                                                    min={0.05}
+                                                    max={1}
+                                                    step={0.05}
+                                                    value={denoiseField().state.value}
+                                                    disabled={isView()}
+                                                    onChange={denoiseField().handleChange}
+                                                    classes={{ root: 'flex-1' }}
+                                                />
+                                                <Number
+                                                    label='Denoise'
+                                                    min={0.05}
+                                                    max={1}
+                                                    step={0.05}
+                                                    value={denoiseField().state.value}
+                                                    disabled={isView()}
+                                                    onChange={denoiseField().handleChange}
+                                                    classes={{
+                                                        root: 'w-16 flex-none',
+                                                        label: 'sr-only',
+                                                        input: 'h-6 px-2 text-center',
+                                                    }}
+                                                />
+                                            </div>
+                                        )}
+                                    </form.Field>
+                                </div>
+                            </Show>
+                        </>
+                    )
+                }}
+            </form.Field>
 
             <Show when={error()}>
                 {message => <FieldHint tone='danger'>{message()}</FieldHint>}
-            </Show>
-
-            <Show when={reference()}>
-                <div class='flex flex-col gap-1'>
-                    <span class='text-xs leading-none text-fg-muted'>Denoise</span>
-                    <div class='flex items-center gap-2.5'>
-                        <Slider
-                            label='Denoise'
-                            min={0.05}
-                            max={1}
-                            step={0.05}
-                            value={store.state.values.denoise}
-                            disabled={isView()}
-                            onChange={value => store.setValue('denoise', value)}
-                            classes={{ root: 'flex-1' }}
-                        />
-                        <Number
-                            label='Denoise'
-                            min={0.05}
-                            max={1}
-                            step={0.05}
-                            value={store.state.values.denoise}
-                            disabled={isView()}
-                            onChange={value => store.setValue('denoise', value)}
-                            classes={{
-                                root: 'w-16 flex-none',
-                                label: 'sr-only',
-                                input: 'h-6 px-2 text-center',
-                            }}
-                        />
-                    </div>
-                </div>
             </Show>
 
             <ImagePickerDialog
@@ -147,6 +207,7 @@ export function TaskImage(props: TaskImageProps) {
                 open={pickerOpen()}
                 onOpenChange={setPickerOpen}
                 onSelect={reference => {
+                    releasePendingProbe()
                     setError()
                     store.setReferenceImage(reference)
                 }}

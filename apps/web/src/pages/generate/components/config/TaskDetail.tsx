@@ -6,7 +6,7 @@ import { TaskImage } from '#/pages/generate/components/config/TaskImage'
 import { TaskInfo } from '#/pages/generate/components/config/TaskInfo'
 import { TaskLora } from '#/pages/generate/components/config/TaskLora'
 
-import type { GenerateTask } from '#/pages/generate/store'
+import type { GenerateTask } from '#/pages/generate/form'
 
 export type { TaskDetailMode } from '#/pages/generate/components/config/TaskDetailMode'
 
