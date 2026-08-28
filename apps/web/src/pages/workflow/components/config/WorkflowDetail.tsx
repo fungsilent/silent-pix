@@ -60,7 +60,6 @@ export function WorkflowDetail() {
 
     const handleSubmit = async (event: SubmitEvent) => {
         event.preventDefault()
-        event.stopPropagation()
 
         if (isSaving()) {
             return

@@ -50,7 +50,6 @@ export function GeneratePage() {
 
     const handleSubmit = async (event: SubmitEvent) => {
         event.preventDefault()
-        event.stopPropagation()
 
         if (isSubmitting()) {
             return
