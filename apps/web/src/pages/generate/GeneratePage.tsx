@@ -1,9 +1,8 @@
-import { useQueryClient } from '@tanstack/solid-query'
 import { createEffect, Match, on, Show, Switch } from 'solid-js'
 
 import { ApiError } from '#/api/api.client'
 import { useCreateTaskMutation, useTaskDetailQuery } from '#/features/task/task.query'
-import { workflowKeys } from '#/features/workflow/workflow.key'
+import { useRefreshWorkflowList } from '#/features/workflow/workflow.query'
 import { TaskDetail } from '#/pages/generate/components/config/TaskDetail'
 import { TaskList } from '#/pages/generate/components/task/TaskList'
 import { CompareDetail } from '#/pages/generate/components/workspace/compare/CompareDetail'
@@ -18,9 +17,9 @@ import { taskStore } from '#/store/task'
 import { workspaceStore } from '#/store/workspace'
 
 export function GeneratePage() {
-    const queryClient = useQueryClient()
     const taskDetailQuery = useTaskDetailQuery(() => taskStore.state.selectedTaskId)
     const createTaskMutation = useCreateTaskMutation()
+    const refreshWorkflowList = useRefreshWorkflowList()
     const activeTask = () => taskStore.state.selectedTaskId
         ? taskDetailQuery.data
         : draftTask
@@ -51,8 +50,8 @@ export function GeneratePage() {
 
     const handleSubmit = async (event: SubmitEvent) => {
         event.preventDefault()
+        event.stopPropagation()
 
-        /* Generate 按鈕本身已經 disabled，這條是鍵盤 Enter 的保險 */
         if (isSubmitting()) {
             return
         }
@@ -63,9 +62,8 @@ export function GeneratePage() {
             await generateStore.form.handleSubmit()
         }
         catch (error) {
-            /* 清單過期是能自動修的，直接刷新，不要只丟一句話叫使用者自己去弄 */
             if (error instanceof ApiError && error.code === 'WORKFLOW_NOT_FOUND') {
-                void queryClient.refetchQueries({ queryKey: workflowKeys.lists(), type: 'all' })
+                refreshWorkflowList()
             }
 
             generateStore.reportSubmitIssues([toSubmitIssue(error)])

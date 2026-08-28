@@ -1,11 +1,11 @@
 import { Save } from 'lucide-solid'
 import { createMemo, createSignal, Show } from 'solid-js'
 
+import { ApiError } from '#/api/api.client'
 import { Button } from '#/components/base/Button'
 import { IssueChip } from '#/components/base/IssueChip'
 import { Line } from '#/components/base/Line'
 import { PanelHeader } from '#/components/base/Panel'
-import { useCreateWorkflowMutation, useUpdateWorkflowMutation } from '#/features/workflow/workflow.query'
 import { WorkflowInfo } from '#/pages/workflow/components/config/WorkflowInfo'
 import { WorkflowMapping } from '#/pages/workflow/components/config/WorkflowMapping'
 import {
@@ -24,32 +24,32 @@ import { useWorkflowStore } from '#/pages/workflow/store'
 export function WorkflowDetail() {
     const store = useWorkflowStore()
     const [issuesOpen, setIssuesOpen] = createSignal(false)
-    const createWorkflow = useCreateWorkflowMutation()
-    const updateWorkflow = useUpdateWorkflowMutation()
     const detailQuery = store.detailQuery
 
-    const saveError = () => store.selection().isNew
-        ? createWorkflow.error
-        : updateWorkflow.error
-
     const issues = createMemo(() => [
+        ...store.state.validationIssues,
         ...toLoadIssues(detailQuery.isError ? detailQuery.error : null),
         ...toRequirementIssues({
-            isDirty: store.isDirty(),
+            isDirty: store.isModified(),
             name: store.selection().name,
             parse: store.graphState().parse,
         }),
         ...toGraphIssues(store.graphState().parse),
         ...toMappingIssues(store.graphState().mappingIssues),
-        ...toSaveIssues({ conflict: store.isConflict(), error: saveError() }),
+        ...toSaveIssues({
+            conflict: store.isConflict(),
+            error: store.selection().isNew
+                ? store.createMutation.error
+                : store.updateMutation.error,
+        }),
     ])
 
-    const isSaving = () => createWorkflow.isPending || updateWorkflow.isPending
+    const isSaving = store.isSubmitting
 
     const canSave = () => {
         const selection = store.selection()
 
-        return store.isDirty()
+        return store.isModified()
             && !selection.isArchived
             && !isSaving()
             && !store.isConflict()
@@ -58,42 +58,31 @@ export function WorkflowDetail() {
             && store.graphState().mappingIssues.length === 0
     }
 
-    const save = async () => {
-        const selection = store.selection()
-        const graph = store.graphState().graph
+    const handleSubmit = async (event: SubmitEvent) => {
+        event.preventDefault()
+        event.stopPropagation()
 
-        if (!graph || !canSave()) {
+        if (isSaving()) {
             return
         }
 
-        if (selection.isNew) {
-            const created = await createWorkflow.mutateAsync({
-                name: selection.name,
-                graph,
-                configSchema: selection.configSchema,
-            })
+        store.clearValidationIssues()
 
-            store.applySaved(created)
-            return
+        try {
+            await store.form.handleSubmit()
         }
-
-        if (!selection.id) {
-            return
+        catch (error) {
+            if (error instanceof ApiError && error.code === 'WORKFLOW_NOT_FOUND') {
+                store.refreshWorkflowList()
+            }
         }
-
-        const updated = await updateWorkflow.mutateAsync({
-            workflowId: selection.id,
-            revision: selection.revision,
-            name: selection.name,
-            graph,
-            configSchema: selection.configSchema,
-        })
-
-        store.applySaved(updated)
     }
 
     return (
-        <section class='flex w-[620px] flex-none flex-col overflow-hidden bg-surface'>
+        <form
+            class='flex w-[620px] flex-none flex-col overflow-hidden bg-surface'
+            onSubmit={event => void handleSubmit(event)}
+        >
             <PanelHeader
                 title='Detail'
                 classes={{ root: 'px-4' }}
@@ -116,9 +105,9 @@ export function WorkflowDetail() {
                         >
                             <Button
                                 variant='primary'
+                                type='submit'
                                 disabled={!canSave()}
                                 classes={{ root: 'shrink-0 px-3.5 disabled:cursor-not-allowed disabled:opacity-60' }}
-                                onClick={() => void save()}
                             >
                                 <Save
                                     size={13}
@@ -137,6 +126,6 @@ export function WorkflowDetail() {
                 <Line />
                 <WorkflowMapping />
             </div>
-        </section>
+        </form>
     )
 }

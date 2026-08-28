@@ -17,7 +17,8 @@ export function WorkflowList() {
     const listQuery = store.listQuery
     const active = () => store.summaries().filter(item => item.archivedAt === null)
     const archived = () => store.summaries().filter(item => item.archivedAt !== null)
-    const draft = () => store.state.draft
+    const draftId = () => store.state.createDraftId
+    const draftName = store.form.useSelector(state => state.values.name)
 
     return (
         <aside class='flex w-[200px] flex-none flex-col overflow-hidden border-r border-line bg-surface'>
@@ -49,7 +50,7 @@ export function WorkflowList() {
                     <Notice>{toErrorMessage(listQuery.error)}</Notice>
                 </Show>
 
-                <Show when={listQuery.isSuccess && store.summaries().length === 0 && !draft()}>
+                <Show when={listQuery.isSuccess && store.summaries().length === 0 && !draftId()}>
                     <Notice>No workflows yet. Use + to add one.</Notice>
                 </Show>
 
@@ -63,11 +64,11 @@ export function WorkflowList() {
                     )}
                 </For>
 
-                <Show when={draft()?.isNew ? draft() : undefined}>
+                <Show when={draftId()}>
                     {value => (
                         <Row
-                            id={value().id}
-                            name={value().name || 'Untitled'}
+                            id={value()}
+                            name={draftName() || 'Untitled'}
                             archived={false}
                         />
                     )}
@@ -109,10 +110,17 @@ type RowProps = {
 
 function Row(props: RowProps) {
     const store = useWorkflowStore()
-    const selected = () => store.state.selectedId === props.id
-    const label = () => store.state.draft?.id === props.id
+    const selected = () => store.state.selectedId === props.id || store.state.createDraftId === props.id
+    const label = () => store.state.createDraftId === props.id || store.state.selectedId === props.id
         ? store.draftLabel()
         : null
+    const select = () => {
+        if (store.state.createDraftId === props.id) {
+            return
+        }
+
+        store.selectWorkflow(props.id)
+    }
 
     return (
         <div
@@ -123,7 +131,7 @@ function Row(props: RowProps) {
                     : 'text-fg-secondary hover:bg-elevated',
                 props.archived && !selected() && 'text-fg-muted',
             )}
-            onClick={() => store.selectWorkflow(props.id)}
+            onClick={select}
         >
             <span class='min-w-0 flex-1 truncate text-xs leading-none'>{props.name}</span>
 

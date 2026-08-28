@@ -1,9 +1,31 @@
 import { ApiError } from '#/api/api.client'
-import { toErrorMessage } from '#/lib/error'
+import { toErrorMessage, toIssueMessage } from '#/lib/error'
 
 import type { Comfy } from '@silent-pix/shared'
+import type { ZodIssue } from '#/lib/error'
 import type { AppIssue } from '#/lib/issue'
 import type { GraphParse } from '#/pages/workflow/components/graph/graph.document'
+import type { WorkflowFormValues } from '#/pages/workflow/form'
+
+const fieldLabel: Record<keyof WorkflowFormValues, string> = {
+    name: 'Name',
+    graphText: 'API JSON',
+    configSchema: 'Mapping',
+}
+
+export function toValidationIssues(issues: ZodIssue[]): AppIssue[] {
+    return issues.map((issue, index) => {
+        const key = issue.path[0]
+        const isKnownField = typeof key === 'string' && key in fieldLabel
+
+        return {
+            id: `validation-${index}`,
+            tone: 'error',
+            field: isKnownField ? fieldLabel[key as keyof WorkflowFormValues] : undefined,
+            message: toIssueMessage(issue),
+        }
+    })
+}
 
 const graphFailureMessage: Record<Comfy.ParseApiGraphFailure, string> = {
     'not-object': 'The pasted JSON is not a ComfyUI graph object.',

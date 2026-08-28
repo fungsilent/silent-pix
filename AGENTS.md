@@ -48,7 +48,7 @@
 
 - Web UI uses SolidJS, Ark UI for headless primitives, Tailwind CSS utilities, `clsx` for conditional class composition, and `lucide-solid` for icons.
 - Web state uses Solid native stores through `apps/web/src/lib/store.ts`; read `store.state` directly and keep actions flattened on returned stores, not inside reactive state.
-- Generate form state uses TanStack Form through page-scoped context. The Workflow editor remains page-scoped/context state pending its migration.
+- Generate and Workflow form state uses TanStack Form through page-scoped context.
 - Do not add another generic form abstraction.
 - Solid stores own UI/query lifecycle state only, not duplicated form values.
 - Zod validates submit boundaries; domain diagnostics may remain live where required.

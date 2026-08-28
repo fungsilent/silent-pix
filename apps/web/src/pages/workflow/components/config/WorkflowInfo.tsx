@@ -9,6 +9,8 @@ import { useWorkflowStore } from '#/pages/workflow/store'
 /* 對應 TaskInfo：identity 與破壞性動作放在右欄最上面，沒有自己的標題 */
 export function WorkflowInfo() {
     const store = useWorkflowStore()
+    const form = store.form
+    const name = form.useSelector(state => state.values.name)
     /* 還沒存過的那一筆沒有 revision 可言 */
     const revision = () => store.selection().revision > 0
         ? `${store.selection().revision}`
@@ -17,15 +19,19 @@ export function WorkflowInfo() {
     return (
         <DetailSection>
             <DetailRow label='Name'>
-                <Editable
-                    disabled={store.selection().isArchived}
-                    label='Workflow name'
-                    placeholder='Untitled'
-                    value={store.selection().name}
-                    onChange={value => store.setName(value)}
-                    onCommit={value => store.commitName(value)}
-                    classes={{ root: 'w-full' }}
-                />
+                <form.Field name='name'>
+                    {field => (
+                        <Editable
+                            disabled={store.isLoading() || store.selection().isArchived}
+                            label='Workflow name'
+                            placeholder='Untitled'
+                            value={name()}
+                            onChange={field().handleChange}
+                            onCommit={value => field().handleChange(value.trim().slice(0, 120))}
+                            classes={{ root: 'w-full' }}
+                        />
+                    )}
+                </form.Field>
             </DetailRow>
 
             <DetailRow label='Revision'>

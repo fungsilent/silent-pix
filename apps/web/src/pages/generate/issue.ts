@@ -1,18 +1,10 @@
-import { useQueryClient } from '@tanstack/solid-query'
 import { createMemo } from 'solid-js'
 
-import {
-    loraKeys,
-    samplerKeys,
-    useLoraListQuery,
-    useSamplerListQuery,
-} from '#/features/task/task.query'
-import { workflowKeys } from '#/features/workflow/workflow.key'
+import { useLoraListQuery, useSamplerListQuery } from '#/features/task/task.query'
 import { useWorkflowListQuery } from '#/features/workflow/workflow.query'
 import { toErrorMessage, toIssueMessage } from '#/lib/error'
 import { hasLostConnection, serviceHealth } from '#/store/app'
 
-import type { QueryClient } from '@tanstack/solid-query'
 import type { ZodIssue } from '#/lib/error'
 import type { AppIssue } from '#/lib/issue'
 import type { GenerateValues } from '#/pages/generate/form'
@@ -64,7 +56,6 @@ export function toSubmitIssue(error: unknown): GenerateIssue {
  * 選項清單的問題是從 query 狀態衍生的，不是手動維護的清單
  */
 export function useOptionIssues(): Accessor<GenerateIssue[]> {
-    const queryClient = useQueryClient()
     const workflowQuery = useWorkflowListQuery()
     const samplerQuery = useSamplerListQuery()
     /* 只讀快取狀態，真正的抓取仍由 LoraDialog 開啟時觸發 */
@@ -105,7 +96,7 @@ export function useOptionIssues(): Accessor<GenerateIssue[]> {
                 tone: 'error',
                 field: fieldLabel.workflowId,
                 message: toErrorMessage(workflowQuery.error),
-                onRetry: refetch(queryClient, workflowKeys.lists()),
+                onRetry: () => { void workflowQuery.refetch() },
             })
         }
         else if (workflowQuery.isSuccess && workflowQuery.data.options.length === 0) {
@@ -114,7 +105,7 @@ export function useOptionIssues(): Accessor<GenerateIssue[]> {
                 tone: 'error',
                 field: fieldLabel.workflowId,
                 message: 'No workflows available. Add one in ComfyUI, then retry.',
-                onRetry: refetch(queryClient, workflowKeys.lists()),
+                onRetry: () => { void workflowQuery.refetch() },
             })
         }
 
@@ -125,7 +116,7 @@ export function useOptionIssues(): Accessor<GenerateIssue[]> {
                 tone: 'warning',
                 field: fieldLabel.sampler,
                 message: toErrorMessage(samplerQuery.error),
-                onRetry: refetch(queryClient, samplerKeys.list()),
+                onRetry: () => { void samplerQuery.refetch() },
             })
         }
 
@@ -135,7 +126,7 @@ export function useOptionIssues(): Accessor<GenerateIssue[]> {
                 tone: 'warning',
                 field: fieldLabel.lora,
                 message: toErrorMessage(loraQuery.error),
-                onRetry: refetch(queryClient, loraKeys.list()),
+                onRetry: () => { void loraQuery.refetch() },
             })
         }
 
@@ -171,11 +162,4 @@ function mergeByMessage(issues: GenerateIssue[]): GenerateIssue[] {
     }
 
     return [...merged.values()]
-}
-
-/* type: 'all' 是必要的——LoRA query 在 dialog 關閉時沒有 active observer */
-function refetch(queryClient: QueryClient, queryKey: readonly unknown[]) {
-    return () => {
-        void queryClient.refetchQueries({ queryKey, type: 'all' })
-    }
 }

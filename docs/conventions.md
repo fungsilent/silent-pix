@@ -395,8 +395,11 @@ Rules:
 - web state uses Solid native stores through `apps/web/src/lib/store.ts`
 - store consumers read native Solid store proxies directly from `store.state`
 - domain actions may be flattened onto returned stores but must not live inside reactive state
-- page editor state should be page-scoped through context
-- Zod validates submit/API payload boundaries; do not add a generic form abstraction
+- Generate and Workflow page editor state uses page-scoped TanStack Form through context
+- Form validators are pure submit-boundary Zod checks; invalid issues flow through the page's existing issue pipeline
+- Solid stores own UI/query lifecycle state only, not duplicated form values
+- Form-level reactive state uses `form.useSelector()` or `<form.Subscribe>`; direct `form.state` reads are imperative snapshots only
+- Do not add a generic form abstraction
 - prefer `classes`/named class slots for reusable components when one `class` string is too vague
 - composition vs configuration: children whose structure varies take `children`; components where only values vary take props
 - a `classes` slot map growing past three keys means that component wants composition, not another slot
@@ -473,8 +476,11 @@ lib/*
     lib/theme.ts is the exception that is not logic: shared class recipes such as the disabled field look. styles.css owns the tokens;
     theme.ts owns which tokens combine into a role, so components do not each keep a copy.
 
-pages/generate/store.ts, pages/generate/issue.ts
-    Generate-page-wide non-component logic: form state and the issue model feeding the issue chip.
+pages/generate/form.ts, pages/generate/store.ts, pages/generate/issue.ts
+    Generate-page-wide form/controller logic and the issue model feeding the issue chip.
+
+pages/workflow/form.ts, pages/workflow/store.ts, pages/workflow/issue.ts
+    Workflow-page-wide form/controller logic and the issue model feeding the issue chip.
 
 pages/generate/components/task/*
     Generate-page-only task list and task item UI.

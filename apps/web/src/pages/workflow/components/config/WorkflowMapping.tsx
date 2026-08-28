@@ -13,6 +13,7 @@ const unboundValue = ''
 /* 對應 TaskConfig：右欄的設定區，分組順序見 pages/workflow/generator-field.ts */
 export function WorkflowMapping() {
     const store = useWorkflowStore()
+    const configSchema = store.form.useSelector(state => state.values.configSchema)
 
     return (
         <DetailSection title='Mapping'>
@@ -33,9 +34,9 @@ export function WorkflowMapping() {
                                 {field => (
                                     <MappingRow
                                         field={field}
-                                        binding={store.selection().configSchema[field]}
+                                        binding={configSchema()[field]}
                                         nodeOptions={store.graphState().nodeOptions}
-                                        readOnly={store.selection().isArchived}
+                                        readOnly={store.isLoading() || store.selection().isArchived}
                                         onChange={(target, value) => store.setMapping(target, value)}
                                     />
                                 )}

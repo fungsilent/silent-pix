@@ -16,6 +16,14 @@ export function useWorkflowListQuery(scope: WorkflowScope = 'active') {
     }))
 }
 
+export function useRefreshWorkflowList() {
+    const queryClient = useQueryClient()
+
+    return () => {
+        void queryClient.refetchQueries({ queryKey: workflowKeys.lists(), type: 'all' })
+    }
+}
+
 export function useWorkflowDetailQuery(workflowId: Accessor<string | null>) {
     return useQuery(() => {
         const id = workflowId()
