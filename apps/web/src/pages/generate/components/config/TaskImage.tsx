@@ -3,21 +3,22 @@ import { createEffect, createSignal, on, onCleanup, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { FieldHint } from '#/components/base/FieldHint'
+import { Loading } from '#/components/base/Loading'
 import { DetailSection } from '#/components/detail'
 import { FileDrop, Number, Slider } from '#/components/field'
 import { ImagePickerDialog } from '#/pages/generate/components/ImagePickerDialog'
 import { ImageViewer } from '#/pages/generate/components/workspace/shared/ImageViewer'
+import { useGenerateDetail } from '#/pages/generate/detail'
 import { referencePreviewUrl, toViewerImage } from '#/pages/generate/form'
 import { originLabel } from '#/pages/generate/label'
 import { useGenerateStore } from '#/pages/generate/store'
 
 import type { FileUploadFileRejection } from '@ark-ui/solid'
 import type { TaskDetailMode } from '#/pages/generate/components/config/TaskDetailMode'
-import type { GenerateTask, ReferenceImage } from '#/pages/generate/form'
+import type { ReferenceImage } from '#/pages/generate/form'
 
 type TaskImageProps = {
     mode: TaskDetailMode
-    task: GenerateTask
 }
 
 const acceptedMimes = ['image/png', 'image/jpeg']
@@ -27,7 +28,9 @@ export function TaskImage(props: TaskImageProps) {
     const form = store.form
     const [pickerOpen, setPickerOpen] = createSignal(false)
     const [error, setError] = createSignal<string>()
+    const detail = useGenerateDetail()
     const isView = () => props.mode === 'view'
+    const isLoading = detail.loading
     let probeToken = 0
     let pendingPreviewUrl: string | undefined
 
@@ -50,7 +53,7 @@ export function TaskImage(props: TaskImageProps) {
     }
 
     /* 換 task 時撤銷尚未完成的 probe，避免舊圖片完成後寫入新 task。 */
-    createEffect(on(() => props.task.id, () => {
+    createEffect(on(() => detail.task()?.id, () => {
         releasePendingProbe()
         setError()
     }))
@@ -64,13 +67,13 @@ export function TaskImage(props: TaskImageProps) {
         setError()
 
         const previewUrl = URL.createObjectURL(file)
-        const currentTaskId = props.task.id
+        const currentTaskId = detail.task()?.id
         const currentProbeToken = probeToken
         pendingPreviewUrl = previewUrl
         const probe = new Image()
 
         probe.addEventListener('load', () => {
-            if (currentProbeToken !== probeToken || currentTaskId !== props.task.id) {
+            if (currentProbeToken !== probeToken || currentTaskId !== detail.task()?.id) {
                 revokePendingPreview(previewUrl)
                 return
             }
@@ -86,7 +89,7 @@ export function TaskImage(props: TaskImageProps) {
             })
         })
         probe.addEventListener('error', () => {
-            if (currentProbeToken !== probeToken || currentTaskId !== props.task.id) {
+            if (currentProbeToken !== probeToken || currentTaskId !== detail.task()?.id) {
                 revokePendingPreview(previewUrl)
                 return
             }
@@ -109,7 +112,10 @@ export function TaskImage(props: TaskImageProps) {
     }
 
     return (
-        <DetailSection title='Image'>
+        <DetailSection
+            title='Image'
+            inert={isLoading()}
+        >
             <form.Field name='referenceImage'>
                 {referenceField => {
                     const reference = () => referenceField().state.value
@@ -120,37 +126,42 @@ export function TaskImage(props: TaskImageProps) {
                                 when={reference()}
                                 fallback={(
                                     <>
-                                        <FileDrop
-                                            accept={acceptedMimes}
-                                            disabled={isView()}
-                                            onAccept={acceptFile}
-                                            onReject={rejectFile}
-                                        >
-                                            <ImagePlus
-                                                size={20}
-                                                strokeWidth={1.5}
-                                                aria-hidden='true'
-                                            />
-                                            <span class='text-xs text-fg-secondary'>Drop an image or click to browse</span>
-                                            <span class='text-[11px]'>PNG · JPEG</span>
-                                        </FileDrop>
-                                        <Button
-                                            disabled={isView()}
-                                            classes={{ root: 'w-full border border-dashed border-line bg-transparent' }}
-                                            onClick={() => setPickerOpen(true)}
-                                        >
-                                            <Search
-                                                size={13}
-                                                strokeWidth={1.8}
-                                                aria-hidden='true'
-                                            />
-                                            Search image library
-                                        </Button>
+                                        <Loading.Mask loading={isLoading}>
+                                            <FileDrop
+                                                accept={acceptedMimes}
+                                                disabled={isView()}
+                                                onAccept={acceptFile}
+                                                onReject={rejectFile}
+                                            >
+                                                <ImagePlus
+                                                    size={20}
+                                                    strokeWidth={1.5}
+                                                    aria-hidden='true'
+                                                />
+                                                <span class='text-xs text-fg-secondary'>Drop an image or click to browse</span>
+                                                <span class='text-[11px]'>PNG · JPEG</span>
+                                            </FileDrop>
+                                        </Loading.Mask>
+                                        <Loading.Mask loading={isLoading}>
+                                            <Button
+                                                disabled={isView()}
+                                                classes={{ root: 'w-full border border-dashed border-line bg-transparent' }}
+                                                onClick={() => setPickerOpen(true)}
+                                            >
+                                                <Search
+                                                    size={13}
+                                                    strokeWidth={1.8}
+                                                    aria-hidden='true'
+                                                />
+                                                Search image library
+                                            </Button>
+                                        </Loading.Mask>
                                     </>
                                 )}
                             >
                                 {value => (
                                     <ReferenceSlot
+                                        loading={isLoading()}
                                         mode={props.mode}
                                         reference={value()}
                                         onRemove={clearReference}
@@ -163,32 +174,34 @@ export function TaskImage(props: TaskImageProps) {
                                     <span class='text-xs leading-none text-fg-muted'>Denoise</span>
                                     <form.Field name='denoise'>
                                         {denoiseField => (
-                                            <div class='flex items-center gap-2.5'>
-                                                <Slider
-                                                    label='Denoise'
-                                                    min={0.05}
-                                                    max={1}
-                                                    step={0.05}
-                                                    value={denoiseField().state.value}
-                                                    disabled={isView()}
-                                                    onChange={denoiseField().handleChange}
-                                                    classes={{ root: 'flex-1' }}
-                                                />
-                                                <Number
-                                                    label='Denoise'
-                                                    min={0.05}
-                                                    max={1}
-                                                    step={0.05}
-                                                    value={denoiseField().state.value}
-                                                    disabled={isView()}
-                                                    onChange={denoiseField().handleChange}
-                                                    classes={{
-                                                        root: 'w-16 flex-none',
-                                                        label: 'sr-only',
-                                                        input: 'h-6 px-2 text-center',
-                                                    }}
-                                                />
-                                            </div>
+                                            <Loading.Mask loading={isLoading}>
+                                                <div class='flex items-center gap-2.5'>
+                                                    <Slider
+                                                        label='Denoise'
+                                                        min={0.05}
+                                                        max={1}
+                                                        step={0.05}
+                                                        value={denoiseField().state.value}
+                                                        disabled={isView()}
+                                                        onChange={denoiseField().handleChange}
+                                                        classes={{ root: 'flex-1' }}
+                                                    />
+                                                    <Number
+                                                        label='Denoise'
+                                                        min={0.05}
+                                                        max={1}
+                                                        step={0.05}
+                                                        value={denoiseField().state.value}
+                                                        disabled={isView()}
+                                                        onChange={denoiseField().handleChange}
+                                                        classes={{
+                                                            root: 'w-16 flex-none',
+                                                            label: 'sr-only',
+                                                            input: 'h-6 px-2 text-center',
+                                                        }}
+                                                    />
+                                                </div>
+                                            </Loading.Mask>
                                         )}
                                     </form.Field>
                                 </div>
@@ -217,6 +230,7 @@ export function TaskImage(props: TaskImageProps) {
 }
 
 type ReferenceSlotProps = {
+    loading: boolean
     mode: TaskDetailMode
     reference: ReferenceImage
     onRemove: () => void
@@ -226,6 +240,7 @@ function ReferenceSlot(props: ReferenceSlotProps) {
     const origin = () => (props.reference.type === 'asset' ? props.reference.origin : null)
     const [expanded, setExpanded] = createSignal(false)
     const isView = () => props.mode === 'view'
+    const isLoading = () => props.loading
 
     return (
         <>
@@ -251,21 +266,26 @@ function ReferenceSlot(props: ReferenceSlotProps) {
                         aria-hidden='true'
                     />
                 </Button>
+                <Show when={isLoading()}>
+                    <Loading.Skeleton class='absolute inset-0 z-10' />
+                </Show>
             </div>
 
             <Show when={origin()}>
                 {usage => (
-                    <Button
-                        disabled={isView()}
-                        classes={{ root: 'w-full border border-line bg-transparent' }}
-                    >
-                        <RotateCcw
-                            size={13}
-                            strokeWidth={1.7}
-                            aria-hidden='true'
-                        />
-                        {originLabel(usage())}
-                    </Button>
+                    <Loading.Mask loading={isLoading}>
+                        <Button
+                            disabled={isView()}
+                            classes={{ root: 'w-full border border-line bg-transparent' }}
+                        >
+                            <RotateCcw
+                                size={13}
+                                strokeWidth={1.7}
+                                aria-hidden='true'
+                            />
+                            {originLabel(usage())}
+                        </Button>
+                    </Loading.Mask>
                 )}
             </Show>
 

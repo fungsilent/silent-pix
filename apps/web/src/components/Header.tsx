@@ -1,9 +1,10 @@
-import { Columns2, Menu, Sparkles, Workflow } from 'lucide-solid'
+import { Columns2, LoaderCircle, Menu, Sparkles, Workflow } from 'lucide-solid'
 
 import { Button } from '#/components/base/Button'
 import { useHealthQuery } from '#/features/app/app.query'
 import { cn } from '#/lib/cn'
 import { appStore, serviceHealth } from '#/store/app'
+import { loadingStore } from '#/store/loading'
 import { workspaceStore } from '#/store/workspace'
 
 import type { JSX } from 'solid-js'
@@ -72,6 +73,27 @@ export function Header() {
                     />
                 </ModeButton>
             </div>
+
+            {import.meta.env.DEV && (
+                <Button
+                    variant='ghost'
+                    aria-pressed={loadingStore.state.preview}
+                    classes={{
+                        root: cn(
+                            'h-7 shrink-0 gap-1.5 px-2.5 text-xs',
+                            loadingStore.state.preview && 'bg-active text-fg',
+                        ),
+                    }}
+                    onClick={loadingStore.togglePreview}
+                >
+                    <LoaderCircle
+                        size={13}
+                        strokeWidth={1.8}
+                        aria-hidden='true'
+                    />
+                    Loading
+                </Button>
+            )}
 
             <div class='flex-1' />
 

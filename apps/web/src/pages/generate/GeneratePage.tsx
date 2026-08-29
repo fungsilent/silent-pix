@@ -1,4 +1,4 @@
-import { createEffect, Match, on, Show, Switch } from 'solid-js'
+import { createEffect, Match, on, Switch } from 'solid-js'
 
 import { ApiError } from '#/api/api.client'
 import { useCreateTaskMutation, useTaskDetailQuery } from '#/features/task/task.query'
@@ -7,6 +7,7 @@ import { TaskDetail } from '#/pages/generate/components/config/TaskDetail'
 import { TaskList } from '#/pages/generate/components/task/TaskList'
 import { CompareDetail } from '#/pages/generate/components/workspace/compare/CompareDetail'
 import { Workspace } from '#/pages/generate/components/workspace/Workspace'
+import { createGenerateDetail, GenerateDetailProvider } from '#/pages/generate/detail'
 import { draftTask, toCreateTaskRequest } from '#/pages/generate/form'
 import { toSubmitIssue } from '#/pages/generate/issue'
 import {
@@ -20,9 +21,24 @@ export function GeneratePage() {
     const taskDetailQuery = useTaskDetailQuery(() => taskStore.state.selectedTaskId)
     const createTaskMutation = useCreateTaskMutation()
     const refreshWorkflowList = useRefreshWorkflowList()
-    const activeTask = () => taskStore.state.selectedTaskId
-        ? taskDetailQuery.data
-        : draftTask
+    const acceptedTask = () => {
+        const selectedTaskId = taskStore.state.selectedTaskId
+
+        if (!selectedTaskId) {
+            return draftTask
+        }
+
+        return taskDetailQuery.data?.id === selectedTaskId
+            ? taskDetailQuery.data
+            : undefined
+    }
+    const detail = createGenerateDetail({
+        error: () => Boolean(taskStore.state.selectedTaskId)
+            && taskDetailQuery.isError
+            && acceptedTask() === undefined,
+        loading: () => Boolean(taskStore.state.selectedTaskId) && taskDetailQuery.isLoading,
+        task: acceptedTask,
+    })
     const generateStore = createGenerateStore(draftTask, {
         onSubmit: async values => {
             const response = await createTaskMutation.mutateAsync(toCreateTaskRequest(values))
@@ -38,11 +54,11 @@ export function GeneratePage() {
      */
     createEffect(on(
         () => [taskStore.state.selectedTaskId, taskDetailQuery.data?.id] as const,
-        ([selectedTaskId]) => {
-            const task = selectedTaskId ? taskDetailQuery.data : draftTask
-
+        () => {
             /* query refetch 暫時沒有 data 時，保留同一 task 的編輯內容。 */
-            if (task && (!selectedTaskId || task.id === selectedTaskId)) {
+            const task = detail.task()
+
+            if (task) {
                 generateStore.loadTask(task)
             }
         },
@@ -71,28 +87,23 @@ export function GeneratePage() {
 
     return (
         <GenerateStoreProvider store={generateStore}>
-            <form
-                class='flex h-[calc(100dvh-48px)] min-h-0 overflow-hidden'
-                onSubmit={event => void handleSubmit(event)}
-            >
-                <TaskList />
-                <Workspace />
-                <Switch>
-                    <Match when={workspaceStore.state.mode === 'generate'}>
-                        <Show when={activeTask()}>
-                            {task => (
-                                <TaskDetail
-                                    mode='create'
-                                    task={task()}
-                                />
-                            )}
-                        </Show>
-                    </Match>
-                    <Match when={workspaceStore.state.mode === 'compare'}>
-                        <CompareDetail />
-                    </Match>
-                </Switch>
-            </form>
+            <GenerateDetailProvider value={detail}>
+                <form
+                    class='flex h-[calc(100dvh-48px)] min-h-0 overflow-hidden'
+                    onSubmit={event => void handleSubmit(event)}
+                >
+                    <TaskList />
+                    <Workspace />
+                    <Switch>
+                        <Match when={workspaceStore.state.mode === 'generate'}>
+                            <TaskDetail mode='create' />
+                        </Match>
+                        <Match when={workspaceStore.state.mode === 'compare'}>
+                            <CompareDetail />
+                        </Match>
+                    </Switch>
+                </form>
+            </GenerateDetailProvider>
         </GenerateStoreProvider>
     )
 }

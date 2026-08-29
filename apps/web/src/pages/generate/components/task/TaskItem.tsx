@@ -1,6 +1,7 @@
 import { Ban, CircleX, Hourglass, Image as ImageIcon, LoaderCircle } from 'lucide-solid'
 
 import { Button } from '#/components/base/Button'
+import { Loading } from '#/components/base/Loading'
 import { cn } from '#/lib/cn'
 import { formatDateTime } from '#/lib/format'
 import { TaskStatus } from '#/pages/generate/components/TaskStatus'
@@ -15,6 +16,9 @@ type TaskItemProps = {
     thumbnailOnly: boolean
     onSelect: () => void
 }
+
+const taskItemRootBaseClasses = 'flex w-full items-center justify-center gap-2.5 rounded-lg border border-transparent p-1.5 text-left'
+const taskThumbnailBaseClasses = 'size-18 shrink-0 overflow-hidden rounded-md border'
 
 type PlaceholderMeta = {
     Icon: Component<LucideProps>
@@ -62,11 +66,7 @@ export function TaskItem(props: TaskItemProps) {
             aria-pressed={props.selected}
             classes={{
                 root: cn(
-                    /*
-                     * w-full 而不是 w-fit：每列寬度若隨名稱長度變化，items-center
-                     * 會把每列各自置中，縮圖就對不齊；收合時全部變同寬又會跳一下。
-                     */
-                    'w-full gap-2.5 rounded-lg text-left p-1.5',
+                    taskItemRootBaseClasses,
                     props.selected
                         ? 'border-accent/60 bg-active shadow-[0_0_0_1px_rgba(37,99,235,0.14),0_1px_12px_rgba(37,99,235,0.12)]'
                         : 'hover:bg-elevated',
@@ -76,7 +76,7 @@ export function TaskItem(props: TaskItemProps) {
         >
             <div
                 class={cn(
-                    'size-18 shrink-0 overflow-hidden rounded-md border',
+                    taskThumbnailBaseClasses,
                     props.task.thumbnail
                         ? 'border-line-subtle bg-elevated'
                         : placeholder().class,
@@ -109,6 +109,29 @@ export function TaskItem(props: TaskItemProps) {
                 </div>
             )}
         </Button>
+    )
+}
+
+type TaskItemSkeletonProps = {
+    thumbnailOnly: boolean
+}
+
+export function TaskItemSkeleton(props: TaskItemSkeletonProps) {
+    return (
+        <div
+            aria-hidden='true'
+            class={cn(taskItemRootBaseClasses, 'pointer-events-none')}
+        >
+            <Loading.Skeleton class={cn(taskThumbnailBaseClasses, 'border-transparent')} />
+
+            {!props.thumbnailOnly && (
+                <div class='flex min-w-0 flex-1 flex-col items-start gap-1.5'>
+                    <Loading.Skeleton class='h-3 w-3/4' />
+                    <Loading.Skeleton class='h-3 w-1/2' />
+                    <Loading.Skeleton class='h-3 w-2/3' />
+                </div>
+            )}
+        </div>
     )
 }
 

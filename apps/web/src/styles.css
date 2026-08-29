@@ -22,6 +22,9 @@
     --sp-accent-hover: #3b82f6;
     --sp-accent-fg: #7ea6ff;
 
+    --sp-skeleton: #252525;
+    --sp-skeleton-highlight: #303030;
+
     --sp-danger: #dc2626;
     --sp-danger-hover: #ef4444;
     --sp-danger-fg: #fca5a5;
@@ -47,6 +50,9 @@
     --sp-accent: #2563eb;
     --sp-accent-hover: #1d4ed8;
     --sp-accent-fg: #1e40af;
+
+    --sp-skeleton: #e8e8e8;
+    --sp-skeleton-highlight: #f1f1f1;
 
     --sp-danger: #dc2626;
     --sp-danger-hover: #b91c1c;
@@ -163,6 +169,26 @@ body {
     animation: viewer-image-in 140ms ease-out;
 }
 
+/*
+ * 動 background-color 而不是 opacity：pulse 到一半時若變半透明，
+ * 底下還沒換掉的舊 task 資料會透出來。兩個色階都是不透明的。
+ */
+@keyframes skeleton-pulse {
+    0%,
+    100% {
+        background-color: var(--sp-skeleton);
+    }
+
+    50% {
+        background-color: var(--sp-skeleton-highlight);
+    }
+}
+
+.skeleton {
+    background-color: var(--sp-skeleton);
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
 @keyframes issue-chip-in {
     from { opacity: 0; translate: 0 -3px }
     to { opacity: 1; translate: none }
@@ -187,6 +213,10 @@ body {
     .issue-chip,
     .issue-popover {
         animation-duration: 0.01ms;
+    }
+
+    .skeleton {
+        animation: none;
     }
 }
 

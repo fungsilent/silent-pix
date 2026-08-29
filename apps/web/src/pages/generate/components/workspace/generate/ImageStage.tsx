@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight, Columns2, Expand, ImagePlus, Star, Trash2 } 
 import { For, onCleanup, onMount, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
+import { Loading } from '#/components/base/Loading'
 import { cn } from '#/lib/cn'
 
 import type { ImageApi } from '@silent-pix/shared'
@@ -9,6 +10,7 @@ import type { ImageApi } from '@silent-pix/shared'
 type ImageStageProps = {
     images: ImageApi.ImageResource[]
     keyboardEnabled: boolean
+    loading: boolean
     selectedIndex: number
     onCompare: (image: ImageApi.ImageResource) => void
     onExpand: () => void
@@ -75,13 +77,15 @@ export function ImageStage(props: ImageStageProps) {
 
     return (
         <section
-            class='flex min-h-[240px] flex-1 flex-col overflow-hidden bg-stage'
+            class='relative flex min-h-[240px] flex-1 flex-col overflow-hidden bg-stage'
             aria-label='Image preview'
+            inert={props.loading}
         >
             <div class='relative flex min-h-0 flex-1 items-center justify-center overflow-hidden'>
                 <Show
                     when={selectedImage()}
-                    fallback={<div class='text-sm text-fg-muted'>No image</div>}
+                    /* loading 時還不知道有沒有圖，不能說 No image；stage 留黑 */
+                    fallback={<Show when={!props.loading}><div class='text-sm text-fg-muted'>No image</div></Show>}
                 >
                     {image => (
                         <img
@@ -93,7 +97,10 @@ export function ImageStage(props: ImageStageProps) {
                     )}
                 </Show>
 
-                <div class='absolute right-3 top-3 flex gap-2'>
+                <Loading.Hide
+                    class='absolute right-3 top-3 flex gap-2'
+                    loading={() => props.loading}
+                >
                     <Button
                         variant='ghost'
                         aria-label='Expand'
@@ -163,7 +170,7 @@ export function ImageStage(props: ImageStageProps) {
                             aria-hidden='true'
                         />
                     </Button>
-                </div>
+                </Loading.Hide>
 
                 <Show when={hasMany()}>
                     <Button

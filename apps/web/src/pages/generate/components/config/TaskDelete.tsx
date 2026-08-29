@@ -10,7 +10,7 @@ import { toErrorMessage } from '#/lib/error'
 import type { GenerateTask } from '#/pages/generate/form'
 
 type TaskDeleteProps = {
-    task: GenerateTask
+    task?: GenerateTask | undefined
 }
 
 export function TaskDelete(props: TaskDeleteProps) {
@@ -18,18 +18,28 @@ export function TaskDelete(props: TaskDeleteProps) {
     const [open, setOpen] = createSignal(false)
     const [error, setError] = createSignal<string>()
 
-    const imageCount = () => props.task.images.length
+    const imageCount = () => props.task?.images.length ?? 0
 
     const openDialog = () => {
+        if (!props.task) {
+            return
+        }
+
         setError()
         setOpen(true)
     }
 
     const confirm = async () => {
+        const task = props.task
+
+        if (!task) {
+            return
+        }
+
         setError()
 
         try {
-            await mutation.mutateAsync({ taskId: props.task.id })
+            await mutation.mutateAsync({ taskId: task.id })
             setOpen(false)
         }
         catch (cause) {
@@ -89,7 +99,7 @@ export function TaskDelete(props: TaskDeleteProps) {
                 )}
             >
                 <p class='m-0 truncate font-mono text-xs text-fg-secondary'>
-                    {props.task.name ?? props.task.id}
+                    {props.task?.name ?? props.task?.id}
                 </p>
             </Dialog>
         </>

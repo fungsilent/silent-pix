@@ -9,6 +9,7 @@ type DetailSectionProps = {
     children: JSX.Element
     title?: string
     count?: number | undefined
+    inert?: boolean
     classes?: {
         root?: string
     }
@@ -24,7 +25,12 @@ export function DetailSection(props: DetailSectionProps) {
                     </div>
                 )}
             </Show>
-            {props.children}
+            <div
+                class='contents'
+                inert={props.inert}
+            >
+                {props.children}
+            </div>
         </section>
     )
 }

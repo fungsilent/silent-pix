@@ -3,6 +3,7 @@ import { createEffect, createSignal, For, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { Dialog } from '#/components/base/Dialog'
+import { Loading } from '#/components/base/Loading'
 import { Text } from '#/components/field'
 import { useLoraListQuery } from '#/features/task/task.query'
 import { cn } from '#/lib/cn'
@@ -13,12 +14,15 @@ type LoraDialogProps = {
     onOpenChange: (open: boolean) => void
 }
 
+const loraSkeletonRows = [0, 1, 2, 3, 4]
+
 export function LoraDialog(props: LoraDialogProps) {
     const store = useGenerateStore()
     const loraNames = store.form.useSelector(({ values }) => values.lora.map(lora => lora.name))
     const query = useLoraListQuery(() => props.open)
     const [selected, setSelected] = createSignal<string[]>([])
     const [keyword, setKeyword] = createSignal('')
+    const hasLoadError = () => query.isError && query.data === undefined
 
     createEffect(() => {
         if (!props.open) {
@@ -103,86 +107,95 @@ export function LoraDialog(props: LoraDialogProps) {
             />
 
             <div class='scrollbar-thin -mx-4 mt-3 min-h-0 flex-1 overflow-y-auto px-4'>
-                <Show when={query.isLoading}>
-                    <p class='m-0 py-8 text-center text-sm text-fg-muted'>Loading LoRAs...</p>
-                </Show>
-
-                <Show when={query.isError}>
-                    <div class='flex flex-col items-center gap-3 py-8 text-center'>
-                        <p class='m-0 text-sm text-red-300'>Failed to load LoRAs.</p>
-                        <Button
-                            type='button'
-                            classes={{ root: 'text-sm' }}
-                            onClick={() => void query.refetch()}
-                        >
-                            <RefreshCw
-                                size={14}
-                                strokeWidth={1.8}
-                                aria-hidden='true'
-                            />
-                            Retry
-                        </Button>
-                    </div>
-                </Show>
-
-                <Show when={!query.isLoading && !query.isError}>
-                    <Show
-                        when={visibleOptions().length > 0}
-                        fallback={(
-                            <p class='m-0 py-8 text-center text-sm text-fg-muted'>
-                                {options().length === 0
-                                    ? 'No LoRAs available in ComfyUI.'
-                                    : 'No LoRA matches the search.'}
-                            </p>
-                        )}
-                    >
+                <Loading.Swap
+                    loading={() => props.open && query.isLoading}
+                    fallback={(
                         <div class='flex flex-col'>
-                            <For each={visibleOptions()}>
-                                {option => (
-                                    <Button
-                                        variant='ghost'
-                                        role='checkbox'
-                                        aria-checked={isSelected(option.value)}
-                                        title={option.value}
-                                        classes={{
-                                            root: cn(
-                                                'h-12 w-full justify-between gap-3 rounded-none border-b border-line-subtle text-left text-sm',
-                                                isSelected(option.value)
-                                                    ? 'bg-accent/15 text-fg shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--sp-accent)_45%,transparent)]'
-                                                    : 'hover:bg-elevated',
-                                            ),
-                                        }}
-                                        onClick={() => toggle(option.value)}
-                                    >
-                                        <span class='min-w-0 truncate'>{option.label}</span>
-                                        <span
-                                            class={cn(
-                                                'flex size-7 shrink-0 items-center justify-center rounded-md',
-                                                isSelected(option.value) ? 'text-accent-fg' : 'text-fg-muted',
-                                            )}
-                                            aria-hidden='true'
-                                        >
-                                            <Show
-                                                when={isSelected(option.value)}
-                                                fallback={(
-                                                    <Plus
-                                                        size={15}
-                                                        strokeWidth={1.8}
-                                                    />
-                                                )}
-                                            >
-                                                <Check
-                                                    size={15}
-                                                    strokeWidth={2}
-                                                />
-                                            </Show>
-                                        </span>
-                                    </Button>
+                            <For each={loraSkeletonRows}>
+                                {() => (
+                                    <Loading.Skeleton class='h-12 w-full rounded-none border-b border-line-subtle' />
                                 )}
                             </For>
                         </div>
+                    )}
+                >
+                    <Show when={hasLoadError()}>
+                        <div class='flex flex-col items-center gap-3 py-8 text-center'>
+                            <p class='m-0 text-sm text-red-300'>Failed to load LoRAs.</p>
+                            <Button
+                                type='button'
+                                classes={{ root: 'text-sm' }}
+                                onClick={() => void query.refetch()}
+                            >
+                                <RefreshCw
+                                    size={14}
+                                    strokeWidth={1.8}
+                                    aria-hidden='true'
+                                />
+                                Retry
+                            </Button>
+                        </div>
                     </Show>
-                </Show>
+
+                    <Show when={!hasLoadError()}>
+                        <Show
+                            when={visibleOptions().length > 0}
+                            fallback={(
+                                <p class='m-0 py-8 text-center text-sm text-fg-muted'>
+                                    {options().length === 0
+                                        ? 'No LoRAs available in ComfyUI.'
+                                        : 'No LoRA matches the search.'}
+                                </p>
+                            )}
+                        >
+                            <div class='flex flex-col'>
+                                <For each={visibleOptions()}>
+                                    {option => (
+                                        <Button
+                                            variant='ghost'
+                                            role='checkbox'
+                                            aria-checked={isSelected(option.value)}
+                                            title={option.value}
+                                            classes={{
+                                                root: cn(
+                                                    'h-12 w-full justify-between gap-3 rounded-none border-b border-line-subtle text-left text-sm',
+                                                    isSelected(option.value)
+                                                        ? 'bg-accent/15 text-fg shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--sp-accent)_45%,transparent)]'
+                                                        : 'hover:bg-elevated',
+                                                ),
+                                            }}
+                                            onClick={() => toggle(option.value)}
+                                        >
+                                            <span class='min-w-0 truncate'>{option.label}</span>
+                                            <span
+                                                class={cn(
+                                                    'flex size-7 shrink-0 items-center justify-center rounded-md',
+                                                    isSelected(option.value) ? 'text-accent-fg' : 'text-fg-muted',
+                                                )}
+                                                aria-hidden='true'
+                                            >
+                                                <Show
+                                                    when={isSelected(option.value)}
+                                                    fallback={(
+                                                        <Plus
+                                                            size={15}
+                                                            strokeWidth={1.8}
+                                                        />
+                                                    )}
+                                                >
+                                                    <Check
+                                                        size={15}
+                                                        strokeWidth={2}
+                                                    />
+                                                </Show>
+                                            </span>
+                                        </Button>
+                                    )}
+                                </For>
+                            </div>
+                        </Show>
+                    </Show>
+                </Loading.Swap>
             </div>
         </Dialog>
     )

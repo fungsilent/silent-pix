@@ -1,16 +1,19 @@
 import { Sparkles } from 'lucide-solid'
-import { createEffect, createSignal, on } from 'solid-js'
+import { createEffect, createSignal, on, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { IssueChip } from '#/components/base/IssueChip'
+import { Loading } from '#/components/base/Loading'
 import { cn } from '#/lib/cn'
 import { promptDefaultHeight, promptMinHeight } from '#/pages/generate/components/workspace/generate/prompt/prompt.theme'
 import { PromptEditor } from '#/pages/generate/components/workspace/generate/prompt/PromptEditor'
+import { useGenerateDetail } from '#/pages/generate/detail'
 import { useOptionIssues } from '#/pages/generate/issue'
 import { useGenerateStore } from '#/pages/generate/store'
 
 import type { PromptDocument } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
 import type { PromptKind } from '#/pages/generate/form'
+import type { Accessor } from 'solid-js'
 
 /* MARK: PromptPanel */
 const promptLabel: Record<PromptKind, string> = {
@@ -20,6 +23,8 @@ const promptLabel: Record<PromptKind, string> = {
 
 export function PromptPanel() {
     const store = useGenerateStore()
+    const detail = useGenerateDetail()
+    const isLoading = detail.loading
     const form = store.form
     const isSubmitting = form.useSelector(state => state.isSubmitting)
     const optionIssues = useOptionIssues()
@@ -58,7 +63,10 @@ export function PromptPanel() {
     )
 
     return (
-        <section class='flex shrink-0 flex-col overflow-hidden border-b border-line-subtle bg-surface'>
+        <section
+            class='flex shrink-0 flex-col overflow-hidden border-b border-line-subtle bg-surface'
+            inert={isLoading()}
+        >
             <div class='flex min-h-12 shrink-0 items-center justify-between gap-3 px-4 py-2'>
                 <div class='flex shrink-0 items-center gap-2'>
                     <h2 class='m-0 text-sm font-bold leading-none text-fg'>Prompt</h2>
@@ -103,6 +111,7 @@ export function PromptPanel() {
                 <form.Field name='positive'>
                     {field => (
                         <PromptSection
+                            isLoading={isLoading}
                             kind='positive'
                             visible={visible('positive')}
                             documentKey={`${store.state.taskId}:positive`}
@@ -115,6 +124,7 @@ export function PromptPanel() {
                 <form.Field name='negative'>
                     {field => (
                         <PromptSection
+                            isLoading={isLoading}
                             kind='negative'
                             visible={visible('negative')}
                             documentKey={`${store.state.taskId}:negative`}
@@ -163,6 +173,7 @@ function PromptToggle(props: PromptToggleProps) {
 /* MARK: PromptSection */
 type PromptSectionProps = {
     documentKey: string
+    isLoading: Accessor<boolean>
     maxHeight: string
     initialDocument: PromptDocument
     kind: PromptKind
@@ -179,7 +190,8 @@ function PromptSection(props: PromptSectionProps) {
             <span class='pb-1.5 text-xs leading-none text-fg-muted'>
                 {promptLabel[props.kind]}
             </span>
-            <div class='overflow-hidden rounded-md border border-transparent bg-elevated'>
+            {/* 既有的 editor host 就是 mask anchor，只補 relative */}
+            <div class='relative overflow-hidden rounded-md border border-transparent bg-elevated'>
                 <PromptEditor
                     class='resizer-hidden block w-full resize-y overflow-hidden'
                     style={{
@@ -192,6 +204,9 @@ function PromptSection(props: PromptSectionProps) {
                     initialDocument={props.initialDocument}
                     onDocumentChange={props.onDocumentChange}
                 />
+                <Show when={props.isLoading()}>
+                    <Loading.Skeleton class='absolute inset-0' />
+                </Show>
             </div>
         </section>
     )

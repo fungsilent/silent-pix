@@ -2,6 +2,7 @@ import { createEffect, createSignal, on, Show } from 'solid-js'
 
 import { Badge } from '#/components/base/Badge'
 import { FieldHint } from '#/components/base/FieldHint'
+import { Loading } from '#/components/base/Loading'
 import { DetailRow, DetailSection } from '#/components/detail'
 import { Editable } from '#/components/field/Editable'
 import { useRenameTaskMutation } from '#/features/task/task.query'
@@ -9,29 +10,36 @@ import { toErrorMessage } from '#/lib/error'
 import { formatDateTime } from '#/lib/format'
 import { TaskDelete } from '#/pages/generate/components/config/TaskDelete'
 import { TaskStatus } from '#/pages/generate/components/TaskStatus'
+import { useGenerateDetail } from '#/pages/generate/detail'
 import { useGenerateStore } from '#/pages/generate/store'
 
 import type { TaskDetailMode } from '#/pages/generate/components/config/TaskDetailMode'
-import type { GenerateTask } from '#/pages/generate/form'
 
 type TaskInfoProps = {
     mode: TaskDetailMode
-    task: GenerateTask
 }
 
 export function TaskInfo(props: TaskInfoProps) {
     const form = useGenerateStore().form
+    const detail = useGenerateDetail()
+    const task = detail.task
+    const isLoading = detail.loading
     const renameMutation = useRenameTaskMutation()
     const [renameError, setRenameError] = createSignal<string>()
+    const hasDelete = () => props.mode !== 'view'
+        && (isLoading() || task()?.status != null)
 
-    createEffect(on(() => props.task.id, () => setRenameError()))
+    createEffect(on(() => task()?.id, () => setRenameError()))
 
     return (
-        <DetailSection>
+        <DetailSection inert={isLoading()}>
             <DetailRow label='ID'>
-                <span class='block truncate font-mono text-[11px] font-medium leading-none text-fg'>
-                    {props.task.id}
-                </span>
+                <Loading.Mask loading={isLoading}>
+                    {/* cold 時用 nbsp 撐住行高，mask 才有高度；不是假資料 */}
+                    <span class='block truncate font-mono text-[11px] font-medium leading-none text-fg'>
+                        {task()?.id ?? '\u00A0'}
+                    </span>
+                </Loading.Mask>
             </DetailRow>
 
             <DetailRow label='Name'>
@@ -43,18 +51,20 @@ export function TaskInfo(props: TaskInfoProps) {
                                 field().handleChange(name)
                                 setRenameError()
 
-                                if (props.mode === 'view' || props.task.status === null || renameMutation.isPending) {
+                                const current = task()
+
+                                if (!current || props.mode === 'view' || current.status === null || renameMutation.isPending) {
                                     return
                                 }
 
-                                const currentName = props.task.name ?? ''
+                                const currentName = current.name ?? ''
                                 if (name === currentName) {
                                     return
                                 }
 
                                 try {
                                     await renameMutation.mutateAsync({
-                                        taskId: props.task.id,
+                                        taskId: current.id,
                                         name: name === '' ? null : name,
                                     })
                                 }
@@ -64,25 +74,24 @@ export function TaskInfo(props: TaskInfoProps) {
                             }
 
                             return (
-                                <Editable
-                                    disabled={props.mode === 'view' || props.task.status === null || renameMutation.isPending}
-                                    label='Name'
-                                    value={field().state.value}
-                                    onChange={value => {
-                                        setRenameError()
-                                        field().handleChange(value)
-                                    }}
-                                    onCommit={value => void commitName(value)}
-                                    classes={{
-                                        root: 'w-full',
-                                    }}
-                                />
+                                <Loading.Mask loading={isLoading}>
+                                    <Editable
+                                        disabled={props.mode === 'view' || task()?.status == null || renameMutation.isPending}
+                                        label='Name'
+                                        value={field().state.value}
+                                        onChange={value => {
+                                            setRenameError()
+                                            field().handleChange(value)
+                                        }}
+                                        onCommit={value => void commitName(value)}
+                                        classes={{
+                                            root: 'w-full',
+                                        }}
+                                    />
+                                </Loading.Mask>
                             )
                         }}
                     </form.Field>
-                    <Show when={props.task.status === null}>
-                        <FieldHint>Name is set after the task exists.</FieldHint>
-                    </Show>
                     <Show when={renameError()}>
                         {message => (
                             <FieldHint tone='danger'>{message()}</FieldHint>
@@ -92,26 +101,47 @@ export function TaskInfo(props: TaskInfoProps) {
             </DetailRow>
 
             <DetailRow label='Status'>
-                {/* draft 是前端狀態，後端的 TaskStatus union 沒有它，所以不走 TaskStatus */}
-                {props.task.status
-                    ? <TaskStatus status={props.task.status} />
-                    : <Badge>Draft</Badge>}
+                <Loading.Mask loading={isLoading}>
+                    <Show
+                        when={task()}
+                        /* cold 時只留 Badge 的 h-5 外框，不冒充 Draft */
+                        fallback={<Badge>{'\u00A0'}</Badge>}
+                    >
+                        {current => (
+                            <Show
+                                when={current().status}
+                                fallback={<Badge>Draft</Badge>}
+                            >
+                                {status => <TaskStatus status={status()} />}
+                            </Show>
+                        )}
+                    </Show>
+                </Loading.Mask>
             </DetailRow>
 
             <DetailRow label='Created'>
-                <span
-                    class='text-xs leading-none'
-                    classList={{
-                        'text-fg-secondary': props.task.createdAt !== null,
-                        'text-fg-muted': props.task.createdAt === null,
-                    }}
-                >
-                    {props.task.createdAt ? formatDateTime(props.task.createdAt) : '-'}
-                </span>
+                <Loading.Mask loading={isLoading}>
+                    <span
+                        class='block text-xs leading-none'
+                        classList={{
+                            'text-fg-secondary': task()?.createdAt != null,
+                            'text-fg-muted': task()?.createdAt == null,
+                        }}
+                    >
+                        <Show
+                            when={task()?.createdAt}
+                            fallback='-'
+                        >
+                            {createdAt => formatDateTime(createdAt())}
+                        </Show>
+                    </span>
+                </Loading.Mask>
             </DetailRow>
 
-            <Show when={props.task.status !== null && props.mode !== 'view'}>
-                <TaskDelete task={props.task} />
+            <Show when={hasDelete()}>
+                <Loading.Mask loading={isLoading}>
+                    <TaskDelete task={task()} />
+                </Loading.Mask>
             </Show>
         </DetailSection>
     )

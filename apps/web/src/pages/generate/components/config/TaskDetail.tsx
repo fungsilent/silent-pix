@@ -1,3 +1,5 @@
+import { Show } from 'solid-js'
+
 import { Line } from '#/components/base/Line'
 import { CollapseButton, CollapsedBar, Panel, PanelContent, PanelHeader } from '#/components/base/Panel'
 import { TaskConfig } from '#/pages/generate/components/config/TaskConfig'
@@ -5,17 +7,18 @@ import { type TaskDetailMode } from '#/pages/generate/components/config/TaskDeta
 import { TaskImage } from '#/pages/generate/components/config/TaskImage'
 import { TaskInfo } from '#/pages/generate/components/config/TaskInfo'
 import { TaskLora } from '#/pages/generate/components/config/TaskLora'
-
-import type { GenerateTask } from '#/pages/generate/form'
+import { useGenerateDetail } from '#/pages/generate/detail'
 
 export type { TaskDetailMode } from '#/pages/generate/components/config/TaskDetailMode'
 
 type TaskDetailProps = {
     mode: TaskDetailMode
-    task: GenerateTask
 }
 
 export function TaskDetail(props: TaskDetailProps) {
+    const detail = useGenerateDetail()
+    const hasError = () => detail.error() && detail.task() === undefined
+
     return (
         <Panel
             classes={{
@@ -44,22 +47,21 @@ export function TaskDetail(props: TaskDetailProps) {
                                 content: 'gap-3 px-4 pt-0 pb-5',
                             }}
                         >
-                            <TaskInfo
-                                mode={props.mode}
-                                task={props.task}
-                            />
-                            <Line />
-                            <TaskImage
-                                mode={props.mode}
-                                task={props.task}
-                            />
-                            <Line />
-                            <TaskConfig
-                                mode={props.mode}
-                                task={props.task}
-                            />
-                            <Line />
-                            <TaskLora mode={props.mode} />
+                            <Show when={hasError()}>
+                                <p class='m-0 py-8 text-center text-sm text-red-300'>
+                                    Failed to load task detail.
+                                </p>
+                            </Show>
+
+                            <Show when={!hasError()}>
+                                <TaskInfo mode={props.mode} />
+                                <Line />
+                                <TaskImage mode={props.mode} />
+                                <Line />
+                                <TaskConfig mode={props.mode} />
+                                <Line />
+                                <TaskLora mode={props.mode} />
+                            </Show>
                         </PanelContent>
                     </div>
                 )
