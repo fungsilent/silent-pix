@@ -67,7 +67,7 @@ export function GeneratePage() {
     const handleSubmit = async (event: SubmitEvent) => {
         event.preventDefault()
 
-        if (isSubmitting()) {
+        if (isSubmitting() || detail.loading()) {
             return
         }
 

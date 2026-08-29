@@ -63,10 +63,7 @@ export function PromptPanel() {
     )
 
     return (
-        <section
-            class='flex shrink-0 flex-col overflow-hidden border-b border-line-subtle bg-surface'
-            inert={isLoading()}
-        >
+        <section class='flex shrink-0 flex-col overflow-hidden border-b border-line-subtle bg-surface'>
             <div class='flex min-h-12 shrink-0 items-center justify-between gap-3 px-4 py-2'>
                 <div class='flex shrink-0 items-center gap-2'>
                     <h2 class='m-0 text-sm font-bold leading-none text-fg'>Prompt</h2>
@@ -94,7 +91,7 @@ export function PromptPanel() {
                 <Button
                     type='submit'
                     variant='primary'
-                    disabled={isSubmitting()}
+                    disabled={isSubmitting() || isLoading()}
                     classes={{
                         root: 'px-4 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-60'
                     }}
@@ -107,7 +104,10 @@ export function PromptPanel() {
                 </Button>
             </div>
 
-            <div class='flex flex-col gap-1'>
+            <div
+                class='flex flex-col gap-1'
+                inert={isLoading()}
+            >
                 <form.Field name='positive'>
                     {field => (
                         <PromptSection

@@ -1,8 +1,9 @@
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
 import { Annotation, Compartment, EditorState } from '@codemirror/state'
 import { EditorView, keymap, lineNumbers, placeholder } from '@codemirror/view'
-import { createEffect, onCleanup, onMount } from 'solid-js'
+import { createEffect, onCleanup, onMount, Show } from 'solid-js'
 
+import { Loading } from '#/components/base/Loading'
 import { parseGraphText } from '#/pages/workflow/components/graph/graph.document'
 import {
     fieldGutter,
@@ -24,6 +25,7 @@ const syncFromProps = Annotation.define<boolean>()
 
 type GraphEditorProps = {
     value: string
+    loading: boolean
     marks: Map<number, LineMark>
     readOnly: boolean
     onChange: (value: string) => void
@@ -125,9 +127,15 @@ export function GraphEditor(props: GraphEditorProps) {
     })
 
     return (
-        <div
-            ref={element => { host = element }}
-            class='min-h-0 flex-1 overflow-hidden rounded-md border border-transparent bg-elevated'
-        />
+        <div class='relative min-h-0 flex-1 overflow-hidden rounded-md border border-transparent bg-elevated'>
+            <div
+                ref={element => { host = element }}
+                class='size-full'
+                inert={props.loading}
+            />
+            <Show when={props.loading}>
+                <Loading.Skeleton class='absolute inset-0 rounded-none' />
+            </Show>
+        </div>
     )
 }

@@ -52,6 +52,8 @@ export function WorkflowDetail() {
         return store.isModified()
             && !selection.isArchived
             && !isSaving()
+            /* 載入中畫面全被遮住，使用者看不到自己會存下什麼 */
+            && !store.isDetailLoading()
             && !store.isConflict()
             && selection.name.trim().length > 0
             && store.graphState().graph !== undefined
@@ -61,7 +63,7 @@ export function WorkflowDetail() {
     const handleSubmit = async (event: SubmitEvent) => {
         event.preventDefault()
 
-        if (isSaving()) {
+        if (isSaving() || store.isDetailLoading()) {
             return
         }
 
@@ -121,9 +123,14 @@ export function WorkflowDetail() {
             />
 
             <div class='scrollbar-thin flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 pb-5'>
-                <WorkflowInfo />
-                <Line />
-                <WorkflowMapping />
+                <div
+                    class='contents'
+                    inert={store.isDetailLoading()}
+                >
+                    <WorkflowInfo />
+                    <Line />
+                    <WorkflowMapping />
+                </div>
             </div>
         </form>
     )

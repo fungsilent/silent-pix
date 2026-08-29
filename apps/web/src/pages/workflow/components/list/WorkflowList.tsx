@@ -4,6 +4,7 @@ import { For, Show } from 'solid-js'
 import { Badge } from '#/components/base/Badge'
 import { Button } from '#/components/base/Button'
 import { Line } from '#/components/base/Line'
+import { Loading } from '#/components/base/Loading'
 import { PanelHeader } from '#/components/base/Panel'
 import { DetailTitle } from '#/components/detail'
 import { cn } from '#/lib/cn'
@@ -11,6 +12,8 @@ import { toErrorMessage } from '#/lib/error'
 import { useWorkflowStore } from '#/pages/workflow/store'
 
 import type { JSX } from 'solid-js'
+
+const listSkeletonRows = [0, 1, 2, 3, 4, 5, 6, 7]
 
 export function WorkflowList() {
     const store = useWorkflowStore()
@@ -42,53 +45,58 @@ export function WorkflowList() {
             />
 
             <div class='scrollbar-thin flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-2 pb-3'>
-                <Show when={listQuery.isPending}>
-                    <Notice>Loading…</Notice>
-                </Show>
-
-                <Show when={listQuery.isError}>
-                    <Notice>{toErrorMessage(listQuery.error)}</Notice>
-                </Show>
-
-                <Show when={listQuery.isSuccess && store.summaries().length === 0 && !draftId()}>
-                    <Notice>No workflows yet. Use + to add one.</Notice>
-                </Show>
-
-                <For each={active()}>
-                    {item => (
-                        <Row
-                            id={item.id}
-                            name={item.name}
-                            archived={false}
-                        />
+                <Loading.Swap
+                    loading={() => listQuery.isLoading}
+                    fallback={(
+                        <For each={listSkeletonRows}>
+                            {() => <Loading.Skeleton class='h-[34px] shrink-0 rounded-md' />}
+                        </For>
                     )}
-                </For>
+                >
+                    <Show when={listQuery.isError}>
+                        <Notice>{toErrorMessage(listQuery.error)}</Notice>
+                    </Show>
 
-                <Show when={draftId()}>
-                    {value => (
-                        <Row
-                            id={value()}
-                            name={draftName() || 'Untitled'}
-                            archived={false}
-                        />
-                    )}
-                </Show>
+                    <Show when={listQuery.isSuccess && store.summaries().length === 0 && !draftId()}>
+                        <Notice>No workflows yet. Use + to add one.</Notice>
+                    </Show>
 
-                <Show when={archived().length > 0}>
-                    <Line />
-                    <div class='px-2.5 py-1'>
-                        <DetailTitle>Archived</DetailTitle>
-                    </div>
-                    <For each={archived()}>
+                    <For each={active()}>
                         {item => (
                             <Row
                                 id={item.id}
                                 name={item.name}
-                                archived
+                                archived={false}
                             />
                         )}
                     </For>
-                </Show>
+
+                    <Show when={draftId()}>
+                        {value => (
+                            <Row
+                                id={value()}
+                                name={draftName() || 'Untitled'}
+                                archived={false}
+                            />
+                        )}
+                    </Show>
+
+                    <Show when={archived().length > 0}>
+                        <Line />
+                        <div class='px-2.5 py-1'>
+                            <DetailTitle>Archived</DetailTitle>
+                        </div>
+                        <For each={archived()}>
+                            {item => (
+                                <Row
+                                    id={item.id}
+                                    name={item.name}
+                                    archived
+                                />
+                            )}
+                        </For>
+                    </Show>
+                </Loading.Swap>
             </div>
         </aside>
     )

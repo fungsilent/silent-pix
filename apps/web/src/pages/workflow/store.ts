@@ -16,6 +16,7 @@ import {
     toWorkflowValues,
 } from '#/pages/workflow/form'
 import { toValidationIssues } from '#/pages/workflow/issue'
+import { isColdLoading } from '#/store/loading'
 
 import type { Comfy, ConfigSchema, GeneratorField, Mapping, WorkflowApi } from '@silent-pix/shared'
 import type { AppIssue } from '#/lib/issue'
@@ -162,7 +163,9 @@ export function createWorkflowStore() {
         return isModified() ? 'Unsaved' : null
     })
 
-    const isLoading = () => Boolean(
+    const isDetailLoading = isColdLoading(() => remoteId() !== null && detailQuery.isLoading)
+
+    const isRemoteUnavailable = () => Boolean(
         !uiStore.state.createDraftId
         && (!uiStore.state.selectedId || !record() || record()?.id !== uiStore.state.selectedId),
     )
@@ -308,7 +311,8 @@ export function createWorkflowStore() {
         graphState,
         isModified,
         isConflict,
-        isLoading,
+        isDetailLoading,
+        isRemoteUnavailable,
         isSubmitting,
         draftLabel,
         selectWorkflow,

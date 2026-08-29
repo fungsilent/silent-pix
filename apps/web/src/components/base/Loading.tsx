@@ -109,6 +109,9 @@ function Skeleton(props: SkeletonProps) {
  *
  * inert 不在這裡——它是屬性，必須掛在既有節點上，包一層 wrapper 反而
  * 破壞版面。互動阻斷仍由各 page 自己在既有 root 加 inert。
+ *
+ * 掛 inert 時避開捲動容器本身：inert 的子樹退出 hit-testing，滾輪會找不到
+ * 捲動目標。要遮整個捲動區就在裡面加一層 display: contents 的載體。
  */
 export const Loading = {
     Control,

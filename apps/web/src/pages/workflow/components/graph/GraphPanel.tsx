@@ -21,8 +21,9 @@ export function GraphPanel() {
                     {field => (
                         <GraphEditor
                             value={graphText()}
+                            loading={store.isDetailLoading()}
                             marks={store.graphState().lineMarks}
-                            readOnly={store.isLoading() || store.selection().isArchived}
+                            readOnly={store.isRemoteUnavailable() || store.selection().isArchived}
                             onChange={field().handleChange}
                         />
                     )}

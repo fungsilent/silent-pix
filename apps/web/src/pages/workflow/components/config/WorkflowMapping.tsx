@@ -1,12 +1,14 @@
 import { For, Show } from 'solid-js'
 
 import { Line } from '#/components/base/Line'
+import { Loading } from '#/components/base/Loading'
 import { DetailGroup, DetailLabel, DetailSection } from '#/components/detail'
 import { Select } from '#/components/field'
 import { fieldGroups } from '#/pages/workflow/generator-field'
 import { useWorkflowStore } from '#/pages/workflow/store'
 
 import type { Comfy, GeneratorField, Mapping } from '@silent-pix/shared'
+import type { Accessor } from 'solid-js'
 
 const unboundValue = ''
 
@@ -14,9 +16,13 @@ const unboundValue = ''
 export function WorkflowMapping() {
     const store = useWorkflowStore()
     const configSchema = store.form.useSelector(state => state.values.configSchema)
+    const isLoading = store.isDetailLoading
 
     return (
-        <DetailSection title='Mapping'>
+        <DetailSection
+            title='Mapping'
+            inert={isLoading()}
+        >
             <div class='grid grid-cols-[112px_1fr_168px] items-center gap-2 text-xs leading-none text-fg-muted'>
                 <span>Field</span>
                 <span>Node</span>
@@ -35,8 +41,9 @@ export function WorkflowMapping() {
                                     <MappingRow
                                         field={field}
                                         binding={configSchema()[field]}
+                                        loading={isLoading}
                                         nodeOptions={store.graphState().nodeOptions}
-                                        readOnly={store.isLoading() || store.selection().isArchived}
+                                        readOnly={store.isRemoteUnavailable() || store.selection().isArchived}
                                         onChange={(target, value) => store.setMapping(target, value)}
                                     />
                                 )}
@@ -52,6 +59,7 @@ export function WorkflowMapping() {
 type MappingRowProps = {
     field: GeneratorField
     binding: Mapping | undefined
+    loading: Accessor<boolean>
     nodeOptions: Comfy.NodeOption[]
     readOnly: boolean
     onChange: (field: GeneratorField, value: Mapping | undefined) => void
@@ -105,32 +113,37 @@ function MappingRow(props: MappingRowProps) {
 
     return (
         <div class='grid grid-cols-[112px_1fr_168px] items-center gap-2'>
+            {/* Field 欄留著：三欄的 grid placement 與 label 在 loading 時仍要看得見 */}
             <DetailLabel>{props.field}</DetailLabel>
 
-            <Select
-                label={`${props.field} node`}
-                value={props.binding?.nodeId ?? unboundValue}
-                options={nodeItems()}
-                disabled={props.readOnly}
-                onChange={changeNode}
-                classes={{ label: 'sr-only' }}
-            />
+            <Loading.Mask loading={props.loading}>
+                <Select
+                    label={`${props.field} node`}
+                    value={props.binding?.nodeId ?? unboundValue}
+                    options={nodeItems()}
+                    disabled={props.readOnly}
+                    onChange={changeNode}
+                    classes={{ label: 'sr-only' }}
+                />
+            </Loading.Mask>
 
-            <Show
-                when={props.binding}
-                fallback={<div class='h-8 rounded-md border border-dashed border-line' />}
-            >
-                {binding => (
-                    <Select
-                        label={`${props.field} input`}
-                        value={binding().input}
-                        options={inputItems()}
-                        disabled={props.readOnly}
-                        onChange={value => props.onChange(props.field, { nodeId: binding().nodeId, input: value })}
-                        classes={{ label: 'sr-only' }}
-                    />
-                )}
-            </Show>
+            <Loading.Mask loading={props.loading}>
+                <Show
+                    when={props.binding}
+                    fallback={<div class='h-8 rounded-md border border-dashed border-line' />}
+                >
+                    {binding => (
+                        <Select
+                            label={`${props.field} input`}
+                            value={binding().input}
+                            options={inputItems()}
+                            disabled={props.readOnly}
+                            onChange={value => props.onChange(props.field, { nodeId: binding().nodeId, input: value })}
+                            classes={{ label: 'sr-only' }}
+                        />
+                    )}
+                </Show>
+            </Loading.Mask>
         </div>
     )
 }
