@@ -1,6 +1,6 @@
 import { createMemo } from 'solid-js'
 
-import { useLoraListQuery, useSamplerListQuery } from '#/features/task/task.query'
+import { useLoraListQuery, useSamplerListQuery, useTaskFeedQuery } from '#/features/task/task.query'
 import { useWorkflowListQuery } from '#/features/workflow/workflow.query'
 import { toErrorMessage, toIssueMessage } from '#/lib/error'
 import { useGenerateStore } from '#/pages/generate/store'
@@ -58,6 +58,7 @@ export function useOptionIssues(): Accessor<GenerateIssue[]> {
     const workflowId = store.form.useSelector(({ values }) => values.workflowId)
     const workflowQuery = useWorkflowListQuery()
     const samplerQuery = useSamplerListQuery()
+    const taskFeedQuery = useTaskFeedQuery()
     /* 只讀快取狀態，真正的抓取仍由 LoraDialog 開啟時觸發 */
     const loraQuery = useLoraListQuery(() => false)
 
@@ -148,6 +149,20 @@ export function useOptionIssues(): Accessor<GenerateIssue[]> {
                 field: fieldLabel.lora,
                 message: toErrorMessage(loraQuery.error),
                 onRetry: () => { void loraQuery.refetch() },
+            })
+        }
+
+        /*
+         * 左側清單抓不到不影響出圖，所以是 warning。翻頁失敗也照報——
+         * 清單還在畫面上，錯誤講不出口的話使用者只會覺得 Load more 壞了。
+         */
+        if (taskFeedQuery.isError) {
+            issues.push({
+                id: 'task-load',
+                tone: 'warning',
+                field: 'Tasks',
+                message: toErrorMessage(taskFeedQuery.error),
+                onRetry: () => { void taskFeedQuery.refetch() },
             })
         }
 

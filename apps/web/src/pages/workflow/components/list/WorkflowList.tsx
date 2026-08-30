@@ -8,10 +8,7 @@ import { Loading } from '#/components/base/Loading'
 import { PanelHeader } from '#/components/base/Panel'
 import { DetailTitle } from '#/components/detail'
 import { cn } from '#/lib/cn'
-import { toErrorMessage } from '#/lib/error'
 import { useWorkflowStore } from '#/pages/workflow/store'
-
-import type { JSX } from 'solid-js'
 
 const listSkeletonRows = [0, 1, 2, 3, 4, 5, 6, 7]
 
@@ -53,10 +50,6 @@ export function WorkflowList() {
                         </For>
                     )}
                 >
-                    <Show when={listQuery.isError}>
-                        <Notice>{toErrorMessage(listQuery.error)}</Notice>
-                    </Show>
-
                     <For each={active()}>
                         {item => (
                             <Row
@@ -95,14 +88,6 @@ export function WorkflowList() {
                 </Loading.Swap>
             </div>
         </aside>
-    )
-}
-
-function Notice(props: { children: JSX.Element }) {
-    return (
-        <p class='px-2.5 py-2 text-xs leading-relaxed text-fg-muted'>
-            {props.children}
-        </p>
     )
 }
 

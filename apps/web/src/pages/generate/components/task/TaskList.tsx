@@ -13,7 +13,6 @@ const taskSkeletonRows = [0, 1, 2, 3, 4, 5]
 export function TaskList() {
     const taskFeedQuery = useTaskFeedQuery()
     const tasks = createMemo(() => taskFeedQuery.data?.pages.flatMap(page => page.items) ?? [])
-    const hasLoadError = () => taskFeedQuery.isError && taskFeedQuery.data === undefined
     const selectTask = (taskId: string) => {
         taskStore.selectTask(taskId)
         workspaceStore.setMode('generate')
@@ -54,10 +53,6 @@ export function TaskList() {
                                 </For>
                             )}
                         >
-                            <Show when={hasLoadError()}>
-                                <div class='px-1 py-2 text-xs text-red-300'>Failed to load tasks.</div>
-                            </Show>
-
                             <For each={tasks()}>
                                 {task => (
                                     <TaskItem

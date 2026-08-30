@@ -10,6 +10,7 @@ import { WorkflowInfo } from '#/pages/workflow/components/config/WorkflowInfo'
 import { WorkflowMapping } from '#/pages/workflow/components/config/WorkflowMapping'
 import {
     toGraphIssues,
+    toListIssues,
     toLoadIssues,
     toMappingIssues,
     toRequirementIssues,
@@ -28,6 +29,10 @@ export function WorkflowDetail() {
 
     const issues = createMemo(() => [
         ...store.state.validationIssues,
+        ...toListIssues({
+            error: store.listQuery.isError ? store.listQuery.error : null,
+            onRetry: store.refreshWorkflowList,
+        }),
         ...toLoadIssues(detailQuery.isError ? detailQuery.error : null),
         ...toRequirementIssues({
             isDirty: store.isModified(),
