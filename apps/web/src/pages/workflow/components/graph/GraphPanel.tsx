@@ -1,3 +1,5 @@
+import { Show } from 'solid-js'
+
 import { PanelHeader } from '#/components/base/Panel'
 import { GraphEditor } from '#/pages/workflow/components/graph/GraphEditor'
 import { useWorkflowStore } from '#/pages/workflow/store'
@@ -17,17 +19,26 @@ export function GraphPanel() {
 
             <div class='flex min-h-0 flex-1 flex-col px-4 pb-3'>
                 <span class='pb-1.5 text-xs leading-none text-fg-muted'>Graph</span>
-                <form.Field name='graphText'>
-                    {field => (
-                        <GraphEditor
-                            value={graphText()}
-                            loading={store.isDetailLoading()}
-                            marks={store.graphState().lineMarks}
-                            readOnly={store.isRemoteUnavailable() || store.selection().isArchived}
-                            onChange={field().handleChange}
-                        />
+                <Show
+                    when={store.hasSelection()}
+                    fallback={(
+                        <div class='flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-md border border-transparent bg-elevated px-8 text-center text-xs leading-relaxed text-fg-muted'>
+                            Add a workflow to paste its API JSON.
+                        </div>
                     )}
-                </form.Field>
+                >
+                    <form.Field name='graphText'>
+                        {field => (
+                            <GraphEditor
+                                value={graphText()}
+                                loading={store.isDetailLoading()}
+                                marks={store.graphState().lineMarks}
+                                readOnly={store.isRemoteUnavailable() || store.selection().isArchived}
+                                onChange={field().handleChange}
+                            />
+                        )}
+                    </form.Field>
+                </Show>
             </div>
         </section>
     )

@@ -163,6 +163,9 @@ export function createWorkflowStore() {
         return isModified() ? 'Unsaved' : null
     })
 
+    /* 沒有 draft 也沒有選中的 remote workflow：整頁沒有可編輯的對象 */
+    const hasSelection = () => selection().id !== null
+
     const isDetailLoading = isColdLoading(() => remoteId() !== null && detailQuery.isLoading)
 
     const isRemoteUnavailable = () => Boolean(
@@ -285,12 +288,12 @@ export function createWorkflowStore() {
 
     const summaryIds = createMemo(() => summaries().map(item => item.id).join(','))
 
-    createEffect(on(summaryIds, ids => {
-        const options = summaries()
-
-        if (ids.length === 0 || uiStore.state.createDraftId !== null) {
+    createEffect(on(summaryIds, () => {
+        if (uiStore.state.createDraftId !== null) {
             return
         }
+
+        const options = summaries()
 
         if (options.some(item => item.id === uiStore.state.selectedId)) {
             return
@@ -300,7 +303,15 @@ export function createWorkflowStore() {
 
         if (first) {
             selectWorkflow(first.id)
+            return
         }
+
+        if (uiStore.state.selectedId === null) {
+            return
+        }
+
+        form.reset(cloneWorkflowValues(emptyWorkflowValues))
+        uiStore.set({ selectedId: null, createDraftId: null, baseRevision: null, validationIssues: [] })
     }))
 
     return {
@@ -318,6 +329,7 @@ export function createWorkflowStore() {
         graphState,
         isModified,
         isConflict,
+        hasSelection,
         isDetailLoading,
         isRemoteUnavailable,
         isSubmitting,

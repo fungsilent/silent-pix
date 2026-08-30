@@ -1,4 +1,4 @@
-import { Save } from 'lucide-solid'
+import { Plus, Save } from 'lucide-solid'
 import { createMemo, createSignal, Show } from 'solid-js'
 
 import { ApiError } from '#/api/api.client'
@@ -50,6 +50,8 @@ export function WorkflowDetail() {
         const selection = store.selection()
 
         return store.isModified()
+            /* 沒有目標就不可能存——空狀態之後走不到，守衛仍該在 */
+            && selection.id !== null
             && !selection.isArchived
             && !isSaving()
             /* 載入中畫面全被遮住，使用者看不到自己會存下什麼 */
@@ -88,50 +90,75 @@ export function WorkflowDetail() {
                 title='Detail'
                 classes={{ root: 'px-4' }}
                 action={(
-                    <div class='flex min-w-0 flex-1 items-center justify-end gap-2'>
-                        <IssueChip
-                            label='workflow'
-                            issues={issues()}
-                            open={issuesOpen()}
-                            onOpenChange={setIssuesOpen}
-                        />
+                    <Show when={store.hasSelection()}>
+                        <div class='flex min-w-0 flex-1 items-center justify-end gap-2'>
+                            <IssueChip
+                                label='workflow'
+                                issues={issues()}
+                                open={issuesOpen()}
+                                onOpenChange={setIssuesOpen}
+                            />
 
-                        <Show
-                            when={!store.selection().isArchived}
-                            fallback={
-                                <span class='shrink-0 text-[11.5px] leading-none text-fg-muted'>
-                                    Read-only · archived
-                                </span>
-                            }
-                        >
-                            <Button
-                                variant='primary'
-                                type='submit'
-                                disabled={!canSave()}
-                                classes={{ root: 'shrink-0 px-3.5 disabled:cursor-not-allowed disabled:opacity-60' }}
+                            <Show
+                                when={!store.selection().isArchived}
+                                fallback={
+                                    <span class='shrink-0 text-[11.5px] leading-none text-fg-muted'>
+                                        Read-only · archived
+                                    </span>
+                                }
                             >
-                                <Save
-                                    size={13}
-                                    strokeWidth={1.7}
-                                    aria-hidden='true'
-                                />
-                                {isSaving() ? 'Saving' : 'Save'}
-                            </Button>
-                        </Show>
-                    </div>
+                                <Button
+                                    variant='primary'
+                                    type='submit'
+                                    disabled={!canSave()}
+                                    classes={{ root: 'shrink-0 px-3.5 disabled:cursor-not-allowed disabled:opacity-60' }}
+                                >
+                                    <Save
+                                        size={13}
+                                        strokeWidth={1.7}
+                                        aria-hidden='true'
+                                    />
+                                    {isSaving() ? 'Saving' : 'Save'}
+                                </Button>
+                            </Show>
+                        </div>
+                    </Show>
                 )}
             />
 
-            <div class='scrollbar-thin flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 pb-5'>
-                <div
-                    class='contents'
-                    inert={store.isDetailLoading()}
-                >
-                    <WorkflowInfo />
-                    <Line />
-                    <WorkflowMapping />
+            <Show
+                when={store.hasSelection()}
+                fallback={(
+                    <div class='flex min-h-0 flex-1 flex-col items-center justify-center gap-4 px-4 pb-5 text-center'>
+                        <p class='m-0 text-[13px] leading-relaxed text-fg-secondary'>No workflow selected</p>
+                        <p class='m-0 max-w-80 text-xs leading-relaxed text-fg-muted'>
+                            A workflow holds the ComfyUI graph and the field mapping the generate page uses.
+                        </p>
+                        <Button
+                            variant='accent'
+                            onClick={() => store.startCreate()}
+                        >
+                            <Plus
+                                size={13}
+                                strokeWidth={1.8}
+                                aria-hidden='true'
+                            />
+                            New workflow
+                        </Button>
+                    </div>
+                )}
+            >
+                <div class='scrollbar-thin flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 pb-5'>
+                    <div
+                        class='contents'
+                        inert={store.isDetailLoading()}
+                    >
+                        <WorkflowInfo />
+                        <Line />
+                        <WorkflowMapping />
+                    </div>
                 </div>
-            </div>
+            </Show>
         </form>
     )
 }

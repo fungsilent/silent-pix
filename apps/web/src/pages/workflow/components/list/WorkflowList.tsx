@@ -57,10 +57,6 @@ export function WorkflowList() {
                         <Notice>{toErrorMessage(listQuery.error)}</Notice>
                     </Show>
 
-                    <Show when={listQuery.isSuccess && store.summaries().length === 0 && !draftId()}>
-                        <Notice>No workflows yet. Use + to add one.</Notice>
-                    </Show>
-
                     <For each={active()}>
                         {item => (
                             <Row
