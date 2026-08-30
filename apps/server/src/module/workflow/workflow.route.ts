@@ -4,7 +4,7 @@ import { Elysia } from 'elysia'
 
 import { databaseMiddleware } from '#/middleware/database'
 import { eventMiddleware } from '#/middleware/event'
-import { workflowChanged } from '#/module/workflow/workflow.event'
+import { workflowChanged, workflowRemoved } from '#/module/workflow/workflow.event'
 import { workflowService } from '#/module/workflow/workflow.service'
 
 import type { WorkflowApi } from '@silent-pix/shared'
@@ -14,11 +14,10 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
     .use(eventMiddleware)
     .get(
         '/',
-        async ({ database, query }) => ({
-            options: await workflowService.list(database, query.scope),
+        async ({ database }) => ({
+            options: await workflowService.list(database),
         }),
         {
-            query: workflowApi.getWorkflowsQuery,
             response: {
                 200: workflowApi.getWorkflowsResponse,
                 422: appApi.errorResponse,
@@ -148,6 +147,60 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
                 404: appApi.errorResponse,
                 409: appApi.errorResponse,
                 422: workflowApi.workflowMutationErrorResponse,
+                500: appApi.errorResponse,
+            },
+        },
+    )
+
+    .delete(
+        '/:workflowId',
+        async ({ database, params, pushEvent, status }) => {
+            const result = await workflowService.remove(
+                database,
+                toUUID(params.workflowId, 'workflowId'),
+            )
+
+            if (!result.ok) {
+                return status(404, {
+                    error: {
+                        code: result.error,
+                        message: 'Workflow not found.',
+                    },
+                })
+            }
+
+            const { disposition, workflow } = result.data
+            const summary = {
+                id: workflow.id,
+                name: workflow.name,
+                revision: workflow.revision,
+                archivedAt: workflow.archivedAt?.toISOString() ?? null,
+            }
+
+            /*
+             * 封存的那筆還在，只是換了狀態——發 removed 會讓其他 client 把
+             * detail 快取整個丟掉。真刪才是 removed。
+             */
+            if (disposition === 'archived') {
+                pushEvent(workflowChanged(summary))
+            }
+            else {
+                pushEvent(workflowRemoved(workflow.id))
+            }
+
+            /* 帶回 summary，發起端的清單可以直接改快取，不必等一趟重抓 */
+            return {
+                id: workflow.id,
+                disposition,
+                workflow: disposition === 'archived' ? summary : null,
+            }
+        },
+        {
+            params: workflowApi.getWorkflowRequest,
+            response: {
+                200: workflowApi.deleteWorkflowResponse,
+                404: appApi.errorResponse,
+                422: appApi.errorResponse,
                 500: appApi.errorResponse,
             },
         },

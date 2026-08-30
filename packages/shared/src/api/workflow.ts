@@ -17,13 +17,6 @@ export const workflowSummary = z.object({
 
 export type WorkflowSummary = z.output<typeof workflowSummary>
 
-export const getWorkflowsQuery = z.object({
-    /* Generate 的挑選器只要 active；editor 用 all 才看得到封存的 */
-    scope: z.enum(['active', 'all']).default('active'),
-})
-
-export type GetWorkflowsQuery = z.output<typeof getWorkflowsQuery>
-
 export const getWorkflowsResponse = z.object({
     options: z.array(workflowSummary),
 })
@@ -68,6 +61,7 @@ export const deleteWorkflowResponse = z.object({
     id: z.uuid(),
     /* 有 task 引用就是 archived，零引用才是 deleted */
     disposition: z.enum(['archived', 'deleted']),
+    workflow: workflowSummary.nullable(),
 })
 
 export type DeleteWorkflowResponse = z.output<typeof deleteWorkflowResponse>

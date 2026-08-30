@@ -58,7 +58,7 @@ export function WorkflowInfo() {
                 </Loading.Mask>
             </DetailRow>
 
-            <Show when={!store.selection().isArchived}>
+            <Show when={!store.selection().isNew}>
                 <Loading.Mask loading={isLoading}>
                     <WorkflowDelete />
                 </Loading.Mask>

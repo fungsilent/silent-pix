@@ -81,6 +81,7 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
             response: {
                 201: taskApi.createTaskResponse,
                 404: appApi.errorResponse,
+                409: appApi.errorResponse,
                 415: appApi.errorResponse,
                 422: appApi.errorResponse,
                 500: appApi.errorResponse,
@@ -217,8 +218,9 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
         },
     )
 
-const createFailures: Record<string, { status: 404 | 415 | 422, message: string } | undefined> = {
+const createFailures: Record<string, { status: 404 | 409 | 415 | 422, message: string } | undefined> = {
     WORKFLOW_NOT_FOUND: { status: 404, message: 'Workflow not found.' },
+    WORKFLOW_ARCHIVED: { status: 409, message: 'This workflow is archived and cannot be used.' },
     REFERENCE_IMAGE_NOT_FOUND: { status: 404, message: 'Reference image not found.' },
     IMAGE_UNSUPPORTED_TYPE: { status: 415, message: 'Reference image must be a PNG or JPEG.' },
     IMAGE_EMPTY: { status: 422, message: 'Reference image is empty.' },

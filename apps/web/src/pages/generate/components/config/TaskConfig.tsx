@@ -29,20 +29,45 @@ export function TaskConfig(props: TaskConfigProps) {
     const isTaskLoading = detail.loading
     const isWorkflowLoading = () => workflowQuery.isLoading
     const isSamplerLoading = () => samplerQuery.isLoading
-    const workflowOptions = () => workflowQuery.data?.options.map(workflow => ({
-        label: workflow.name,
-        value: workflow.id,
-    })) ?? []
+    const isDraft = () => detail.task()?.status === null
+    const activeOptions = () => workflowQuery.data?.options
+        .filter(workflow => workflow.archivedAt === null)
+        .map(workflow => ({ label: workflow.name, value: workflow.id })) ?? []
+
+    const workflowOptions = () => {
+        const options = activeOptions()
+        const current = workflowId()
+
+        if (!current || options.some(option => option.value === current)) {
+            return options
+        }
+
+        const archived = workflowQuery.data?.options.find(workflow => workflow.id === current)
+
+        return archived
+            ? [{ badge: 'archived', label: archived.name, value: archived.id }, ...options]
+            : options
+    }
 
     createEffect(() => {
-        if (workflowId()) {
+        if (isView() || !isDraft()) {
             return
         }
 
-        const firstWorkflow = workflowOptions()[0]
-        if (firstWorkflow) {
-            form.setFieldValue('workflowId', firstWorkflow.value)
+        const options = activeOptions()
+        const first = options[0]
+
+        if (!first) {
+            return
         }
+
+        const current = workflowId()
+
+        if (current && options.some(option => option.value === current)) {
+            return
+        }
+
+        form.setFieldValue('workflowId', first.value)
     })
 
     return (
@@ -57,6 +82,7 @@ export function TaskConfig(props: TaskConfigProps) {
                             label='Workflow Template'
                             value={field().state.value}
                             options={workflowOptions()}
+                            classes={{ badge: 'bg-amber-500/15 text-amber-300' }}
                             disabled={isView() || isWorkflowLoading() || workflowQuery.isError || workflowOptions().length === 0}
                             onChange={field().handleChange}
                         />

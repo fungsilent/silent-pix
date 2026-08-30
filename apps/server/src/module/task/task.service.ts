@@ -152,6 +152,8 @@ export const taskService = {
 
         if (!workflow) return fail('WORKFLOW_NOT_FOUND')
 
+        if (workflow.archivedAt !== null) return fail('WORKFLOW_ARCHIVED')
+
         let inputImage: ImageApi.ImageResource | undefined
         let inputImageId: UUID | undefined
         let ingestedImageId: UUID | undefined

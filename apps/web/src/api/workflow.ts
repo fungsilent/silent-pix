@@ -3,8 +3,8 @@ import { apiClient, unwrap } from '#/api/api.client'
 import type { WorkflowApi } from '@silent-pix/shared'
 
 export const workflowApi = {
-    list(query: WorkflowApi.GetWorkflowsQuery): Promise<WorkflowApi.GetWorkflowsResponse> {
-        return unwrap(apiClient.api.workflow.get({ query }))
+    list(): Promise<WorkflowApi.GetWorkflowsResponse> {
+        return unwrap(apiClient.api.workflow.get())
     },
 
     detail(request: WorkflowApi.GetWorkflowRequest): Promise<WorkflowApi.GetWorkflowResponse> {
@@ -13,6 +13,10 @@ export const workflowApi = {
 
     create(request: WorkflowApi.CreateWorkflowRequest): Promise<WorkflowApi.CreateWorkflowResponse> {
         return unwrap(apiClient.api.workflow.post(request))
+    },
+
+    remove(request: WorkflowApi.GetWorkflowRequest): Promise<WorkflowApi.DeleteWorkflowResponse> {
+        return unwrap(apiClient.api.workflow({ workflowId: request.workflowId }).delete())
     },
 
     update(request: WorkflowApi.UpdateWorkflowParams & WorkflowApi.UpdateWorkflowRequest): Promise<WorkflowApi.UpdateWorkflowResponse> {

@@ -5,6 +5,7 @@ import { Match, onCleanup, onMount, Switch } from 'solid-js'
 
 import { Header } from '#/components/Header'
 import { taskKeys } from '#/features/task/task.key'
+import { workflowKeys } from '#/features/workflow/workflow.key'
 import { handleServerEvent } from '#/lib/event'
 import { GeneratePage } from '#/pages/generate/GeneratePage'
 import { WorkflowPage } from '#/pages/workflow/WorkflowPage'
@@ -33,9 +34,9 @@ export function App() {
                 }
 
                 if (hasConnected) {
-                    void queryClient.invalidateQueries({
-                        queryKey: taskKeys.all,
-                    })
+                    /* 斷線期間錯過的事件，兩個 domain 都要補 */
+                    void queryClient.invalidateQueries({ queryKey: taskKeys.all })
+                    void queryClient.invalidateQueries({ queryKey: workflowKeys.all })
                     return
                 }
 

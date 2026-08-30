@@ -8,9 +8,12 @@ import { fieldGroups } from '#/pages/workflow/generator-field'
 import { useWorkflowStore } from '#/pages/workflow/store'
 
 import type { Comfy, GeneratorField, Mapping } from '@silent-pix/shared'
+import type { SelectOption } from '#/components/field'
 import type { Accessor } from 'solid-js'
 
 const unboundValue = ''
+
+const missingBadgeClass = 'bg-rose-500/15 text-rose-300'
 
 /* 對應 TaskConfig：右欄的設定區，分組順序見 pages/workflow/generator-field.ts */
 export function WorkflowMapping() {
@@ -72,27 +75,27 @@ function MappingRow(props: MappingRowProps) {
      * 綁到一個已經不在 graph 裡的節點時，下拉仍要顯示那個 id —— 使用者得看得到
      * 自己綁的是什麼，才知道要改成什麼。所以缺的節點補成一個一次性的選項。
      */
-    const nodeItems = () => {
-        const options = props.nodeOptions.map(option => ({
+    const nodeItems = (): SelectOption[] => {
+        const options: SelectOption[] = props.nodeOptions.map(option => ({
             label: `${option.nodeId} · ${option.label}`,
             value: option.nodeId,
         }))
         const nodeId = props.binding?.nodeId
 
         if (nodeId && !selectedNode()) {
-            options.unshift({ label: `${nodeId} · missing`, value: nodeId })
+            options.unshift({ badge: 'missing', label: nodeId, value: nodeId })
         }
 
         return [{ label: 'Not bound', value: unboundValue }, ...options]
     }
 
-    const inputItems = () => {
+    const inputItems = (): SelectOption[] => {
         const inputs = selectedNode()?.inputs ?? []
-        const options = inputs.map(input => ({ label: input, value: input }))
+        const options: SelectOption[] = inputs.map(input => ({ label: input, value: input }))
         const input = props.binding?.input
 
         if (input && !inputs.includes(input)) {
-            options.unshift({ label: input, value: input })
+            options.unshift({ badge: 'missing', label: input, value: input })
         }
 
         return options
@@ -123,7 +126,7 @@ function MappingRow(props: MappingRowProps) {
                     options={nodeItems()}
                     disabled={props.readOnly}
                     onChange={changeNode}
-                    classes={{ label: 'sr-only' }}
+                    classes={{ badge: missingBadgeClass, label: 'sr-only' }}
                 />
             </Loading.Mask>
 
@@ -139,7 +142,7 @@ function MappingRow(props: MappingRowProps) {
                             options={inputItems()}
                             disabled={props.readOnly}
                             onChange={value => props.onChange(props.field, { nodeId: binding().nodeId, input: value })}
-                            classes={{ label: 'sr-only' }}
+                            classes={{ badge: missingBadgeClass, label: 'sr-only' }}
                         />
                     )}
                 </Show>

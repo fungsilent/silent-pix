@@ -4,3 +4,5 @@ export { Number } from '#/components/field/Number'
 export { Select } from '#/components/field/Select'
 export { Slider } from '#/components/field/Slider'
 export { Text } from '#/components/field/Text'
+
+export type { SelectOption } from '#/components/field/Select'

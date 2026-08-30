@@ -346,7 +346,10 @@ Rules:
 - server validates every outbound event before broadcast
 - browser connection helpers live in `packages/event/src/client.ts`
 - Node WebSocket server helpers live in `packages/event/src/server.ts`
-- `task.changed` carries fields required to patch existing list and detail query caches
+- an event carries the fields required to patch existing list and detail query caches
+- patch from the payload; `invalidateQueries` is for reconnect recovery, not the normal path
+- when a payload cannot cover a cache — `workflow.changed` has no graph — patch what it does
+  cover and invalidate only the entry it cannot, and only when the local copy is behind
 - a mutation applies its own result in `onSuccess`; never rely on the round trip
 - the event handler and the mutation share one idempotent function per outcome
 - reconnecting invalidates what went stale while the socket was gone

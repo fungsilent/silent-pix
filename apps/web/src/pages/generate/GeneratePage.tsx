@@ -77,8 +77,15 @@ export function GeneratePage() {
             await generateStore.form.handleSubmit()
         }
         catch (error) {
-            if (error instanceof ApiError && error.code === 'WORKFLOW_NOT_FOUND') {
+            const code = error instanceof ApiError ? error.code : undefined
+
+            /* 兩者都代表本地清單過期了 */
+            if (code === 'WORKFLOW_NOT_FOUND' || code === 'WORKFLOW_ARCHIVED') {
                 refreshWorkflowList()
+            }
+
+            if (code === 'WORKFLOW_ARCHIVED') {
+                return
             }
 
             generateStore.reportSubmitIssues([toSubmitIssue(error)])

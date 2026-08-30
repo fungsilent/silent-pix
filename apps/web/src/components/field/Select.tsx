@@ -1,13 +1,15 @@
 import { Select as ArkSelect, createListCollection } from '@ark-ui/solid'
 import { Check, ChevronDown } from 'lucide-solid'
-import { createMemo, For } from 'solid-js'
+import { createMemo, For, Show } from 'solid-js'
 
+import { Badge } from '#/components/base/Badge'
 import { cn } from '#/lib/cn'
 import { fieldTheme } from '#/lib/theme'
 
-type SelectOption = {
+export type SelectOption = {
     label: string
     value: string
+    badge?: string
 }
 
 type SelectProps = {
@@ -22,13 +24,17 @@ type SelectProps = {
         trigger?: string
         content?: string
         item?: string
+        badge?: string
     }
 }
+
+const badgeClass = 'bg-white/10 text-fg-secondary'
 
 export function Select(props: SelectProps) {
     const collection = createMemo(() => createListCollection({
         items: props.options,
     }))
+    const selected = () => props.options.find(option => option.value === props.value)
 
     return (
         <ArkSelect.Root
@@ -55,7 +61,16 @@ export function Select(props: SelectProps) {
                         props.classes?.trigger,
                     )}
                 >
-                    <ArkSelect.ValueText />
+                    <span class='flex min-w-0 flex-1 items-center gap-1.5'>
+                        <ArkSelect.ValueText class='min-w-0 truncate' />
+                        <Show when={selected()?.badge}>
+                            {badge => (
+                                <Badge class={cn(badgeClass, props.classes?.badge)}>
+                                    {badge()}
+                                </Badge>
+                            )}
+                        </Show>
+                    </span>
                     <ArkSelect.Indicator class='shrink-0 text-fg-secondary'>
                         <ChevronDown
                             size={15}
@@ -82,7 +97,18 @@ export function Select(props: SelectProps) {
                                         props.classes?.item,
                                     )}
                                 >
-                                    <ArkSelect.ItemText>{option.label}</ArkSelect.ItemText>
+                                    <span class='flex min-w-0 flex-1 items-center gap-1.5'>
+                                        <ArkSelect.ItemText class='min-w-0 truncate'>
+                                            {option.label}
+                                        </ArkSelect.ItemText>
+                                        <Show when={option.badge}>
+                                            {badge => (
+                                                <Badge class={cn(badgeClass, props.classes?.badge)}>
+                                                    {badge()}
+                                                </Badge>
+                                            )}
+                                        </Show>
+                                    </span>
                                     <ArkSelect.ItemIndicator class='text-accent-fg'>
                                         <Check
                                             size={13}

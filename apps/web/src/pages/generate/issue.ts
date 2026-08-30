@@ -3,6 +3,7 @@ import { createMemo } from 'solid-js'
 import { useLoraListQuery, useSamplerListQuery } from '#/features/task/task.query'
 import { useWorkflowListQuery } from '#/features/workflow/workflow.query'
 import { toErrorMessage, toIssueMessage } from '#/lib/error'
+import { useGenerateStore } from '#/pages/generate/store'
 import { hasLostConnection, serviceHealth } from '#/store/app'
 
 import type { ZodIssue } from '#/lib/error'
@@ -52,14 +53,26 @@ export function toSubmitIssue(error: unknown): GenerateIssue {
     }
 }
 
-/*
- * 選項清單的問題是從 query 狀態衍生的，不是手動維護的清單
- */
 export function useOptionIssues(): Accessor<GenerateIssue[]> {
+    const store = useGenerateStore()
+    const workflowId = store.form.useSelector(({ values }) => values.workflowId)
     const workflowQuery = useWorkflowListQuery()
     const samplerQuery = useSamplerListQuery()
     /* 只讀快取狀態，真正的抓取仍由 LoraDialog 開啟時觸發 */
     const loraQuery = useLoraListQuery(() => false)
+
+    /* 清單是全拿的，查不到等同被真刪——那個狀態到不了，留著只是保險 */
+    const isSelectedWorkflowUnusable = () => {
+        const current = workflowId()
+
+        if (!current) {
+            return false
+        }
+
+        const selected = workflowQuery.data?.options.find(workflow => workflow.id === current)
+
+        return !selected || selected.archivedAt !== null
+    }
 
     return createMemo(() => {
         const issues: GenerateIssue[] = []
@@ -106,6 +119,14 @@ export function useOptionIssues(): Accessor<GenerateIssue[]> {
                 field: fieldLabel.workflowId,
                 message: 'No workflows available. Add one in ComfyUI, then retry.',
                 onRetry: () => { void workflowQuery.refetch() },
+            })
+        }
+        else if (workflowQuery.isSuccess && isSelectedWorkflowUnusable()) {
+            issues.push({
+                id: 'workflow-unusable',
+                tone: 'error',
+                field: fieldLabel.workflowId,
+                message: 'This workflow is archived and cannot be used. Pick another one to generate.',
             })
         }
 

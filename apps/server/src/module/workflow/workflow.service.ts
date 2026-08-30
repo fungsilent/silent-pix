@@ -10,8 +10,6 @@ import type { DatabaseClient, WorkflowInsert } from '@silent-pix/db'
 import type { Comfy, ConfigSchema, WorkflowApi } from '@silent-pix/shared'
 import type { WorkflowModel } from '#/module/workflow/workflow.model'
 
-type WorkflowScope = WorkflowApi.GetWorkflowsQuery['scope']
-
 export const workflowService = {
     // MARK: CRUD
     async findWorkflow(database: DatabaseClient, workflowId: WorkflowModel['id']) {
@@ -58,15 +56,10 @@ export const workflowService = {
         return done(graph)
     },
 
-    async list(database: DatabaseClient, scope: WorkflowScope): Promise<WorkflowApi.WorkflowSummary[]> {
+    async list(database: DatabaseClient): Promise<WorkflowApi.WorkflowSummary[]> {
         const rows = await database.db
             .select()
             .from(workflows)
-            .where(
-                scope === 'active'
-                    ? isNull(workflows.archivedAt)
-                    : undefined
-            )
             .orderBy(asc(workflows.name))
 
         return rows.map(row => {
@@ -170,6 +163,62 @@ export const workflowService = {
         }
 
         return done(castWorkflowModel(updated))
+    },
+
+    async remove(database: DatabaseClient, workflowId: WorkflowModel['id']) {
+        const current = await workflowService.findWorkflow(database, workflowId)
+
+        if (!current) {
+            return fail('WORKFLOW_NOT_FOUND')
+        }
+
+        return database.db.transaction(async transaction => {
+            const [counted] = await transaction
+                .select({ value: count() })
+                .from(tasks)
+                .where(eq(tasks.workflowId, workflowId))
+
+            if ((counted?.value ?? 0) === 0) {
+                const [deleted] = await transaction
+                    .delete(workflows)
+                    .where(eq(workflows.id, workflowId))
+                    .returning()
+
+                /* 讀完到這裡之間被別人刪掉了 */
+                if (!deleted) {
+                    return fail('WORKFLOW_NOT_FOUND')
+                }
+
+                return done({
+                    disposition: 'deleted' as const,
+                    workflow: castWorkflowModel(deleted),
+                })
+            }
+
+            /* 已經封存過的再按一次不重推 archivedAt */
+            if (current.archivedAt !== null) {
+                return done({
+                    disposition: 'archived' as const,
+                    workflow: current,
+                })
+            }
+
+            const now = Date.now()
+            const [archived] = await transaction
+                .update(workflows)
+                .set({ archivedAt: now, updatedAt: now })
+                .where(eq(workflows.id, workflowId))
+                .returning()
+
+            if (!archived) {
+                return fail('WORKFLOW_NOT_FOUND')
+            }
+
+            return done({
+                disposition: 'archived' as const,
+                workflow: castWorkflowModel(archived),
+            })
+        })
     },
 
     async countTasks(database: DatabaseClient, workflowId: WorkflowModel['id']) {

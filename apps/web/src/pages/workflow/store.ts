@@ -68,7 +68,7 @@ export function createWorkflowStore() {
             },
         }),
     )
-    const listQuery = useWorkflowListQuery('all')
+    const listQuery = useWorkflowListQuery()
     const createMutation = useCreateWorkflowMutation()
     const updateMutation = useUpdateWorkflowMutation()
     const remoteId = createMemo(() => uiStore.state.createDraftId
@@ -177,6 +177,13 @@ export function createWorkflowStore() {
 
         form.reset(cloneWorkflowValues(emptyWorkflowValues))
         uiStore.set({ selectedId: id, createDraftId: null, baseRevision: null, validationIssues: [] })
+    }
+
+    const applyRemoved = (workflowId: string) => {
+        const next = summaries().find(item => item.id !== workflowId)?.id ?? null
+
+        form.reset(cloneWorkflowValues(emptyWorkflowValues))
+        uiStore.set({ selectedId: next, createDraftId: null, baseRevision: null, validationIssues: [] })
     }
 
     const startCreate = () => {
@@ -320,6 +327,7 @@ export function createWorkflowStore() {
         cancelCreate,
         setMapping,
         applySaved,
+        applyRemoved,
     }
 }
 
