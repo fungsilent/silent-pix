@@ -13,8 +13,6 @@ import type { Accessor } from 'solid-js'
 
 const unboundValue = ''
 
-const missingBadgeClass = 'bg-rose-500/15 text-rose-300'
-
 /* 對應 TaskConfig：右欄的設定區，分組順序見 pages/workflow/generator-field.ts */
 export function WorkflowMapping() {
     const store = useWorkflowStore()
@@ -126,7 +124,8 @@ function MappingRow(props: MappingRowProps) {
                     options={nodeItems()}
                     disabled={props.readOnly}
                     onChange={changeNode}
-                    classes={{ badge: missingBadgeClass, label: 'sr-only' }}
+                    badgeTone='rose'
+                    classes={{ label: 'sr-only' }}
                 />
             </Loading.Mask>
 
@@ -142,7 +141,8 @@ function MappingRow(props: MappingRowProps) {
                             options={inputItems()}
                             disabled={props.readOnly}
                             onChange={value => props.onChange(props.field, { nodeId: binding().nodeId, input: value })}
-                            classes={{ badge: missingBadgeClass, label: 'sr-only' }}
+                            badgeTone='rose'
+                            classes={{ label: 'sr-only' }}
                         />
                     )}
                 </Show>

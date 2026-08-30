@@ -109,7 +109,7 @@ export function TaskInfo(props: TaskInfoProps) {
                         {current => (
                             <Show
                                 when={current().status}
-                                fallback={<Badge class='bg-slate-500/15 text-slate-300'>Draft</Badge>}
+                                fallback={<Badge tone='slate'>Draft</Badge>}
                             >
                                 {status => <TaskStatus status={status()} />}
                             </Show>

@@ -82,7 +82,7 @@ export function TaskConfig(props: TaskConfigProps) {
                             label='Workflow Template'
                             value={field().state.value}
                             options={workflowOptions()}
-                            classes={{ badge: 'bg-amber-500/15 text-amber-300' }}
+                            badgeTone='amber'
                             disabled={isView() || isWorkflowLoading() || workflowQuery.isError || workflowOptions().length === 0}
                             onChange={field().handleChange}
                         />

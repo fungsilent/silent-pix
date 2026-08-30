@@ -6,6 +6,8 @@ import { Badge } from '#/components/base/Badge'
 import { cn } from '#/lib/cn'
 import { fieldTheme } from '#/lib/theme'
 
+import type { BadgeTone } from '#/components/base/Badge'
+
 export type SelectOption = {
     label: string
     value: string
@@ -13,6 +15,7 @@ export type SelectOption = {
 }
 
 type SelectProps = {
+    badgeTone?: BadgeTone | undefined
     label: string
     options: SelectOption[]
     value: string
@@ -24,12 +27,8 @@ type SelectProps = {
         trigger?: string
         content?: string
         item?: string
-        badge?: string
     }
 }
-
-const badgeClass = 'bg-white/10 text-fg-secondary'
-
 export function Select(props: SelectProps) {
     const collection = createMemo(() => createListCollection({
         items: props.options,
@@ -65,9 +64,7 @@ export function Select(props: SelectProps) {
                         <ArkSelect.ValueText class='min-w-0 truncate' />
                         <Show when={selected()?.badge}>
                             {badge => (
-                                <Badge class={cn(badgeClass, props.classes?.badge)}>
-                                    {badge()}
-                                </Badge>
+                                <Badge tone={props.badgeTone}>{badge()}</Badge>
                             )}
                         </Show>
                     </span>
@@ -103,9 +100,7 @@ export function Select(props: SelectProps) {
                                         </ArkSelect.ItemText>
                                         <Show when={option.badge}>
                                             {badge => (
-                                                <Badge class={cn(badgeClass, props.classes?.badge)}>
-                                                    {badge()}
-                                                </Badge>
+                                                <Badge tone={props.badgeTone}>{badge()}</Badge>
                                             )}
                                         </Show>
                                     </span>

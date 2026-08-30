@@ -2,32 +2,35 @@ import { cn } from '#/lib/cn'
 
 import type { JSX } from 'solid-js'
 
-type BadgeTone = 'neutral' | 'accent'
+export type BadgeTone =
+    | 'amber'
+    | 'emerald'
+    | 'neutral'
+    | 'rose'
+    | 'sky'
+    | 'slate'
 
 type BadgeProps = {
     children: JSX.Element
-    class?: string
-    selected?: boolean
-    tone?: BadgeTone
+    tone?: BadgeTone | undefined
 }
 
 const toneClass: Record<BadgeTone, string> = {
-    accent: 'bg-accent/15 text-accent-fg',
-    neutral: 'bg-elevated text-fg-secondary',
+    amber: 'bg-amber-500/15 text-amber-300',
+    emerald: 'bg-emerald-500/15 text-emerald-300',
+    neutral: 'bg-white/10 text-fg-secondary',
+    rose: 'bg-rose-500/15 text-rose-300',
+    sky: 'bg-sky-500/15 text-sky-300',
+    slate: 'bg-slate-500/15 text-slate-300',
 }
 
 export function Badge(props: BadgeProps) {
-    const tone = () => props.tone ?? 'neutral'
-    const selectedClass = () => props.selected ? 'bg-accent/20 text-accent-fg' : toneClass[tone()]
-
     return (
         <div
-            {...props}
             class={cn(
                 'inline-flex h-5 shrink-0 items-center justify-center rounded-md px-2 text-[0.72rem] font-medium leading-none',
-                props.class ?? selectedClass(),
+                toneClass[props.tone ?? 'neutral'],
             )}
-            aria-pressed={props.selected}
         >
             {props.children}
         </div>
