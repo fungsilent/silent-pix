@@ -1,4 +1,4 @@
-import { Ban, CircleX, Hourglass, Image as ImageIcon, LoaderCircle } from 'lucide-solid'
+import { CircleX, Hourglass, Image as ImageIcon, LoaderCircle } from 'lucide-solid'
 
 import { Button } from '#/components/base/Button'
 import { Loading } from '#/components/base/Loading'
@@ -47,11 +47,6 @@ const placeholderMap: Record<TaskApi.TaskStatus, PlaceholderMeta> = {
         Icon: CircleX,
         class: 'border-rose-500/30 bg-rose-500/10 text-rose-300',
         label: 'Task failed',
-    },
-    cancelled: {
-        Icon: Ban,
-        class: 'border-slate-500/30 bg-slate-500/10 text-slate-300',
-        label: 'Task cancelled',
     },
 }
 

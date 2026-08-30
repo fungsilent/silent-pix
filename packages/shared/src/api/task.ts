@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import { imageResource, imageUsage } from '#shared/api/image'
 
-export const taskStatus = z.enum(['queued', 'running', 'done', 'failed', 'cancelled'])
+export const taskStatus = z.enum(['queued', 'running', 'done', 'failed'])
 
 export type TaskStatus = z.output<typeof taskStatus>
 

@@ -15,13 +15,13 @@ import { createUUID } from '#/uuid'
 import type { JsonObject, UpdateData } from '#/schema/schema.util'
 import type { UUID } from '#/uuid'
 
-export type TaskStatus = 'queued' | 'running' | 'done' | 'failed' | 'cancelled'
+export type TaskStatus = 'queued' | 'running' | 'done' | 'failed'
 
 export const tasks = sqliteTable('tasks', {
     id: text('id').$type<UUID>().primaryKey().$defaultFn(createUUID),
     name: text('name'),
     status: text('status', {
-        enum: ['queued', 'running', 'done', 'failed', 'cancelled'],
+        enum: ['queued', 'running', 'done', 'failed'],
     }).$type<TaskStatus>().notNull(),
     workflowId: text('workflow_id').$type<UUID>().notNull().references(() => workflows.id, {
         onDelete: 'restrict',
@@ -43,7 +43,7 @@ export const tasks = sqliteTable('tasks', {
     check('tasks_config_json_check', sql`json_valid(${table.config})`),
     check(
         'tasks_status_check',
-        sql`${table.status} in ('queued', 'running', 'done', 'failed', 'cancelled')`,
+        sql`${table.status} in ('queued', 'running', 'done', 'failed')`,
     ),
 ])
 
