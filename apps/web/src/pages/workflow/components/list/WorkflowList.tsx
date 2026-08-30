@@ -31,7 +31,7 @@ export function WorkflowList() {
                 action={(
                     <Button
                         variant='ghost'
-                        aria-label='New workflow'
+                        aria-label='Add workflow'
                         classes={{ root: 'size-8 shrink-0 p-0' }}
                         onClick={() => store.startCreate()}
                     >
@@ -44,7 +44,7 @@ export function WorkflowList() {
                 )}
             />
 
-            <div class='scrollbar-thin flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-2 pb-3'>
+            <div class='scrollbar-thin flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-2 pb-3'>
                 <Loading.Swap
                     loading={() => listQuery.isLoading}
                     fallback={(
@@ -140,7 +140,7 @@ function Row(props: RowProps) {
             <span class='min-w-0 flex-1 truncate text-xs leading-none'>{props.name}</span>
 
             <Show when={label()}>
-                {value => <Badge tone='accent'>{value()}</Badge>}
+                {value => <Badge class='bg-slate-500/15 text-slate-300'>{value()}</Badge>}
             </Show>
         </div>
     )

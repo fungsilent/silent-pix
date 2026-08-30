@@ -26,8 +26,7 @@ export function TaskInfo(props: TaskInfoProps) {
     const isLoading = detail.loading
     const renameMutation = useRenameTaskMutation()
     const [renameError, setRenameError] = createSignal<string>()
-    const hasDelete = () => props.mode !== 'view'
-        && (isLoading() || task()?.status != null)
+    const hasDelete = () => props.mode !== 'view' && task()?.status != null
 
     createEffect(on(() => task()?.id, () => setRenameError()))
 
@@ -110,7 +109,7 @@ export function TaskInfo(props: TaskInfoProps) {
                         {current => (
                             <Show
                                 when={current().status}
-                                fallback={<Badge>Draft</Badge>}
+                                fallback={<Badge class='bg-slate-500/15 text-slate-300'>Draft</Badge>}
                             >
                                 {status => <TaskStatus status={status()} />}
                             </Show>

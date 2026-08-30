@@ -1,4 +1,4 @@
-import { Plus, Save } from 'lucide-solid'
+import { Save, Workflow } from 'lucide-solid'
 import { createMemo, createSignal, Show } from 'solid-js'
 
 import { ApiError } from '#/api/api.client'
@@ -129,22 +129,34 @@ export function WorkflowDetail() {
             <Show
                 when={store.hasSelection()}
                 fallback={(
-                    <div class='flex min-h-0 flex-1 flex-col items-center justify-center gap-4 px-4 pb-5 text-center'>
-                        <p class='m-0 text-[13px] leading-relaxed text-fg-secondary'>No workflow selected</p>
-                        <p class='m-0 max-w-80 text-xs leading-relaxed text-fg-muted'>
-                            A workflow holds the ComfyUI graph and the field mapping the generate page uses.
-                        </p>
-                        <Button
-                            variant='accent'
-                            onClick={() => store.startCreate()}
-                        >
-                            <Plus
-                                size={13}
-                                strokeWidth={1.8}
-                                aria-hidden='true'
-                            />
-                            New workflow
-                        </Button>
+                    <div class='flex min-h-0 flex-1 items-center justify-center px-4 pb-5'>
+                        <div class='flex max-w-[280px] flex-col items-center gap-3 text-center'>
+                            <div class='grid size-12 place-items-center rounded-xl border border-line-subtle bg-elevated text-fg-muted'>
+                                <Workflow
+                                    size={21}
+                                    strokeWidth={1.5}
+                                    aria-hidden='true'
+                                />
+                            </div>
+                            <div class='flex flex-col gap-1'>
+                                <h3 class='m-0 text-sm font-medium text-fg'>No workflow selected</h3>
+                                <p class='m-0 text-xs leading-relaxed text-fg-muted'>
+                                    A workflow holds the ComfyUI graph and the field mapping the generate page uses.
+                                </p>
+                            </div>
+                            <Button
+                                variant='primary'
+                                classes={{ root: 'mt-1 h-8 px-3 text-xs' }}
+                                onClick={() => store.startCreate()}
+                            >
+                                <Workflow
+                                    size={14}
+                                    strokeWidth={1.8}
+                                    aria-hidden='true'
+                                />
+                                Add workflow
+                            </Button>
+                        </div>
                     </div>
                 )}
             >
