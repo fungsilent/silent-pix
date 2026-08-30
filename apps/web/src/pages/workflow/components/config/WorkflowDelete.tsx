@@ -16,12 +16,20 @@ export function WorkflowDelete() {
 
     const selection = () => store.selection()
     const taskCount = () => selection().taskCount
-    /*
-     * 有 task 引用就只能封存。已經封存又還有引用的那筆沒有下一步可走——
-     * 等 task 被刪光，taskCount 歸零，同一顆按鈕才會變成真刪。
-     */
-    const isArchiveOnly = () => taskCount() > 0
-    const isExhausted = () => selection().isArchived && isArchiveOnly()
+    const isArchived = () => selection().isArchived
+
+    const willArchive = () => !isArchived() && taskCount() > 0
+    const describe = () => {
+        if (willArchive()) {
+            return `${taskCount()} task${taskCount() > 1 ? 's' : ''} still use this workflow, so it is archived instead of deleted. It leaves the generate picker and those tasks keep working.`
+        }
+
+        if (isArchived() && taskCount() > 0) {
+            return `This workflow is already archived. It is deleted only once no task uses it — ${taskCount()} still ${taskCount() > 1 ? 'do' : 'does'}.`
+        }
+
+        return 'No task uses this workflow. It is removed from the database. This cannot be undone.'
+    }
 
     const openDialog = () => {
         setError()
@@ -55,7 +63,7 @@ export function WorkflowDelete() {
             <Button
                 variant='danger'
                 aria-label='Delete workflow'
-                disabled={isExhausted() || mutation.isPending}
+                disabled={mutation.isPending}
                 classes={{ root: 'w-full disabled:cursor-not-allowed disabled:opacity-60' }}
                 onClick={openDialog}
             >
@@ -64,15 +72,13 @@ export function WorkflowDelete() {
                     strokeWidth={1.8}
                     aria-hidden='true'
                 />
-                {isArchiveOnly() ? 'Archive workflow' : 'Delete workflow'}
+                {willArchive() ? 'Archive workflow' : 'Delete workflow'}
             </Button>
 
             <Dialog
                 open={open()}
-                title={isArchiveOnly() ? 'Archive this workflow?' : 'Delete this workflow?'}
-                description={isArchiveOnly()
-                    ? `${taskCount()} task${taskCount() > 1 ? 's' : ''} still use this workflow, so it is archived instead of deleted. It leaves the generate picker and those tasks keep working.`
-                    : 'No task uses this workflow. It is removed from the database. This cannot be undone.'}
+                title={willArchive() ? 'Archive this workflow?' : 'Delete this workflow?'}
+                description={describe()}
                 onOpenChange={setOpen}
                 classes={{ content: 'w-[420px] max-w-full' }}
                 footer={(
@@ -97,8 +103,8 @@ export function WorkflowDelete() {
                                 onClick={() => void confirm()}
                             >
                                 {mutation.isPending
-                                    ? (isArchiveOnly() ? 'Archiving...' : 'Deleting...')
-                                    : (isArchiveOnly() ? 'Archive' : 'Delete')}
+                                    ? (willArchive() ? 'Archiving...' : 'Deleting...')
+                                    : (willArchive() ? 'Archive' : 'Delete')}
                             </Button>
                         </div>
                     </div>

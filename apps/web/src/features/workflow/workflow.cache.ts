@@ -33,16 +33,19 @@ export function cacheWorkflowRemoved(
         return
     }
 
+    const queryKey = workflowKeys.detail({ workflowId: summary.id })
+
     queryClient.setQueryData<WorkflowApi.GetWorkflowResponse>(
-        workflowKeys.detail({ workflowId: summary.id }),
+        queryKey,
         current => current
             ? { ...current, archivedAt: summary.archivedAt, revision: summary.revision }
             : current,
     )
     applyWorkflowSummary(queryClient, summary)
+
+    void queryClient.invalidateQueries({ queryKey })
 }
 
-/* 一個結果一個 idempotent 函式，mutation 與 WebSocket 事件共用 */
 export function applyWorkflowSummary(
     queryClient: QueryClient,
     summary: WorkflowSummary,
