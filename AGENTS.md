@@ -10,6 +10,7 @@
 - Use workspace package imports such as `@silent-pix/shared`; do not use cross-package relative imports.
 - Use the `#/` alias for source imports. Do not use `./` or `../` source imports.
 - Do not add Prettier. Formatting is ESLint + `@stylistic`.
+- This repository has no test script. Do not search for, invent, or add one for plan or validation ceremony; use the existing typecheck, build, lint, and concrete manual acceptance checks.
 - Pin third-party dependencies with explicit caret ranges; never use `latest`. Keep workspace dependencies as `workspace:*`.
 - TypeScript 7 is the compiler; keep the official TypeScript 6 compatibility alias only for `typescript-eslint`. Do not use `baseUrl`, and make `paths` targets explicit `./` relative paths.
 
@@ -83,5 +84,6 @@
 
 ## Phased Implementation
 
-- When executing an approved phased plan or when the user requests the Sol / Luna / Terra sub-agent workflow, read `.agents/skills/phased-implementation/SKILL.md` before implementation.
+- When executing an approved phased plan or when the user requests the Sol / Luna phased workflow, read `.agents/skills/phased-implementation/SKILL.md` before implementation.
 - The user is the only PHASE gate authority. Automated validation and agent review never advance a PHASE without explicit user confirmation.
+- Prefer the simplest architecture that cleanly fits current requirements and current system shape. Avoid speculative architecture, but surface concrete boundary problems and propose scoped refactors when existing complexity justifies them; if that conflicts with an explicit rule in this file, stop for user review.

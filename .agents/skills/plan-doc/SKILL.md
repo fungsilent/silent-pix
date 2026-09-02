@@ -24,9 +24,25 @@ description: Write an implementation plan document for this repo — where it go
 
 Rough calibration: a feature touching ~20 files lands around 400 lines, of which more than half is code, tables, and diagrams.
 
+## Architecture target
+
+Plan for **the simplest architecture that cleanly fits current requirements and current system shape**. This is not a smallest-diff or MVP-first rule.
+
+```text
+current requirement
+    -> existing boundary still fits -> implement locally
+    -> concrete boundary problem now exists -> propose the scoped refactor
+    -> only hypothetical future benefit -> omit the architecture
+```
+
+- Tie a new abstraction or refactor to evidence in the current requirements and code. Generic appeals to best practice, scalability, extensibility, reusability, or separation of concerns are not evidence by themselves.
+- Treat distinct workflows, accumulating conditionals or glue, unclear state ownership, and repeated unrelated edits as signals to compare a local change with restructuring the affected boundary.
+- A larger refactor is valid when it materially clarifies current responsibilities. Keep it scoped to that problem; do not fold in unrelated cleanup or prepare infrastructure merely because a later PHASE is planned.
+- Preserve explicit decisions in `AGENTS.md`. If a requirement conflicts with one, document the conflict under `## 你要做的事` and stop for the user's decision instead of planning around the rule.
+
 ## Phased delivery and review gates
 
-Every implementation plan must be split into the smallest independently reviewable **PHASEs**. A trivial change may have one PHASE; do not invent ceremony where there is no meaningful boundary.
+Every implementation plan must be split into meaningful, independently reviewable **PHASEs**. A trivial change may have one PHASE; do not invent ceremony where there is no meaningful boundary or split tightly coupled work merely to reduce each diff.
 
 Each PHASE must leave the workspace in a coherent, testable state and include all four items:
 
@@ -46,16 +62,17 @@ agent runs repository checks + available phase-scoped tests
     └─ no repository test script → report the absence; do not invent one
     ↓
 agent reports changed files, results, known limits, and user review steps
+    + reassesses later PHASEs against current requirements and system shape
     ↓
 STOP
     ├─ user reports issue  → remain in PHASE N and fix it
-    └─ user confirms       → PHASE N+1 may begin
+    └─ user confirms       → revise affected later PHASEs, then PHASE N+1 may begin
 ```
 
 > Never implement, scaffold, or make preparatory edits for PHASE N+1 before the user explicitly confirms PHASE N.
 
 - A failing review stays in the current PHASE until corrected and confirmed.
-- A requested scope change updates the plan before work continues.
+- A requested scope change or newly exposed structural problem updates affected later PHASEs before work continues. Later PHASEs may be changed, removed, split, merged, or replaced.
 - A PHASE boundary must not knowingly leave typecheck, lint, build, migrations, or runtime contracts broken; name any check that is intentionally deferred and the PHASE that owns it.
 - When the repository has no test script, state that in automated validation
   and make the user-review checklist cover the PHASE's observable behavior.
@@ -70,7 +87,7 @@ Use these in this order. Drop any that would be empty; do not invent extras.
 
 ### `## Context`
 
-Two or three bullets naming what in the **current code** blocks the request — with the file and the symbol, not a vague complaint. Then one sentence of goal. No background the user already gave you.
+Two or three bullets naming what in the **current code** blocks the request — with the file and the symbol, not a vague complaint. Include concrete evidence when an existing boundary no longer fits; do not invent future pressure. Then one sentence of goal. No background the user already gave you.
 
 ```markdown
 - **圖片沒有身分** — `task_images` 只有 `(id, taskId, path, filename)`，API 回傳純 URL 字串。前端無法指名「拿這張當輸入」。
@@ -139,3 +156,4 @@ A table: `# | 風險 | 處置`. Every unverified assumption goes here, including
 - 你要做的事 is repeated in the chat reply — that is the part they act on today.
 - Every PHASE has scope, automated validation, user review, and a STOP gate.
 - No PHASE contains preparatory work owned by a later unconfirmed PHASE.
+- Every abstraction or structural refactor addresses a problem visible in the current requirements or code.
