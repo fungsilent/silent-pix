@@ -1,12 +1,11 @@
-import { createEffect, Match, on, Switch } from 'solid-js'
+import { createEffect, on } from 'solid-js'
 
 import { ApiError } from '#/api/api.client'
 import { useCreateTaskMutation, useTaskDetailQuery } from '#/features/task/task.query'
 import { useRefreshWorkflowList } from '#/features/workflow/workflow.query'
-import { TaskDetail } from '#/pages/generate/components/config/TaskDetail'
+import { GenerateTaskDetail } from '#/pages/generate/components/config/GenerateTaskDetail'
 import { TaskList } from '#/pages/generate/components/task/TaskList'
-import { CompareDetail } from '#/pages/generate/components/workspace/compare/CompareDetail'
-import { Workspace } from '#/pages/generate/components/workspace/Workspace'
+import { GenerateWorkspace } from '#/pages/generate/components/workspace/generate/GenerateWorkspace'
 import { createGenerateDetail, GenerateDetailProvider } from '#/pages/generate/detail'
 import { draftTask, toCreateTaskRequest } from '#/pages/generate/form'
 import { toSubmitIssue } from '#/pages/generate/issue'
@@ -15,7 +14,6 @@ import {
     GenerateStoreProvider,
 } from '#/pages/generate/store'
 import { taskStore } from '#/store/task'
-import { workspaceStore } from '#/store/workspace'
 
 export function GeneratePage() {
     const taskDetailQuery = useTaskDetailQuery(() => taskStore.state.selectedTaskId)
@@ -100,15 +98,8 @@ export function GeneratePage() {
                     onSubmit={event => void handleSubmit(event)}
                 >
                     <TaskList />
-                    <Workspace />
-                    <Switch>
-                        <Match when={workspaceStore.state.mode === 'generate'}>
-                            <TaskDetail mode='create' />
-                        </Match>
-                        <Match when={workspaceStore.state.mode === 'compare'}>
-                            <CompareDetail />
-                        </Match>
-                    </Switch>
+                    <GenerateWorkspace />
+                    <GenerateTaskDetail />
                 </form>
             </GenerateDetailProvider>
         </GenerateStoreProvider>

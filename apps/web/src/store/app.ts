@@ -3,7 +3,7 @@ import { createStore } from '#/lib/store'
 import type { EventConnectionStatus } from '@silent-pix/event/client'
 import type { Event } from '@silent-pix/shared'
 
-type AppPage = 'generate' | 'workflow'
+type AppPage = 'generate' | 'compare' | 'workflow'
 
 type AppState = {
     page: AppPage

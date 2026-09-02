@@ -1,38 +1,31 @@
 import { Check, RefreshCw, Search } from 'lucide-solid'
-import { createEffect, createSignal, For, onCleanup, Show } from 'solid-js'
+import { createEffect, createSignal, For, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { Dialog } from '#/components/base/Dialog'
 import { Loading } from '#/components/base/Loading'
 import { PanelContent } from '#/components/base/Panel'
 import { Text } from '#/components/field'
+import { originLabel } from '#/features/image/image.label'
 import { useImageListQuery } from '#/features/image/image.query'
 import { cn } from '#/lib/cn'
-import { originLabel } from '#/pages/generate/label'
-import { workspaceStore } from '#/store/workspace'
 
 import type { ImageApi } from '@silent-pix/shared'
-import type { ReferenceImage } from '#/pages/generate/store'
 
 type SharedDialogProps = {
     open: boolean
     onOpenChange: (open: boolean) => void
 }
 
-export type CompareCandidate = {
-    image: ImageApi.ImageResource
-    origin: ImageApi.ImageUsage | null
-}
-
 export type ImagePickerDialogProps = SharedDialogProps & (
     | {
         mode: 'single'
-        onSelect: (reference: ReferenceImage) => void
+        onSelect: (image: ImageApi.ImageListItem) => void
     }
     | {
         mode: 'multiple'
         disabledImageIds: string[]
-        onSelect: (images: CompareCandidate[]) => void
+        onSelect: (images: ImageApi.ImageListItem[]) => void
     }
 )
 
@@ -44,29 +37,21 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
     const [selectedMultiple, setSelectedMultiple] = createSignal<ImageApi.ImageListItem[]>([])
     const query = useImageListQuery(() => props.open, keyword)
     const hasLoadError = () => query.isError && query.data === undefined
-    let modalOpen = false
+
+    const resetSelection = () => {
+        setKeyword('')
+        setSelectedSingle(undefined)
+        setSelectedMultiple([])
+    }
+
+    let wasOpen = false
 
     createEffect(() => {
-        if (props.open) {
-            setKeyword('')
-            setSelectedSingle(undefined)
-            setSelectedMultiple([])
+        if (props.open && !wasOpen) {
+            resetSelection()
+        }
 
-            if (!modalOpen) {
-                workspaceStore.openModal()
-                modalOpen = true
-            }
-        }
-        else if (modalOpen) {
-            workspaceStore.closeModal()
-            modalOpen = false
-        }
-    })
-
-    onCleanup(() => {
-        if (modalOpen) {
-            workspaceStore.closeModal()
-        }
+        wasOpen = props.open
     })
 
     const items = () => query.data?.pages.flatMap(page => page.items) ?? []
@@ -104,13 +89,10 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                 return
             }
 
-            props.onSelect({ type: 'asset', image: item.image, origin: item.origin })
+            props.onSelect(item)
         }
         else {
-            props.onSelect(selectedMultiple().map(item => ({
-                image: item.image,
-                origin: item.origin,
-            })))
+            props.onSelect(selectedMultiple())
         }
 
         props.onOpenChange(false)

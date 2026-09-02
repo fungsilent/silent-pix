@@ -6,7 +6,6 @@ import { CollapseButton, Panel, PanelContent, PanelHeader } from '#/components/b
 import { useTaskFeedQuery } from '#/features/task/task.query'
 import { TaskItem, TaskItemSkeleton } from '#/pages/generate/components/task/TaskItem'
 import { taskStore } from '#/store/task'
-import { workspaceStore } from '#/store/workspace'
 
 const taskSkeletonRows = [0, 1, 2, 3, 4, 5]
 
@@ -15,7 +14,6 @@ export function TaskList() {
     const tasks = createMemo(() => taskFeedQuery.data?.pages.flatMap(page => page.items) ?? [])
     const selectTask = (taskId: string) => {
         taskStore.selectTask(taskId)
-        workspaceStore.setMode('generate')
     }
 
     return (

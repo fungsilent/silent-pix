@@ -1,38 +1,52 @@
 import { Expand, Eye, EyeOff, ImagePlus, X } from 'lucide-solid'
-import { createMemo, createSignal, For, onCleanup, onMount, Show } from 'solid-js'
+import { createEffect, createMemo, createSignal, For, onCleanup, onMount, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
+import { ImagePickerDialog } from '#/components/image/ImagePickerDialog'
+import { ImageViewer } from '#/components/viewer/ImageViewer'
+import { ZoomControls } from '#/components/viewer/ZoomControls'
+import { ZoomStage } from '#/components/viewer/ZoomStage'
+import { originLabel } from '#/features/image/image.label'
 import { cn } from '#/lib/cn'
 import { createImageZoom } from '#/lib/imageZoom'
-import { ImagePickerDialog } from '#/pages/generate/components/ImagePickerDialog'
-import { ImageViewer } from '#/pages/generate/components/workspace/shared/ImageViewer'
-import { ZoomControls } from '#/pages/generate/components/workspace/shared/ZoomControls'
-import { ZoomStage } from '#/pages/generate/components/workspace/shared/ZoomStage'
-import { originLabel } from '#/pages/generate/label'
-import { workspaceStore } from '#/store/workspace'
+import { compareStore } from '#/store/compare'
+import { overlayStore } from '#/store/overlay'
 
-import type { CompareCandidate } from '#/pages/generate/components/ImagePickerDialog'
-import type { CompareEntry } from '#/store/workspace'
+import type { ImageApi } from '@silent-pix/shared'
+import type { CompareEntry } from '#/store/compare'
 
 export function CompareWorkspace() {
     const [pickerOpen, setPickerOpen] = createSignal(false)
     const [expanded, setExpanded] = createSignal(false)
     const [failedImageIds, setFailedImageIds] = createSignal(new Set<string>())
     const zoom = createImageZoom()
-    const entries = createMemo(() => workspaceStore.visibleCompare())
-    const allEntries = createMemo(() => workspaceStore.state.compare)
+    const entries = createMemo(() => compareStore.visibleCompare())
+    const allEntries = createMemo(() => compareStore.state.compare)
     const images = createMemo(() => entries().map(entry => ({
         url: entry.image.url,
         width: entry.image.width,
         height: entry.image.height,
     })))
     const selectedIndex = createMemo(() => {
-        const selectedId = workspaceStore.state.selectedCompareImageId
+        const selectedId = compareStore.state.selectedCompareImageId
         const index = entries().findIndex(entry => entry.image.id === selectedId)
         return index >= 0 ? index : 0
     })
     const selectedEntry = () => entries()[selectedIndex()]
     const hiddenCount = () => allEntries().length - entries().length
+
+    createEffect(() => {
+        const visible = entries()
+        const selectedId = compareStore.state.selectedCompareImageId
+
+        if (visible.length > 0 && !visible.some(entry => entry.image.id === selectedId)) {
+            const first = visible[0]
+
+            if (first) {
+                compareStore.selectCompare(first.image.id)
+            }
+        }
+    })
 
     const selectPrevious = () => {
         if (entries().length < 2) {
@@ -42,7 +56,7 @@ export function CompareWorkspace() {
         const index = (selectedIndex() - 1 + entries().length) % entries().length
         const entry = entries()[index]
         if (entry) {
-            workspaceStore.selectCompare(entry.image.id)
+            compareStore.selectCompare(entry.image.id)
         }
     }
 
@@ -54,7 +68,7 @@ export function CompareWorkspace() {
         const index = (selectedIndex() + 1) % entries().length
         const entry = entries()[index]
         if (entry) {
-            workspaceStore.selectCompare(entry.image.id)
+            compareStore.selectCompare(entry.image.id)
         }
     }
 
@@ -71,7 +85,7 @@ export function CompareWorkspace() {
 
     const handleKeyDown = (event: KeyboardEvent) => {
         if (
-            workspaceStore.state.modalDepth > 0
+            overlayStore.isActive()
             || event.defaultPrevented
             || event.ctrlKey
             || event.metaKey
@@ -96,10 +110,10 @@ export function CompareWorkspace() {
     onMount(() => window.addEventListener('keydown', handleKeyDown))
     onCleanup(() => window.removeEventListener('keydown', handleKeyDown))
 
-    const applyPickerSelection = (candidates: CompareCandidate[]) => {
-        workspaceStore.addCompare(candidates.map(candidate => ({
-            image: candidate.image,
-            origin: candidate.origin,
+    const applyPickerSelection = (images: ImageApi.ImageListItem[]) => {
+        compareStore.addCompare(images.map(item => ({
+            image: item.image,
+            origin: item.origin,
             hidden: false,
         })))
         setPickerOpen(false)
@@ -108,7 +122,7 @@ export function CompareWorkspace() {
     const selectViewerImage = (index: number) => {
         const entry = entries()[index]
         if (entry) {
-            workspaceStore.selectCompare(entry.image.id)
+            compareStore.selectCompare(entry.image.id)
         }
     }
 
@@ -128,7 +142,7 @@ export function CompareWorkspace() {
                     <Show when={hiddenCount() > 0}>
                         <Button
                             classes={{ root: 'h-[30px] px-3 text-xs' }}
-                            onClick={workspaceStore.showAllCompare}
+                            onClick={compareStore.showAllCompare}
                         >
                             Show all
                         </Button>
@@ -136,7 +150,7 @@ export function CompareWorkspace() {
                     <Show when={allEntries().length > 0}>
                         <Button
                             classes={{ root: 'h-[30px] px-3 text-xs' }}
-                            onClick={workspaceStore.clearCompare}
+                            onClick={compareStore.clearCompare}
                         >
                             Clear
                         </Button>
@@ -162,7 +176,7 @@ export function CompareWorkspace() {
             >
                 <Show
                     when={entries().length > 0}
-                    fallback={<AllHiddenState onShowAll={workspaceStore.showAllCompare} />}
+                    fallback={<AllHiddenState onShowAll={compareStore.showAllCompare} />}
                 >
                     <div class='relative flex min-h-0 flex-1 flex-col overflow-hidden bg-stage'>
                         <ZoomStage
@@ -198,11 +212,11 @@ export function CompareWorkspace() {
                 <CompareThumbnailStrip
                     entries={allEntries()}
                     failedImageIds={failedImageIds()}
-                    selectedId={workspaceStore.state.selectedCompareImageId}
+                    selectedId={compareStore.state.selectedCompareImageId}
                     onImageError={imageId => setFailedImageIds(current => new Set([...current, imageId]))}
-                    onRemove={workspaceStore.removeCompare}
-                    onSelect={workspaceStore.selectCompare}
-                    onToggleHidden={workspaceStore.toggleCompareHidden}
+                    onRemove={compareStore.removeCompare}
+                    onSelect={compareStore.selectCompare}
+                    onToggleHidden={compareStore.toggleCompareHidden}
                 />
             </Show>
 

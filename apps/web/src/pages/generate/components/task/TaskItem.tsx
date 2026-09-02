@@ -2,9 +2,9 @@ import { CircleX, Hourglass, Image as ImageIcon, LoaderCircle } from 'lucide-sol
 
 import { Button } from '#/components/base/Button'
 import { Loading } from '#/components/base/Loading'
+import { TaskStatus } from '#/components/task/TaskStatus'
 import { cn } from '#/lib/cn'
 import { formatDateTime } from '#/lib/format'
-import { TaskStatus } from '#/pages/generate/components/TaskStatus'
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { LucideProps } from 'lucide-solid'

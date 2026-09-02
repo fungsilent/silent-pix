@@ -1,11 +1,13 @@
 import { createEffect, createMemo, createSignal, Show } from 'solid-js'
 
+import { ImageViewer } from '#/components/viewer/ImageViewer'
 import { ImageStage } from '#/pages/generate/components/workspace/generate/ImageStage'
 import { PromptPanel } from '#/pages/generate/components/workspace/generate/PromptPanel'
-import { ImageViewer } from '#/pages/generate/components/workspace/shared/ImageViewer'
 import { useGenerateDetail } from '#/pages/generate/detail'
 import { useGenerateStore } from '#/pages/generate/store'
-import { workspaceStore } from '#/store/workspace'
+import { appStore } from '#/store/app'
+import { compareStore } from '#/store/compare'
+import { overlayStore } from '#/store/overlay'
 
 export function GenerateWorkspace() {
     const store = useGenerateStore()
@@ -21,12 +23,15 @@ export function GenerateWorkspace() {
     })
 
     return (
-        <>
+        <section
+            class='flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-canvas'
+            aria-label='Generate workspace'
+        >
             <PromptPanel />
             <ImageStage
                 images={images()}
                 loading={detail.loading()}
-                keyboardEnabled={workspaceStore.state.modalDepth === 0 && !expanded() && !detail.loading()}
+                keyboardEnabled={!overlayStore.isActive() && !expanded() && !detail.loading()}
                 selectedIndex={selectedImageIndex()}
                 onCompare={image => {
                     const task = detail.task()
@@ -35,7 +40,7 @@ export function GenerateWorkspace() {
                         return
                     }
 
-                    workspaceStore.addCompare([{
+                    compareStore.addCompare([{
                         image,
                         origin: {
                             taskId: task.id,
@@ -45,7 +50,7 @@ export function GenerateWorkspace() {
                         },
                         hidden: false,
                     }])
-                    workspaceStore.setMode('compare')
+                    appStore.setPage('compare')
                 }}
                 onExpand={() => {
                     if (images().length > 0) {
@@ -64,6 +69,6 @@ export function GenerateWorkspace() {
                     onSelect={setSelectedImageIndex}
                 />
             </Show>
-        </>
+        </section>
     )
 }

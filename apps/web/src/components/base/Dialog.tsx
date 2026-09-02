@@ -1,9 +1,12 @@
 import { Dialog as ArkDialog } from '@ark-ui/solid'
 import { X } from 'lucide-solid'
+import { createEffect, onCleanup } from 'solid-js'
 import { Portal } from 'solid-js/web'
 
 import { cn } from '#/lib/cn'
+import { overlayStore } from '#/store/overlay'
 
+import type { OverlayId } from '#/store/overlay'
 import type { JSX } from 'solid-js'
 
 type DialogProps = {
@@ -24,6 +27,26 @@ type DialogProps = {
 }
 
 export function Dialog(props: DialogProps) {
+    let overlayId: OverlayId | undefined
+
+    createEffect(() => {
+        if (props.open && !overlayId) {
+            overlayId = overlayStore.open()
+            return
+        }
+
+        if (!props.open && overlayId) {
+            overlayStore.close(overlayId)
+            overlayId = undefined
+        }
+    })
+
+    onCleanup(() => {
+        if (overlayId) {
+            overlayStore.close(overlayId)
+        }
+    })
+
     return (
         <ArkDialog.Root
             open={props.open}

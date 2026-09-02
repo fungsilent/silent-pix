@@ -2,37 +2,23 @@ import { createStore } from '#/lib/store'
 
 import type { ImageApi } from '@silent-pix/shared'
 
-export type ViewerImage = {
-    url: string
-    width: number
-    height: number
-}
-
 export type CompareEntry = {
     image: ImageApi.ImageResource
     origin: ImageApi.ImageUsage | null
     hidden: boolean
 }
 
-type WorkspaceState = {
-    mode: 'generate' | 'compare'
+type CompareState = {
     compare: CompareEntry[]
     selectedCompareImageId: string | null
-    modalDepth: number
 }
 
-const initialState: WorkspaceState = {
-    mode: 'generate',
+const initialState: CompareState = {
     compare: [],
     selectedCompareImageId: null,
-    modalDepth: 0,
 }
 
-export const workspaceStore = createStore(initialState, store => ({
-    setMode(mode: WorkspaceState['mode']) {
-        store.set('mode', mode)
-    },
-
+export const compareStore = createStore(initialState, store => ({
     addCompare(entries: CompareEntry[]) {
         const existingIds = new Set(store.state.compare.map(entry => entry.image.id))
         const additions = entries.filter(entry => !existingIds.has(entry.image.id))
@@ -42,10 +28,6 @@ export const workspaceStore = createStore(initialState, store => ({
         }
 
         store.set('compare', current => [...current, ...additions])
-
-        if (!store.state.selectedCompareImageId) {
-            store.set('selectedCompareImageId', additions[0]?.image.id ?? null)
-        }
     },
 
     selectCompare(imageId: string) {
@@ -57,6 +39,7 @@ export const workspaceStore = createStore(initialState, store => ({
     removeCompare(imageId: string) {
         const current = store.state.compare
         const removedIndex = current.findIndex(entry => entry.image.id === imageId)
+
         if (removedIndex < 0) {
             return
         }
@@ -79,6 +62,7 @@ export const workspaceStore = createStore(initialState, store => ({
     toggleCompareHidden(imageId: string) {
         const current = store.state.compare
         const entry = current.find(item => item.image.id === imageId)
+
         if (!entry) {
             return
         }
@@ -124,16 +108,7 @@ export const workspaceStore = createStore(initialState, store => ({
     visibleCompare() {
         return store.state.compare.filter(entry => !entry.hidden)
     },
-
     selectedCompare() {
         return store.state.compare.find(entry => entry.image.id === store.state.selectedCompareImageId)
-    },
-
-    openModal() {
-        store.set('modalDepth', depth => depth + 1)
-    },
-
-    closeModal() {
-        store.set('modalDepth', depth => Math.max(0, depth - 1))
     },
 }))

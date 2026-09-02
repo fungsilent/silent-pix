@@ -7,6 +7,7 @@ import { Header } from '#/components/Header'
 import { taskKeys } from '#/features/task/task.key'
 import { workflowKeys } from '#/features/workflow/workflow.key'
 import { handleServerEvent } from '#/lib/event'
+import { ComparePage } from '#/pages/compare/ComparePage'
 import { GeneratePage } from '#/pages/generate/GeneratePage'
 import { WorkflowPage } from '#/pages/workflow/WorkflowPage'
 import { appStore } from '#/store/app'
@@ -60,6 +61,9 @@ export function App() {
             <Switch>
                 <Match when={appStore.state.page === 'generate'}>
                     <GeneratePage />
+                </Match>
+                <Match when={appStore.state.page === 'compare'}>
+                    <ComparePage />
                 </Match>
                 <Match when={appStore.state.page === 'workflow'}>
                     <WorkflowPage />

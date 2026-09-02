@@ -59,7 +59,7 @@ export function useOptionIssues(): Accessor<GenerateIssue[]> {
     const workflowQuery = useWorkflowListQuery()
     const samplerQuery = useSamplerListQuery()
     const taskFeedQuery = useTaskFeedQuery()
-    /* 只讀快取狀態，真正的抓取仍由 LoraDialog 開啟時觸發 */
+    /* 只讀快取狀態，真正的抓取仍由 Generate detail 的 LoRA picker 開啟時觸發 */
     const loraQuery = useLoraListQuery(() => false)
 
     /* 清單是全拿的，查不到等同被真刪——那個狀態到不了，留著只是保險 */

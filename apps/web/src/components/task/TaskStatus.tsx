@@ -12,7 +12,6 @@ type Item = {
     tone: BadgeTone
 }
 
-/* badge 只有底色 + 文字色，不加邊框、不加圓點——文字本身已說明狀態 */
 const statusMap: Record<TaskApi.TaskStatus, Item> = {
     queued: {
         label: 'Queued',
@@ -34,11 +33,6 @@ const statusMap: Record<TaskApi.TaskStatus, Item> = {
 
 export function TaskStatus(props: TaskStatusProps) {
     const status = () => statusMap[props.status]
-    const label = () => status().label
 
-    return (
-        <Badge tone={status().tone}>
-            {label()}
-        </Badge>
-    )
+    return <Badge tone={status().tone}>{status().label}</Badge>
 }

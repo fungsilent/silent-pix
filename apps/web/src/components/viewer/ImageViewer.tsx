@@ -3,13 +3,14 @@ import { For, onCleanup, onMount, Show } from 'solid-js'
 import { Portal } from 'solid-js/web'
 
 import { Button } from '#/components/base/Button'
+import { ZoomControls } from '#/components/viewer/ZoomControls'
+import { ZoomStage } from '#/components/viewer/ZoomStage'
 import { cn } from '#/lib/cn'
 import { createImageZoom } from '#/lib/imageZoom'
-import { ZoomControls } from '#/pages/generate/components/workspace/shared/ZoomControls'
-import { ZoomStage } from '#/pages/generate/components/workspace/shared/ZoomStage'
-import { workspaceStore } from '#/store/workspace'
+import { overlayStore } from '#/store/overlay'
 
-import type { ViewerImage } from '#/store/workspace'
+import type { ViewerImage } from '#/components/viewer/ZoomStage'
+import type { OverlayId } from '#/store/overlay'
 import type { JSX } from 'solid-js'
 
 type ImageViewerProps = {
@@ -27,6 +28,7 @@ const glass = 'border-white/[0.09] bg-surface/75 backdrop-blur-[8px]'
 export function ImageViewer(props: ImageViewerProps) {
     const zoom = createImageZoom()
     const hasMany = () => props.images.length > 1
+    let overlayId: OverlayId | undefined
 
     const select = (index: number) => {
         props.onSelect(index)
@@ -53,6 +55,10 @@ export function ImageViewer(props: ImageViewerProps) {
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
+        if (event.defaultPrevented || !overlayId || !overlayStore.isTop(overlayId)) {
+            return
+        }
+
         if (event.key === 'Escape') {
             event.preventDefault()
             props.onClose()
@@ -72,12 +78,14 @@ export function ImageViewer(props: ImageViewerProps) {
     }
 
     onMount(() => {
-        workspaceStore.openModal()
+        overlayId = overlayStore.open()
         window.addEventListener('keydown', handleKeyDown)
     })
 
     onCleanup(() => {
-        workspaceStore.closeModal()
+        if (overlayId) {
+            overlayStore.close(overlayId)
+        }
         window.removeEventListener('keydown', handleKeyDown)
     })
 
