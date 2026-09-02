@@ -1,17 +1,25 @@
-import { createMemo, For, Show } from 'solid-js'
+import { createMemo, For, Index, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { Loading } from '#/components/base/Loading'
 import { CollapseButton, Panel, PanelContent, PanelHeader } from '#/components/base/Panel'
 import { useTaskFeedQuery } from '#/features/task/task.query'
+import { decorateTask, filterTaskItems, toggleTaskFlag } from '#/features/task/task.shim'
+import { TaskFilterChips } from '#/pages/generate/components/task/TaskFilterChips'
 import { TaskItem, TaskItemSkeleton } from '#/pages/generate/components/task/TaskItem'
-import { taskStore } from '#/store/task'
+import { type TaskFeedFilter, taskStore } from '#/store/task'
 
 const taskSkeletonRows = [0, 1, 2, 3, 4, 5]
 
 export function TaskList() {
     const taskFeedQuery = useTaskFeedQuery()
-    const tasks = createMemo(() => taskFeedQuery.data?.pages.flatMap(page => page.items) ?? [])
+    const decoratedTasks = createMemo(() => (
+        taskFeedQuery.data?.pages.flatMap(page => page.items).map(decorateTask) ?? []
+    ))
+    const tasks = createMemo(() => filterTaskItems(
+        decoratedTasks(),
+        taskStore.state.feedFilter,
+    ))
     const selectTask = (taskId: string) => {
         taskStore.selectTask(taskId)
     }
@@ -34,6 +42,12 @@ export function TaskList() {
                             />
                         )}
                     />
+                    <Show when={!panel.isCollapsed()}>
+                        <TaskFilterChips
+                            value={taskStore.state.feedFilter}
+                            onChange={taskStore.setFeedFilter}
+                        />
+                    </Show>
                     <PanelContent
                         classes={{
                             content: 'gap-1',
@@ -51,16 +65,27 @@ export function TaskList() {
                                 </For>
                             )}
                         >
-                            <For each={tasks()}>
-                                {task => (
-                                    <TaskItem
-                                        selected={task.id === taskStore.state.selectedTaskId}
-                                        task={task}
-                                        thumbnailOnly={panel.isCollapsed()}
-                                        onSelect={() => selectTask(task.id)}
-                                    />
+                            <Show
+                                when={tasks().length > 0}
+                                fallback={(
+                                    <Show when={!panel.isCollapsed()}>
+                                        <TaskEmptyState filter={taskStore.state.feedFilter} />
+                                    </Show>
                                 )}
-                            </For>
+                            >
+                                <Index each={tasks()}>
+                                    {task => (
+                                        <TaskItem
+                                            selected={task().id === taskStore.state.selectedTaskId}
+                                            task={task()}
+                                            thumbnailOnly={panel.isCollapsed()}
+                                            onSelect={() => selectTask(task().id)}
+                                            onTogglePinned={() => toggleTaskFlag(task().id, 'pinned')}
+                                            onToggleDiscard={() => toggleTaskFlag(task().id, 'discard')}
+                                        />
+                                    )}
+                                </Index>
+                            </Show>
 
                             <Show when={taskFeedQuery.hasNextPage}>
                                 <Button
@@ -79,5 +104,35 @@ export function TaskList() {
                 </div>
             )}
         </Panel>
+    )
+}
+
+type TaskEmptyStateProps = {
+    filter: TaskFeedFilter
+}
+
+const emptyStateCopy: Record<TaskFeedFilter, { title: string, message: string }> = {
+    all: {
+        title: 'No tasks yet',
+        message: 'Generated tasks will appear here.',
+    },
+    pinned: {
+        title: 'No pinned tasks',
+        message: 'Pin a task to keep it close at hand.',
+    },
+    discard: {
+        title: 'No discarded tasks',
+        message: 'Discarded tasks will appear here for review.',
+    },
+}
+
+function TaskEmptyState(props: TaskEmptyStateProps) {
+    const copy = () => emptyStateCopy[props.filter]
+
+    return (
+        <div class='flex flex-col items-center gap-1 px-3 py-8 text-center'>
+            <p class='m-0 text-xs font-medium text-fg'>{copy().title}</p>
+            <p class='m-0 text-[11px] leading-relaxed text-fg-muted'>{copy().message}</p>
+        </div>
     )
 }
