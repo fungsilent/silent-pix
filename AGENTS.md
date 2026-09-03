@@ -55,6 +55,9 @@
 - Zod validates submit boundaries; domain diagnostics may remain live where required.
 - Prefer flex layout as the default web layout primitive.
 - App-level chrome such as `Header` belongs in `App.tsx`; page components should not own the app header.
+- A TSX file may contain multiple components. Keep a page-specific component local to its only consumer by default; split it into its own file when it has multiple consumers, an independent ownership boundary, or enough isolated complexity to make the split useful.
+- The component that acquires query/store data owns that access and distributes narrow props to its children. Each child defines its own props contract; do not make a child mix injected props with direct access to the same parent-owned data source.
+- Solid `<For>` keys by item reference, not by an explicit key prop. If mapped or decorated objects may be recreated, iterate stable primitive IDs and resolve the latest item reactively; ordinary state updates must not remount focused or editable controls.
 - Reusable web components should expose named class slots such as `classes` when one generic class string is too vague.
 - Keep shared field primitives generic. Visible page rows, grouped labels, mock task/config data, LoRA stack layout, and remove/add controls belong in page-specific components.
 - Generate task-list components live under `apps/web/src/pages/generate/components/task`.

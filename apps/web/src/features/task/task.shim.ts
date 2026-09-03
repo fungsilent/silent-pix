@@ -20,17 +20,29 @@ const initialState: TaskShimState = {
 }
 
 export const taskShim = createStore(initialState, store => ({
-    toggleFlag(taskId: string, flag: TaskFlag): void {
-        if (readTaskFlag(taskId) === flag) {
-            store.produce('flags', flags => {
-                delete flags[taskId]
-            })
-            return
-        }
-
+    setTaskFlag(taskId: string, flag: TaskFlag, value: boolean): void {
         store.produce('flags', flags => {
-            /* One local flag is the temporary equivalent of server exclusivity. */
-            flags[taskId] = flag
+            if (value) {
+                /* One local flag is the temporary equivalent of server exclusivity. */
+                flags[taskId] = flag
+            }
+            else if (flags[taskId] === flag) {
+                delete flags[taskId]
+            }
+        })
+    },
+
+    setTaskFlags(taskIds: string[], flag: TaskFlag, value: boolean): void {
+        store.produce('flags', flags => {
+            /* Batch operations set every row to one value; they never toggle. */
+            taskIds.forEach(taskId => {
+                if (value) {
+                    flags[taskId] = flag
+                }
+                else if (flags[taskId] === flag) {
+                    delete flags[taskId]
+                }
+            })
         })
     },
 }))
@@ -61,6 +73,26 @@ export function filterTaskItems(
     return tasks.filter(task => filter === 'pinned' ? task.pinned : task.discard)
 }
 
-export function toggleTaskFlag(taskId: string, flag: TaskFlag): void {
-    taskShim.toggleFlag(taskId, flag)
+export function searchTaskItems(
+    tasks: TaskListItemWithShimFlags[],
+    search: string,
+): TaskListItemWithShimFlags[] {
+    const keyword = search.trim().toLowerCase()
+
+    if (!keyword) {
+        return tasks
+    }
+
+    return tasks.filter(task => (
+        task.id.toLowerCase().includes(keyword)
+        || task.name?.toLowerCase().includes(keyword) === true
+    ))
+}
+
+export function setTaskFlag(taskId: string, flag: TaskFlag, value: boolean): void {
+    taskShim.setTaskFlag(taskId, flag, value)
+}
+
+export function setTaskFlags(taskIds: string[], flag: TaskFlag, value: boolean): void {
+    taskShim.setTaskFlags(taskIds, flag, value)
 }

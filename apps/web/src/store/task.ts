@@ -6,12 +6,14 @@ type TaskStoreState = {
     selectedTaskId: string | undefined
     feedFilter: TaskFeedFilter
     feedSearch: string
+    browserOpen: boolean
 }
 
 const initialState: TaskStoreState = {
     selectedTaskId: undefined,
     feedFilter: 'all',
     feedSearch: '',
+    browserOpen: false,
 }
 
 export const taskStore = createStore(initialState, store => ({
@@ -29,5 +31,9 @@ export const taskStore = createStore(initialState, store => ({
 
     setFeedSearch(search: string) {
         store.set('feedSearch', search)
+    },
+
+    setBrowserOpen(open: boolean) {
+        store.set('browserOpen', open)
     },
 }))

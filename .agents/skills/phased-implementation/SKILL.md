@@ -78,6 +78,10 @@ Delegated roles use the same evidence standard: the explorer reports present str
    - plan path and PHASE number;
    - outcome and acceptance criteria;
    - files or package boundaries it may touch;
+   - query/store owner and the parent-to-child data flow;
+   - which named components are local and which require separate files;
+   - list identity requirements when mapped/decorated items can be recreated;
+   - controls visible in this PHASE and whether each behavior is real, shimmed, or deferred;
    - required commands and evidence;
    - prohibited work and stop conditions.
 
@@ -121,6 +125,17 @@ When the user requests work outside the current plan:
 
 At every PHASE handoff, reassess later work against what now exists instead of treating the original plan as fixed. Report only structural concerns supported by current evidence. If requirements or findings invalidate later work, propose the exact PHASE changes and wait; the user may change, remove, split, merge, or replace those PHASEs.
 
+Keep a review ledger whenever Sol sends implementation back for correction:
+
+```text
+Review N
+- result: pass | needs changes
+- findings and resolution
+- cause: worker missed an explicit instruction | delegation was ambiguous | plan was wrong
+```
+
+Do not label every correction as worker failure. If the delegation omitted data ownership, file granularity, phase-visible behavior, or another requirement needed to choose correctly, record that as an orchestration defect and make the next prompt explicit.
+
 Only an explicit, unambiguous user confirmation advances the gate. Accept the
 exact `PHASE N confirmed` form documented in the plan; otherwise remain in the
 current PHASE.
@@ -135,6 +150,7 @@ PHASE N handoff
 - Automated validation commands and results
 - No test script; manual acceptance checklist provided instead
 - User-requested reviewer findings and resolutions, when applicable
+- Sol review pass count, findings, resolutions, and cause attribution when corrections occurred
 - Current architecture fit and any proposed downstream plan changes
 - Known limits
 - User review and manual test checklist

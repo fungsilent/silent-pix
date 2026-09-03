@@ -38,6 +38,8 @@ current requirement
 - Tie a new abstraction or refactor to evidence in the current requirements and code. Generic appeals to best practice, scalability, extensibility, reusability, or separation of concerns are not evidence by themselves.
 - Treat distinct workflows, accumulating conditionals or glue, unclear state ownership, and repeated unrelated edits as signals to compare a local change with restructuring the affected boundary.
 - A larger refactor is valid when it materially clarifies current responsibilities. Keep it scoped to that problem; do not fold in unrelated cleanup or prepare infrastructure merely because a later PHASE is planned.
+- Treat a component name and a file boundary as separate decisions. A single-consumer child may stay as a local component in its owner's file; list a separate file only when reuse, independent ownership, or isolated complexity justifies it.
+- Name the component that acquires each query/store value and show how it distributes narrow props. Do not leave data ownership implicit in a component tree.
 - Preserve explicit decisions in `AGENTS.md`. If a requirement conflicts with one, document the conflict under `## 你要做的事` and stop for the user's decision instead of planning around the rule.
 
 ## Phased delivery and review gates
@@ -110,6 +112,22 @@ One per boundary the change crosses — typically 資料模型 / 後端 / Contra
   ```
 
 - **UI changes as an ASCII layout**, showing the states side by side (empty / filled / pending / how it grows later). This is the highest value-per-line element in the whole document — a paragraph describing a panel is worthless next to a 12-line box drawing.
+- Show component/file ownership in the layout when it matters. Use indentation for local components instead of turning every visual block into a file:
+
+  ```text
+  TaskBrowser.tsx
+    ├ local TaskBrowserToolbar
+    ├ local TaskCard
+    └ local loading/error/empty states
+  ```
+- For phased UI, include a compact logic matrix whenever controls appear before their durable backend exists. Distinguish hidden, local/shim, disabled, and fully wired states, and name the PHASE that supplies the real behavior:
+
+  ```markdown
+  | Control | This PHASE | Behavior source | Durable PHASE |
+  |---|---:|---|---:|
+  | Pin | visible | local shim | 6 |
+  | Delete selected | hidden | no mutation yet | 6 |
+  ```
 - **Flows as a small tree or arrow block**, not numbered prose:
 
   ```
@@ -155,5 +173,8 @@ A table: `# | 風險 | 處置`. Every unverified assumption goes here, including
 - Decisions the user made in conversation are all in 已定案.
 - 你要做的事 is repeated in the chat reply — that is the part they act on today.
 - Every PHASE has scope, automated validation, user review, and a STOP gate.
+- Component trees distinguish local components from separate files, and every separate file has a concrete boundary reason.
+- Query/store ownership and parent-to-child data distribution are explicit.
+- A phased UI never presents a control without stating whether its behavior is real, shimmed, disabled, or deferred.
 - No PHASE contains preparatory work owned by a later unconfirmed PHASE.
 - Every abstraction or structural refactor addresses a problem visible in the current requirements or code.

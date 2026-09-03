@@ -1,9 +1,10 @@
-import { createEffect, on } from 'solid-js'
+import { createEffect, on, Show } from 'solid-js'
 
 import { ApiError } from '#/api/api.client'
 import { useCreateTaskMutation, useTaskDetailQuery } from '#/features/task/task.query'
 import { useRefreshWorkflowList } from '#/features/workflow/workflow.query'
 import { GenerateTaskDetail } from '#/pages/generate/components/config/GenerateTaskDetail'
+import { TaskBrowser } from '#/pages/generate/components/task/TaskBrowser'
 import { TaskList } from '#/pages/generate/components/task/TaskList'
 import { GenerateWorkspace } from '#/pages/generate/components/workspace/generate/GenerateWorkspace'
 import { createGenerateDetail, GenerateDetailProvider } from '#/pages/generate/detail'
@@ -95,10 +96,29 @@ export function GeneratePage() {
             <GenerateDetailProvider value={detail}>
                 <form
                     class='flex h-[calc(100dvh-48px)] min-h-0 overflow-hidden'
+                    onKeyDown={event => {
+                        if (
+                            event.key === 'Enter'
+                            && event.target instanceof HTMLInputElement
+                            && !event.defaultPrevented
+                            && !event.isComposing
+                        ) {
+                            event.preventDefault()
+                        }
+                    }}
                     onSubmit={event => void handleSubmit(event)}
                 >
-                    <TaskList />
-                    <GenerateWorkspace />
+                    <Show
+                        when={taskStore.state.browserOpen}
+                        fallback={(
+                            <>
+                                <TaskList />
+                                <GenerateWorkspace />
+                            </>
+                        )}
+                    >
+                        <TaskBrowser />
+                    </Show>
                     <GenerateTaskDetail />
                 </form>
             </GenerateDetailProvider>
