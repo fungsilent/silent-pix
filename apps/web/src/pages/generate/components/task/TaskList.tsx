@@ -108,10 +108,10 @@ export function TaskList() {
                                                 task={taskById().get(taskId)!}
                                                 thumbnailOnly={panel.isCollapsed()}
                                                 onSelect={() => selectTask(taskId)}
-                                                onTogglePinned={() => {
+                                                onTogglePin={() => {
                                                     const task = taskById().get(taskId)
                                                     if (task) {
-                                                        setTaskFlag(taskId, 'pinned', !task.pinned)
+                                                        setTaskFlag(taskId, 'pin', !task.pin)
                                                     }
                                                 }}
                                                 onToggleDiscard={() => {
@@ -159,7 +159,7 @@ const emptyStateCopy: Record<TaskFeedFilter, { title: string, message: string }>
         title: 'No tasks yet',
         message: 'Generated tasks will appear here.',
     },
-    pinned: {
+    pin: {
         title: 'No pinned tasks',
         message: 'Pin a task to keep it close at hand.',
     },

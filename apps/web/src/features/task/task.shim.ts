@@ -3,10 +3,10 @@ import { createStore } from '#/lib/store'
 import type { TaskApi } from '@silent-pix/shared'
 import type { TaskFeedFilter } from '#/store/task'
 
-export type TaskFlag = 'pinned' | 'discard'
+export type TaskFlag = 'pin' | 'discard'
 
 export type TaskListItemWithShimFlags = TaskApi.TaskListItem & {
-    pinned: boolean
+    pin: boolean
     discard: boolean
     outputCount: number
 }
@@ -56,7 +56,7 @@ export function decorateTask(task: TaskApi.TaskListItem): TaskListItemWithShimFl
 
     return {
         ...task,
-        pinned: flag === 'pinned',
+        pin: flag === 'pin',
         discard: flag === 'discard',
         outputCount: task.thumbnail ? 1 : 0,
     }
@@ -70,7 +70,7 @@ export function filterTaskItems(
         return tasks
     }
 
-    return tasks.filter(task => filter === 'pinned' ? task.pinned : task.discard)
+    return tasks.filter(task => filter === 'pin' ? task.pin : task.discard)
 }
 
 export function searchTaskItems(

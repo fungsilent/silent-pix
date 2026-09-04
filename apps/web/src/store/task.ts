@@ -1,6 +1,6 @@
 import { createStore } from '#/lib/store'
 
-export type TaskFeedFilter = 'all' | 'pinned' | 'discard'
+export type TaskFeedFilter = 'all' | 'pin' | 'discard'
 
 type TaskStoreState = {
     selectedTaskId: string | undefined

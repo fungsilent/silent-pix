@@ -23,6 +23,8 @@ export const tasks = sqliteTable('tasks', {
     status: text('status', {
         enum: ['queued', 'running', 'done', 'failed'],
     }).$type<TaskStatus>().notNull(),
+    pin: integer('pin', { mode: 'boolean' }).notNull().default(false),
+    discard: integer('discard', { mode: 'boolean' }).notNull().default(false),
     workflowId: text('workflow_id').$type<UUID>().notNull().references(() => workflows.id, {
         onDelete: 'restrict',
         onUpdate: 'cascade',
@@ -44,6 +46,10 @@ export const tasks = sqliteTable('tasks', {
     check(
         'tasks_status_check',
         sql`${table.status} in ('queued', 'running', 'done', 'failed')`,
+    ),
+    check(
+        'tasks_flag_exclusive_check',
+        sql`not (${table.pin} = 1 and ${table.discard} = 1)`,
     ),
 ])
 

@@ -109,7 +109,7 @@ export function TaskBrowser() {
         taskStore.setFeedFilter(filter)
     }
 
-    const setSelectedFlags = (flag: 'pinned' | 'discard', value: boolean) => {
+    const setSelectedFlags = (flag: 'pin' | 'discard', value: boolean) => {
         setTaskFlags(selectedTaskIds(), flag, value)
         setSelectedTaskIds([])
     }
@@ -191,7 +191,7 @@ export function TaskBrowser() {
                                             onFocusTask={() => focusTask(taskId)}
                                             onOpenViewer={() => openTask(taskId)}
                                             onToggleSelected={() => toggleSelection(taskId)}
-                                            onSetPinned={value => setTaskFlag(taskId, 'pinned', value)}
+                                            onSetPin={value => setTaskFlag(taskId, 'pin', value)}
                                             onSetDiscard={value => setTaskFlag(taskId, 'discard', value)}
                                         />
                                     )}
@@ -403,12 +403,12 @@ function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                         >
                             Clear
                         </Button>
-                        <Show when={props.filter !== 'pinned'}>
+                        <Show when={props.filter !== 'pin'}>
                             <Button
                                 variant='accent'
                                 aria-label='Pin selected tasks'
                                 classes={{ root: 'h-7 px-2 text-[11px]' }}
-                                onClick={() => props.onSetFlags('pinned', true)}
+                                onClick={() => props.onSetFlags('pin', true)}
                             >
                                 <Pin
                                     size={13}
@@ -457,7 +457,7 @@ type TaskCardProps = {
     onFocusTask: () => void
     onOpenViewer: () => void
     onToggleSelected: () => void
-    onSetPinned: (value: boolean) => void
+    onSetPin: (value: boolean) => void
     onSetDiscard: (value: boolean) => void
 }
 
@@ -546,17 +546,17 @@ function TaskCard(props: TaskCardProps) {
                 <Button
                     variant='ghost'
                     data-marquee-control='true'
-                    aria-label={props.task.pinned ? 'Remove pinned flag' : 'Pin task'}
-                    aria-pressed={props.task.pinned}
+                    aria-label={props.task.pin ? 'Unpin task' : 'Pin task'}
+                    aria-pressed={props.task.pin}
                     classes={{
                         root: cn(
                             'size-7 shrink-0 rounded-md border-0 p-0',
-                            props.task.pinned
+                            props.task.pin
                                 ? 'bg-amber-500/90 text-amber-950 hover:bg-amber-400'
                                 : 'bg-black/60 text-white/75 hover:bg-black/80 hover:text-white',
                         ),
                     }}
-                    onClick={() => props.onSetPinned(!props.task.pinned)}
+                    onClick={() => props.onSetPin(!props.task.pin)}
                 >
                     <Pin
                         size={14}

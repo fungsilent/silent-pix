@@ -15,7 +15,7 @@ export type TaskItemProps = {
     task: TaskListItemWithShimFlags
     thumbnailOnly: boolean
     onSelect: () => void
-    onTogglePinned: () => void
+    onTogglePin: () => void
     onToggleDiscard: () => void
 }
 
@@ -62,15 +62,15 @@ export function TaskItem(props: TaskItemProps) {
                             )
                             : <TaskThumbnailPlaceholder meta={placeholder()} />
                     }
-                    {props.thumbnailOnly && (props.task.pinned || props.task.discard) && (
+                    {props.thumbnailOnly && (props.task.pin || props.task.discard) && (
                         <span
                             class={cn(
                                 'absolute left-1 top-1 flex size-5 items-center justify-center rounded bg-black/75',
-                                props.task.pinned ? 'text-amber-300' : 'text-rose-300',
+                                props.task.pin ? 'text-amber-300' : 'text-rose-300',
                             )}
                             aria-hidden='true'
                         >
-                            {props.task.pinned
+                            {props.task.pin
                                 ? (
                                     <Pin
                                         size={12}
@@ -107,17 +107,17 @@ export function TaskItem(props: TaskItemProps) {
                 <div class='absolute right-2 top-2 flex gap-0.5'>
                     <Button
                         variant='ghost'
-                        aria-label={props.task.pinned ? 'Remove pinned flag' : 'Pin task'}
-                        aria-pressed={props.task.pinned}
+                        aria-label={props.task.pin ? 'Unpin task' : 'Pin task'}
+                        aria-pressed={props.task.pin}
                         classes={{
                             root: cn(
                                 'size-7 shrink-0 rounded-md border-0 p-0',
-                                props.task.pinned
+                                props.task.pin
                                     ? 'bg-amber-500/90 text-amber-950 hover:bg-amber-400'
                                     : 'bg-black/55 text-white/70 hover:bg-black/75 hover:text-white',
                             ),
                         }}
-                        onClick={props.onTogglePinned}
+                        onClick={props.onTogglePin}
                     >
                         <Pin
                             size={14}
