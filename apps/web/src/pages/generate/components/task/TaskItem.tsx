@@ -88,7 +88,7 @@ export function TaskItem(props: TaskItemProps) {
                 </div>
 
                 {!props.thumbnailOnly && (
-                    <div class='flex min-w-0 flex-1 flex-col items-start gap-1.5 pr-14'>
+                    <div class='flex min-w-0 flex-1 flex-col items-start gap-1.5'>
                         <span
                             class='max-w-full truncate text-xs font-medium leading-none text-fg'
                             classList={{ 'font-mono': !props.task.name }}

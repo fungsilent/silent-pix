@@ -3,6 +3,7 @@ import { createEffect, createMemo, createSignal, For, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { Loading } from '#/components/base/Loading'
+import { PanelHeader } from '#/components/base/Panel'
 import { Text } from '#/components/field/Text'
 import { TaskStatus } from '#/components/task/TaskStatus'
 import { ImageViewer } from '#/components/viewer/ImageViewer'
@@ -15,6 +16,7 @@ import {
     setTaskFlags,
 } from '#/features/task/task.shim'
 import { cn } from '#/lib/cn'
+import { createDragSelection } from '#/lib/dragSelection'
 import { formatDateTime } from '#/lib/format'
 import { TaskFilterChips } from '#/pages/generate/components/task/TaskFilterChips'
 import { placeholderMap } from '#/pages/generate/components/task/taskPlaceholder'
@@ -31,6 +33,15 @@ export function TaskBrowser() {
     const [viewerTaskId, setViewerTaskId] = createSignal<string>()
     const [viewerIndex, setViewerIndex] = createSignal(0)
     const detail = useGenerateDetail()
+    let selectionContainerElement: HTMLDivElement | undefined
+    const dragSelection = createDragSelection({
+        container: () => selectionContainerElement,
+        selectedIds: selectedTaskIds,
+        onSelectionChange: ids => setSelectedTaskIds(ids),
+        itemSelector: '[data-task-card]',
+        controlSelector: '[data-marquee-control]',
+        getItemId: item => item.dataset.taskId,
+    })
     const decoratedTasks = createMemo(() => (
         taskFeedQuery.data?.pages.flatMap(page => page.items).map(decorateTask) ?? []
     ))
@@ -69,7 +80,19 @@ export function TaskBrowser() {
         }
     })
 
+    const focusTask = (taskId: string) => {
+        if (dragSelection.consumeSuppressedClick()) {
+            return
+        }
+
+        taskStore.selectTask(taskId)
+    }
+
     const openTask = (taskId: string) => {
+        if (dragSelection.consumeSuppressedClick()) {
+            return
+        }
+
         taskStore.selectTask(taskId)
         setViewerTaskId(taskId)
         setViewerIndex(0)
@@ -102,7 +125,7 @@ export function TaskBrowser() {
 
     return (
         <section
-            class='flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-canvas'
+            class='flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-surface'
             aria-label='Task browser'
         >
             <TaskBrowserToolbar
@@ -111,16 +134,24 @@ export function TaskBrowser() {
                 selectedCount={selectedTaskIds().length}
                 onSearchChange={taskStore.setFeedSearch}
                 onFilterChange={changeFilter}
+                onClearSelection={() => setSelectedTaskIds([])}
                 onSetFlags={setSelectedFlags}
                 onRemoveDiscard={removeSelectedDiscard}
                 onCollapse={() => taskStore.setBrowserOpen(false)}
             />
 
-            <div class='min-h-0 flex-1 overflow-y-auto'>
+            <div
+                ref={element => { selectionContainerElement = element }}
+                class={cn(
+                    'relative min-h-0 flex-1 overflow-y-auto bg-surface',
+                    dragSelection.tracking() && 'select-none',
+                )}
+                onPointerDown={dragSelection.onPointerDown}
+            >
                 <Show
                     when={!taskFeedQuery.isLoading}
                     fallback={(
-                        <div class='grid grid-cols-8 content-start gap-3 p-4'>
+                        <div class='grid grid-cols-8 content-start gap-3 p-2'>
                             <For each={taskSkeletonCells}>
                                 {() => <TaskCardSkeleton />}
                             </For>
@@ -133,7 +164,7 @@ export function TaskBrowser() {
                             <TaskBrowserLoadError onRetry={() => void taskFeedQuery.refetch()} />
                         )}
                     >
-                        <div class='grid grid-cols-8 content-start gap-3 p-4'>
+                        <div class='grid grid-cols-8 content-start gap-3 p-2'>
                             <Show
                                 when={tasks().length > 0}
                                 fallback={(
@@ -154,9 +185,11 @@ export function TaskBrowser() {
                                 <For each={taskIds()}>
                                     {taskId => (
                                         <TaskCard
-                                            selected={selectedTaskIds().includes(taskId)}
+                                            focused={taskId === taskStore.state.selectedTaskId}
+                                            checked={selectedTaskIds().includes(taskId)}
                                             task={taskById().get(taskId)!}
-                                            onOpen={() => openTask(taskId)}
+                                            onFocusTask={() => focusTask(taskId)}
+                                            onOpenViewer={() => openTask(taskId)}
                                             onToggleSelected={() => toggleSelection(taskId)}
                                             onSetPinned={value => setTaskFlag(taskId, 'pinned', value)}
                                             onSetDiscard={value => setTaskFlag(taskId, 'discard', value)}
@@ -172,6 +205,7 @@ export function TaskBrowser() {
                             <Show when={taskFeedQuery.hasNextPage}>
                                 <Button
                                     variant='ghost'
+                                    data-marquee-control='true'
                                     classes={{ root: 'col-span-8 mt-1 w-full' }}
                                     disabled={taskFeedQuery.isFetchingNextPage}
                                     onClick={() => void taskFeedQuery.fetchNextPage()}
@@ -181,6 +215,19 @@ export function TaskBrowser() {
                             </Show>
                         </div>
                     </Show>
+                </Show>
+                <Show when={dragSelection.marquee()}>
+                    {rect => (
+                        <div
+                            class='pointer-events-none absolute z-10 border border-accent bg-accent/15'
+                            style={{
+                                left: `${rect().left}px`,
+                                top: `${rect().top}px`,
+                                width: `${rect().width}px`,
+                                height: `${rect().height}px`,
+                            }}
+                        />
+                    )}
                 </Show>
             </div>
 
@@ -253,6 +300,7 @@ function TaskBrowserLoadError(props: TaskBrowserLoadErrorProps) {
             <p class='m-0 text-sm text-fg-muted'>Failed to load tasks.</p>
             <Button
                 type='button'
+                data-marquee-control='true'
                 classes={{ root: 'h-8 px-3 text-xs' }}
                 onClick={props.onRetry}
             >
@@ -295,6 +343,7 @@ type TaskBrowserToolbarProps = {
     selectedCount: number
     onSearchChange: (search: string) => void
     onFilterChange: (filter: TaskFeedFilter) => void
+    onClearSelection: () => void
     onSetFlags: (flag: TaskFlag, value: boolean) => void
     onRemoveDiscard: () => void
     onCollapse: () => void
@@ -302,86 +351,99 @@ type TaskBrowserToolbarProps = {
 
 function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
     return (
-        <div class='flex shrink-0 flex-col gap-2 border-b border-line-subtle bg-surface px-4 py-3'>
-            <div class='flex min-w-0 items-center gap-3'>
-                <Text
-                    label='Search tasks'
-                    value={props.search}
-                    placeholder='task name or task ID...'
-                    icon={(
-                        <Search
-                            size={14}
-                            strokeWidth={1.7}
-                            aria-hidden='true'
+        <div class='flex shrink-0 flex-col border-b border-line-subtle bg-surface'>
+            <PanelHeader
+                title='Tasks'
+                action={(
+                    <div class='flex min-w-0 flex-1 items-center justify-end gap-2'>
+                        <Text
+                            label='Search tasks'
+                            value={props.search}
+                            placeholder='task name or task ID...'
+                            icon={(
+                                <Search
+                                    size={14}
+                                    strokeWidth={1.7}
+                                    aria-hidden='true'
+                                />
+                            )}
+                            classes={{ root: 'min-w-0 flex-1', label: 'sr-only' }}
+                            onInput={props.onSearchChange}
                         />
-                    )}
-                    classes={{ root: 'min-w-0 flex-1', label: 'sr-only' }}
-                    onInput={props.onSearchChange}
-                />
-                <Button
-                    variant='ghost'
-                    aria-label='Collapse task browser'
-                    classes={{ root: 'size-8 shrink-0 p-0' }}
-                    onClick={props.onCollapse}
-                >
-                    <Minimize2
-                        size={16}
-                        strokeWidth={1.8}
-                        aria-hidden='true'
-                    />
-                </Button>
-            </div>
-
+                        <Button
+                            variant='ghost'
+                            aria-label='Collapse task browser'
+                            classes={{ root: 'size-8 shrink-0 p-0' }}
+                            onClick={props.onCollapse}
+                        >
+                            <Minimize2
+                                size={16}
+                                strokeWidth={1.8}
+                                aria-hidden='true'
+                            />
+                        </Button>
+                    </div>
+                )}
+            />
             <div class='flex min-w-0 flex-wrap items-center gap-2'>
                 <TaskFilterChips
                     value={props.filter}
                     onChange={props.onFilterChange}
-                    classes={{ root: 'shrink-0 px-0 pb-0' }}
                 />
                 <Show when={props.selectedCount > 0}>
-                    <span class='ml-auto text-xs text-fg-muted tabular-nums'>
-                        {props.selectedCount} selected
-                    </span>
-                    <Show when={props.filter !== 'pinned'}>
-                        <Button
-                            variant='accent'
-                            aria-label='Pin selected tasks'
-                            classes={{ root: 'h-7 px-2 text-[11px]' }}
-                            onClick={() => props.onSetFlags('pinned', true)}
-                        >
-                            <Pin
-                                size={13}
-                                strokeWidth={1.8}
-                                aria-hidden='true'
-                            />
-                            Pin
-                        </Button>
-                    </Show>
-                    <Show when={props.filter !== 'discard'}>
-                        <Button
-                            variant='danger'
-                            aria-label='Discard selected tasks'
-                            classes={{ root: 'h-7 px-2 text-[11px]' }}
-                            onClick={() => props.onSetFlags('discard', true)}
-                        >
-                            <Trash2
-                                size={13}
-                                strokeWidth={1.8}
-                                aria-hidden='true'
-                            />
-                            Discard
-                        </Button>
-                    </Show>
-                    <Show when={props.filter === 'discard'}>
+                    <div class='ml-auto flex shrink-0 items-center gap-2 pr-2 pb-1'>
+                        <span class='text-xs text-fg-muted tabular-nums'>
+                            {props.selectedCount} selected
+                        </span>
                         <Button
                             variant='ghost'
-                            aria-label='Remove discard from selected tasks'
+                            aria-label='Clear task selection'
                             classes={{ root: 'h-7 px-2 text-[11px]' }}
-                            onClick={props.onRemoveDiscard}
+                            onClick={props.onClearSelection}
                         >
-                            Remove discard
+                            Clear
                         </Button>
-                    </Show>
+                        <Show when={props.filter !== 'pinned'}>
+                            <Button
+                                variant='accent'
+                                aria-label='Pin selected tasks'
+                                classes={{ root: 'h-7 px-2 text-[11px]' }}
+                                onClick={() => props.onSetFlags('pinned', true)}
+                            >
+                                <Pin
+                                    size={13}
+                                    strokeWidth={1.8}
+                                    aria-hidden='true'
+                                />
+                                Pin
+                            </Button>
+                        </Show>
+                        <Show when={props.filter !== 'discard'}>
+                            <Button
+                                variant='danger'
+                                aria-label='Discard selected tasks'
+                                classes={{ root: 'h-7 px-2 text-[11px]' }}
+                                onClick={() => props.onSetFlags('discard', true)}
+                            >
+                                <Trash2
+                                    size={13}
+                                    strokeWidth={1.8}
+                                    aria-hidden='true'
+                                />
+                                Discard
+                            </Button>
+                        </Show>
+                        <Show when={props.filter === 'discard'}>
+                            <Button
+                                variant='ghost'
+                                aria-label='Remove discard from selected tasks'
+                                classes={{ root: 'h-7 px-2 text-[11px]' }}
+                                onClick={props.onRemoveDiscard}
+                            >
+                                Remove discard
+                            </Button>
+                        </Show>
+                    </div>
                 </Show>
             </div>
         </div>
@@ -389,9 +451,11 @@ function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
 }
 
 type TaskCardProps = {
-    selected: boolean
+    focused: boolean
+    checked: boolean
     task: TaskListItemWithShimFlags
-    onOpen: () => void
+    onFocusTask: () => void
+    onOpenViewer: () => void
     onToggleSelected: () => void
     onSetPinned: (value: boolean) => void
     onSetDiscard: (value: boolean) => void
@@ -406,19 +470,26 @@ function TaskCard(props: TaskCardProps) {
 
     return (
         <article
+            data-task-card='true'
+            data-task-id={props.task.id}
             class={cn(
-                'group relative min-w-0 rounded-lg border border-transparent p-1.5',
-                props.task.discard && !props.selected && 'opacity-65 grayscale-[.15]',
-                props.selected && 'border-accent/50 bg-active',
+                'group relative min-w-0 rounded-lg border border-transparent p-2',
+                props.task.discard && !props.focused && !props.checked && 'opacity-65 grayscale-[.15]',
+                props.focused && !props.checked && 'border-accent/60 bg-active shadow-[0_0_0_1px_rgba(37,99,235,0.14),0_1px_12px_rgba(37,99,235,0.12)]',
+                props.checked && !props.focused && 'border-accent bg-accent/20 ring-2 ring-accent/40',
+                props.focused && props.checked && 'border-accent bg-accent/20 ring-2 ring-accent/40 shadow-[0_0_0_1px_rgba(37,99,235,0.14),0_1px_12px_rgba(37,99,235,0.12)]',
             )}
         >
             <Button
                 variant='ghost'
-                aria-label={`Open task ${title()}`}
+                aria-label={`Open outputs for task ${title()}`}
                 classes={{
-                    root: 'block w-full min-w-0 p-0 text-left hover:bg-transparent',
+                    root: cn(
+                        'block w-full min-w-0 p-0 text-left hover:bg-transparent',
+                        props.focused && 'focus-visible:border-transparent focus-visible:ring-0',
+                    ),
                 }}
-                onClick={props.onOpen}
+                onClick={props.onOpenViewer}
             >
                 <div
                     class={cn(
@@ -434,6 +505,7 @@ function TaskCard(props: TaskCardProps) {
                                 class='size-full object-cover'
                                 src={props.task.thumbnail}
                                 alt={title()}
+                                draggable={false}
                             />
                         )
                         : <TaskThumbnailPlaceholder task={props.task} />}
@@ -441,7 +513,20 @@ function TaskCard(props: TaskCardProps) {
                         {props.task.outputCount}
                     </span>
                 </div>
-                <div class='flex min-w-0 flex-col gap-1 px-0.5 pt-2'>
+            </Button>
+            <Button
+                variant='ghost'
+                aria-label={`Focus task ${title()}`}
+                aria-pressed={props.focused}
+                classes={{
+                    root: cn(
+                        'mt-2 block w-full min-w-0 p-0 text-left hover:bg-transparent',
+                        props.focused && 'focus-visible:border-transparent focus-visible:ring-0',
+                    ),
+                }}
+                onClick={props.onFocusTask}
+            >
+                <div class='flex min-w-0 flex-col gap-2'>
                     <span
                         class='truncate text-xs font-medium leading-none text-fg'
                         classList={{ 'font-mono': !props.task.name }}
@@ -460,6 +545,7 @@ function TaskCard(props: TaskCardProps) {
             <div class='absolute left-2.5 top-2.5 flex gap-1'>
                 <Button
                     variant='ghost'
+                    data-marquee-control='true'
                     aria-label={props.task.pinned ? 'Remove pinned flag' : 'Pin task'}
                     aria-pressed={props.task.pinned}
                     classes={{
@@ -480,6 +566,7 @@ function TaskCard(props: TaskCardProps) {
                 </Button>
                 <Button
                     variant='ghost'
+                    data-marquee-control='true'
                     aria-label={props.task.discard ? 'Remove discard flag' : 'Discard task'}
                     aria-pressed={props.task.discard}
                     classes={{
@@ -502,12 +589,13 @@ function TaskCard(props: TaskCardProps) {
 
             <Button
                 variant='ghost'
-                aria-label={props.selected ? 'Deselect task' : 'Select task'}
-                aria-pressed={props.selected}
+                data-marquee-control='true'
+                aria-label={props.checked ? 'Deselect task' : 'Select task'}
+                aria-pressed={props.checked}
                 classes={{
                     root: cn(
                         'absolute right-2.5 top-2.5 size-7 rounded-md border-0 p-0 transition-opacity',
-                        props.selected
+                        props.checked
                             ? 'bg-accent text-white'
                             : 'pointer-events-none bg-black/60 text-white/75 opacity-0 hover:bg-black/80 hover:text-white group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 focus-visible:pointer-events-auto focus-visible:opacity-100',
                     ),
@@ -517,7 +605,7 @@ function TaskCard(props: TaskCardProps) {
                 <Check
                     size={14}
                     strokeWidth={2}
-                    class={cn(!props.selected && 'opacity-0')}
+                    class={cn(!props.checked && 'opacity-0')}
                     aria-hidden='true'
                 />
             </Button>
