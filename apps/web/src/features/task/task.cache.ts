@@ -79,22 +79,26 @@ export function cacheTaskChanged(
     )
 }
 
-export function cacheTaskRemoved(
+export function cacheTasksRemoved(
     queryClient: QueryClient,
-    taskId: string,
+    taskIds: string[],
 ): void {
-    queryClient.removeQueries({ queryKey: taskKeys.snapshot(taskId) })
-    queryClient.removeQueries({ queryKey: taskKeys.detail({ taskId }) })
+    const removedIds = new Set(taskIds)
+
+    taskIds.forEach(taskId => {
+        queryClient.removeQueries({ queryKey: taskKeys.snapshot(taskId) })
+        queryClient.removeQueries({ queryKey: taskKeys.detail({ taskId }) })
+    })
 
     queryClient.setQueriesData<TaskFeedData>(
         { queryKey: taskKeys.feeds() },
-        current => removeFromTaskFeed(current, taskId),
+        current => removeFromTaskFeed(current, removedIds),
     )
 }
 
 function removeFromTaskFeed(
     current: TaskFeedData | undefined,
-    taskId: string,
+    taskIds: ReadonlySet<string>,
 ): TaskFeedData | undefined {
     if (!current) {
         return current
@@ -102,7 +106,7 @@ function removeFromTaskFeed(
 
     let found = false
     const pages = current.pages.map(page => {
-        const items = page.items.filter(item => item.id !== taskId)
+        const items = page.items.filter(item => !taskIds.has(item.id))
 
         if (items.length === page.items.length) {
             return page
@@ -120,7 +124,10 @@ function toTaskSnapshot(task: TaskApi.GetTaskResponse): Event.Task.Snapshot {
         id: task.id,
         name: task.name,
         status: task.status,
+        pin: task.pin,
+        discard: task.discard,
         createdAt: task.createdAt,
+        outputCount: task.images.length,
         images: task.images,
     }
 }
@@ -132,6 +139,8 @@ function applySnapshot(
     return {
         ...task,
         status: snapshot.status,
+        pin: snapshot.pin,
+        discard: snapshot.discard,
         images: snapshot.images,
     }
 }
@@ -143,6 +152,9 @@ function toTaskListItem(task: Event.Task.Snapshot): TaskApi.TaskListItem {
         id: task.id,
         name: task.name,
         status: task.status,
+        pin: task.pin,
+        discard: task.discard,
+        outputCount: task.outputCount,
         createdAt: task.createdAt,
         ...(thumbnail ? { thumbnail } : {}),
     }
@@ -221,6 +233,8 @@ function updateTaskDetail(
 
     if (
         current.status === task.status
+        && current.pin === task.pin
+        && current.discard === task.discard
         && sameImages(current.images, task.images)
     ) {
         return current
@@ -229,6 +243,8 @@ function updateTaskDetail(
     return {
         ...current,
         status: task.status,
+        pin: task.pin,
+        discard: task.discard,
         images: task.images,
     }
 }
@@ -250,6 +266,9 @@ function sameTaskListItem(left: TaskApi.TaskListItem, right: TaskApi.TaskListIte
     return left.id === right.id
         && left.name === right.name
         && left.status === right.status
+        && left.pin === right.pin
+        && left.discard === right.discard
+        && left.outputCount === right.outputCount
         && left.createdAt === right.createdAt
         && left.thumbnail === right.thumbnail
 }

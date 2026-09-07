@@ -2,7 +2,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 
 import { taskApi } from '#/api/task'
 import { cacheCreatedTaskResponse, cacheTaskRenamed } from '#/features/task/task.cache'
-import { applyTaskRemoved } from '#/features/task/task.event'
+import { applyTasksRemoved } from '#/features/task/task.event'
 import { taskKeys } from '#/features/task/task.key'
 
 import type { TaskApi } from '@silent-pix/shared'
@@ -22,11 +22,12 @@ export const loraKeys = {
 
 export function useTaskFeedQuery() {
     return useInfiniteQuery(() => ({
-        queryKey: taskKeys.feed({ limit: taskFeedLimit }),
+        queryKey: taskKeys.feed({ limit: taskFeedLimit, view: 'all' }),
         initialPageParam: undefined as string | undefined,
         queryFn: ({ pageParam }) => taskApi.list({
             cursor: pageParam,
             limit: taskFeedLimit,
+            view: 'all',
         }),
         getNextPageParam: lastPage => lastPage.nextCursor,
     }))
@@ -101,7 +102,7 @@ export function useDeleteTaskMutation() {
     return useMutation(() => ({
         mutationFn: (request: TaskApi.DeleteTaskRequest) => taskApi.remove(request),
         onSuccess: result => {
-            applyTaskRemoved(queryClient, result.id)
+            applyTasksRemoved(queryClient, [result.id])
         },
     }))
 }

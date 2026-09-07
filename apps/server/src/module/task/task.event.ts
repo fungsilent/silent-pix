@@ -14,9 +14,9 @@ export function taskChanged(task: Event.Task.Snapshot): Event.Task.Changed {
     }
 }
 
-export function taskRemoved(taskId: string): Event.Task.Removed {
+export function taskRemoved(taskIds: string[]): Event.Task.Removed {
     return {
         type: 'task.removed',
-        taskId,
+        taskIds,
     }
 }

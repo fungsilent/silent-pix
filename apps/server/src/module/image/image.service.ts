@@ -223,21 +223,29 @@ export const imageService = {
             return 0
         }
 
-        const orphans = await database.db
-            .select({ id: images.id, path: images.path })
-            .from(images)
-            .leftJoin(taskImages, eq(taskImages.imageId, images.id))
-            .where(and(inArray(images.id, imageIds), isNull(taskImages.id)))
-            .all()
+        const uniqueImageIds = [...new Set(imageIds)]
+        const orphans: { id: UUID, path: string }[] = []
+
+        for (const chunk of chunkArray(uniqueImageIds, 500)) {
+            const rows = await database.db
+                .select({ id: images.id, path: images.path })
+                .from(images)
+                .leftJoin(taskImages, eq(taskImages.imageId, images.id))
+                .where(and(inArray(images.id, chunk), isNull(taskImages.id)))
+                .all()
+            orphans.push(...rows)
+        }
 
         if (orphans.length === 0) {
             return 0
         }
 
-        await database.db
-            .delete(images)
-            .where(inArray(images.id, orphans.map(orphan => orphan.id)))
-            .run()
+        for (const chunk of chunkArray(orphans.map(orphan => orphan.id), 500)) {
+            await database.db
+                .delete(images)
+                .where(inArray(images.id, chunk))
+                .run()
+        }
 
         for (const orphan of orphans) {
             await unlinkContent(config.appStorageDir, orphan.path)
@@ -245,6 +253,16 @@ export const imageService = {
 
         return orphans.length
     },
+}
+
+function chunkArray<T>(values: T[], size: number): T[][] {
+    const chunks: T[][] = []
+
+    for (let index = 0; index < values.length; index += size) {
+        chunks.push(values.slice(index, index + size))
+    }
+
+    return chunks
 }
 
 async function selectOrigins(

@@ -6,10 +6,21 @@ export const taskStatus = z.enum(['queued', 'running', 'done', 'failed'])
 
 export type TaskStatus = z.output<typeof taskStatus>
 
+export const taskView = z.enum(['all', 'pin', 'discard'])
+
+export type TaskView = z.output<typeof taskView>
+
+export const taskFlag = z.enum(['pin', 'discard'])
+
+export type TaskFlag = z.output<typeof taskFlag>
+
 export const taskListItem = z.object({
     id: z.uuid(),
     name: z.string().nullable(),
     status: taskStatus,
+    pin: z.boolean(),
+    discard: z.boolean(),
+    outputCount: z.number().int().nonnegative(),
     createdAt: z.iso.datetime(),
     thumbnail: z.string().optional(),
 })
@@ -170,6 +181,8 @@ export type GetLorasResponse = z.output<typeof getLorasResponse>
 
 export const getTasksQuery = z.object({
     cursor: z.string().max(512).optional(),
+    search: z.string().trim().max(200).optional(),
+    view: taskView.default('all'),
     limit: z.union([
         z.number(),
         z.string().regex(/^[0-9]+$/).transform(Number),
@@ -195,6 +208,8 @@ export const getTaskResponse = z.object({
     id: z.uuid(),
     name: z.string().nullable(),
     status: taskStatus,
+    pin: z.boolean(),
+    discard: z.boolean(),
     createdAt: z.iso.datetime(),
     workflowId: z.uuid().optional(),
     workflow: z.string(),
@@ -261,6 +276,43 @@ export type RenameTaskRequest = z.output<typeof renameTaskRequest>
 export const renameTaskResponse = getTaskResponse
 
 export type RenameTaskResponse = GetTaskResponse
+
+export const updateTaskFlagParams = getTaskRequest
+
+export type UpdateTaskFlagParams = z.output<typeof updateTaskFlagParams>
+
+export const updateTaskFlagRequest = z.object({
+    flag: taskFlag,
+    value: z.boolean(),
+})
+
+export type UpdateTaskFlagRequest = z.output<typeof updateTaskFlagRequest>
+
+export const updateTaskFlagResponse = getTaskResponse
+
+export type UpdateTaskFlagResponse = GetTaskResponse
+
+export const deleteTasksRequest = z.discriminatedUnion('scope', [
+    z.object({
+        scope: z.literal('selected'),
+        taskIds: z.array(z.uuid())
+            .min(1)
+            .max(200)
+            .refine(ids => new Set(ids).size === ids.length, 'Task ids must be unique.'),
+    }),
+    z.object({
+        scope: z.literal('discard'),
+    }),
+])
+
+export type DeleteTasksRequest = z.output<typeof deleteTasksRequest>
+
+export const deleteTasksResponse = z.object({
+    ids: z.array(z.uuid()),
+    deletedImageCount: z.number().int().nonnegative(),
+})
+
+export type DeleteTasksResponse = z.output<typeof deleteTasksResponse>
 
 export const deleteTaskRequest = z.object({
     taskId: z.uuid(),

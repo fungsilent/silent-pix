@@ -32,7 +32,7 @@ export type Changed = z.output<typeof changed>
 
 export const removed = z.object({
     type: z.literal('task.removed'),
-    taskId: z.uuid(),
+    taskIds: z.array(z.uuid()).min(1),
 })
 
 export type Removed = z.output<typeof removed>

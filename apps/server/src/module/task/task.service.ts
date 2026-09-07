@@ -6,7 +6,8 @@ import {
     tasks,
     toUUID,
 } from '@silent-pix/db'
-import { and, asc, desc, eq, inArray } from 'drizzle-orm'
+import { and, asc, count, desc, eq, inArray, like, notInArray, or, sql } from 'drizzle-orm'
+import { alias } from 'drizzle-orm/sqlite-core'
 
 import { loadConfig } from '#/config'
 import { ComfyError } from '#/lib/comfy/comfy.client'
@@ -31,7 +32,7 @@ import type { WorkflowModel } from '#/module/workflow/workflow.model'
 
 const config = loadConfig()
 
-type TaskCursor = { createdAt: string, id: string }
+type TaskCursor = { createdAt: number, id: string }
 
 export const taskService = {
     // MARK: CRUD
@@ -105,6 +106,8 @@ export const taskService = {
             id: item.task.id,
             name: item.task.name,
             status: item.task.status,
+            pin: item.task.pin,
+            discard: item.task.discard,
             createdAt: item.task.createdAt.toISOString(),
             workflowId: item.task.workflowId,
             workflow: item.workflow.name,
@@ -246,90 +249,229 @@ export const taskService = {
         }
     },
 
-    async remove(database: DatabaseClient, taskId: UUID) {
-        const related = await database.db
-            .select({ imageId: taskImages.imageId })
-            .from(taskImages)
-            .where(eq(taskImages.taskId, taskId))
-            .all()
+    async setFlag(
+        database: DatabaseClient,
+        taskId: UUID,
+        request: TaskApi.UpdateTaskFlagRequest,
+    ) {
+        const patch: TaskUpdate = request.flag === 'pin'
+            ? (request.value
+                ? { id: taskId, pin: true, discard: false }
+                : { id: taskId, pin: false })
+            : (request.value
+                ? { id: taskId, pin: false, discard: true }
+                : { id: taskId, discard: false })
 
-        const [removed] = await database.db
-            .delete(tasks)
-            .where(eq(tasks.id, taskId))
-            .returning({ id: tasks.id })
+        const [updated] = await taskService.updateTask(database, patch)
+        if (!updated) {
+            return fail('TASK_NOT_FOUND')
+        }
 
-        if (!removed) return fail('TASK_NOT_FOUND')
+        const response = await taskService.getTaskResponse(database, taskId)
+        return response ? done(response) : fail('TASK_NOT_FOUND')
+    },
 
-        await imageService.deleteUnreferenced(
+    async removeMany(
+        database: DatabaseClient,
+        request: TaskApi.DeleteTasksRequest,
+        options?: { allowActive?: boolean },
+    ) {
+        const allowActive = options?.allowActive ?? false
+
+        let removed: { ids: UUID[], imageIds: UUID[] }
+
+        if (request.scope === 'selected') {
+            const taskIds = request.taskIds.map(taskId => toUUID(taskId, 'taskId'))
+            const targetsQuery = database.db
+                .select({ id: tasks.id, status: tasks.status })
+                .from(tasks)
+                .where(inArray(tasks.id, taskIds))
+            const relatedQuery = database.db
+                .selectDistinct({ imageId: taskImages.imageId })
+                .from(taskImages)
+                .where(inArray(taskImages.taskId, taskIds))
+
+            /* 驗證查詢與帶 guard 的刪除必須留在同一個 batch，才能維持全有全無。 */
+            const allTargetsExist = sql`(
+                SELECT count(*) FROM ${tasks}
+                WHERE ${inArray(tasks.id, taskIds)}
+            ) = ${taskIds.length}`
+            const noActiveTargets = sql`NOT EXISTS (
+                SELECT 1 FROM ${tasks}
+                WHERE ${inArray(tasks.id, taskIds)}
+                    AND ${or(eq(tasks.status, 'queued'), eq(tasks.status, 'running'))}
+            )`
+            const deleteCondition = allowActive
+                ? and(inArray(tasks.id, taskIds), allTargetsExist)
+                : and(inArray(tasks.id, taskIds), allTargetsExist, noActiveTargets)
+            const deleteQuery = database.db
+                .delete(tasks)
+                .where(deleteCondition)
+
+            const [targets, related, deleted] = await database.db.batch([
+                targetsQuery,
+                relatedQuery,
+                deleteQuery,
+            ] as const)
+
+            if (targets.length !== taskIds.length) {
+                return fail('TASK_NOT_FOUND')
+            }
+
+            if (!allowActive && targets.some(target => (
+                target.status === 'queued' || target.status === 'running'
+            ))) {
+                return fail('TASK_ACTIVE')
+            }
+
+            if (deleted.rowsAffected !== taskIds.length) {
+                throw new Error('Task delete count changed during batch.')
+            }
+
+            removed = {
+                ids: taskIds,
+                imageIds: related.map(relation => relation.imageId),
+            }
+        }
+        else {
+            const discardCondition = and(
+                eq(tasks.discard, true),
+                notInArray(tasks.status, ['queued', 'running']),
+            )
+            const targetsQuery = database.db
+                .select({ id: tasks.id })
+                .from(tasks)
+                .where(discardCondition)
+            const relatedQuery = database.db
+                .selectDistinct({ imageId: taskImages.imageId })
+                .from(taskImages)
+                .innerJoin(tasks, eq(tasks.id, taskImages.taskId))
+                .where(discardCondition)
+            const deleteQuery = database.db
+                .delete(tasks)
+                .where(discardCondition)
+
+            const [targets, related, deleted] = await database.db.batch([
+                targetsQuery,
+                relatedQuery,
+                deleteQuery,
+            ] as const)
+
+            if (deleted.rowsAffected !== targets.length) {
+                throw new Error('Discard task delete count changed during batch.')
+            }
+
+            removed = {
+                ids: targets.map(task => task.id),
+                imageIds: related.map(relation => relation.imageId),
+            }
+        }
+
+        const deletedImageCount = await imageService.deleteUnreferenced(
             database,
-            [...new Set(related.map(relation => relation.imageId))],
+            [...new Set(removed.imageIds)],
         )
 
-        return done({ id: removed.id })
+        return done({
+            ids: removed.ids,
+            deletedImageCount,
+        })
+    },
+
+    async remove(database: DatabaseClient, taskId: UUID) {
+        const result = await taskService.removeMany(
+            database,
+            { scope: 'selected', taskIds: [taskId] },
+            { allowActive: true },
+        )
+
+        return result.ok
+            ? done({ id: taskId })
+            : fail(result.error)
     },
 
     async getTasks(
         database: DatabaseClient,
         query: TaskApi.GetTasksQuery,
     ) {
-        const rows = await database.db
-            .select()
-            .from(tasks)
-            .orderBy(desc(tasks.createdAt), desc(tasks.id))
-            .then(r => r.map(task => castTaskModel(task)))
+        const cursor = query.cursor === undefined
+            ? undefined
+            : decodeCursor(query.cursor)
+        if (!query.cursor && !cursor) {
+            return fail('INVALID_TASK_CURSOR')
+        }
 
-        let start = 0
-
-        if (query.cursor) {
-            const cursor = decodeCursor(query.cursor)
-            if (!cursor) return fail('INVALID_TASK_CURSOR')
-
-            const cursorIndex = rows.findIndex(row => (
-                row.createdAt.toISOString() === cursor.createdAt && row.id === cursor.id
+        const search = query.search?.trim()
+        const outputRelations = alias(taskImages, 'outputRelations')
+        const outputImages = alias(images, 'outputImages')
+        const outputCount = database.db
+            .select({ count: count().as('count') })
+            .from(outputRelations)
+            .where(and(
+                eq(outputRelations.taskId, tasks.id),
+                eq(outputRelations.type, 'output'),
             ))
-            if (cursorIndex < 0) return fail('INVALID_TASK_CURSOR')
-            start = cursorIndex + 1
-        }
+            .as('outputCount')
+        const thumbnailImageId = database.db
+            .select({ id: outputImages.id })
+            .from(outputRelations)
+            .innerJoin(outputImages, eq(outputImages.id, outputRelations.imageId))
+            .where(and(
+                eq(outputRelations.taskId, tasks.id),
+                eq(outputRelations.type, 'output'),
+            ))
+            .orderBy(asc(outputRelations.sortIndex), asc(outputRelations.id))
+            .limit(1)
+            .as('thumbnailImageId')
+        const rows = await database.db
+            .select({
+                id: tasks.id,
+                name: tasks.name,
+                status: tasks.status,
+                pin: tasks.pin,
+                discard: tasks.discard,
+                createdAt: tasks.createdAt,
+                outputCount,
+                thumbnailImageId,
+            })
+            .from(tasks)
+            .where(and(
+                query.view === 'pin' ? eq(tasks.pin, true) : undefined,
+                query.view === 'discard' ? eq(tasks.discard, true) : undefined,
+                cursor
+                    ? sql`(${tasks.createdAt}, ${tasks.id}) < (${cursor.createdAt}, ${cursor.id})`
+                    : undefined,
+                search
+                    ? or(
+                        like(tasks.name, `%${search}%`),
+                        like(tasks.id, `%${search}%`),
+                    )
+                    : undefined,
+            ))
+            .orderBy(desc(tasks.createdAt), desc(tasks.id))
+            .limit(query.limit + 1)
+            .all()
 
-        const selected = rows.slice(start, start + query.limit)
-        const taskIds = selected.map(task => task.id)
-        const thumbnailRows = taskIds.length === 0
-            ? []
-            : await database.db
-                .select({
-                    taskId: taskImages.taskId,
-                    sortIndex: taskImages.sortIndex,
-                    imageId: taskImages.imageId,
-                })
-                .from(taskImages)
-                .where(and(
-                    inArray(taskImages.taskId, taskIds),
-                    eq(taskImages.type, 'output'),
-                ))
-                .orderBy(asc(taskImages.sortIndex))
-                .all()
-
-        const firstImage = new Map<string, string>()
-        for (const row of thumbnailRows) {
-            if (!firstImage.has(row.taskId)) firstImage.set(row.taskId, row.imageId)
-        }
-
-        const items = selected.map(row => {
-            const imageId = firstImage.get(row.id)
-            return {
-                id: row.id,
-                name: row.name,
-                status: row.status,
-                createdAt: row.createdAt.toISOString(),
-                ...(imageId ? { thumbnail: `/api/image/${imageId}` } : {}),
-            }
-        })
-        const lastItem = items.at(-1)
+        const hasMore = rows.length > query.limit
+        const page = hasMore ? rows.slice(0, query.limit) : rows
+        const items = page.map(row => ({
+            id: row.id,
+            name: row.name,
+            status: row.status,
+            pin: row.pin,
+            discard: row.discard,
+            outputCount: row.outputCount,
+            createdAt: new Date(row.createdAt).toISOString(),
+            ...(row.thumbnailImageId
+                ? { thumbnail: `/api/image/${row.thumbnailImageId}` }
+                : {}),
+        }))
+        const last = page.at(-1)
 
         return done({
             items,
-            ...(lastItem && start + items.length < rows.length
-                ? { nextCursor: encodeCursor(lastItem) }
+            ...(hasMore && last
+                ? { nextCursor: encodeCursor(last.createdAt, last.id) }
                 : {}),
         })
     },
@@ -348,8 +490,11 @@ export const taskService = {
             id: item.task.id,
             name: item.task.name,
             status: item.task.status,
+            pin: item.task.pin,
+            discard: item.task.discard,
             createdAt: item.task.createdAt.toISOString(),
             images: toOutputResources(item.images),
+            outputCount: item.images.filter(image => image.type === 'output').length,
         }
     },
 
@@ -602,15 +747,17 @@ function toOutputResources(relations: TaskImageModel[]): ImageApi.ImageResource[
 function isTaskCursor(value: unknown): value is TaskCursor {
     if (!value || typeof value !== 'object') return false
     const cursor = value as Record<string, unknown>
-    return typeof cursor.createdAt === 'string'
-        && !Number.isNaN(Date.parse(cursor.createdAt))
+    return typeof cursor.createdAt === 'number'
+        && Number.isSafeInteger(cursor.createdAt)
+        && cursor.createdAt >= 0
         && typeof cursor.id === 'string'
+        && cursor.id.length > 0
 }
 
-function encodeCursor(task: TaskApi.TaskListItem): string {
+function encodeCursor(createdAt: number, id: string): string {
     return Buffer.from(JSON.stringify({
-        createdAt: task.createdAt,
-        id: task.id,
+        createdAt,
+        id,
     }), 'utf8').toString('base64url')
 }
 

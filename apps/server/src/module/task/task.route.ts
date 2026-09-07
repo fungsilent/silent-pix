@@ -126,6 +126,40 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
             },
         },
     )
+    .patch(
+        '/:taskId/flag',
+        async ({ body, database, params, pushEvent, status }) => {
+            const taskId = toUUID(params.taskId, 'taskId')
+            const result = await taskService.setFlag(
+                database,
+                taskId,
+                body,
+            )
+
+            if (!result.ok) {
+                return status(404, {
+                    error: {
+                        code: result.error,
+                        message: 'Task not found.',
+                    },
+                })
+            }
+
+            await taskService.publishChanged(database, taskId, pushEvent)
+
+            return result.data
+        },
+        {
+            params: taskApi.updateTaskFlagParams,
+            body: taskApi.updateTaskFlagRequest,
+            response: {
+                200: taskApi.updateTaskFlagResponse,
+                404: appApi.errorResponse,
+                422: appApi.errorResponse,
+                500: appApi.errorResponse,
+            },
+        },
+    )
     .get(
         '/:taskId',
         async ({ database, params, status }) => {
@@ -155,6 +189,46 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
         },
     )
     .delete(
+        '/',
+        async ({ body, database, pushEvent, status }) => {
+            const result = await taskService.removeMany(database, body)
+
+            if (!result.ok) {
+                if (result.error === 'TASK_ACTIVE') {
+                    return status(409, {
+                        error: {
+                            code: result.error,
+                            message: 'One or more tasks are still active.',
+                        },
+                    })
+                }
+
+                return status(404, {
+                    error: {
+                        code: result.error,
+                        message: 'Task not found.',
+                    },
+                })
+            }
+
+            if (result.data.ids.length > 0) {
+                pushEvent(taskRemoved(result.data.ids))
+            }
+
+            return result.data
+        },
+        {
+            body: taskApi.deleteTasksRequest,
+            response: {
+                200: taskApi.deleteTasksResponse,
+                404: appApi.errorResponse,
+                409: appApi.errorResponse,
+                422: appApi.errorResponse,
+                500: appApi.errorResponse,
+            },
+        },
+    )
+    .delete(
         '/:taskId',
         async ({ database, params, pushEvent, status }) => {
             const result = await taskService.remove(
@@ -171,7 +245,7 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
                 })
             }
 
-            pushEvent(taskRemoved(result.data.id))
+            pushEvent(taskRemoved([result.data.id]))
 
             return result.data
         },

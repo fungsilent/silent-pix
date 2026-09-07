@@ -1,4 +1,4 @@
-import { cacheTaskChanged, cacheTaskRemoved } from '#/features/task/task.cache'
+import { cacheTaskChanged, cacheTasksRemoved } from '#/features/task/task.cache'
 import { taskStore } from '#/store/task'
 
 import type { Event } from '@silent-pix/shared'
@@ -15,16 +15,16 @@ export function handleTaskRemoved(
     queryClient: QueryClient,
     event: Event.Task.Removed,
 ): void {
-    applyTaskRemoved(queryClient, event.taskId)
+    applyTasksRemoved(queryClient, event.taskIds)
 }
 
-export function applyTaskRemoved(
+export function applyTasksRemoved(
     queryClient: QueryClient,
-    taskId: string,
+    taskIds: string[],
 ): void {
-    cacheTaskRemoved(queryClient, taskId)
+    cacheTasksRemoved(queryClient, taskIds)
 
-    if (taskStore.state.selectedTaskId === taskId) {
+    if (taskIds.includes(taskStore.state.selectedTaskId ?? '')) {
         taskStore.clearTask()
     }
 }

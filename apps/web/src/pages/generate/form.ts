@@ -65,6 +65,8 @@ export const draftTask: GenerateTask = {
     id: '#',
     name: null,
     status: null,
+    pin: false,
+    discard: false,
     createdAt: null,
     workflow: '',
     /* draft 還沒有 workflow，兩個都是 0：TaskDetail 看到 0 就不提示 drift */
