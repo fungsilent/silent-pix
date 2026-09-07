@@ -249,26 +249,38 @@ export const taskService = {
         }
     },
 
-    async setFlag(
+    async setFlags(
         database: DatabaseClient,
-        taskId: UUID,
-        request: TaskApi.UpdateTaskFlagRequest,
+        request: TaskApi.UpdateTaskFlagsRequest,
     ) {
-        const patch: TaskUpdate = request.flag === 'pin'
-            ? (request.value
-                ? { id: taskId, pin: true, discard: false }
-                : { id: taskId, pin: false })
-            : (request.value
-                ? { id: taskId, pin: false, discard: true }
-                : { id: taskId, discard: false })
+        const taskIds = request.taskIds.map(taskId => toUUID(taskId, 'taskId'))
+        const flags = request.flag === 'pin'
+            ? { pin: true, discard: false }
+            : request.flag === 'discard'
+                ? { pin: false, discard: true }
+                : { pin: false, discard: false }
+        const allTasksExist = eq(
+            database.db.$count(tasks, inArray(tasks.id, taskIds)),
+            taskIds.length,
+        )
+        const updated = await database.db
+            .update(tasks)
+            .set({ ...flags, updatedAt: Date.now() })
+            .where(and(
+                inArray(tasks.id, taskIds),
+                allTasksExist,
+            ))
+            .returning({
+                id: tasks.id,
+                pin: tasks.pin,
+                discard: tasks.discard,
+            })
 
-        const [updated] = await taskService.updateTask(database, patch)
-        if (!updated) {
+        if (updated.length !== taskIds.length) {
             return fail('TASK_NOT_FOUND')
         }
 
-        const response = await taskService.getTaskResponse(database, taskId)
-        return response ? done(response) : fail('TASK_NOT_FOUND')
+        return done({ tasks: updated })
     },
 
     async removeMany(

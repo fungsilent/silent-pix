@@ -4,6 +4,11 @@ import type { Event, ImageApi, TaskApi } from '@silent-pix/shared'
 import type { InfiniteData, QueryClient } from '@tanstack/solid-query'
 
 type TaskFeedData = InfiniteData<TaskApi.GetTasksResponse, string | undefined>
+type TaskFeedScope = ReturnType<typeof taskKeys.feed>[2]
+type FeedWriteResult = {
+    data: TaskFeedData | undefined
+    invalidate: boolean
+}
 
 export function cacheCreatedTaskResponse(
     queryClient: QueryClient,
@@ -36,11 +41,14 @@ export function cacheTaskRenamed(
         toTaskSnapshot(task),
     )
 
-    const listItem = toTaskListItem(toTaskSnapshot(task))
-    queryClient.setQueriesData<TaskFeedData>(
-        { queryKey: taskKeys.feeds() },
-        current => updateTaskFeed(current, listItem, false),
-    )
+    writeTaskFeeds(queryClient, (current, scope) => scope.search
+        ? { data: current, invalidate: true }
+        : updateTaskFeed(
+            current,
+            scope,
+            toTaskListItem(toTaskSnapshot(task)),
+            true,
+        ))
 }
 
 export function cacheTaskCreated(
@@ -51,12 +59,10 @@ export function cacheTaskCreated(
         taskKeys.snapshot(task.id),
         current => current ?? task,
     )
-    const listItem = toTaskListItem(task)
 
-    queryClient.setQueriesData<TaskFeedData>(
-        { queryKey: taskKeys.feeds() },
-        current => updateTaskFeed(current, listItem, true),
-    )
+    writeTaskFeeds(queryClient, (current, scope) => scope.search
+        ? { data: current, invalidate: true }
+        : updateTaskFeed(current, scope, toTaskListItem(task), true))
 }
 
 export function cacheTaskChanged(
@@ -67,16 +73,101 @@ export function cacheTaskChanged(
         taskKeys.snapshot(task.id),
         task,
     )
-    const listItem = toTaskListItem(task)
 
-    queryClient.setQueriesData<TaskFeedData>(
-        { queryKey: taskKeys.feeds() },
-        current => updateTaskFeed(current, listItem, false),
-    )
+    writeTaskFeeds(queryClient, (current, scope) => scope.search
+        ? { data: current, invalidate: true }
+        : updateTaskFeed(current, scope, toTaskListItem(task), true))
     queryClient.setQueryData<TaskApi.GetTaskResponse>(
         taskKeys.detail({ taskId: task.id }),
         current => updateTaskDetail(current, task),
     )
+}
+
+export function cacheTaskFlagsPatched(
+    queryClient: QueryClient,
+    tasks: TaskApi.TaskFlagState[],
+): void {
+    for (const task of tasks) {
+        const snapshot = queryClient.getQueryData<Event.Task.Snapshot>(
+            taskKeys.snapshot(task.id),
+        )
+        if (snapshot) {
+            queryClient.setQueryData<Event.Task.Snapshot>(
+                taskKeys.snapshot(task.id),
+                { ...snapshot, pin: task.pin, discard: task.discard },
+            )
+        }
+
+        const detail = queryClient.getQueryData<TaskApi.GetTaskResponse>(
+            taskKeys.detail({ taskId: task.id }),
+        )
+        if (detail) {
+            queryClient.setQueryData<TaskApi.GetTaskResponse>(
+                taskKeys.detail({ taskId: task.id }),
+                { ...detail, pin: task.pin, discard: task.discard },
+            )
+        }
+    }
+
+    const insertionItems = new Map<string, TaskApi.TaskListItem>()
+
+    for (const task of tasks) {
+        const snapshot = queryClient.getQueryData<Event.Task.Snapshot>(
+            taskKeys.snapshot(task.id),
+        )
+        if (snapshot) {
+            insertionItems.set(task.id, toTaskListItem({
+                ...snapshot,
+                pin: task.pin,
+                discard: task.discard,
+            }))
+            continue
+        }
+
+        const detail = queryClient.getQueryData<TaskApi.GetTaskResponse>(
+            taskKeys.detail({ taskId: task.id }),
+        )
+        if (detail) {
+            insertionItems.set(task.id, toTaskListItem({
+                ...toTaskSnapshot(detail),
+                pin: task.pin,
+                discard: task.discard,
+            }))
+        }
+    }
+
+    writeTaskFeeds(queryClient, (current, scope) => {
+        if (scope.search) {
+            return { data: current, invalidate: true }
+        }
+
+        let result: FeedWriteResult = {
+            data: current,
+            invalidate: false,
+        }
+
+        for (const task of tasks) {
+            const currentUpdate = updateTaskFeedFlags(result.data, scope, task)
+            result = mergeFeedWriteResult(result, currentUpdate)
+
+            if (currentUpdate.found) {
+                continue
+            }
+
+            const source = insertionItems.get(task.id)
+            if (source) {
+                result = mergeFeedWriteResult(
+                    result,
+                    updateTaskFeed(result.data, scope, source, true),
+                )
+            }
+            else if (current && mayMatchTaskFeedView(task, scope)) {
+                result.invalidate = true
+            }
+        }
+
+        return result
+    })
 }
 
 export function cacheTasksRemoved(
@@ -90,10 +181,37 @@ export function cacheTasksRemoved(
         queryClient.removeQueries({ queryKey: taskKeys.detail({ taskId }) })
     })
 
-    queryClient.setQueriesData<TaskFeedData>(
-        { queryKey: taskKeys.feeds() },
-        current => removeFromTaskFeed(current, removedIds),
-    )
+    writeTaskFeeds(queryClient, current => ({
+        data: removeFromTaskFeed(current, removedIds),
+        invalidate: false,
+    }))
+}
+
+function writeTaskFeeds(
+    queryClient: QueryClient,
+    writer: (
+        current: TaskFeedData | undefined,
+        scope: TaskFeedScope,
+    ) => FeedWriteResult,
+): void {
+    for (const [queryKey, current] of queryClient.getQueriesData<TaskFeedData>({
+        queryKey: taskKeys.feeds(),
+    })) {
+        const scope = queryKey[2] as TaskFeedScope
+
+        const result = writer(current, scope)
+
+        if (result.data !== current && result.data !== undefined) {
+            queryClient.setQueryData<TaskFeedData>(queryKey, result.data)
+        }
+
+        if (result.invalidate) {
+            void queryClient.invalidateQueries({
+                queryKey,
+                exact: true,
+            })
+        }
+    }
 }
 
 function removeFromTaskFeed(
@@ -117,6 +235,205 @@ function removeFromTaskFeed(
     })
 
     return found ? { ...current, pages } : current
+}
+
+function updateTaskFeed(
+    current: TaskFeedData | undefined,
+    scope: TaskFeedScope,
+    task: TaskApi.TaskListItem,
+    insertIfMissing: boolean,
+): FeedWriteResult {
+    if (!current) {
+        return { data: current, invalidate: false }
+    }
+
+    if (scope.search) {
+        return { data: current, invalidate: true }
+    }
+
+    if (current.pages.length === 0) {
+        return {
+            data: current,
+            invalidate: insertIfMissing && matchesTaskFeedView(task, scope),
+        }
+    }
+
+    let found = false
+    let changed = false
+    const pages = current.pages.map(page => {
+        const items = page.items.flatMap(currentTask => {
+            if (currentTask.id !== task.id) {
+                return [currentTask]
+            }
+
+            found = true
+
+            if (!matchesTaskFeedView(task, scope)) {
+                changed = true
+                return []
+            }
+
+            if (!sameTaskListItem(currentTask, task)) {
+                changed = true
+                return [task]
+            }
+
+            return [currentTask]
+        })
+
+        return items.length !== page.items.length
+            || items.some((item, index) => item !== page.items[index])
+            ? { ...page, items }
+            : page
+    })
+
+    if (found || !insertIfMissing || !matchesTaskFeedView(task, scope)) {
+        return {
+            data: changed ? { ...current, pages } : current,
+            invalidate: false,
+        }
+    }
+
+    const insertion = insertTask(pages, task)
+
+    return {
+        data: insertion.pages ? { ...current, pages: insertion.pages } : current,
+        invalidate: insertion.invalidate,
+    }
+}
+
+type TaskFeedFlagWriteResult = FeedWriteResult & { found: boolean }
+
+function updateTaskFeedFlags(
+    current: TaskFeedData | undefined,
+    scope: TaskFeedScope,
+    task: TaskApi.TaskFlagState,
+): TaskFeedFlagWriteResult {
+    if (!current) {
+        return { data: current, invalidate: false, found: false }
+    }
+
+    let found = false
+    let changed = false
+    const pages = current.pages.map(page => {
+        const items = page.items.flatMap(currentTask => {
+            if (currentTask.id !== task.id) {
+                return [currentTask]
+            }
+
+            found = true
+
+            const updatedTask = {
+                ...currentTask,
+                pin: task.pin,
+                discard: task.discard,
+            }
+
+            if (!matchesTaskFeedView(updatedTask, scope)) {
+                changed = true
+                return []
+            }
+
+            if (currentTask.pin !== task.pin || currentTask.discard !== task.discard) {
+                changed = true
+                return [updatedTask]
+            }
+
+            return [currentTask]
+        })
+
+        return items.length !== page.items.length
+            || items.some((item, index) => item !== page.items[index])
+            ? { ...page, items }
+            : page
+    })
+
+    return {
+        data: changed ? { ...current, pages } : current,
+        invalidate: false,
+        found,
+    }
+}
+
+function mergeFeedWriteResult(
+    previous: FeedWriteResult,
+    next: FeedWriteResult,
+): FeedWriteResult {
+    return {
+        data: next.data,
+        invalidate: previous.invalidate || next.invalidate,
+    }
+}
+
+function matchesTaskFeedView(
+    item: TaskApi.TaskListItem,
+    scope: TaskFeedScope,
+): boolean {
+    if (scope.view === 'pin' && !item.pin) {
+        return false
+    }
+
+    if (scope.view === 'discard' && !item.discard) {
+        return false
+    }
+
+    return true
+}
+
+function mayMatchTaskFeedView(
+    task: TaskApi.TaskFlagState,
+    scope: TaskFeedScope,
+): boolean {
+    if (scope.view === 'pin' && !task.pin) {
+        return false
+    }
+
+    if (scope.view === 'discard' && !task.discard) {
+        return false
+    }
+
+    return true
+}
+
+function insertTask(
+    pages: TaskApi.GetTasksResponse[],
+    task: TaskApi.TaskListItem,
+): { pages?: TaskApi.GetTasksResponse[], invalidate: boolean } {
+    for (const [pageIndex, page] of pages.entries()) {
+        const insertAt = page.items.findIndex(item => comesBefore(task, item))
+
+        if (insertAt >= 0) {
+            return {
+                pages: pages.map((currentPage, index) => index === pageIndex
+                    ? {
+                        ...currentPage,
+                        items: [
+                            ...currentPage.items.slice(0, insertAt),
+                            task,
+                            ...currentPage.items.slice(insertAt),
+                        ],
+                    }
+                    : currentPage),
+                invalidate: false,
+            }
+        }
+    }
+
+    const lastPage = pages.at(-1)
+    if (!lastPage) {
+        return { invalidate: true }
+    }
+
+    if (lastPage.nextCursor) {
+        return { invalidate: true }
+    }
+
+    return {
+        pages: pages.map((page, index) => index === pages.length - 1
+            ? { ...page, items: [...page.items, task] }
+            : page),
+        invalidate: false,
+    }
 }
 
 function toTaskSnapshot(task: TaskApi.GetTaskResponse): Event.Task.Snapshot {
@@ -157,69 +474,6 @@ function toTaskListItem(task: Event.Task.Snapshot): TaskApi.TaskListItem {
         outputCount: task.outputCount,
         createdAt: task.createdAt,
         ...(thumbnail ? { thumbnail } : {}),
-    }
-}
-
-function updateTaskFeed(
-    current: TaskFeedData | undefined,
-    task: TaskApi.TaskListItem,
-    insertIfMissing: boolean,
-): TaskFeedData | undefined {
-    if (!current || current.pages.length === 0) {
-        return current
-    }
-
-    let found = false
-    let changed = false
-    const pages = current.pages.map(page => {
-        const items = page.items.map(currentTask => {
-            if (currentTask.id !== task.id) {
-                return currentTask
-            }
-
-            found = true
-            if (!insertIfMissing && !sameTaskListItem(currentTask, task)) {
-                changed = true
-                return task
-            }
-
-            return currentTask
-        })
-
-        return items.some((item, index) => item !== page.items[index])
-            ? { ...page, items }
-            : page
-    })
-
-    if (found) {
-        return changed ? { ...current, pages } : current
-    }
-
-    if (!insertIfMissing) {
-        return current
-    }
-
-    const firstPage = pages[0]
-    if (!firstPage) {
-        return current
-    }
-
-    const insertAt = firstPage.items.findIndex(item => comesBefore(task, item))
-    const index = insertAt < 0 ? firstPage.items.length : insertAt
-
-    return {
-        ...current,
-        pages: [
-            {
-                ...firstPage,
-                items: [
-                    ...firstPage.items.slice(0, index),
-                    task,
-                    ...firstPage.items.slice(index),
-                ],
-            },
-            ...pages.slice(1),
-        ],
     }
 }
 

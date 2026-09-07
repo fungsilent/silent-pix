@@ -24,6 +24,9 @@ description: Write an implementation plan document for this repo — where it go
 
 Rough calibration: a feature touching ~20 files lands around 400 lines, of which more than half is code, tables, and diagrams.
 
+- `已定案` contains only user-settled product or architecture decisions. Do not present an unverified helper name, file location, ORM expression, or library behavior as settled.
+- A plan may be concrete, but low-level prescriptions must be supported by current code or library evidence. Keep short, single-use logic inline/local until reuse, ownership, or isolated complexity is demonstrated.
+
 ## Architecture target
 
 Plan for **the simplest architecture that cleanly fits current requirements and current system shape**. This is not a smallest-diff or MVP-first rule.
@@ -164,6 +167,18 @@ A numbered checklist, each item a command or an observable outcome. "測試上�
 ### `## 風險`
 
 A table: `# | 風險 | 處置`. Every unverified assumption goes here, including the ones you introduced. If a risk was disproved during planning, say so in the 處置 column rather than deleting the row — the reader may have the same worry.
+
+## Planning audit
+
+Before handoff, verify these boundaries against current code and library behavior:
+
+| Audit | Check |
+|---|---|
+| Trust boundary | External/untrusted data is runtime-validated; internal factory/state/cache-key data uses the factory-derived compile-time type. |
+| Server semantics | Frontend does not reproduce database membership, collation, `LIKE`, or equivalent backend rules; uncertain cache membership invalidates/refetches. |
+| Operation granularity | A single all-or-none UI batch action maps to one batch API and one server-owned atomic operation, not client fan-out; the operation may use a transaction or batch of statements. |
+| Existing conventions | Service updates preserve established fields such as `updatedAt`; mutations follow existing side-effect placement such as `onSuccess`. |
+| Boundary size | Short, single-use logic remains inline/local; extracted files/helpers have reuse, ownership, or isolated-complexity evidence. |
 
 ## Before handing it over
 

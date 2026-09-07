@@ -1,4 +1,4 @@
-import { cacheTaskChanged, cacheTasksRemoved } from '#/features/task/task.cache'
+import { cacheTaskChanged, cacheTaskCreated, cacheTasksRemoved } from '#/features/task/task.cache'
 import { taskStore } from '#/store/task'
 
 import type { Event } from '@silent-pix/shared'
@@ -9,6 +9,13 @@ export function handleTaskChanged(
     event: Event.Task.Changed,
 ): void {
     cacheTaskChanged(queryClient, event.task)
+}
+
+export function handleTaskCreated(
+    queryClient: QueryClient,
+    event: Event.Task.Created,
+): void {
+    cacheTaskCreated(queryClient, event.task)
 }
 
 export function handleTaskRemoved(

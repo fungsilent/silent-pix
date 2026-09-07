@@ -23,7 +23,7 @@ type FilterOption = {
 
 const filterOptions: FilterOption[] = [
     { value: 'all', label: 'All', Icon: ListFilter },
-    { value: 'pin', label: 'Pinned', Icon: Pin },
+    { value: 'pin', label: 'Pin', Icon: Pin },
     { value: 'discard', label: 'Discard', Icon: Trash2 },
 ]
 

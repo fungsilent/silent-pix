@@ -1,5 +1,5 @@
 import { handleHealthSnapshot } from '#/features/app/app.event'
-import { handleTaskChanged, handleTaskRemoved } from '#/features/task/task.event'
+import { handleTaskChanged, handleTaskCreated, handleTaskRemoved } from '#/features/task/task.event'
 import { handleWorkflowChanged, handleWorkflowRemoved } from '#/features/workflow/workflow.event'
 
 import type { Event } from '@silent-pix/shared'
@@ -10,6 +10,9 @@ export function handleServerEvent(
     serverEvent: Event.ServerEvent,
 ): void {
     switch (serverEvent.type) {
+        case 'task.created':
+            handleTaskCreated(queryClient, serverEvent)
+            return
         case 'task.changed':
             handleTaskChanged(queryClient, serverEvent)
             return

@@ -2,55 +2,95 @@ import { Check, Minimize2, Pin, RefreshCw, Search, Trash2 } from 'lucide-solid'
 import { createEffect, createMemo, createSignal, For, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
+import { Dialog } from '#/components/base/Dialog'
+import { FieldHint } from '#/components/base/FieldHint'
+import { IssueChip } from '#/components/base/IssueChip'
 import { Loading } from '#/components/base/Loading'
 import { PanelHeader } from '#/components/base/Panel'
 import { Text } from '#/components/field/Text'
 import { TaskStatus } from '#/components/task/TaskStatus'
 import { ImageViewer } from '#/components/viewer/ImageViewer'
-import { useTaskFeedQuery } from '#/features/task/task.query'
 import {
-    decorateTask,
-    filterTaskItems,
-    searchTaskItems,
-    setTaskFlag,
-    setTaskFlags,
-} from '#/features/task/task.shim'
+    useDeleteDiscardedTasksMutation,
+    useDeleteSelectedTasksMutation,
+    useTaskFeedQuery,
+    useTaskFlagMutation,
+} from '#/features/task/task.query'
 import { cn } from '#/lib/cn'
 import { createDragSelection } from '#/lib/dragSelection'
+import { toErrorMessage } from '#/lib/error'
 import { formatDateTime } from '#/lib/format'
 import { TaskFilterChips } from '#/pages/generate/components/task/TaskFilterChips'
 import { placeholderMap } from '#/pages/generate/components/task/taskPlaceholder'
 import { useGenerateDetail } from '#/pages/generate/detail'
 import { type TaskFeedFilter, taskStore } from '#/store/task'
 
-import type { TaskFlag, TaskListItemWithShimFlags } from '#/features/task/task.shim'
+import type { TaskApi } from '@silent-pix/shared'
+import type { AppIssue } from '#/lib/issue'
 
 const taskSkeletonCells = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+const taskSelectionLimit = 200
 
 export function TaskBrowser() {
     const taskFeedQuery = useTaskFeedQuery()
+    const flagMutation = useTaskFlagMutation()
+    const selectedDeleteMutation = useDeleteSelectedTasksMutation()
+    const discardedDeleteMutation = useDeleteDiscardedTasksMutation()
     const [selectedTaskIds, setSelectedTaskIds] = createSignal<string[]>([])
     const [viewerTaskId, setViewerTaskId] = createSignal<string>()
     const [viewerIndex, setViewerIndex] = createSignal(0)
+    const [batchDeleteOpen, setBatchDeleteOpen] = createSignal(false)
+    const [batchDeleteScope, setBatchDeleteScope] = createSignal<'selected' | 'discard'>('selected')
+    const [selectionLimitWarning, setSelectionLimitWarning] = createSignal(false)
+    const [issuesOpen, setIssuesOpen] = createSignal(false)
     const detail = useGenerateDetail()
     let selectionContainerElement: HTMLDivElement | undefined
     const dragSelection = createDragSelection({
         container: () => selectionContainerElement,
         selectedIds: selectedTaskIds,
-        onSelectionChange: ids => setSelectedTaskIds(ids),
+        onSelectionChange: ids => {
+            if (ids.length > taskSelectionLimit) {
+                setSelectionLimitWarning(true)
+                setSelectedTaskIds(ids.slice(0, taskSelectionLimit))
+                return
+            }
+
+            setSelectedTaskIds(ids)
+        },
         itemSelector: '[data-task-card]',
         controlSelector: '[data-marquee-control]',
         getItemId: item => item.dataset.taskId,
     })
-    const decoratedTasks = createMemo(() => (
-        taskFeedQuery.data?.pages.flatMap(page => page.items).map(decorateTask) ?? []
-    ))
-    const tasks = createMemo(() => searchTaskItems(
-        filterTaskItems(decoratedTasks(), taskStore.state.feedFilter),
-        taskStore.state.feedSearch,
-    ))
+    const tasks = createMemo(() => taskFeedQuery.data?.pages.flatMap(page => page.items) ?? [])
     const taskById = createMemo(() => new Map(tasks().map(task => [task.id, task])))
     const taskIds = createMemo(() => tasks().map(task => task.id))
+    const flagError = createMemo(() => flagMutation.error
+        ? toErrorMessage(flagMutation.error)
+        : undefined)
+    const issues = createMemo<AppIssue[]>(() => {
+        const next: AppIssue[] = []
+
+        if (selectionLimitWarning()) {
+            next.push({
+                id: 'task-selection-limit',
+                tone: 'warning',
+                field: 'Selection',
+                message: 'Maximum 200 tasks per batch.',
+            })
+        }
+
+        const error = flagError()
+        if (error) {
+            next.push({
+                id: 'task-flag-error',
+                tone: 'error',
+                field: 'Tasks',
+                message: error,
+            })
+        }
+
+        return next
+    })
     const viewerImages = createMemo(() => {
         const id = viewerTaskId()
         const task = detail.task()
@@ -70,6 +110,16 @@ export function TaskBrowser() {
             const next = current.filter(id => visibleIds.has(id))
             return next.length === current.length ? current : next
         })
+    })
+
+    createEffect(() => {
+        if (selectedTaskIds().length < taskSelectionLimit) {
+            setSelectionLimitWarning(false)
+        }
+
+        if (issues().length === 0) {
+            setIssuesOpen(false)
+        }
     })
 
     createEffect(() => {
@@ -99,24 +149,76 @@ export function TaskBrowser() {
     }
 
     const toggleSelection = (taskId: string) => {
-        setSelectedTaskIds(current => current.includes(taskId)
-            ? current.filter(id => id !== taskId)
-            : [...current, taskId])
+        const current = selectedTaskIds()
+        if (current.includes(taskId)) {
+            setSelectedTaskIds(current.filter(id => id !== taskId))
+            return
+        }
+
+        if (current.length >= taskSelectionLimit) {
+            setSelectionLimitWarning(true)
+            return
+        }
+
+        setSelectedTaskIds([...current, taskId])
     }
 
     const changeFilter = (filter: TaskFeedFilter) => {
         setSelectedTaskIds([])
+        setSelectionLimitWarning(false)
         taskStore.setFeedFilter(filter)
     }
 
-    const setSelectedFlags = (flag: 'pin' | 'discard', value: boolean) => {
-        setTaskFlags(selectedTaskIds(), flag, value)
-        setSelectedTaskIds([])
+    const setSelectedFlags = (flag: TaskApi.TaskFlag | null) => {
+        const taskIds = selectedTaskIds()
+        if (taskIds.length === 0 || flagMutation.isPending) {
+            return
+        }
+
+        void flagMutation.mutateAsync({ taskIds, flag })
+            .then(() => {
+                setSelectedTaskIds([])
+                setSelectionLimitWarning(false)
+            })
+            .catch(() => undefined)
     }
 
-    const removeSelectedDiscard = () => {
-        setSelectedFlags('discard', false)
+    const setCardFlag = (taskId: string, flag: TaskApi.TaskFlag | null) => {
+        if (!flagMutation.isPending) {
+            flagMutation.mutate({ taskIds: [taskId], flag })
+        }
     }
+
+    const openBatchDelete = (scope: 'selected' | 'discard') => {
+        if (selectedDeleteMutation.isPending || discardedDeleteMutation.isPending) {
+            return
+        }
+
+        setBatchDeleteScope(scope)
+        setBatchDeleteOpen(true)
+    }
+
+    const confirmBatchDelete = async () => {
+        if (batchDeleteScope() === 'selected') {
+            const taskIds = selectedTaskIds()
+            if (taskIds.length === 0) {
+                return
+            }
+
+            await selectedDeleteMutation.mutateAsync({ scope: 'selected', taskIds })
+            setSelectedTaskIds([])
+        }
+        else {
+            const result = await discardedDeleteMutation.mutateAsync()
+            const removedIds = new Set(result.ids)
+            setSelectedTaskIds(current => current.filter(taskId => !removedIds.has(taskId)))
+        }
+
+        setSelectionLimitWarning(false)
+        setBatchDeleteOpen(false)
+    }
+
+    const deletePending = () => selectedDeleteMutation.isPending || discardedDeleteMutation.isPending
 
     const closeViewer = () => {
         setViewerTaskId(undefined)
@@ -132,11 +234,20 @@ export function TaskBrowser() {
                 filter={taskStore.state.feedFilter}
                 search={taskStore.state.feedSearch}
                 selectedCount={selectedTaskIds().length}
+                issues={issues()}
+                issuesOpen={issuesOpen()}
                 onSearchChange={taskStore.setFeedSearch}
                 onFilterChange={changeFilter}
-                onClearSelection={() => setSelectedTaskIds([])}
+                onClearSelection={() => {
+                    setSelectedTaskIds([])
+                    setSelectionLimitWarning(false)
+                }}
+                onIssuesOpenChange={setIssuesOpen}
                 onSetFlags={setSelectedFlags}
-                onRemoveDiscard={removeSelectedDiscard}
+                flagPending={flagMutation.isPending}
+                onDeleteSelected={() => openBatchDelete('selected')}
+                onDeleteAll={() => openBatchDelete('discard')}
+                deletePending={deletePending()}
                 onCollapse={() => taskStore.setBrowserOpen(false)}
             />
 
@@ -191,8 +302,19 @@ export function TaskBrowser() {
                                             onFocusTask={() => focusTask(taskId)}
                                             onOpenViewer={() => openTask(taskId)}
                                             onToggleSelected={() => toggleSelection(taskId)}
-                                            onSetPin={value => setTaskFlag(taskId, 'pin', value)}
-                                            onSetDiscard={value => setTaskFlag(taskId, 'discard', value)}
+                                            onSetPin={() => {
+                                                const task = taskById().get(taskId)
+                                                if (task) {
+                                                    setCardFlag(taskId, task.pin ? null : 'pin')
+                                                }
+                                            }}
+                                            onSetDiscard={() => {
+                                                const task = taskById().get(taskId)
+                                                if (task) {
+                                                    setCardFlag(taskId, task.discard ? null : 'discard')
+                                                }
+                                            }}
+                                            flagPending={flagMutation.isPending}
                                         />
                                     )}
                                 </For>
@@ -275,6 +397,16 @@ export function TaskBrowser() {
                     onSelect={setViewerIndex}
                 />
             </Show>
+            <Show when={batchDeleteOpen()}>
+                <TaskBatchDelete
+                    open={batchDeleteOpen()}
+                    scope={batchDeleteScope()}
+                    selectedCount={selectedTaskIds().length}
+                    pending={deletePending()}
+                    onOpenChange={setBatchDeleteOpen}
+                    onConfirm={confirmBatchDelete}
+                />
+            </Show>
         </section>
     )
 }
@@ -341,11 +473,17 @@ type TaskBrowserToolbarProps = {
     filter: TaskFeedFilter
     search: string
     selectedCount: number
+    issues: AppIssue[]
+    issuesOpen: boolean
     onSearchChange: (search: string) => void
     onFilterChange: (filter: TaskFeedFilter) => void
     onClearSelection: () => void
-    onSetFlags: (flag: TaskFlag, value: boolean) => void
-    onRemoveDiscard: () => void
+    onIssuesOpenChange: (open: boolean) => void
+    onSetFlags: (flag: TaskApi.TaskFlag | null) => void
+    flagPending: boolean
+    onDeleteSelected: () => void
+    onDeleteAll: () => void
+    deletePending: boolean
     onCollapse: () => void
 }
 
@@ -390,25 +528,49 @@ function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                     value={props.filter}
                     onChange={props.onFilterChange}
                 />
-                <Show when={props.selectedCount > 0}>
-                    <div class='ml-auto flex shrink-0 items-center gap-2 pr-2 pb-1'>
-                        <span class='text-xs text-fg-muted tabular-nums'>
-                            {props.selectedCount} selected
-                        </span>
+                <Show when={props.filter === 'discard'}>
+                    <div class='flex shrink-0 items-center pb-1'>
                         <Button
-                            variant='ghost'
-                            aria-label='Clear task selection'
+                            variant='danger'
+                            aria-label='Delete all marked tasks'
+                            disabled={props.deletePending}
                             classes={{ root: 'h-7 px-2 text-[11px]' }}
-                            onClick={props.onClearSelection}
+                            onClick={props.onDeleteAll}
                         >
-                            Clear
+                            Delete all
                         </Button>
-                        <Show when={props.filter !== 'pin'}>
+                    </div>
+                </Show>
+                <Show when={props.selectedCount > 0 || props.issues.length > 0}>
+                    <div class='ml-auto flex shrink-0 items-center gap-2 pr-2 pb-1'>
+                        <Show when={props.selectedCount > 0}>
+                            <span class='text-xs text-fg-muted tabular-nums'>
+                                {props.selectedCount} selected
+                            </span>
+                            <Button
+                                variant='ghost'
+                                aria-label='Clear task selection'
+                                disabled={props.flagPending}
+                                classes={{ root: 'h-7 px-2 text-[11px]' }}
+                                onClick={props.onClearSelection}
+                            >
+                                Clear
+                            </Button>
+                            <Button
+                                variant='ghost'
+                                aria-label='Unflag selected tasks'
+                                disabled={props.flagPending}
+                                classes={{ root: 'h-7 px-2 text-[11px]' }}
+                                onClick={() => props.onSetFlags(null)}
+                            >
+                                Unflag
+                            </Button>
                             <Button
                                 variant='accent'
                                 aria-label='Pin selected tasks'
+                                disabled={props.flagPending}
                                 classes={{ root: 'h-7 px-2 text-[11px]' }}
-                                onClick={() => props.onSetFlags('pin', true)}
+                                onClick={() => props.onSetFlags('pin')}
                             >
                                 <Pin
                                     size={13}
@@ -417,13 +579,12 @@ function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                                 />
                                 Pin
                             </Button>
-                        </Show>
-                        <Show when={props.filter !== 'discard'}>
                             <Button
                                 variant='danger'
                                 aria-label='Discard selected tasks'
+                                disabled={props.flagPending}
                                 classes={{ root: 'h-7 px-2 text-[11px]' }}
-                                onClick={() => props.onSetFlags('discard', true)}
+                                onClick={() => props.onSetFlags('discard')}
                             >
                                 <Trash2
                                     size={13}
@@ -432,17 +593,24 @@ function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                                 />
                                 Discard
                             </Button>
+                            <Show when={props.filter === 'discard'}>
+                                <Button
+                                    variant='danger'
+                                    aria-label={`Delete ${props.selectedCount} selected tasks`}
+                                    disabled={props.deletePending}
+                                    classes={{ root: 'h-7 px-2 text-[11px]' }}
+                                    onClick={props.onDeleteSelected}
+                                >
+                                    Delete {props.selectedCount} tasks...
+                                </Button>
+                            </Show>
                         </Show>
-                        <Show when={props.filter === 'discard'}>
-                            <Button
-                                variant='ghost'
-                                aria-label='Remove discard from selected tasks'
-                                classes={{ root: 'h-7 px-2 text-[11px]' }}
-                                onClick={props.onRemoveDiscard}
-                            >
-                                Remove discard
-                            </Button>
-                        </Show>
+                        <IssueChip
+                            label='tasks'
+                            issues={props.issues}
+                            open={props.issuesOpen}
+                            onOpenChange={props.onIssuesOpenChange}
+                        />
                     </div>
                 </Show>
             </div>
@@ -453,16 +621,18 @@ function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
 type TaskCardProps = {
     focused: boolean
     checked: boolean
-    task: TaskListItemWithShimFlags
+    task: TaskApi.TaskListItem
     onFocusTask: () => void
     onOpenViewer: () => void
     onToggleSelected: () => void
-    onSetPin: (value: boolean) => void
-    onSetDiscard: (value: boolean) => void
+    onSetPin: () => void
+    onSetDiscard: () => void
+    flagPending: boolean
 }
 
 const cardThumbnailClasses = 'relative aspect-square w-full overflow-hidden rounded-md border'
 
+/* MARK: TaskCard */
 function TaskCard(props: TaskCardProps) {
     const placeholder = () => placeholderMap[props.task.status]
     const shortId = () => props.task.id.slice(0, 8)
@@ -548,6 +718,7 @@ function TaskCard(props: TaskCardProps) {
                     data-marquee-control='true'
                     aria-label={props.task.pin ? 'Unpin task' : 'Pin task'}
                     aria-pressed={props.task.pin}
+                    disabled={props.flagPending}
                     classes={{
                         root: cn(
                             'size-7 shrink-0 rounded-md border-0 p-0',
@@ -556,7 +727,7 @@ function TaskCard(props: TaskCardProps) {
                                 : 'bg-black/60 text-white/75 hover:bg-black/80 hover:text-white',
                         ),
                     }}
-                    onClick={() => props.onSetPin(!props.task.pin)}
+                    onClick={props.onSetPin}
                 >
                     <Pin
                         size={14}
@@ -569,6 +740,7 @@ function TaskCard(props: TaskCardProps) {
                     data-marquee-control='true'
                     aria-label={props.task.discard ? 'Remove discard flag' : 'Discard task'}
                     aria-pressed={props.task.discard}
+                    disabled={props.flagPending}
                     classes={{
                         root: cn(
                             'size-7 shrink-0 rounded-md border-0 p-0',
@@ -577,7 +749,7 @@ function TaskCard(props: TaskCardProps) {
                                 : 'bg-black/60 text-white/75 hover:bg-black/80 hover:text-white',
                         ),
                     }}
-                    onClick={() => props.onSetDiscard(!props.task.discard)}
+                    onClick={props.onSetDiscard}
                 >
                     <Trash2
                         size={14}
@@ -625,7 +797,7 @@ function TaskCardSkeleton() {
     )
 }
 
-function TaskThumbnailPlaceholder(props: { task: TaskListItemWithShimFlags }) {
+function TaskThumbnailPlaceholder(props: { task: TaskApi.TaskListItem }) {
     const meta = () => placeholderMap[props.task.status]
     const Icon = meta().Icon
 
@@ -639,5 +811,81 @@ function TaskThumbnailPlaceholder(props: { task: TaskListItemWithShimFlags }) {
                 strokeWidth={1.6}
             />
         </div>
+    )
+}
+
+type TaskBatchDeleteProps = {
+    open: boolean
+    scope: 'selected' | 'discard'
+    selectedCount: number
+    pending: boolean
+    onOpenChange: (open: boolean) => void
+    onConfirm: () => Promise<void>
+}
+
+function TaskBatchDelete(props: TaskBatchDeleteProps) {
+    const [error, setError] = createSignal<string>()
+    const isSelected = () => props.scope === 'selected'
+
+    const confirm = async () => {
+        if (props.pending) {
+            return
+        }
+
+        setError()
+
+        try {
+            await props.onConfirm()
+            props.onOpenChange(false)
+        }
+        catch (cause) {
+            setError(toErrorMessage(cause))
+        }
+    }
+
+    return (
+        <Dialog
+            open={props.open}
+            title={isSelected() ? 'Delete selected tasks?' : 'Delete all marked tasks?'}
+            description={isSelected()
+                ? `Permanently delete ${props.selectedCount} selected task${props.selectedCount === 1 ? '' : 's'}. This cannot be undone.`
+                : 'Permanently delete every discarded task. Active tasks are skipped and remain selected.'}
+            onOpenChange={open => {
+                if (!props.pending) {
+                    props.onOpenChange(open)
+                }
+            }}
+            classes={{ content: 'w-[420px] max-w-full' }}
+            footer={(
+                <div class='flex w-full items-center justify-between gap-3'>
+                    <Show when={error()}>
+                        {message => <FieldHint tone='danger'>{message()}</FieldHint>}
+                    </Show>
+                    <div class='ml-auto flex shrink-0 gap-2'>
+                        <Button
+                            disabled={props.pending}
+                            classes={{ root: 'min-w-20 text-sm' }}
+                            onClick={() => props.onOpenChange(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant='danger'
+                            disabled={props.pending}
+                            classes={{ root: 'min-w-20 text-sm' }}
+                            onClick={() => void confirm()}
+                        >
+                            {props.pending ? 'Deleting...' : 'Delete'}
+                        </Button>
+                    </div>
+                </div>
+            )}
+        >
+            <p class='m-0 text-xs leading-5 text-fg-secondary'>
+                {isSelected()
+                    ? 'The selected tasks and their unreferenced images will be removed permanently.'
+                    : 'Tasks that are still queued or running are kept so generation can finish.'}
+            </p>
+        </Dialog>
     )
 }

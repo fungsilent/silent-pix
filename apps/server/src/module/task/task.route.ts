@@ -127,14 +127,9 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
         },
     )
     .patch(
-        '/:taskId/flag',
-        async ({ body, database, params, pushEvent, status }) => {
-            const taskId = toUUID(params.taskId, 'taskId')
-            const result = await taskService.setFlag(
-                database,
-                taskId,
-                body,
-            )
+        '/flag',
+        async ({ body, database, pushEvent, status }) => {
+            const result = await taskService.setFlags(database, body)
 
             if (!result.ok) {
                 return status(404, {
@@ -145,15 +140,16 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
                 })
             }
 
-            await taskService.publishChanged(database, taskId, pushEvent)
+            for (const task of result.data.tasks) {
+                await taskService.publishChanged(database, task.id, pushEvent)
+            }
 
             return result.data
         },
         {
-            params: taskApi.updateTaskFlagParams,
-            body: taskApi.updateTaskFlagRequest,
+            body: taskApi.updateTaskFlagsRequest,
             response: {
-                200: taskApi.updateTaskFlagResponse,
+                200: taskApi.updateTaskFlagsResponse,
                 404: appApi.errorResponse,
                 422: appApi.errorResponse,
                 500: appApi.errorResponse,

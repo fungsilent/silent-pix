@@ -1,14 +1,17 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/solid-query'
 
 import { taskApi } from '#/api/task'
-import { cacheCreatedTaskResponse, cacheTaskRenamed } from '#/features/task/task.cache'
+import {
+    cacheCreatedTaskResponse,
+    cacheTaskFlagsPatched,
+    cacheTaskRenamed,
+} from '#/features/task/task.cache'
 import { applyTasksRemoved } from '#/features/task/task.event'
 import { taskKeys } from '#/features/task/task.key'
+import { taskStore } from '#/store/task'
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { Accessor } from 'solid-js'
-
-const taskFeedLimit = 30
 
 export const samplerKeys = {
     all: ['samplers'] as const,
@@ -21,16 +24,23 @@ export const loraKeys = {
 }
 
 export function useTaskFeedQuery() {
-    return useInfiniteQuery(() => ({
-        queryKey: taskKeys.feed({ limit: taskFeedLimit, view: 'all' }),
-        initialPageParam: undefined as string | undefined,
-        queryFn: ({ pageParam }) => taskApi.list({
-            cursor: pageParam,
-            limit: taskFeedLimit,
-            view: 'all',
-        }),
-        getNextPageParam: lastPage => lastPage.nextCursor,
-    }))
+    return useInfiniteQuery(() => {
+        const search = taskStore.state.feedSearch.trim()
+        const request: Omit<TaskApi.GetTasksQuery, 'cursor'> = {
+            limit: 30,
+            view: taskStore.state.feedFilter,
+            ...(search ? { search } : {}),
+        }
+
+        return {
+            queryKey: taskKeys.feed(request),
+            initialPageParam: undefined as string | undefined,
+            queryFn: ({ pageParam }) => pageParam === undefined
+                ? taskApi.list(request)
+                : taskApi.list({ ...request, cursor: pageParam }),
+            getNextPageParam: lastPage => lastPage.nextCursor,
+        }
+    })
 }
 
 export function useTaskDetailQuery(taskId: Accessor<string | undefined>) {
@@ -92,6 +102,41 @@ export function useRenameTaskMutation() {
         ) => taskApi.rename(request),
         onSuccess: task => {
             cacheTaskRenamed(queryClient, task)
+        },
+    }))
+}
+
+export function useTaskFlagMutation() {
+    const queryClient = useQueryClient()
+
+    return useMutation(() => ({
+        mutationFn: (request: TaskApi.UpdateTaskFlagsRequest) => taskApi.setFlags(request),
+        onSuccess: result => {
+            cacheTaskFlagsPatched(queryClient, result.tasks)
+        },
+    }))
+}
+
+export function useDeleteSelectedTasksMutation() {
+    const queryClient = useQueryClient()
+
+    return useMutation(() => ({
+        mutationFn: (request: Extract<TaskApi.DeleteTasksRequest, { scope: 'selected' }>) => (
+            taskApi.removeMany(request)
+        ),
+        onSuccess: result => {
+            applyTasksRemoved(queryClient, result.ids)
+        },
+    }))
+}
+
+export function useDeleteDiscardedTasksMutation() {
+    const queryClient = useQueryClient()
+
+    return useMutation(() => ({
+        mutationFn: () => taskApi.removeDiscarded(AbortSignal.timeout(60_000)),
+        onSuccess: result => {
+            applyTasksRemoved(queryClient, result.ids)
         },
     }))
 }

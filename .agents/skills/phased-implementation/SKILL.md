@@ -62,6 +62,16 @@ When a signal exists, compare a scoped local implementation with restructuring t
 
 Explicit architecture and technology decisions in `AGENTS.md` remain binding. If the current requirement genuinely conflicts with one, identify the exact rule and concrete conflict, then stop for user review; no agent may silently override it.
 
+Sol review is not a plan-conformance check only. Re-verify every affected plan assumption against current code, library behavior, and the simplest boundary that fits now. In particular, review:
+
+- single-use abstractions that should remain inline/local;
+- runtime validation versus trusted internal factory/state/cache-key data;
+- frontend duplication of server membership or other database semantics;
+- one UI batch action versus client API fan-out;
+- existing service and mutation conventions, including fields such as `updatedAt` and side effects in `onSuccess`.
+
+If a plan prescription is disproved, update the plan before more implementation. Record the correction in the review ledger with cause `plan` or `orchestration` when the prescription or delegation was wrong; do not attribute it to the worker by default.
+
 Delegated roles use the same evidence standard: the explorer reports present structural signals, the worker implements the approved approach and surfaces newly discovered boundary conflicts instead of expanding scope, and a user-requested reviewer flags both unjustified architecture and local patches that preserve a demonstrably wrong boundary.
 
 ## Before delegation

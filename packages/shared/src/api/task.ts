@@ -277,20 +277,29 @@ export const renameTaskResponse = getTaskResponse
 
 export type RenameTaskResponse = GetTaskResponse
 
-export const updateTaskFlagParams = getTaskRequest
-
-export type UpdateTaskFlagParams = z.output<typeof updateTaskFlagParams>
-
-export const updateTaskFlagRequest = z.object({
-    flag: taskFlag,
-    value: z.boolean(),
+export const updateTaskFlagsRequest = z.object({
+    taskIds: z.array(z.uuid())
+        .min(1)
+        .max(200)
+        .refine(ids => new Set(ids).size === ids.length, 'Task ids must be unique.'),
+    flag: taskFlag.nullable(),
 })
 
-export type UpdateTaskFlagRequest = z.output<typeof updateTaskFlagRequest>
+export type UpdateTaskFlagsRequest = z.output<typeof updateTaskFlagsRequest>
 
-export const updateTaskFlagResponse = getTaskResponse
+export const taskFlagState = z.object({
+    id: z.uuid(),
+    pin: z.boolean(),
+    discard: z.boolean(),
+})
 
-export type UpdateTaskFlagResponse = GetTaskResponse
+export type TaskFlagState = z.output<typeof taskFlagState>
+
+export const updateTaskFlagsResponse = z.object({
+    tasks: z.array(taskFlagState),
+})
+
+export type UpdateTaskFlagsResponse = z.output<typeof updateTaskFlagsResponse>
 
 export const deleteTasksRequest = z.discriminatedUnion('scope', [
     z.object({

@@ -30,15 +30,18 @@
 - Export the composed Elysia type as `Api` from `apps/server/src/app.ts`; frontend imports it through `@silent-pix/server/api` with `import type`.
 - Keep frontend and server Elysia versions compatible. Eden inference must never degrade to `any`.
 - Eden keeps `parseDate: false` so REST datetime values remain ISO strings, and `throwHttpError: false` so callers narrow typed errors by status.
-- For internal Eden APIs, do not re-parse typed inputs, success responses, or error responses in frontend wrappers; runtime parsing is for external/untrusted APIs. Construct errors as `(status, code, message)`.
+- For internal Eden APIs, do not re-parse typed inputs, success responses, or error responses in frontend wrappers; construct errors as `(status, code, message)`. Runtime parsing and validation belong at external or otherwise untrusted boundaries. Data produced by an internal typed factory, state owner, or cache-key factory is trusted app data: preserve the factory-derived compile-time type instead of re-parsing it to compensate for a library's `unknown` type. This does not replace validation at API boundaries.
 - API wrappers expose plain Promise functions and must not import Solid or TanStack Query. Feature `*.query.ts` files own TanStack cache keys, pagination, refetch, and invalidation; components consume those hooks.
+- Backend services own database membership, collation, `LIKE`, and related query semantics. Frontend cache code must not reimplement them; when response fields cannot decide membership exactly, invalidate and let the server refetch.
+- A user batch action that requires all-or-none semantics uses one batch API and one server-owned atomic operation; that operation may use a transaction or batch of statements. Do not fan out one client action into N requests and reconcile partial success.
+- Solid stores are shared state sources like context: a query hook or component that needs store state reads it directly. Do not thread store-derived values through callers solely to reach a query hook. Query-specific request types and request construction belong in the owning feature `*.query.ts`, not in the store.
 - Annotate exported Eden clients with public `Treaty.Create<Api>` when needed for portable declaration emit; never reference Eden internals or suppress unsafe types.
 
 ## Current Task API Scope
 
-- The task API exposes list, detail, create, rename, delete, sampler, and LoRA endpoints. Images have their own resource: `GET /api/image` lists one entry per stored image with its earliest use, `GET /api/image/:imageId` serves the bytes as immutable with a sha256 ETag.
+- The task API exposes list, detail, create, rename, delete, sampler, LoRA, and batch flag (`PATCH /api/task/flag`) endpoints. Images have their own resource: `GET /api/image` lists one entry per stored image with its earliest use, `GET /api/image/:imageId` serves the bytes as immutable with a sha256 ETag.
 - Task create is one request. A reference image is either an id of a stored image or a file uploaded alongside the payload; sending both matches no contract variant, sending neither is txt2img.
-- `task.created` announces new tasks; `task.changed` carries realtime lifecycle updates. Creator filtering is not implemented yet - `task.created` currently reaches everyone, and the web insert is idempotent so the creator's own echo is a no-op. Other task lifecycle events remain out of scope unless explicitly requested.
+- `task.created` announces new tasks; `task.changed` carries realtime lifecycle and metadata updates. Creator filtering is not implemented yet - `task.created` currently reaches everyone, and the web insert is idempotent so the creator's own echo is a no-op. Other task lifecycle events remain out of scope unless explicitly requested.
 - Use stable opaque task IDs consistently across backend fixtures and temporary frontend fixtures; do not add frontend ID translation.
 - TanStack Query owns task-list pages, loading, errors, fetch state, and pagination state.
 - Do not copy Query data into a Solid store. The task store may own frontend choices such as `selectedTaskId` only.
@@ -56,6 +59,7 @@
 - Prefer flex layout as the default web layout primitive.
 - App-level chrome such as `Header` belongs in `App.tsx`; page components should not own the app header.
 - A TSX file may contain multiple components. Keep a page-specific component local to its only consumer by default; split it into its own file when it has multiple consumers, an independent ownership boundary, or enough isolated complexity to make the split useful.
+- Short, single-use functions, components, fixtures, and types default to inline/local ownership. Extract them only for reuse, an independent ownership boundary, or clearly isolated complexity.
 - The component that acquires query/store data owns that access and distributes narrow props to its children. Each child defines its own props contract; do not make a child mix injected props with direct access to the same parent-owned data source.
 - Solid `<For>` keys by item reference, not by an explicit key prop. If mapped or decorated objects may be recreated, iterate stable primitive IDs and resolve the latest item reactively; ordinary state updates must not remount focused or editable controls.
 - Reusable web components should expose named class slots such as `classes` when one generic class string is too vague.

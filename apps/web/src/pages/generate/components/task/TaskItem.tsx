@@ -7,13 +7,14 @@ import { cn } from '#/lib/cn'
 import { formatDateTime } from '#/lib/format'
 import { placeholderMap } from '#/pages/generate/components/task/taskPlaceholder'
 
-import type { TaskListItemWithShimFlags } from '#/features/task/task.shim'
+import type { TaskApi } from '@silent-pix/shared'
 import type { TaskPlaceholderMeta } from '#/pages/generate/components/task/taskPlaceholder'
 
 export type TaskItemProps = {
     selected: boolean
-    task: TaskListItemWithShimFlags
+    task: TaskApi.TaskListItem
     thumbnailOnly: boolean
+    flagPending: boolean
     onSelect: () => void
     onTogglePin: () => void
     onToggleDiscard: () => void
@@ -89,12 +90,14 @@ export function TaskItem(props: TaskItemProps) {
 
                 {!props.thumbnailOnly && (
                     <div class='flex min-w-0 flex-1 flex-col items-start gap-1.5'>
-                        <span
-                            class='max-w-full truncate text-xs font-medium leading-none text-fg'
-                            classList={{ 'font-mono': !props.task.name }}
-                        >
-                            {props.task.name ?? shortId()}
-                        </span>
+                        <div class='flex min-h-7 w-full min-w-0 items-start pr-14'>
+                            <span
+                                class='min-w-0 truncate text-xs font-medium leading-none text-fg'
+                                classList={{ 'font-mono': !props.task.name }}
+                            >
+                                {props.task.name ?? shortId()}
+                            </span>
+                        </div>
                         <TaskStatus status={props.task.status} />
                         <span class='max-w-full truncate text-[11px] leading-none text-fg-muted'>
                             {formatDateTime(props.task.createdAt)}
@@ -109,6 +112,7 @@ export function TaskItem(props: TaskItemProps) {
                         variant='ghost'
                         aria-label={props.task.pin ? 'Unpin task' : 'Pin task'}
                         aria-pressed={props.task.pin}
+                        disabled={props.flagPending}
                         classes={{
                             root: cn(
                                 'size-7 shrink-0 rounded-md border-0 p-0',
@@ -129,6 +133,7 @@ export function TaskItem(props: TaskItemProps) {
                         variant='ghost'
                         aria-label={props.task.discard ? 'Remove discard flag' : 'Discard task'}
                         aria-pressed={props.task.discard}
+                        disabled={props.flagPending}
                         classes={{
                             root: cn(
                                 'size-7 shrink-0 rounded-md border-0 p-0',

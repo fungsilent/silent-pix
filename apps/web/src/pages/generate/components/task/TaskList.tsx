@@ -2,34 +2,31 @@ import { Expand, RefreshCw } from 'lucide-solid'
 import { createMemo, For, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
+import { FieldHint } from '#/components/base/FieldHint'
 import { Loading } from '#/components/base/Loading'
 import { CollapseButton, Panel, PanelContent, PanelHeader } from '#/components/base/Panel'
-import { useTaskFeedQuery } from '#/features/task/task.query'
-import {
-    decorateTask,
-    filterTaskItems,
-    searchTaskItems,
-    setTaskFlag,
-} from '#/features/task/task.shim'
+import { useTaskFeedQuery, useTaskFlagMutation } from '#/features/task/task.query'
+import { toErrorMessage } from '#/lib/error'
 import { TaskFilterChips } from '#/pages/generate/components/task/TaskFilterChips'
 import { TaskItem, TaskItemSkeleton } from '#/pages/generate/components/task/TaskItem'
 import { type TaskFeedFilter, taskStore } from '#/store/task'
+
+import type { TaskApi } from '@silent-pix/shared'
 
 const taskSkeletonRows = [0, 1, 2, 3, 4, 5]
 
 export function TaskList() {
     const taskFeedQuery = useTaskFeedQuery()
-    const decoratedTasks = createMemo(() => (
-        taskFeedQuery.data?.pages.flatMap(page => page.items).map(decorateTask) ?? []
-    ))
-    const tasks = createMemo(() => searchTaskItems(
-        filterTaskItems(decoratedTasks(), taskStore.state.feedFilter),
-        taskStore.state.feedSearch,
-    ))
+    const flagMutation = useTaskFlagMutation()
+    const tasks = createMemo(() => taskFeedQuery.data?.pages.flatMap(page => page.items) ?? [])
     const taskById = createMemo(() => new Map(tasks().map(task => [task.id, task])))
     const taskIds = createMemo(() => tasks().map(task => task.id))
     const selectTask = (taskId: string) => {
         taskStore.selectTask(taskId)
+    }
+
+    const setTaskFlag = (taskId: string, flag: TaskApi.TaskFlag | null) => {
+        flagMutation.mutate({ taskIds: [taskId], flag })
     }
 
     return (
@@ -69,6 +66,16 @@ export function TaskList() {
                             value={taskStore.state.feedFilter}
                             onChange={taskStore.setFeedFilter}
                         />
+                        <Show when={flagMutation.error}>
+                            {error => (
+                                <FieldHint
+                                    tone='danger'
+                                    class='px-3 pb-1'
+                                >
+                                    {toErrorMessage(error())}
+                                </FieldHint>
+                            )}
+                        </Show>
                     </Show>
                     <PanelContent
                         classes={{
@@ -111,15 +118,16 @@ export function TaskList() {
                                                 onTogglePin={() => {
                                                     const task = taskById().get(taskId)
                                                     if (task) {
-                                                        setTaskFlag(taskId, 'pin', !task.pin)
+                                                        setTaskFlag(taskId, task.pin ? null : 'pin')
                                                     }
                                                 }}
                                                 onToggleDiscard={() => {
                                                     const task = taskById().get(taskId)
                                                     if (task) {
-                                                        setTaskFlag(taskId, 'discard', !task.discard)
+                                                        setTaskFlag(taskId, task.discard ? null : 'discard')
                                                     }
                                                 }}
+                                                flagPending={flagMutation.isPending}
                                             />
                                         )}
                                     </For>

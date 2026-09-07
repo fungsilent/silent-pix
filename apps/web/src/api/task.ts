@@ -27,6 +27,23 @@ export const taskApi = {
         }))
     },
 
+    setFlags(
+        request: TaskApi.UpdateTaskFlagsRequest,
+    ): Promise<TaskApi.UpdateTaskFlagsResponse> {
+        return unwrap(apiClient.api.task.flag.patch(request))
+    },
+
+    removeMany(request: TaskApi.DeleteTasksRequest): Promise<TaskApi.DeleteTasksResponse> {
+        return unwrap(apiClient.api.task.delete(request))
+    },
+
+    removeDiscarded(signal?: AbortSignal): Promise<TaskApi.DeleteTasksResponse> {
+        return unwrap(apiClient.api.task.delete(
+            { scope: 'discard' },
+            signal ? { fetch: { signal } } : {},
+        ))
+    },
+
     remove(request: TaskApi.DeleteTaskRequest): Promise<TaskApi.DeleteTaskResponse> {
         return unwrap(apiClient.api.task({ taskId: request.taskId }).delete())
     },
