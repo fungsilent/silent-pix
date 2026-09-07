@@ -397,7 +397,7 @@ export const taskService = {
         const cursor = query.cursor === undefined
             ? undefined
             : decodeCursor(query.cursor)
-        if (!query.cursor && !cursor) {
+        if (query.cursor !== undefined && !cursor) {
             return fail('INVALID_TASK_CURSOR')
         }
 
