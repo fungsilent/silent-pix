@@ -129,7 +129,6 @@ export function CompareWorkspace() {
     return (
         <section
             class='flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-canvas'
-            aria-label='Compare workspace'
         >
             <header class='flex min-h-12 shrink-0 items-center justify-between gap-3 border-b border-line-subtle bg-surface px-4 py-2'>
                 <div class='flex min-w-0 items-baseline gap-2'>
@@ -163,7 +162,6 @@ export function CompareWorkspace() {
                         <ImagePlus
                             size={14}
                             strokeWidth={1.8}
-                            aria-hidden='true'
                         />
                         Add images
                     </Button>
@@ -195,14 +193,12 @@ export function CompareWorkspace() {
                         </Show>
                         <Button
                             variant='ghost'
-                            aria-label='Expand compare viewer'
                             classes={{ root: 'absolute right-3 top-3 z-10 size-8 rounded-md border border-white/[0.09] bg-surface/75 p-0 text-fg-muted backdrop-blur-[8px] hover:text-fg' }}
                             onClick={() => setExpanded(true)}
                         >
                             <Expand
                                 size={15}
                                 strokeWidth={1.8}
-                                aria-hidden='true'
                             />
                         </Button>
                         <ZoomControls zoom={zoom} />
@@ -263,7 +259,6 @@ function EmptyCompareState(props: EmptyCompareStateProps) {
                     <ImagePlus
                         size={21}
                         strokeWidth={1.5}
-                        aria-hidden='true'
                     />
                 </div>
                 <div class='flex flex-col gap-1'>
@@ -280,7 +275,6 @@ function EmptyCompareState(props: EmptyCompareStateProps) {
                     <ImagePlus
                         size={14}
                         strokeWidth={1.8}
-                        aria-hidden='true'
                     />
                     Add images
                 </Button>
@@ -333,8 +327,6 @@ function CompareThumbnailStrip(props: CompareThumbnailStripProps) {
                         <div class='group relative flex h-full w-auto shrink-0'>
                             <Button
                                 variant='ghost'
-                                aria-label={`Show ${label()}`}
-                                aria-pressed={selected()}
                                 classes={{
                                     root: cn(
                                         'relative h-full w-auto shrink-0 overflow-hidden rounded-md border p-0',
@@ -369,7 +361,6 @@ function CompareThumbnailStrip(props: CompareThumbnailStripProps) {
                             </Button>
                             <Button
                                 variant='ghost'
-                                aria-label={entry.hidden ? 'Show image' : 'Hide image'}
                                 classes={{
                                     root: cn(
                                         'absolute left-1 top-1 z-10 size-6 rounded-md border-0 bg-black/70 p-0 text-white backdrop-blur-[3px]',
@@ -383,27 +374,23 @@ function CompareThumbnailStrip(props: CompareThumbnailStripProps) {
                                         <EyeOff
                                             size={13}
                                             strokeWidth={1.8}
-                                            aria-hidden='true'
                                         />
                                     )
                                     : (
                                         <Eye
                                             size={13}
                                             strokeWidth={1.8}
-                                            aria-hidden='true'
                                         />
                                     )}
                             </Button>
                             <Button
                                 variant='ghost'
-                                aria-label='Remove image'
                                 classes={{ root: 'absolute right-1 top-1 z-10 size-6 rounded-md border-0 bg-black/70 p-0 text-white opacity-0 backdrop-blur-[3px] group-hover:opacity-100 focus-visible:opacity-100 hover:text-red-300' }}
                                 onClick={() => props.onRemove(entry.image.id)}
                             >
                                 <X
                                     size={13}
                                     strokeWidth={1.9}
-                                    aria-hidden='true'
                                 />
                             </Button>
                         </div>

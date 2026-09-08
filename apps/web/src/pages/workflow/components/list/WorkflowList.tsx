@@ -28,14 +28,12 @@ export function WorkflowList() {
                 action={(
                     <Button
                         variant='ghost'
-                        aria-label='Add workflow'
                         classes={{ root: 'size-8 shrink-0 p-0' }}
                         onClick={() => store.startCreate()}
                     >
                         <Plus
                             size={15}
                             strokeWidth={1.8}
-                            aria-hidden='true'
                         />
                     </Button>
                 )}

@@ -81,7 +81,6 @@ export function PromptPanel() {
 
                 <div class='flex min-w-0 flex-1 justify-end'>
                     <IssueChip
-                        label='generate'
                         issues={issues()}
                         open={issuesOpen()}
                         onOpenChange={setIssuesOpen}
@@ -150,7 +149,6 @@ function PromptToggle(props: PromptToggleProps) {
     return (
         <Button
             variant={props.visible ? 'accent' : 'default'}
-            aria-pressed={props.visible}
             classes={{
                 root: cn(
                     'gap-1.5 leading-none outline outline-1 outline-offset-0',
@@ -163,7 +161,6 @@ function PromptToggle(props: PromptToggleProps) {
         >
             <span
                 class='size-[5px] shrink-0 rounded-full bg-current opacity-45'
-                aria-hidden='true'
             />
             {promptLabel[props.kind]}
         </Button>

@@ -116,7 +116,6 @@ export function TaskImage(props: TaskImageProps) {
                                     <ImagePlus
                                         size={20}
                                         strokeWidth={1.5}
-                                        aria-hidden='true'
                                     />
                                     <span class='text-xs text-fg-secondary'>Drop an image or click to browse</span>
                                     <span class='text-[11px]'>PNG · JPEG</span>
@@ -130,7 +129,6 @@ export function TaskImage(props: TaskImageProps) {
                                     <Search
                                         size={13}
                                         strokeWidth={1.8}
-                                        aria-hidden='true'
                                     />
                                     Search image library
                                 </Button>
@@ -142,7 +140,6 @@ export function TaskImage(props: TaskImageProps) {
                                 <ImagePlus
                                     size={20}
                                     strokeWidth={1.5}
-                                    aria-hidden='true'
                                 />
                                 <span class='text-xs'>No reference image.</span>
                             </div>
@@ -193,7 +190,7 @@ export function TaskImage(props: TaskImageProps) {
                                 onChange={onDenoiseChange}
                                 classes={{
                                     root: 'w-16 flex-none',
-                                    label: 'sr-only',
+                                    label: 'hidden',
                                     input: 'h-6 px-2 text-center',
                                 }}
                             />
@@ -244,21 +241,17 @@ function ReferenceSlot(props: ReferenceSlotProps) {
                     class='absolute inset-0 size-full object-contain'
                     src={props.reference.url}
                     alt='Reference image'
-                    role='button'
-                    tabIndex={0}
                     onClick={() => setExpanded(true)}
                 />
                 <Show when={props.mode === 'create'}>
                     <Button
                         variant='ghost'
-                        aria-label='Remove reference image'
                         classes={{ root: 'absolute right-1.5 top-1.5 size-6 rounded-md border-0 bg-black/60 p-0 text-fg-secondary backdrop-blur-[3px] hover:bg-danger/35 hover:text-white' }}
                         onClick={onRemove}
                     >
                         <X
                             size={13}
                             strokeWidth={2}
-                            aria-hidden='true'
                         />
                     </Button>
                 </Show>
@@ -282,7 +275,6 @@ function ReferenceSlot(props: ReferenceSlotProps) {
                                 <RotateCcw
                                     size={13}
                                     strokeWidth={1.7}
-                                    aria-hidden='true'
                                 />
                                 {originLabel(origin())}
                             </Button>

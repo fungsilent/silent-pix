@@ -179,7 +179,6 @@ function TaskBrowserLoadError(props: TaskBrowserLoadErrorProps) {
                 <RefreshCw
                     size={14}
                     strokeWidth={1.8}
-                    aria-hidden='true'
                 />
                 Retry
             </Button>

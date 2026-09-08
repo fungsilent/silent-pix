@@ -98,7 +98,6 @@ export function WorkflowDetail() {
                     <Show when={store.hasSelection()}>
                         <div class='flex min-w-0 flex-1 items-center justify-end gap-2'>
                             <IssueChip
-                                label='workflow'
                                 issues={issues()}
                                 open={issuesOpen()}
                                 onOpenChange={setIssuesOpen}
@@ -121,7 +120,6 @@ export function WorkflowDetail() {
                                     <Save
                                         size={13}
                                         strokeWidth={1.7}
-                                        aria-hidden='true'
                                     />
                                     {isSaving() ? 'Saving' : 'Save'}
                                 </Button>
@@ -140,7 +138,6 @@ export function WorkflowDetail() {
                                 <Workflow
                                     size={21}
                                     strokeWidth={1.5}
-                                    aria-hidden='true'
                                 />
                             </div>
                             <div class='flex flex-col gap-1'>
@@ -157,7 +154,6 @@ export function WorkflowDetail() {
                                 <Workflow
                                     size={14}
                                     strokeWidth={1.8}
-                                    aria-hidden='true'
                                 />
                                 Add workflow
                             </Button>

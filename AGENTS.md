@@ -50,6 +50,8 @@
 
 ## Web UI and State
 
+- Accessibility support is explicitly out of scope. Do not add repo-owned `aria-*` attributes, accessibility-only `role` or `tabIndex` values, screen-reader-only content such as `sr-only`, live regions, accessibility-specific copy, dependencies, lint rules, or tests.
+- Ordinary UI behavior and markup required by the browser or component API may remain. Do not replace Ark UI or strip accessibility behavior generated internally by third-party components solely to enforce this scope; the restriction applies to code owned by this repository.
 - Web UI uses SolidJS, Ark UI for headless primitives, Tailwind CSS utilities, `clsx` for conditional class composition, and `lucide-solid` for icons.
 - Web state uses Solid native stores through `apps/web/src/lib/store.ts`; read `store.state` directly and keep actions flattened on returned stores, not inside reactive state.
 - Generate and Workflow form state uses TanStack Form through page-scoped context.

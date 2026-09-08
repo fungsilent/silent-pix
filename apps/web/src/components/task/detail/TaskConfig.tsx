@@ -178,7 +178,6 @@ export function TaskConfig(props: TaskConfigProps) {
                                 <Undo2
                                     size={13}
                                     strokeWidth={2}
-                                    aria-hidden='true'
                                 />
                             </Button>
                         </Show>

@@ -66,7 +66,6 @@ export function ZoomStage(props: ZoomStageProps) {
                         }}
                         src={source.url}
                         alt={index() === props.selectedIndex ? 'Generated preview' : ''}
-                        aria-hidden={index() === props.selectedIndex ? undefined : 'true'}
                         draggable={false}
                         onPointerCancel={props.zoom.endDrag}
                         onPointerDown={props.zoom.onPointerDown}
@@ -150,7 +149,6 @@ function Minimap(props: MinimapProps) {
         <div
             class='absolute bottom-4 right-4 overflow-hidden rounded-md border border-white/[0.09] bg-black/40 backdrop-blur-[8px]'
             style={{ height: `${box().height}px`, width: `${box().width}px` }}
-            aria-hidden='true'
         >
             <div
                 class='relative h-full w-full cursor-crosshair select-none touch-none'

@@ -82,7 +82,7 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
                         strokeWidth={1.8}
                     />
                 )}
-                classes={{ root: 'shrink-0', label: 'sr-only' }}
+                classes={{ root: 'shrink-0', label: 'hidden' }}
                 onInput={props.onKeywordChange}
             />
 
@@ -108,7 +108,6 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
                                 <RefreshCw
                                     size={14}
                                     strokeWidth={1.8}
-                                    aria-hidden='true'
                                 />
                                 Retry
                             </Button>
@@ -131,8 +130,6 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
                                     {option => (
                                         <Button
                                             variant='ghost'
-                                            role='checkbox'
-                                            aria-checked={isSelected(option.value)}
                                             title={option.value}
                                             classes={{
                                                 root: cn(
@@ -150,7 +147,6 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
                                                     'flex size-7 shrink-0 items-center justify-center rounded-md',
                                                     isSelected(option.value) ? 'text-accent-fg' : 'text-fg-muted',
                                                 )}
-                                                aria-hidden='true'
                                             >
                                                 <Show
                                                     when={isSelected(option.value)}

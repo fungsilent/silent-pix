@@ -40,14 +40,12 @@ export function TaskList() {
                             <div class='flex shrink-0 items-center gap-1'>
                                 <Button
                                     variant='ghost'
-                                    aria-label='Open task browser'
                                     classes={{ root: 'size-8 shrink-0 p-0' }}
                                     onClick={() => taskStore.setBrowserOpen(true)}
                                 >
                                     <Expand
                                         size={15}
                                         strokeWidth={1.8}
-                                        aria-hidden='true'
                                     />
                                 </Button>
                                 <CollapseButton
@@ -211,7 +209,6 @@ function TaskLoadError(props: TaskLoadErrorProps) {
                 <RefreshCw
                     size={13}
                     strokeWidth={1.8}
-                    aria-hidden='true'
                 />
                 Retry
             </Button>

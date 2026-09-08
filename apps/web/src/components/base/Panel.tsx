@@ -56,7 +56,6 @@ export function Panel(props: PanelProps) {
                 props.classes?.root,
                 isCollapsed() ? props.classes?.close : props.classes?.open,
             )}
-            aria-expanded={!isCollapsed()}
         >
             {render(props.children)}
         </aside>
@@ -111,7 +110,6 @@ export function CollapseButton(props: CollapseButtonProps) {
     return (
         <Button
             variant='ghost'
-            aria-label={props.collapsed ? 'Expand panel' : 'Collapse panel'}
             classes={{ root: 'size-8 shrink-0 p-0' }}
             onClick={props.onClick}
         >

@@ -31,7 +31,6 @@ export function Editable(props: EditableProps) {
             onValueCommit={details => props.onCommit?.(details.value)}
             class={cn('flex min-w-0 items-center gap-2', props.classes?.root)}
         >
-            <ArkEditable.Label class='sr-only'>{props.label}</ArkEditable.Label>
             <ArkEditable.Area class={cn('min-w-0 flex-1', props.classes?.area)}>
                 <ArkEditable.Preview
                     class={cn(
@@ -53,12 +52,10 @@ export function Editable(props: EditableProps) {
                         'flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md border border-transparent text-fg-muted hover:bg-hover hover:text-fg',
                         props.classes?.trigger,
                     )}
-                    aria-label={`Edit ${props.label}`}
                 >
                     <Pencil
                         size={13}
                         strokeWidth={2}
-                        aria-hidden='true'
                     />
                 </ArkEditable.EditTrigger>
             </ArkEditable.Control>

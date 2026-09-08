@@ -118,9 +118,6 @@ class GroupNameMarker extends GutterMarker {
         const dot = document.createElement('span')
         dot.className = 'cm-prompt-group-dot'
         dot.dataset.enabled = String(group.enabled)
-        dot.setAttribute('role', 'button')
-        dot.setAttribute('aria-pressed', String(group.enabled))
-        dot.setAttribute('aria-label', `${group.enabled ? 'Disable' : 'Enable'} ${group.name}`)
 
         const name = document.createElement('span')
         name.className = 'cm-prompt-group-name'
@@ -136,7 +133,6 @@ class GroupNameMarker extends GutterMarker {
             remove.type = 'button'
             remove.textContent = '−'
             remove.title = 'Remove group boundary'
-            remove.setAttribute('aria-label', `Remove ${group.name} boundary`)
             root.append(remove)
         }
 
@@ -153,7 +149,6 @@ function renameInput(view: EditorView, group: PromptEditorGroup): HTMLInputEleme
     input.className = 'cm-prompt-group-rename'
     input.value = group.name
     input.spellcheck = false
-    input.setAttribute('aria-label', `Rename ${group.name}`)
 
     /*
      * Enter/Escape 走完之後 marker 會重繪，input 被移出 DOM 就會補一個 blur。

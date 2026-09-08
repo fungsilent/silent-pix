@@ -125,7 +125,7 @@ function MappingRow(props: MappingRowProps) {
                     disabled={props.readOnly}
                     onChange={changeNode}
                     badgeTone='rose'
-                    classes={{ label: 'sr-only' }}
+                    classes={{ label: 'hidden' }}
                 />
             </Loading.Mask>
 
@@ -142,7 +142,7 @@ function MappingRow(props: MappingRowProps) {
                             disabled={props.readOnly}
                             onChange={value => props.onChange(props.field, { nodeId: binding().nodeId, input: value })}
                             badgeTone='rose'
-                            classes={{ label: 'sr-only' }}
+                            classes={{ label: 'hidden' }}
                         />
                     )}
                 </Show>

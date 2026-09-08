@@ -93,9 +93,6 @@ export function ImageViewer(props: ImageViewerProps) {
         <Portal>
             <div
                 class='viewer-overlay fixed inset-0 z-50 flex select-none flex-col items-center justify-center bg-[rgb(5_5_5/0.72)] backdrop-blur-[6px]'
-                role='dialog'
-                aria-modal='true'
-                aria-label='Image viewer'
                 onClick={closeOnBackdrop}
             >
                 <Show
@@ -117,24 +114,20 @@ export function ImageViewer(props: ImageViewerProps) {
                             <>
                                 <Button
                                     variant='ghost'
-                                    aria-label='Favorite'
                                     classes={{ root: cn('size-9 rounded-md border p-0', glass) }}
                                 >
                                     <Star
                                         size={16}
                                         strokeWidth={1.8}
-                                        aria-hidden='true'
                                     />
                                 </Button>
                                 <Button
                                     variant='ghost'
-                                    aria-label='Delete'
                                     classes={{ root: cn('size-9 rounded-md border p-0 hover:text-red-400', glass) }}
                                 >
                                     <Trash2
                                         size={16}
                                         strokeWidth={1.8}
-                                        aria-hidden='true'
                                     />
                                 </Button>
                             </>
@@ -142,14 +135,12 @@ export function ImageViewer(props: ImageViewerProps) {
                     </Show>
                     <Button
                         variant='ghost'
-                        aria-label='Close viewer'
                         classes={{ root: cn('ml-1 size-9 rounded-md border p-0', glass) }}
                         onClick={() => props.onClose()}
                     >
                         <X
                             size={16}
                             strokeWidth={1.8}
-                            aria-hidden='true'
                         />
                     </Button>
                 </div>
@@ -157,26 +148,22 @@ export function ImageViewer(props: ImageViewerProps) {
                 <Show when={hasMany()}>
                     <Button
                         variant='ghost'
-                        aria-label='Previous image'
                         classes={{ root: cn('absolute left-6 top-1/2 z-10 size-10 -translate-y-1/2 rounded-md border p-0', glass) }}
                         onClick={selectPrevious}
                     >
                         <ChevronLeft
                             size={20}
                             strokeWidth={1.8}
-                            aria-hidden='true'
                         />
                     </Button>
                     <Button
                         variant='ghost'
-                        aria-label='Next image'
                         classes={{ root: cn('absolute right-6 top-1/2 z-10 size-10 -translate-y-1/2 rounded-md border p-0', glass) }}
                         onClick={selectNext}
                     >
                         <ChevronRight
                             size={20}
                             strokeWidth={1.8}
-                            aria-hidden='true'
                         />
                     </Button>
                 </Show>
@@ -194,8 +181,6 @@ export function ImageViewer(props: ImageViewerProps) {
                             {(thumbnail, index) => (
                                 <Button
                                     variant='ghost'
-                                    aria-label={`Show image ${index() + 1}`}
-                                    aria-pressed={index() === props.selectedIndex}
                                     classes={{
                                         root: cn(
                                             'relative h-full w-auto shrink-0 overflow-hidden rounded-md p-0',

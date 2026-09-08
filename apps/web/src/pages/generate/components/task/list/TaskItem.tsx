@@ -29,7 +29,6 @@ export function TaskItem(props: TaskItemProps) {
         <div class='relative w-full'>
             <Button
                 variant='ghost'
-                aria-pressed={props.selected}
                 classes={{
                     root: cn(
                         taskItemRootBaseClasses,
@@ -56,7 +55,6 @@ export function TaskItem(props: TaskItemProps) {
                                 'absolute left-1 top-1 flex size-5 items-center justify-center rounded bg-black/75',
                                 props.task.pin ? 'text-amber-300' : 'text-rose-300',
                             )}
-                            aria-hidden='true'
                         >
                             {props.task.pin
                                 ? (
@@ -119,7 +117,6 @@ type TaskItemSkeletonProps = {
 export function TaskItemSkeleton(props: TaskItemSkeletonProps) {
     return (
         <div
-            aria-hidden='true'
             class={cn(taskItemRootBaseClasses, 'pointer-events-none')}
         >
             <Loading.Skeleton class={cn(taskThumbnailBaseClasses, 'border-transparent rounded-md')} />

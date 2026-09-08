@@ -129,14 +129,12 @@ export function TaskLora(props: TaskLoraProps) {
                                         <Show when={isCreate()}>
                                             <Button
                                                 variant='ghost'
-                                                aria-label={`Remove ${lora().name}`}
                                                 classes={{ root: 'size-6 shrink-0 rounded p-0 hover:bg-danger/15 hover:text-danger-fg' }}
                                                 onClick={() => onRemove(index)}
                                             >
                                                 <X
                                                     size={13}
                                                     strokeWidth={1.8}
-                                                    aria-hidden='true'
                                                 />
                                             </Button>
                                         </Show>
@@ -162,7 +160,7 @@ export function TaskLora(props: TaskLoraProps) {
                                             onChange={value => onWeightChange(index, value)}
                                             classes={{
                                                 root: 'w-[64px]',
-                                                label: 'sr-only',
+                                                label: 'hidden',
                                                 input: 'h-6 w-full px-2 text-center text-xs',
                                             }}
                                         />
@@ -191,7 +189,6 @@ export function TaskLora(props: TaskLoraProps) {
                         <Plus
                             size={13}
                             strokeWidth={1.8}
-                            aria-hidden='true'
                         />
                         <span class='leading-none'>Select LoRA</span>
                     </Button>

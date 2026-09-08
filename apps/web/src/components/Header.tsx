@@ -14,21 +14,17 @@ export function Header() {
         <header class='flex h-12 shrink-0 items-center gap-3 border-b border-line-subtle bg-surface pl-2.5 pr-3'>
             <Button
                 variant='ghost'
-                aria-label='Toggle navigation'
                 classes={{ root: 'size-8 shrink-0 p-0 text-fg-secondary' }}
             >
                 <Menu
                     size={16}
                     strokeWidth={1.6}
-                    aria-hidden='true'
                 />
             </Button>
             <span class='text-[13px] font-semibold tracking-[0.02em] text-fg'>Silent Pix</span>
 
             <div
                 class='ml-1 flex h-[30px] items-center gap-0.5 rounded-md border border-line-subtle bg-elevated p-0.5'
-                role='group'
-                aria-label='Page'
             >
                 <ModeButton
                     active={appStore.state.page === 'generate'}
@@ -38,7 +34,6 @@ export function Header() {
                     <Sparkles
                         size={13}
                         strokeWidth={1.6}
-                        aria-hidden='true'
                     />
                 </ModeButton>
                 <ModeButton
@@ -49,7 +44,6 @@ export function Header() {
                     <Columns2
                         size={13}
                         strokeWidth={1.6}
-                        aria-hidden='true'
                     />
                 </ModeButton>
                 <ModeButton
@@ -60,7 +54,6 @@ export function Header() {
                     <Workflow
                         size={13}
                         strokeWidth={1.6}
-                        aria-hidden='true'
                     />
                 </ModeButton>
             </div>
@@ -68,7 +61,6 @@ export function Header() {
             {import.meta.env.DEV && (
                 <Button
                     variant='ghost'
-                    aria-pressed={loadingStore.state.preview}
                     classes={{
                         root: cn(
                             'h-7 shrink-0 gap-1.5 px-2.5 text-xs',
@@ -80,7 +72,6 @@ export function Header() {
                     <LoaderCircle
                         size={13}
                         strokeWidth={1.8}
-                        aria-hidden='true'
                     />
                     Loading
                 </Button>
@@ -104,7 +95,6 @@ function ModeButton(props: ModeButtonProps) {
     return (
         <Button
             variant='ghost'
-            aria-pressed={props.active}
             classes={{
                 root: cn(
                     'h-6 gap-1.5 rounded px-2.5 py-0 text-xs font-medium',
@@ -154,7 +144,6 @@ function ServiceStatus() {
 
     return (
         <Button
-            aria-label='Service status, click to re-check'
             classes={{ root: 'h-7 shrink-0 gap-0 border-line-subtle px-1 py-0' }}
             onClick={() => void query.refetch()}
         >
@@ -183,7 +172,6 @@ function Divider() {
     return (
         <span
             class='mx-0.5 h-3.5 w-px shrink-0 bg-line'
-            aria-hidden='true'
         />
     )
 }
@@ -212,7 +200,6 @@ function ServiceSegment(props: ServiceSegmentProps) {
                     props.state === 'down' && 'bg-red-500 shadow-[0_0_0_3px_rgba(239,68,68,0.14)]',
                     props.state === 'unknown' && 'bg-fg-muted',
                 )}
-                aria-hidden='true'
             />
             {props.name}
         </span>

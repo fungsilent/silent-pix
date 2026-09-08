@@ -77,6 +77,27 @@ Style:
 
 ---
 
+## Accessibility Scope
+
+Dedicated accessibility support is not part of Silent Pix's product scope.
+
+Rules:
+
+```txt
+- do not add repo-owned aria-* attributes
+- do not add role or tabIndex solely for assistive technology or keyboard accessibility
+- do not add screen-reader-only content, including sr-only labels
+- do not add live regions, accessibility-specific copy, dependencies, lint rules, or tests
+- keep ordinary interaction behavior and markup required by browser or component APIs
+- do not replace Ark UI or remove accessibility behavior generated internally by third-party components solely to enforce this scope
+```
+
+The restriction applies to code owned by this repository. Accessibility behavior
+inside transitive dependencies is not a supported product feature and does not need
+to be removed.
+
+---
+
 ## Imports
 
 Use workspace package imports.

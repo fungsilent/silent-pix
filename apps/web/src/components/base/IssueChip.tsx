@@ -11,8 +11,6 @@ import type { AppIssue, IssueTone } from '#/lib/issue'
 
 type IssueChipProps = {
     issues: AppIssue[]
-    /* 只用在 aria-label，讓螢幕閱讀器聽得出是哪一區的問題 */
-    label?: string
     open: boolean
     onOpenChange: (open: boolean) => void
 }
@@ -45,7 +43,6 @@ export function IssueChip(props: IssueChipProps) {
                 onOpenChange={details => props.onOpenChange(details.open)}
             >
                 <Popover.Trigger
-                    aria-label={`${count()} ${props.label ?? ''} ${count() === 1 ? 'issue' : 'issues'}`.replace(/\s+/g, ' ')}
                     class={cn(
                         'issue-chip group flex h-7 min-w-0 cursor-pointer items-center gap-1.5 rounded-md border pl-[9px] pr-2 text-xs leading-none outline-none transition-colors duration-[140ms] ease-out focus-visible:ring-3 focus-visible:ring-accent/40',
                         chipToneClass[tone()],
@@ -55,7 +52,6 @@ export function IssueChip(props: IssueChipProps) {
                         class='shrink-0'
                         size={13}
                         strokeWidth={2}
-                        aria-hidden='true'
                     />
                     {/* 窄視窗兩側面板已經隱藏，標題列塞不下完整句子，只留計數 */}
                     <span class='hidden shrink-0 font-semibold tabular-nums max-[980px]:inline'>
@@ -68,7 +64,6 @@ export function IssueChip(props: IssueChipProps) {
                         class='shrink-0 opacity-70 transition-transform duration-[140ms] ease-out group-data-[state=open]:rotate-180'
                         size={12}
                         strokeWidth={2.2}
-                        aria-hidden='true'
                     />
                 </Popover.Trigger>
 
@@ -83,7 +78,6 @@ export function IssueChip(props: IssueChipProps) {
                                             class={cn('mt-px shrink-0', iconToneClass[issue.tone])}
                                             size={12}
                                             strokeWidth={2}
-                                            aria-hidden='true'
                                         />
                                         <div class='flex min-w-0 flex-1 flex-col gap-0.5'>
                                             <Show when={issue.field}>
@@ -106,7 +100,6 @@ export function IssueChip(props: IssueChipProps) {
                                                     <RefreshCw
                                                         size={12}
                                                         strokeWidth={1.8}
-                                                        aria-hidden='true'
                                                     />
                                                     Retry
                                                 </Button>

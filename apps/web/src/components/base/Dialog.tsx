@@ -88,13 +88,11 @@ export function Dialog(props: DialogProps) {
                                 )}
                             </div>
                             <ArkDialog.CloseTrigger
-                                aria-label='Close dialog'
                                 class='flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md border border-transparent bg-elevated text-fg-secondary outline-none hover:bg-hover focus-visible:border-accent focus-visible:ring-3 focus-visible:ring-accent/40'
                             >
                                 <X
                                     size={15}
                                     strokeWidth={2}
-                                    aria-hidden='true'
                                 />
                             </ArkDialog.CloseTrigger>
                         </div>

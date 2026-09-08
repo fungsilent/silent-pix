@@ -62,7 +62,6 @@ export function WorkflowDelete() {
         <>
             <Button
                 variant='danger'
-                aria-label='Delete workflow'
                 disabled={mutation.isPending}
                 classes={{ root: 'w-full disabled:cursor-not-allowed disabled:opacity-60' }}
                 onClick={openDialog}
@@ -70,7 +69,6 @@ export function WorkflowDelete() {
                 <Trash2
                     size={13}
                     strokeWidth={1.8}
-                    aria-hidden='true'
                 />
                 {willArchive() ? 'Archive workflow' : 'Delete workflow'}
             </Button>

@@ -27,8 +27,6 @@ export function TaskFlagControls(props: TaskFlagControlsProps) {
             <Button
                 variant='ghost'
                 data-marquee-control='true'
-                aria-label={props.pin ? 'Unpin task' : 'Pin task'}
-                aria-pressed={props.pin}
                 disabled={props.pending}
                 classes={{
                     root: cn(
@@ -41,14 +39,11 @@ export function TaskFlagControls(props: TaskFlagControlsProps) {
                 <Pin
                     size={14}
                     strokeWidth={1.8}
-                    aria-hidden='true'
                 />
             </Button>
             <Button
                 variant='ghost'
                 data-marquee-control='true'
-                aria-label={props.discard ? 'Remove discard flag' : 'Discard task'}
-                aria-pressed={props.discard}
                 disabled={props.pending}
                 classes={{
                     root: cn(
@@ -61,7 +56,6 @@ export function TaskFlagControls(props: TaskFlagControlsProps) {
                 <Trash2
                     size={14}
                     strokeWidth={1.8}
-                    aria-hidden='true'
                 />
             </Button>
         </div>

@@ -19,7 +19,6 @@ export function ZoomControls(props: ZoomControlsProps) {
         <div class='absolute bottom-6 left-6 z-10 flex h-9 items-center gap-1 rounded-md border border-white/[0.09] bg-surface/75 px-1 backdrop-blur-[8px]'>
             <Button
                 variant='ghost'
-                aria-label='Zoom out'
                 disabled={!props.zoom.canZoomOut()}
                 classes={{ root: 'size-7 rounded p-0 disabled:opacity-30' }}
                 onClick={props.zoom.zoomOut}
@@ -27,7 +26,6 @@ export function ZoomControls(props: ZoomControlsProps) {
                 <Minus
                     size={15}
                     strokeWidth={1.8}
-                    aria-hidden='true'
                 />
             </Button>
 
@@ -36,7 +34,6 @@ export function ZoomControls(props: ZoomControlsProps) {
                 fallback={(
                     <Button
                         variant='ghost'
-                        aria-label='Zoom level, click to type a value'
                         classes={{
                             root: cn(
                                 'w-[54px] rounded p-0 tabular-nums',
@@ -70,7 +67,6 @@ export function ZoomControls(props: ZoomControlsProps) {
 
             <Button
                 variant='ghost'
-                aria-label='Zoom in'
                 disabled={!props.zoom.canZoomIn()}
                 classes={{ root: 'size-7 rounded p-0 disabled:opacity-30' }}
                 onClick={props.zoom.zoomIn}
@@ -78,18 +74,15 @@ export function ZoomControls(props: ZoomControlsProps) {
                 <Plus
                     size={15}
                     strokeWidth={1.8}
-                    aria-hidden='true'
                 />
             </Button>
 
             <span
                 class='mx-1 h-[18px] w-px bg-white/10'
-                aria-hidden='true'
             />
 
             <Button
                 variant='ghost'
-                aria-label='Actual size'
                 classes={{ root: 'rounded px-2' }}
                 onClick={props.zoom.toggleActualSize}
             >

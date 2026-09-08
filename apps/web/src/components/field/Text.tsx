@@ -35,7 +35,6 @@ export function Text(props: TextProps) {
                     {props.icon && (
                         <span
                             class={cn('pointer-events-none absolute left-3 flex text-fg-muted', props.classes?.icon)}
-                            aria-hidden='true'
                         >
                             {props.icon}
                         </span>

@@ -22,7 +22,6 @@ type SliderProps = {
 export function Slider(props: SliderProps) {
     return (
         <ArkSlider.Root
-            aria-label={[props.label]}
             disabled={props.disabled}
             min={props.min}
             max={props.max}

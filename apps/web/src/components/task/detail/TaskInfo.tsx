@@ -165,7 +165,6 @@ export function TaskInfo(props: TaskInfoProps) {
             <Show when={hasDelete()}>
                 <Loading.Mask loading={props.loading}>
                     <Button
-                        aria-label='Delete task'
                         variant='danger'
                         classes={{ root: 'w-full' }}
                         onClick={openDelete}
@@ -173,7 +172,6 @@ export function TaskInfo(props: TaskInfoProps) {
                         <Trash2
                             size={13}
                             strokeWidth={1.8}
-                            aria-hidden='true'
                         />
                         Delete task
                     </Button>

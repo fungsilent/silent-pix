@@ -78,7 +78,6 @@ export function ImageStage(props: ImageStageProps) {
     return (
         <section
             class='relative flex min-h-[240px] flex-1 flex-col overflow-hidden bg-stage'
-            aria-label='Image preview'
             inert={props.loading}
         >
             <div class='relative flex min-h-0 flex-1 items-center justify-center overflow-hidden'>
@@ -103,19 +102,16 @@ export function ImageStage(props: ImageStageProps) {
                 >
                     <Button
                         variant='ghost'
-                        aria-label='Expand'
                         classes={{ root: cn('size-8 rounded-md border p-0', glass) }}
                         onClick={props.onExpand}
                     >
                         <Expand
                             size={15}
                             strokeWidth={1.8}
-                            aria-hidden='true'
                         />
                     </Button>
                     <Button
                         variant='ghost'
-                        aria-label='Compare image'
                         classes={{ root: cn('size-8 rounded-md border p-0', glass) }}
                         onClick={() => {
                             const image = selectedImage()
@@ -127,13 +123,11 @@ export function ImageStage(props: ImageStageProps) {
                         <Columns2
                             size={15}
                             strokeWidth={1.8}
-                            aria-hidden='true'
                         />
                     </Button>
                     {/* 緊迫迴圈：剛生完一批，挑一張直接接著改，不必開 dialog */}
                     <Button
                         variant='ghost'
-                        aria-label='Use as reference'
                         classes={{ root: cn('size-8 rounded-md border p-0', glass) }}
                         onClick={() => {
                             const image = selectedImage()
@@ -145,29 +139,24 @@ export function ImageStage(props: ImageStageProps) {
                         <ImagePlus
                             size={15}
                             strokeWidth={1.8}
-                            aria-hidden='true'
                         />
                     </Button>
                     <Button
                         variant='ghost'
-                        aria-label='Favorite'
                         classes={{ root: cn('size-8 rounded-md border p-0', glass) }}
                     >
                         <Star
                             size={15}
                             strokeWidth={1.8}
-                            aria-hidden='true'
                         />
                     </Button>
                     <Button
                         variant='ghost'
-                        aria-label='Delete'
                         classes={{ root: cn('size-8 rounded-md border p-0 hover:text-red-400', glass) }}
                     >
                         <Trash2
                             size={15}
                             strokeWidth={1.8}
-                            aria-hidden='true'
                         />
                     </Button>
                 </Loading.Hide>
@@ -175,26 +164,22 @@ export function ImageStage(props: ImageStageProps) {
                 <Show when={hasMany()}>
                     <Button
                         variant='ghost'
-                        aria-label='Previous image'
                         classes={{ root: cn('absolute left-3 top-1/2 size-9 -translate-y-1/2 rounded-md border p-0', glass) }}
                         onClick={selectPrevious}
                     >
                         <ChevronLeft
                             size={18}
                             strokeWidth={1.8}
-                            aria-hidden='true'
                         />
                     </Button>
                     <Button
                         variant='ghost'
-                        aria-label='Next image'
                         classes={{ root: cn('absolute right-3 top-1/2 size-9 -translate-y-1/2 rounded-md border p-0', glass) }}
                         onClick={selectNext}
                     >
                         <ChevronRight
                             size={18}
                             strokeWidth={1.8}
-                            aria-hidden='true'
                         />
                     </Button>
                 </Show>
@@ -206,8 +191,6 @@ export function ImageStage(props: ImageStageProps) {
                         {(image, index) => (
                             <Button
                                 variant='ghost'
-                                aria-label={`Show image ${index() + 1}`}
-                                aria-pressed={index() === props.selectedIndex}
                                 classes={{
                                     root: cn(
                                         'h-full w-auto shrink-0 overflow-hidden rounded-md p-0',

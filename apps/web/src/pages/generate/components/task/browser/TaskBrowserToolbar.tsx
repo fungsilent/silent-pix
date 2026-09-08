@@ -44,22 +44,19 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                                 <Search
                                     size={14}
                                     strokeWidth={1.7}
-                                    aria-hidden='true'
                                 />
                             )}
-                            classes={{ root: 'min-w-0 flex-1', label: 'sr-only' }}
+                            classes={{ root: 'min-w-0 flex-1', label: 'hidden' }}
                             onInput={props.onSearchChange}
                         />
                         <Button
                             variant='ghost'
-                            aria-label='Collapse task browser'
                             classes={{ root: 'size-8 shrink-0 p-0' }}
                             onClick={props.onCollapse}
                         >
                             <Minimize2
                                 size={16}
                                 strokeWidth={1.8}
-                                aria-hidden='true'
                             />
                         </Button>
                     </div>
@@ -74,7 +71,6 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                     <div class='flex shrink-0 items-center pb-1'>
                         <Button
                             variant='danger'
-                            aria-label='Delete all marked tasks'
                             disabled={props.deletePending}
                             classes={{ root: 'h-7 px-2 text-[11px]' }}
                             onClick={props.onDeleteAll}
@@ -91,7 +87,6 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                             </span>
                             <Button
                                 variant='ghost'
-                                aria-label='Clear task selection'
                                 disabled={props.flagPending}
                                 classes={{ root: 'h-7 px-2 text-[11px]' }}
                                 onClick={props.onClearSelection}
@@ -100,7 +95,6 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                             </Button>
                             <Button
                                 variant='ghost'
-                                aria-label='Unflag selected tasks'
                                 disabled={props.flagPending}
                                 classes={{ root: 'h-7 px-2 text-[11px]' }}
                                 onClick={() => props.onSetFlags(null)}
@@ -109,7 +103,6 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                             </Button>
                             <Button
                                 variant='accent'
-                                aria-label='Pin selected tasks'
                                 disabled={props.flagPending}
                                 classes={{ root: 'h-7 px-2 text-[11px]' }}
                                 onClick={() => props.onSetFlags('pin')}
@@ -117,13 +110,11 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                                 <Pin
                                     size={13}
                                     strokeWidth={1.8}
-                                    aria-hidden='true'
                                 />
                                 Pin
                             </Button>
                             <Button
                                 variant='danger'
-                                aria-label='Discard selected tasks'
                                 disabled={props.flagPending}
                                 classes={{ root: 'h-7 px-2 text-[11px]' }}
                                 onClick={() => props.onSetFlags('discard')}
@@ -131,14 +122,12 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                                 <Trash2
                                     size={13}
                                     strokeWidth={1.8}
-                                    aria-hidden='true'
                                 />
                                 Discard
                             </Button>
                             <Show when={props.showPermanentDelete}>
                                 <Button
                                     variant='danger'
-                                    aria-label={`Delete ${props.selectedCount} selected tasks`}
                                     disabled={props.deletePending}
                                     classes={{ root: 'h-7 px-2 text-[11px]' }}
                                     onClick={props.onDeleteSelected}
@@ -148,7 +137,6 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                             </Show>
                         </Show>
                         <IssueChip
-                            label='tasks'
                             issues={props.issues}
                             open={props.issuesOpen}
                             onOpenChange={props.onIssuesOpenChange}

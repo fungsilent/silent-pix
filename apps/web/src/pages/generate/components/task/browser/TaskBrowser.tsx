@@ -173,7 +173,6 @@ export function TaskBrowser() {
     return (
         <section
             class='flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-surface'
-            aria-label='Task browser'
         >
             <TaskBrowserToolbar
                 taskFlags={taskStore.state.feedTaskFlags}

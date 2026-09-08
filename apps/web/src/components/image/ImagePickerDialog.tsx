@@ -207,10 +207,9 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                             <Search
                                 size={14}
                                 strokeWidth={1.7}
-                                aria-hidden='true'
                             />
                         )}
-                        classes={{ root: 'min-w-0 flex-1', label: 'sr-only' }}
+                        classes={{ root: 'min-w-0 flex-1', label: 'hidden' }}
                         onInput={setKeyword}
                     />
                 </div>
@@ -273,7 +272,6 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                                 <RefreshCw
                                     size={14}
                                     strokeWidth={1.8}
-                                    aria-hidden='true'
                                 />
                                 Retry
                             </Button>
@@ -298,8 +296,6 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                                         return (
                                             <Button
                                                 variant='ghost'
-                                                aria-label={`Select ${originLabel(item.origin) ?? item.image.id.slice(0, 8)}`}
-                                                aria-pressed={selected()}
                                                 disabled={disabled()}
                                                 classes={{
                                                     root: cn(
@@ -341,7 +337,6 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                                                             size={22}
                                                             strokeWidth={2.5}
                                                             class='text-white/80'
-                                                            aria-hidden='true'
                                                         />
                                                     </span>
                                                 </Show>

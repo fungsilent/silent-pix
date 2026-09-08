@@ -38,7 +38,6 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
         >
             <Button
                 variant='ghost'
-                aria-label={`Open outputs for task ${title()}`}
                 classes={{
                     root: cn(
                         'block w-full min-w-0 p-0 text-left hover:bg-transparent',
@@ -61,8 +60,6 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
             </Button>
             <Button
                 variant='ghost'
-                aria-label={`Focus task ${title()}`}
-                aria-pressed={props.focused}
                 classes={{
                     root: cn(
                         'mt-2 block w-full min-w-0 p-0 text-left hover:bg-transparent',
@@ -104,8 +101,6 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
             <Button
                 variant='ghost'
                 data-marquee-control='true'
-                aria-label={props.checked ? 'Deselect task' : 'Select task'}
-                aria-pressed={props.checked}
                 classes={{
                     root: cn(
                         'absolute right-2.5 top-2.5 size-7 rounded-md border-0 p-0 transition-opacity',
@@ -120,7 +115,6 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
                     size={14}
                     strokeWidth={2}
                     class={cn(!props.checked && 'opacity-0')}
-                    aria-hidden='true'
                 />
             </Button>
         </article>

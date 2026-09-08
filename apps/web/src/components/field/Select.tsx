@@ -72,7 +72,6 @@ export function Select(props: SelectProps) {
                         <ChevronDown
                             size={15}
                             strokeWidth={2}
-                            aria-hidden='true'
                         />
                     </ArkSelect.Indicator>
                 </ArkSelect.Trigger>
@@ -108,7 +107,6 @@ export function Select(props: SelectProps) {
                                         <Check
                                             size={13}
                                             strokeWidth={2}
-                                            aria-hidden='true'
                                         />
                                     </ArkSelect.ItemIndicator>
                                 </ArkSelect.Item>

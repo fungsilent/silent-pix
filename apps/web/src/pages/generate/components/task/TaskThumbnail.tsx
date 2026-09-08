@@ -74,7 +74,6 @@ export function TaskThumbnail(props: TaskThumbnailProps) {
                             'flex size-full items-center justify-center',
                             props.classes?.placeholder,
                         )}
-                        aria-label={placeholder().label}
                     >
                         <TaskPlaceholderIcon
                             status={props.status}

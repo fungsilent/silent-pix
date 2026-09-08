@@ -97,7 +97,6 @@ function Hide(props: WrapProps) {
 function Skeleton(props: SkeletonProps) {
     return (
         <span
-            aria-hidden='true'
             class={cn('skeleton pointer-events-none block rounded-md', props.class)}
         />
     )

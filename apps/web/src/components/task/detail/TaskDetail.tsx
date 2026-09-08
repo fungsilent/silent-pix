@@ -162,7 +162,6 @@ function TaskDetailPanel(props: TaskDetailPanelProps) {
                             <Show when={!props.error()}>
                                 <div
                                     class='contents'
-                                    aria-busy={props.loading()}
                                 >
                                     {props.children}
                                 </div>
