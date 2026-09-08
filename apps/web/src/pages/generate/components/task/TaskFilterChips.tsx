@@ -1,65 +1,46 @@
-import { ListFilter, Pin, Trash2 } from 'lucide-solid'
+import { FlagOff, ListFilter, Pin, Trash2 } from 'lucide-solid'
 
-import { Button } from '#/components/base/Button'
+import { FilterChips } from '#/components/base/FilterChips'
 import { cn } from '#/lib/cn'
 
-import type { TaskFeedFilter } from '#/store/task'
+import type { TaskApi } from '@silent-pix/shared'
 import type { LucideProps } from 'lucide-solid'
 import type { Component } from 'solid-js'
 
 type TaskFilterChipsProps = {
-    value: TaskFeedFilter
-    onChange: (filter: TaskFeedFilter) => void
+    values: readonly TaskApi.TaskFilterFlag[] | undefined
+    onChange: (values: TaskApi.TaskFilterFlag[] | undefined) => void
+    presentation?: 'icon' | 'label'
     classes?: {
         root?: string
     }
 }
 
 type FilterOption = {
-    value: TaskFeedFilter
+    value: TaskApi.TaskFilterFlag
     label: string
     Icon: Component<LucideProps>
 }
 
+const allOption = { label: 'All', Icon: ListFilter }
+
 const filterOptions: FilterOption[] = [
-    { value: 'all', label: 'All', Icon: ListFilter },
+    { value: 'unflag', label: 'Unflag', Icon: FlagOff },
     { value: 'pin', label: 'Pin', Icon: Pin },
     { value: 'discard', label: 'Discard', Icon: Trash2 },
 ]
 
 export function TaskFilterChips(props: TaskFilterChipsProps) {
     return (
-        <div
-            class={cn(
-                'flex shrink-0 items-center gap-1 px-2 pb-1',
-                props.classes?.root,
-            )}
-            role='group'
-            aria-label='Task filter'
-        >
-            {filterOptions.map(option => (
-                <Button
-                    variant='ghost'
-                    aria-label={`Show ${option.label.toLowerCase()} tasks`}
-                    aria-pressed={props.value === option.value}
-                    classes={{
-                        root: cn(
-                            'h-7 gap-1.5 rounded-md px-2 text-[11px] font-medium',
-                            props.value === option.value
-                                ? 'bg-active text-fg shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]'
-                                : 'text-fg-muted',
-                        ),
-                    }}
-                    onClick={() => props.onChange(option.value)}
-                >
-                    <option.Icon
-                        size={13}
-                        strokeWidth={1.8}
-                        aria-hidden='true'
-                    />
-                    {option.label}
-                </Button>
-            ))}
-        </div>
+        <FilterChips
+            allOption={allOption}
+            options={filterOptions}
+            values={props.values}
+            onChange={props.onChange}
+            {...(props.presentation ? { presentation: props.presentation } : {})}
+            classes={{
+                root: cn('px-2 pb-1', props.classes?.root),
+            }}
+        />
     )
 }

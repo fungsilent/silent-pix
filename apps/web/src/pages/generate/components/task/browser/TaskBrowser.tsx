@@ -11,7 +11,7 @@ import { TaskBatchDeleteDialog } from '#/pages/generate/components/task/browser/
 import { TaskBrowserGrid } from '#/pages/generate/components/task/browser/TaskBrowserGrid'
 import { TaskBrowserToolbar } from '#/pages/generate/components/task/browser/TaskBrowserToolbar'
 import { TaskBrowserViewer } from '#/pages/generate/components/task/browser/TaskBrowserViewer'
-import { type TaskFeedFilter, taskStore } from '#/store/task'
+import { taskStore } from '#/store/task'
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { AppIssue } from '#/lib/issue'
@@ -114,10 +114,15 @@ export function TaskBrowser() {
         setSelectedTaskIds([...current, taskId])
     }
 
-    const changeFilter = (filter: TaskFeedFilter) => {
+    const changeFilter = (taskFlags: TaskApi.TaskFilterFlag[] | undefined) => {
         setSelectedTaskIds([])
         setSelectionLimitWarning(false)
-        taskStore.setFeedFilter(filter)
+        taskStore.setFeedTaskFlags(taskFlags)
+    }
+
+    const showPermanentDelete = () => {
+        const taskFlags = taskStore.state.feedTaskFlags
+        return taskFlags?.length === 1 && taskFlags[0] === 'discard'
     }
 
     const setSelectedFlags = (flag: TaskApi.TaskFlag | null) => {
@@ -171,13 +176,13 @@ export function TaskBrowser() {
             aria-label='Task browser'
         >
             <TaskBrowserToolbar
-                filter={taskStore.state.feedFilter}
+                taskFlags={taskStore.state.feedTaskFlags}
                 search={taskStore.state.feedSearch}
                 selectedCount={selectedTaskIds().length}
                 issues={issues()}
                 issuesOpen={issuesOpen()}
                 onSearchChange={taskStore.setFeedSearch}
-                onFilterChange={changeFilter}
+                onTaskFlagsChange={changeFilter}
                 onClearSelection={() => {
                     setSelectedTaskIds([])
                     setSelectionLimitWarning(false)
@@ -188,6 +193,7 @@ export function TaskBrowser() {
                 onDeleteSelected={() => openBatchDelete('selected')}
                 onDeleteAll={() => openBatchDelete('discard')}
                 deletePending={deletePending()}
+                showPermanentDelete={showPermanentDelete()}
                 onCollapse={() => taskStore.setBrowserOpen(false)}
             />
 

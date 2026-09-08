@@ -9,7 +9,9 @@ import { useTaskFeedQuery, useTaskFlagMutation } from '#/features/task/task.quer
 import { toErrorMessage } from '#/lib/error'
 import { TaskItem, TaskItemSkeleton } from '#/pages/generate/components/task/list/TaskItem'
 import { TaskFilterChips } from '#/pages/generate/components/task/TaskFilterChips'
-import { type TaskFeedFilter, taskStore } from '#/store/task'
+import { taskStore } from '#/store/task'
+
+import type { TaskApi } from '@silent-pix/shared'
 
 const taskSkeletonRows = [0, 1, 2, 3, 4, 5]
 
@@ -57,8 +59,9 @@ export function TaskList() {
                     />
                     <Show when={!panel.isCollapsed()}>
                         <TaskFilterChips
-                            value={taskStore.state.feedFilter}
-                            onChange={taskStore.setFeedFilter}
+                            values={taskStore.state.feedTaskFlags}
+                            onChange={taskStore.setFeedTaskFlags}
+                            presentation='icon'
                         />
                         <Show when={flagMutation.error}>
                             {error => (
@@ -98,7 +101,7 @@ export function TaskList() {
                                     when={tasks().length > 0}
                                     fallback={(
                                         <Show when={!panel.isCollapsed()}>
-                                            <TaskEmptyState filter={taskStore.state.feedFilter} />
+                                            <TaskEmptyState values={taskStore.state.feedTaskFlags} />
                                         </Show>
                                     )}
                                 >
@@ -145,13 +148,13 @@ export function TaskList() {
 }
 
 type TaskEmptyStateProps = {
-    filter: TaskFeedFilter
+    values: readonly TaskApi.TaskFilterFlag[] | undefined
 }
 
-const emptyStateCopy: Record<TaskFeedFilter, { title: string, message: string }> = {
-    all: {
-        title: 'No tasks yet',
-        message: 'Generated tasks will appear here.',
+const emptyStateCopy: Record<TaskApi.TaskFilterFlag, { title: string, message: string }> = {
+    unflag: {
+        title: 'No unflagged tasks',
+        message: 'Tasks without a pin or discard flag will appear here.',
     },
     pin: {
         title: 'No pinned tasks',
@@ -164,7 +167,25 @@ const emptyStateCopy: Record<TaskFeedFilter, { title: string, message: string }>
 }
 
 function TaskEmptyState(props: TaskEmptyStateProps) {
-    const copy = () => emptyStateCopy[props.filter]
+    const singleFlag = () => props.values?.length === 1
+        ? props.values[0]
+        : undefined
+    const copy = () => {
+        const flag = singleFlag()
+        if (flag) {
+            return emptyStateCopy[flag]
+        }
+
+        return props.values === undefined
+            ? {
+                title: 'No tasks yet',
+                message: 'Generated tasks will appear here.',
+            }
+            : {
+                title: 'No matching tasks',
+                message: 'Try a different task filter.',
+            }
+    }
 
     return (
         <div class='flex flex-col items-center gap-1 px-3 py-8 text-center'>

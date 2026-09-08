@@ -161,7 +161,7 @@ export function cacheTaskFlagsPatched(
                     updateTaskFeed(result.data, scope, source, true),
                 )
             }
-            else if (current && mayMatchTaskFeedView(task, scope)) {
+            else if (current && mayMatchTaskFeedFlags(task, scope)) {
                 result.invalidate = true
             }
         }
@@ -254,7 +254,7 @@ function updateTaskFeed(
     if (current.pages.length === 0) {
         return {
             data: current,
-            invalidate: insertIfMissing && matchesTaskFeedView(task, scope),
+            invalidate: insertIfMissing && matchesTaskFeedFlags(task, scope),
         }
     }
 
@@ -268,7 +268,7 @@ function updateTaskFeed(
 
             found = true
 
-            if (!matchesTaskFeedView(task, scope)) {
+            if (!matchesTaskFeedFlags(task, scope)) {
                 changed = true
                 return []
             }
@@ -287,7 +287,7 @@ function updateTaskFeed(
             : page
     })
 
-    if (found || !insertIfMissing || !matchesTaskFeedView(task, scope)) {
+    if (found || !insertIfMissing || !matchesTaskFeedFlags(task, scope)) {
         return {
             data: changed ? { ...current, pages } : current,
             invalidate: false,
@@ -329,7 +329,7 @@ function updateTaskFeedFlags(
                 discard: task.discard,
             }
 
-            if (!matchesTaskFeedView(updatedTask, scope)) {
+            if (!matchesTaskFeedFlags(updatedTask, scope)) {
                 changed = true
                 return []
             }
@@ -365,34 +365,30 @@ function mergeFeedWriteResult(
     }
 }
 
-function matchesTaskFeedView(
+function matchesTaskFeedFlags(
     item: TaskApi.TaskListItem,
     scope: TaskFeedScope,
 ): boolean {
-    if (scope.view === 'pin' && !item.pin) {
-        return false
-    }
-
-    if (scope.view === 'discard' && !item.discard) {
-        return false
-    }
-
-    return true
+    return scope.taskFlags === undefined || scope.taskFlags.some(flag => (
+        flag === 'unflag'
+            ? !item.pin && !item.discard
+            : flag === 'pin'
+                ? item.pin
+                : item.discard
+    ))
 }
 
-function mayMatchTaskFeedView(
+function mayMatchTaskFeedFlags(
     task: TaskApi.TaskFlagState,
     scope: TaskFeedScope,
 ): boolean {
-    if (scope.view === 'pin' && !task.pin) {
-        return false
-    }
-
-    if (scope.view === 'discard' && !task.discard) {
-        return false
-    }
-
-    return true
+    return scope.taskFlags === undefined || scope.taskFlags.some(flag => (
+        flag === 'unflag'
+            ? !task.pin && !task.discard
+            : flag === 'pin'
+                ? task.pin
+                : task.discard
+    ))
 }
 
 function insertTask(

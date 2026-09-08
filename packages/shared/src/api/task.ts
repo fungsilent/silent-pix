@@ -6,13 +6,13 @@ export const taskStatus = z.enum(['queued', 'running', 'done', 'failed'])
 
 export type TaskStatus = z.output<typeof taskStatus>
 
-export const taskView = z.enum(['all', 'pin', 'discard'])
-
-export type TaskView = z.output<typeof taskView>
-
 export const taskFlag = z.enum(['pin', 'discard'])
 
 export type TaskFlag = z.output<typeof taskFlag>
+
+export const taskFilterFlag = z.enum(['unflag', 'pin', 'discard'])
+
+export type TaskFilterFlag = z.output<typeof taskFilterFlag>
 
 export const taskListItem = z.object({
     id: z.uuid(),
@@ -182,7 +182,15 @@ export type GetLorasResponse = z.output<typeof getLorasResponse>
 export const getTasksQuery = z.object({
     cursor: z.string().max(512).optional(),
     search: z.string().trim().max(200).optional(),
-    view: taskView.default('all'),
+    taskFlags: z.union([
+        z.array(taskFilterFlag),
+        z.string().transform(value => value.split(',')),
+    ]).pipe(
+        z.array(taskFilterFlag)
+            .min(1)
+            .max(3)
+            .refine(flags => new Set(flags).size === flags.length, 'Task flags must be unique.'),
+    ).optional(),
     limit: z.union([
         z.number(),
         z.string().regex(/^[0-9]+$/).transform(Number),

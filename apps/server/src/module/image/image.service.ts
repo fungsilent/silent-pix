@@ -100,8 +100,8 @@ export const imageService = {
 
         const search = query.search?.trim()
         const earliest = alias(taskImages, 'earliest')
-        const searched = alias(taskImages, 'searched')
-        const searchedTask = alias(tasks, 'searchedTask')
+        const matchingUsage = alias(taskImages, 'matchingUsage')
+        const matchingTask = alias(tasks, 'matchingTask')
 
         const rows = await database.db
             .select({
@@ -146,19 +146,43 @@ export const imageService = {
                         ),
                     )
                     : undefined,
-                /* 圖片本身沒有名字，所以搜尋是搜「用過它的 task」，不限最早那一次 */
-                search
+                /*
+                 * 圖片本身沒有名字，所以搜尋是搜「用過它的 task」；type、task flag、
+                 * search conditions 都必須在同一個 matching usage/task 上成立。
+                 */
+                search || query.taskFlags || query.type
                     ? exists(
                         database.db
                             .select({ one: sql`1` })
-                            .from(searched)
-                            .innerJoin(searchedTask, eq(searchedTask.id, searched.taskId))
+                            .from(matchingUsage)
+                            .innerJoin(matchingTask, eq(matchingTask.id, matchingUsage.taskId))
                             .where(and(
-                                eq(searched.imageId, taskImages.imageId),
-                                or(
-                                    like(searchedTask.name, `%${search}%`),
-                                    like(searchedTask.id, `%${search}%`),
-                                ),
+                                eq(matchingUsage.imageId, taskImages.imageId),
+                                query.type
+                                    ? eq(matchingUsage.type, query.type)
+                                    : inArray(matchingUsage.type, displayTypes),
+                                query.taskFlags
+                                    ? or(
+                                        query.taskFlags.includes('unflag')
+                                            ? and(
+                                                eq(matchingTask.pin, false),
+                                                eq(matchingTask.discard, false),
+                                            )
+                                            : undefined,
+                                        query.taskFlags.includes('pin')
+                                            ? eq(matchingTask.pin, true)
+                                            : undefined,
+                                        query.taskFlags.includes('discard')
+                                            ? eq(matchingTask.discard, true)
+                                            : undefined,
+                                    )
+                                    : undefined,
+                                search
+                                    ? or(
+                                        like(matchingTask.name, `%${search}%`),
+                                        like(matchingTask.id, `%${search}%`),
+                                    )
+                                    : undefined,
                             )),
                     )
                     : undefined,

@@ -1,8 +1,19 @@
-import { Check, RefreshCw, Search } from 'lucide-solid'
+import {
+    Check,
+    FlagOff,
+    ImageDown,
+    ImageUp,
+    ListFilter,
+    Pin,
+    RefreshCw,
+    Search,
+    Trash2,
+} from 'lucide-solid'
 import { createEffect, createSignal, For, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { Dialog } from '#/components/base/Dialog'
+import { FilterChips } from '#/components/base/FilterChips'
 import { Loading } from '#/components/base/Loading'
 import { PanelContent } from '#/components/base/Panel'
 import { Text } from '#/components/field'
@@ -10,14 +21,16 @@ import { originLabel } from '#/features/image/image.label'
 import { useImageListQuery } from '#/features/image/image.query'
 import { cn } from '#/lib/cn'
 
-import type { ImageApi } from '@silent-pix/shared'
+import type { ImageApi, TaskApi } from '@silent-pix/shared'
+import type { LucideProps } from 'lucide-solid'
+import type { Component } from 'solid-js'
 
 type SharedDialogProps = {
     open: boolean
     onOpenChange: (open: boolean) => void
 }
 
-export type ImagePickerDialogProps = SharedDialogProps & (
+type ImagePickerDialogProps = SharedDialogProps & (
     | {
         mode: 'single'
         onSelect: (image: ImageApi.ImageListItem) => void
@@ -31,15 +44,51 @@ export type ImagePickerDialogProps = SharedDialogProps & (
 
 const imageSkeletonCells = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
+type ImageType = ImageApi.ImageUsage['type']
+type ImageTaskFlag = TaskApi.TaskFilterFlag
+const taskFlagOrder: ImageTaskFlag[] = ['unflag', 'pin', 'discard']
+
+type ImageFilterOption<Value extends string> = {
+    value: Value
+    label: string
+    Icon: Component<LucideProps>
+}
+
+const allTaskFlagOption = { label: 'All', Icon: ListFilter }
+
+const imageTaskFlagOptions: ImageFilterOption<ImageTaskFlag>[] = [
+    { value: 'unflag', label: 'Unflag', Icon: FlagOff },
+    { value: 'pin', label: 'Pin', Icon: Pin },
+    { value: 'discard', label: 'Discard', Icon: Trash2 },
+]
+
+const allImageTypeOption = { label: 'All', Icon: ListFilter }
+
+const imageTypeOptions: ImageFilterOption<ImageType>[] = [
+    { value: 'input', label: 'Input', Icon: ImageDown },
+    { value: 'output', label: 'Output', Icon: ImageUp },
+]
+
 export function ImagePickerDialog(props: ImagePickerDialogProps) {
     const [keyword, setKeyword] = createSignal('')
+    const [taskFlags, setTaskFlags] = createSignal<ImageTaskFlag[] | undefined>(
+        taskFlagOrder.slice(0, 2),
+    )
+    const [imageType, setImageType] = createSignal<ImageType[] | undefined>()
     const [selectedSingle, setSelectedSingle] = createSignal<ImageApi.ImageListItem>()
     const [selectedMultiple, setSelectedMultiple] = createSignal<ImageApi.ImageListItem[]>([])
-    const query = useImageListQuery(() => props.open, keyword)
+    const query = useImageListQuery(
+        () => props.open,
+        keyword,
+        () => props.mode === 'multiple' ? taskFlags() : undefined,
+        () => props.mode === 'multiple' ? imageType()?.[0] : undefined,
+    )
     const hasLoadError = () => query.isError && query.data === undefined
 
     const resetSelection = () => {
         setKeyword('')
+        setTaskFlags(taskFlagOrder.slice(0, 2))
+        setImageType(undefined)
         setSelectedSingle(undefined)
         setSelectedMultiple([])
     }
@@ -108,7 +157,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
             title={props.mode === 'multiple' ? 'Add images to compare' : 'Choose reference image'}
             onOpenChange={props.onOpenChange}
             classes={{
-                content: 'h-[100vh] w-[960px] max-w-full',
+                content: 'h-[100vh] w-[1200px] max-w-[calc(100vw-2rem)]',
                 body: 'flex min-h-0 flex-col overflow-hidden',
             }}
             footer={(
@@ -148,20 +197,52 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                 </div>
             )}
         >
-            <Text
-                label='Search'
-                value={keyword()}
-                placeholder='task name or task ID...'
-                icon={(
-                    <Search
-                        size={14}
-                        strokeWidth={1.7}
-                        aria-hidden='true'
+            <div class='flex min-w-0 flex-col gap-2'>
+                <div class='flex min-w-0'>
+                    <Text
+                        label='Search'
+                        value={keyword()}
+                        placeholder='task name or task ID...'
+                        icon={(
+                            <Search
+                                size={14}
+                                strokeWidth={1.7}
+                                aria-hidden='true'
+                            />
+                        )}
+                        classes={{ root: 'min-w-0 flex-1', label: 'sr-only' }}
+                        onInput={setKeyword}
                     />
-                )}
-                classes={{ root: 'shrink-0', label: 'sr-only' }}
-                onInput={setKeyword}
-            />
+                </div>
+
+                <Show when={props.mode === 'multiple'}>
+                    <div class='flex flex-wrap items-center gap-6'>
+                        <div class='flex items-center gap-3'>
+                            <span class='text-[10px] font-medium uppercase tracking-wide text-fg-title'>
+                                Task
+                            </span>
+                            <FilterChips
+                                allOption={allTaskFlagOption}
+                                options={imageTaskFlagOptions}
+                                values={taskFlags()}
+                                onChange={setTaskFlags}
+                            />
+                        </div>
+                        <div class='flex items-center gap-3'>
+                            <span class='text-[10px] font-medium uppercase tracking-wide text-fg-title'>
+                                Type
+                            </span>
+                            <FilterChips
+                                allOption={allImageTypeOption}
+                                options={imageTypeOptions}
+                                values={imageType()}
+                                onChange={setImageType}
+                                selection='single'
+                            />
+                        </div>
+                    </div>
+                </Show>
+            </div>
 
             <PanelContent
                 classes={{

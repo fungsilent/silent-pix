@@ -26,9 +26,10 @@ export const loraKeys = {
 export function useTaskFeedQuery() {
     return useInfiniteQuery(() => {
         const search = taskStore.state.feedSearch.trim()
+        const taskFlags = taskStore.state.feedTaskFlags
         const request: Omit<TaskApi.GetTasksQuery, 'cursor'> = {
             limit: 30,
-            view: taskStore.state.feedFilter,
+            ...(taskFlags ? { taskFlags } : {}),
             ...(search ? { search } : {}),
         }
 

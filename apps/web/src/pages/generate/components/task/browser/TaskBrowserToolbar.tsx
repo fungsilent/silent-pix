@@ -9,16 +9,15 @@ import { TaskFilterChips } from '#/pages/generate/components/task/TaskFilterChip
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { AppIssue } from '#/lib/issue'
-import type { TaskFeedFilter } from '#/store/task'
 
 type TaskBrowserToolbarProps = {
-    filter: TaskFeedFilter
+    taskFlags: readonly TaskApi.TaskFilterFlag[] | undefined
     search: string
     selectedCount: number
     issues: AppIssue[]
     issuesOpen: boolean
     onSearchChange: (search: string) => void
-    onFilterChange: (filter: TaskFeedFilter) => void
+    onTaskFlagsChange: (taskFlags: TaskApi.TaskFilterFlag[] | undefined) => void
     onClearSelection: () => void
     onIssuesOpenChange: (open: boolean) => void
     onSetFlags: (flag: TaskApi.TaskFlag | null) => void
@@ -26,6 +25,7 @@ type TaskBrowserToolbarProps = {
     onDeleteSelected: () => void
     onDeleteAll: () => void
     deletePending: boolean
+    showPermanentDelete: boolean
     onCollapse: () => void
 }
 
@@ -67,10 +67,10 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
             />
             <div class='flex min-w-0 flex-wrap items-center gap-2'>
                 <TaskFilterChips
-                    value={props.filter}
-                    onChange={props.onFilterChange}
+                    values={props.taskFlags}
+                    onChange={props.onTaskFlagsChange}
                 />
-                <Show when={props.filter === 'discard'}>
+                <Show when={props.showPermanentDelete}>
                     <div class='flex shrink-0 items-center pb-1'>
                         <Button
                             variant='danger'
@@ -135,7 +135,7 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                                 />
                                 Discard
                             </Button>
-                            <Show when={props.filter === 'discard'}>
+                            <Show when={props.showPermanentDelete}>
                                 <Button
                                     variant='danger'
                                     aria-label={`Delete ${props.selectedCount} selected tasks`}

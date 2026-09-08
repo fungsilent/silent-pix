@@ -448,8 +448,19 @@ export const taskService = {
             })
             .from(tasks)
             .where(and(
-                query.view === 'pin' ? eq(tasks.pin, true) : undefined,
-                query.view === 'discard' ? eq(tasks.discard, true) : undefined,
+                query.taskFlags
+                    ? or(
+                        query.taskFlags.includes('unflag')
+                            ? and(eq(tasks.pin, false), eq(tasks.discard, false))
+                            : undefined,
+                        query.taskFlags.includes('pin')
+                            ? eq(tasks.pin, true)
+                            : undefined,
+                        query.taskFlags.includes('discard')
+                            ? eq(tasks.discard, true)
+                            : undefined,
+                    )
+                    : undefined,
                 cursor
                     ? sql`(${tasks.createdAt}, ${tasks.id}) < (${cursor.createdAt}, ${cursor.id})`
                     : undefined,

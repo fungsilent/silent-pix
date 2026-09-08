@@ -33,9 +33,21 @@ export const imageListItem = z.object({
 
 export type ImageListItem = z.output<typeof imageListItem>
 
+const taskFilterFlag = z.enum(['unflag', 'pin', 'discard'])
+
 export const getImagesQuery = z.object({
     cursor: z.string().max(512).optional(),
     search: z.string().trim().max(200).optional(),
+    taskFlags: z.union([
+        z.array(taskFilterFlag),
+        z.string().transform(value => value.split(',')),
+    ]).pipe(
+        z.array(taskFilterFlag)
+            .min(1)
+            .max(3)
+            .refine(flags => new Set(flags).size === flags.length, 'Task flags must be unique.'),
+    ).optional(),
+    type: z.enum(['input', 'output']).optional(),
     limit: z.union([
         z.number(),
         z.string().regex(/^[0-9]+$/).transform(Number),
