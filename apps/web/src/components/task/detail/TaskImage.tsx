@@ -40,7 +40,7 @@ export type TaskImageActions = {
     setImagePickerOpen: (open: boolean) => void
 }
 
-export type TaskImageProps = {
+type TaskImageProps = {
     mode: 'create'
     data: TaskImageCreateData
     actions: TaskImageActions

@@ -34,7 +34,7 @@ export type TaskDetailCreateActions = {
     lora: TaskLoraActions
 }
 
-export type TaskDetailProps = {
+type TaskDetailProps = {
     mode: 'create'
     data: TaskDetailCreateData
     actions: TaskDetailCreateActions

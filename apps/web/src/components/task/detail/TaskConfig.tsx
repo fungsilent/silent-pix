@@ -49,7 +49,7 @@ export type TaskConfigActions = {
     onSamplerChange: (value: string) => void
 }
 
-export type TaskConfigProps = {
+type TaskConfigProps = {
     mode: 'create'
     data: TaskConfigCreateData
     actions: TaskConfigActions

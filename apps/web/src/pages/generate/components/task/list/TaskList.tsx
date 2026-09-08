@@ -7,11 +7,9 @@ import { Loading } from '#/components/base/Loading'
 import { CollapseButton, Panel, PanelContent, PanelHeader } from '#/components/base/Panel'
 import { useTaskFeedQuery, useTaskFlagMutation } from '#/features/task/task.query'
 import { toErrorMessage } from '#/lib/error'
+import { TaskItem, TaskItemSkeleton } from '#/pages/generate/components/task/list/TaskItem'
 import { TaskFilterChips } from '#/pages/generate/components/task/TaskFilterChips'
-import { TaskItem, TaskItemSkeleton } from '#/pages/generate/components/task/TaskItem'
 import { type TaskFeedFilter, taskStore } from '#/store/task'
-
-import type { TaskApi } from '@silent-pix/shared'
 
 const taskSkeletonRows = [0, 1, 2, 3, 4, 5]
 
@@ -23,10 +21,6 @@ export function TaskList() {
     const taskIds = createMemo(() => tasks().map(task => task.id))
     const selectTask = (taskId: string) => {
         taskStore.selectTask(taskId)
-    }
-
-    const setTaskFlag = (taskId: string, flag: TaskApi.TaskFlag | null) => {
-        flagMutation.mutate({ taskIds: [taskId], flag })
     }
 
     return (
@@ -115,18 +109,10 @@ export function TaskList() {
                                                 task={taskById().get(taskId)!}
                                                 thumbnailOnly={panel.isCollapsed()}
                                                 onSelect={() => selectTask(taskId)}
-                                                onTogglePin={() => {
-                                                    const task = taskById().get(taskId)
-                                                    if (task) {
-                                                        setTaskFlag(taskId, task.pin ? null : 'pin')
-                                                    }
-                                                }}
-                                                onToggleDiscard={() => {
-                                                    const task = taskById().get(taskId)
-                                                    if (task) {
-                                                        setTaskFlag(taskId, task.discard ? null : 'discard')
-                                                    }
-                                                }}
+                                                onFlagChange={flag => flagMutation.mutate({
+                                                    taskIds: [taskId],
+                                                    flag,
+                                                })}
                                                 flagPending={flagMutation.isPending}
                                             />
                                         )}

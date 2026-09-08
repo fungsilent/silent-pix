@@ -7,7 +7,7 @@ import type { TaskFeedFilter } from '#/store/task'
 import type { LucideProps } from 'lucide-solid'
 import type { Component } from 'solid-js'
 
-export type TaskFilterChipsProps = {
+type TaskFilterChipsProps = {
     value: TaskFeedFilter
     onChange: (filter: TaskFeedFilter) => void
     classes?: {

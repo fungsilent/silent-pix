@@ -35,7 +35,7 @@ export type TaskInfoActions = {
     onDeleteTask: () => Promise<void>
 }
 
-export type TaskInfoProps = {
+type TaskInfoProps = {
     mode: 'create'
     data: TaskInfoCreateData
     actions: TaskInfoActions

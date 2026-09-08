@@ -1,6 +1,6 @@
 import { createEffect, createSignal, on, onCleanup } from 'solid-js'
 
-import { TaskDetail } from '#/components/task/TaskDetail'
+import { TaskDetail } from '#/components/task/detail/TaskDetail'
 import { useDeleteTaskMutation, useLoraListQuery, useRenameTaskMutation, useSamplerListQuery } from '#/features/task/task.query'
 import { useWorkflowListQuery } from '#/features/workflow/workflow.query'
 import { toErrorMessage } from '#/lib/error'
@@ -13,10 +13,10 @@ import { useGenerateStore } from '#/pages/generate/store'
 
 import type { ImageApi } from '@silent-pix/shared'
 import type { TaskConfigActions, TaskConfigCreateData, TaskConfigValues } from '#/components/task/detail/TaskConfig'
+import type { TaskDetailCreateActions, TaskDetailCreateData } from '#/components/task/detail/TaskDetail'
 import type { TaskImageActions, TaskImageCreateData, TaskImageReference } from '#/components/task/detail/TaskImage'
 import type { TaskInfoActions, TaskInfoCreateData } from '#/components/task/detail/TaskInfo'
 import type { TaskLoraActions, TaskLoraCreateData } from '#/components/task/detail/TaskLora'
-import type { TaskDetailCreateActions, TaskDetailCreateData } from '#/components/task/TaskDetail'
 import type { ReferenceImage } from '#/pages/generate/form'
 
 export function GenerateTaskDetail() {

@@ -1,16 +1,16 @@
 import { createMemo, Show } from 'solid-js'
 
 import { CollapseButton, CollapsedBar, Panel, PanelContent, PanelHeader } from '#/components/base/Panel'
-import { TaskDetail } from '#/components/task/TaskDetail'
+import { TaskDetail } from '#/components/task/detail/TaskDetail'
 import { useTaskDetailQuery } from '#/features/task/task.query'
 import { ReferenceImageDetail } from '#/pages/compare/components/ReferenceImageDetail'
 import { compareStore } from '#/store/compare'
 
 import type { TaskConfigData, TaskConfigValues } from '#/components/task/detail/TaskConfig'
+import type { TaskDetailViewData } from '#/components/task/detail/TaskDetail'
 import type { TaskImageData, TaskImageReference } from '#/components/task/detail/TaskImage'
 import type { TaskInfoData } from '#/components/task/detail/TaskInfo'
 import type { TaskLoraData } from '#/components/task/detail/TaskLora'
-import type { TaskDetailViewData } from '#/components/task/TaskDetail'
 
 export function CompareDetail() {
     const selected = createMemo(() => compareStore.selectedCompare())
