@@ -2,79 +2,58 @@ import { z } from 'zod'
 
 import * as comfy from '#shared/comfy'
 import { configSchema } from '#shared/config'
+import { workflowName, workflowSummary } from '#shared/contract/workflow'
 
-/* MARK: rest */
+export type { WorkflowSummary } from '#shared/contract/workflow'
 
-export const workflowName = z.string().trim().min(1).max(120)
+/* MARK: params */
 
-export const workflowSummary = z.object({
-    id: z.uuid(),
-    name: workflowName,
-    revision: z.number().int().positive(),
-    /* null = 使用中 */
-    archivedAt: z.iso.datetime().nullable(),
+const getWorkflowRequest = z.object({
+    workflowId: z.uuid(),
 })
 
-export type WorkflowSummary = z.output<typeof workflowSummary>
+const updateWorkflowParams = getWorkflowRequest
 
-export const getWorkflowsResponse = z.object({
+/* MARK: request */
+
+const createWorkflowRequest = z.object({
+    name: workflowName,
+    graph: comfy.graph,
+    configSchema,
+})
+
+const updateWorkflowRequest = z.object({
+    revision: z.number().int().positive(),
+    name: workflowName,
+    graph: comfy.graph,
+    configSchema,
+})
+
+/* MARK: response */
+
+const getWorkflowsResponse = z.object({
     options: z.array(workflowSummary),
 })
 
-export type GetWorkflowsResponse = z.output<typeof getWorkflowsResponse>
-
-export const getWorkflowResponse = workflowSummary.extend({
-    /* 決定 Delete 會封存還是真刪，按下之前就要知道 */
+const getWorkflowResponse = workflowSummary.extend({
+    /* NOTE: 決定 Delete 會封存還是真刪，按下之前就要知道 */
     taskCount: z.number().int().nonnegative(),
     graph: comfy.graph,
     configSchema,
 })
 
-export type GetWorkflowResponse = z.output<typeof getWorkflowResponse>
+const createWorkflowResponse = getWorkflowResponse
 
-export const createWorkflowRequest = z.object({
-    name: workflowName,
-    graph: comfy.graph,
-    configSchema,
-})
+const updateWorkflowResponse = getWorkflowResponse
 
-export type CreateWorkflowRequest = z.output<typeof createWorkflowRequest>
-
-export const createWorkflowResponse = getWorkflowResponse
-
-export type CreateWorkflowResponse = z.output<typeof createWorkflowResponse>
-
-export const updateWorkflowRequest = z.object({
-    revision: z.number().int().positive(),
-    name: workflowName,
-    graph: comfy.graph,
-    configSchema,
-})
-
-export type UpdateWorkflowRequest = z.output<typeof updateWorkflowRequest>
-
-export const updateWorkflowResponse = getWorkflowResponse
-
-export type UpdateWorkflowResponse = z.output<typeof updateWorkflowResponse>
-
-export const deleteWorkflowResponse = z.object({
+const deleteWorkflowResponse = z.object({
     id: z.uuid(),
-    /* 有 task 引用就是 archived，零引用才是 deleted */
+    /* NOTE: 有 task 引用就是 archived，零引用才是 deleted */
     disposition: z.enum(['archived', 'deleted']),
     workflow: workflowSummary.nullable(),
 })
 
-export type DeleteWorkflowResponse = z.output<typeof deleteWorkflowResponse>
-
-export const getWorkflowRequest = z.object({
-    workflowId: z.uuid(),
-})
-
-export type GetWorkflowRequest = z.output<typeof getWorkflowRequest>
-
-export const updateWorkflowParams = getWorkflowRequest
-
-export type UpdateWorkflowParams = z.output<typeof updateWorkflowParams>
+/* MARK: errors */
 
 const workflowMappingErrorResponse = z.object({
     error: z.object({
@@ -91,9 +70,36 @@ const workflowValidationErrorResponse = z.object({
     }),
 })
 
-export const workflowMutationErrorResponse = z.union([
+const workflowMutationErrorResponse = z.union([
     workflowMappingErrorResponse,
     workflowValidationErrorResponse,
 ])
 
+/* MARK: catalog */
+
+export const workflowApi = {
+    createWorkflowRequest,
+    createWorkflowResponse,
+    deleteWorkflowResponse,
+    getWorkflowRequest,
+    getWorkflowResponse,
+    getWorkflowsResponse,
+    updateWorkflowParams,
+    updateWorkflowRequest,
+    updateWorkflowResponse,
+    workflowMutationErrorResponse,
+    workflowName,
+} as const
+
+/* MARK: inferred types */
+
+export type GetWorkflowsResponse = z.output<typeof getWorkflowsResponse>
+export type GetWorkflowResponse = z.output<typeof getWorkflowResponse>
+export type CreateWorkflowRequest = z.output<typeof createWorkflowRequest>
+export type CreateWorkflowResponse = z.output<typeof createWorkflowResponse>
+export type UpdateWorkflowRequest = z.output<typeof updateWorkflowRequest>
+export type UpdateWorkflowResponse = z.output<typeof updateWorkflowResponse>
+export type DeleteWorkflowResponse = z.output<typeof deleteWorkflowResponse>
+export type GetWorkflowRequest = z.output<typeof getWorkflowRequest>
+export type UpdateWorkflowParams = z.output<typeof updateWorkflowParams>
 export type WorkflowMutationErrorResponse = z.output<typeof workflowMutationErrorResponse>

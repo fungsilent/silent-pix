@@ -1,26 +1,44 @@
-// Export domain schema and type
-export * as comfy from '#shared/comfy'
+import { parseApiGraph, toNodeOptions, validateMapping } from '#shared/comfy'
+import { configSchema, generatorFields, isGeneratorField } from '#shared/config'
+import { heartbeatIntervalMs, staleTimeoutMs } from '#shared/event/health'
+import { serverEvent } from '#shared/event/index'
+
+export { appApi } from '#shared/api/app'
+
+export const comfy = {
+    parseApiGraph,
+    toNodeOptions,
+    validateMapping,
+}
 export type * as Comfy from '#shared/comfy'
 
-export * as config from '#shared/config'
+export const config = {
+    configSchema,
+    generatorFields,
+    isGeneratorField,
+}
 export type {
     ConfigSchema,
     GeneratorField,
     Mapping,
 } from '#shared/config'
 
-// Export API schema and type
-export * as appApi from '#shared/api/app'
 export type * as AppApi from '#shared/api/app'
 
-export * as imageApi from '#shared/api/image'
+export { imageApi } from '#shared/api/image'
 export type * as ImageApi from '#shared/api/image'
 
-export * as taskApi from '#shared/api/task'
+export { taskApi } from '#shared/api/task'
 export type * as TaskApi from '#shared/api/task'
 
-export * as workflowApi from '#shared/api/workflow'
+export { workflowApi } from '#shared/api/workflow'
 export type * as WorkflowApi from '#shared/api/workflow'
 
-export * as event from '#shared/event/index'
+export const event = {
+    health: {
+        heartbeatIntervalMs,
+        staleTimeoutMs,
+    },
+    serverEvent,
+}
 export type * as Event from '#shared/event/index'

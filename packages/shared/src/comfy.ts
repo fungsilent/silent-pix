@@ -4,28 +4,36 @@ import { generatorField, generatorFields } from '#shared/config'
 
 import type { ConfigSchema } from '#shared/config'
 
-/* MARK: graph */
+/* MARK: values */
 
-export const node = z.looseObject({
+const node = z.looseObject({
     class_type: z.string().min(1),
     inputs: z.record(z.string(), z.unknown()),
     _meta: z.looseObject({ title: z.string().optional() }).optional(),
 })
 
-export type Node = z.output<typeof node>
-
 export const graph = z.record(z.string().min(1), node)
 
-export type Graph = z.output<typeof graph>
+/* MARK: validation */
 
-export type ParseApiGraphFailure = 'not-object' | 'ui-format' | 'invalid-node'
+const mappingIssueReason = z.enum(['node-missing', 'input-missing', 'input-linked'])
 
-export type ParseApiGraphResult =
-    | { ok: true, graph: Graph }
-    | { ok: false, reason: ParseApiGraphFailure }
+/*
+ * NOTE:
+ * 綁定驗證是 graph 與 config 的交界：規則要同時認得兩邊，
+ * 所以放這裡（comfy -> config 單向相依），不另開 module。
+ */
+export const mappingIssue = z.object({
+    field: generatorField,
+    reason: mappingIssueReason,
+    nodeId: z.string(),
+    input: z.string(),
+})
 
-/* ComfyUI 的 API format 裡，一個 input 的值若是 [nodeId, slot] 就代表它接了線*/
-export function isLink(value: unknown): value is readonly [string, number] {
+/* MARK: helpers */
+
+/* NOTE: ComfyUI 的 API format 裡，一個 input 的值若是 [nodeId, slot] 就代表它接了線。 */
+function isLink(value: unknown): value is readonly [string, number] {
     if (!Array.isArray(value) || value.length !== 2) {
         return false
     }
@@ -56,33 +64,13 @@ export function parseApiGraph(value: unknown): ParseApiGraphResult {
     return { ok: true, graph: result.data }
 }
 
-/* MARK: mapping validation */
-
-/*
- * 綁定驗證是 graph 與 config 的交界：規則要同時認得兩邊，
- * 所以放這裡（comfy -> config 單向相依），不另開 module。
- */
-export const mappingIssueReason = z.enum(['node-missing', 'input-missing', 'input-linked'])
-
-export type MappingIssueReason = z.output<typeof mappingIssueReason>
-
-/* schema 是 runtime 的唯一真相，型別從它衍生，不另外手寫一份 */
-export const mappingIssue = z.object({
-    field: generatorField,
-    reason: mappingIssueReason,
-    nodeId: z.string(),
-    input: z.string(),
-})
-
-export type MappingIssue = z.output<typeof mappingIssue>
-
 export function validateMapping(value: Graph, schema: ConfigSchema): MappingIssue[] {
     const issues: MappingIssue[] = []
 
     for (const field of generatorFields) {
         const binding = schema[field]
 
-        /* 沒綁定是合法狀態，不是問題 */
+        /* NOTE: 沒綁定是合法狀態，不是問題。 */
         if (!binding) {
             continue
         }
@@ -114,17 +102,11 @@ export function validateMapping(value: Graph, schema: ConfigSchema): MappingIssu
     return issues
 }
 
-/* MARK: node options */
-
-export type NodeOption = {
-    nodeId: string
-    /* _meta.title 優先，沒有才用 class_type —— 使用者改過名的節點好認得多 */
-    label: string
-    classType: string
-    /* 值是連線的 input 排除掉：選了也寫不進去 */
-    inputs: readonly string[]
-}
-
+/*
+ * NOTE:
+ * _meta.title 優先，沒有才用 class_type；值是連線的 input 排除掉。
+ * 這個 mapper 目前仍由 shared façade 匯出，避免擴大 Web ownership 的 migration。
+ */
 export function toNodeOptions(value: Graph): NodeOption[] {
     return Object.entries(value).map(([nodeId, target]) => ({
         nodeId,
@@ -134,4 +116,22 @@ export function toNodeOptions(value: Graph): NodeOption[] {
             .filter(([, input]) => !isLink(input))
             .map(([input]) => input),
     }))
+}
+
+/* MARK: inferred types */
+
+export type Graph = z.output<typeof graph>
+export type MappingIssueReason = z.output<typeof mappingIssueReason>
+export type MappingIssue = z.output<typeof mappingIssue>
+
+export type ParseApiGraphFailure = 'not-object' | 'ui-format' | 'invalid-node'
+type ParseApiGraphResult =
+    | { ok: true, graph: Graph }
+    | { ok: false, reason: ParseApiGraphFailure }
+
+export type NodeOption = {
+    nodeId: string
+    label: string
+    classType: string
+    inputs: readonly string[]
 }

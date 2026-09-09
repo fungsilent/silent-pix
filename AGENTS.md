@@ -37,6 +37,16 @@
 - Solid stores are shared state sources like context: a query hook or component that needs store state reads it directly. Do not thread store-derived values through callers solely to reach a query hook. Query-specific request types and request construction belong in the owning feature `*.query.ts`, not in the store.
 - Annotate exported Eden clients with public `Treaty.Create<Api>` when needed for portable declaration emit; never reference Eden internals or suppress unsafe types.
 
+## Shared Contract Conventions
+
+- Organize `packages/shared/src/contract` by domain ownership, not by Zod or schema role. A contract owns only canonical, reusable value/resource fragments; do not extract a fragment merely because two Zod expressions look syntactically similar.
+- REST query coercion, params, requests, and responses belong under `packages/shared/src/api`. WebSocket event envelopes belong under `packages/shared/src/event`. API and event contracts may reference canonical domain contracts.
+- `packages/db` owns table, row, and storage types. It may reference a canonical value type only when the stored JSON shape exactly matches that value; it must not use an API public resource, endpoint, or event type in place of a database row or storage type.
+- An endpoint response may directly alias another endpoint response when that response has a formal domain meaning (for example, `createTaskResponse` and `renameTaskResponse` alias `getTaskResponse`). Do not invent a generic contract solely to remove a semantic endpoint import.
+- Public runtime APIs use explicit `xxxApi` catalogs. Each catalog lists every public schema explicitly; do not use export-star or spread-based automatic aggregation. A symbol is public only when an external package consumer uses it. Internal cross-file exports do not make a symbol public, and named type exports follow the same rule.
+- In shared modules, keep Zod schema and logic sections before the inferred types section. Put externally needed `z.output<typeof schema>` types together at the end of the file.
+- Shared comments use only these fixed `MARK` categories: `primitives`, `values`, `resources`, `query`, `params`, `request`, `response`, `errors`, `event`, `validation`, `helpers`, `catalog`, and `inferred types`. Use only necessary `NOTE`, `INVARIANT`, and `TRANSPORT` explanations. This comment convention applies only to `packages/shared`.
+
 ## Current Task API Scope
 
 - The task API exposes list, detail, create, rename, delete, sampler, LoRA, and batch flag (`PATCH /api/task/flag`) endpoints. Images have their own resource: `GET /api/image` lists one entry per stored image with its earliest use, `GET /api/image/:imageId` serves the bytes as immutable with a sha256 ETag.

@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-/* MARK: generator fields */
+/* MARK: primitives */
 
 export const generatorFields = [
     'seed',
@@ -17,23 +17,25 @@ export const generatorFields = [
     'initImagePath',
 ] as const
 
-export type GeneratorField = typeof generatorFields[number]
-
 export const generatorField = z.enum(generatorFields)
+
+/* MARK: values */
+
+const mapping = z.object({
+    nodeId: z.string().min(1),
+    input: z.string().min(1),
+})
+
+export const configSchema = z.partialRecord(generatorField, mapping)
+
+/* MARK: validation */
 
 export function isGeneratorField(value: string): value is GeneratorField {
     return (generatorFields as readonly string[]).includes(value)
 }
 
-/* MARK: config schema */
+/* MARK: inferred types */
 
-export const mapping = z.object({
-    nodeId: z.string().min(1),
-    input: z.string().min(1),
-})
-
+export type GeneratorField = typeof generatorFields[number]
 export type Mapping = z.output<typeof mapping>
-
-export const configSchema = z.partialRecord(generatorField, mapping)
-
 export type ConfigSchema = z.output<typeof configSchema>
