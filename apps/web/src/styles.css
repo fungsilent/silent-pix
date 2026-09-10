@@ -88,15 +88,20 @@
     color: var(--sp-fg);
     background: var(--sp-canvas);
     font-family:
-        Inter,
+        "Manrope Variable",
+        "Noto Sans TC Variable",
+        "Noto Sans TC",
         ui-sans-serif,
         system-ui,
         -apple-system,
         BlinkMacSystemFont,
         "Segoe UI",
+        "PingFang TC",
+        "Microsoft JhengHei",
         sans-serif;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
 }
 
 

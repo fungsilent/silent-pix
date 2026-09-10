@@ -3,6 +3,7 @@ import { For, onCleanup, onMount, Show } from 'solid-js'
 import { Portal } from 'solid-js/web'
 
 import { Button } from '#/components/base/Button'
+import { CenteredText } from '#/components/base/CenteredText'
 import { ZoomControls } from '#/components/viewer/ZoomControls'
 import { ZoomStage } from '#/components/viewer/ZoomStage'
 import { cn } from '#/lib/cn'
@@ -99,9 +100,13 @@ export function ImageViewer(props: ImageViewerProps) {
                     when={props.header !== undefined}
                     fallback={(
                         <Show when={hasMany()}>
-                            <span class={cn('absolute left-6 top-6 z-10 rounded-md border px-2.5 py-1 text-xs text-fg-secondary tabular-nums', glass)}>
-                                {props.selectedIndex + 1} / {props.images.length}
-                            </span>
+                            <CenteredText
+                                classes={{
+                                    root: cn('absolute left-6 top-6 z-10 rounded-md border px-2.5 py-1 text-xs text-fg-secondary tabular-nums', glass),
+                                }}
+                            >
+                                {`${props.selectedIndex + 1} / ${props.images.length}`}
+                            </CenteredText>
                         </Show>
                     )}
                 >

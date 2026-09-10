@@ -12,6 +12,7 @@ import {
 import { createEffect, createSignal, For, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
+import { CenteredText } from '#/components/base/CenteredText'
 import { Dialog } from '#/components/base/Dialog'
 import { FilterChips } from '#/components/base/FilterChips'
 import { Loading } from '#/components/base/Loading'
@@ -317,9 +318,13 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                                                 <Show when={item.origin}>
                                                     {origin => (
                                                         <>
-                                                            <span class='absolute left-1.5 top-1.5 rounded bg-black/70 px-1.5 text-[9.5px] font-bold uppercase tracking-wide text-white/75 backdrop-blur-[3px]'>
+                                                            <CenteredText
+                                                                classes={{
+                                                                    root: 'absolute left-1.5 top-1.5 rounded-md bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/90 shadow-sm ring-1 ring-white/10 backdrop-blur-[3px]',
+                                                                }}
+                                                            >
                                                                 {origin().type}
-                                                            </span>
+                                                            </CenteredText>
                                                             <span class='absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/85 to-transparent px-2 pb-1.5 pt-4 text-left text-[11px] text-white'>
                                                                 {originLabel(origin())}
                                                             </span>
@@ -327,9 +332,13 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                                                     )}
                                                 </Show>
                                                 <Show when={props.mode === 'multiple' && selected()}>
-                                                    <span class='absolute right-1.5 top-1.5 grid size-5 place-items-center rounded-full bg-accent text-[10px] font-bold text-white shadow-sm'>
+                                                    <CenteredText
+                                                        classes={{
+                                                            root: 'absolute right-1.5 top-1.5 h-5 min-w-5 rounded-full bg-accent px-1 text-[10px] font-bold text-white shadow-sm',
+                                                        }}
+                                                    >
                                                         {selectionNumber(item)}
-                                                    </span>
+                                                    </CenteredText>
                                                 </Show>
                                                 <Show when={props.mode === 'multiple' && disabled()}>
                                                     <span class='absolute inset-0 grid place-items-center bg-black/25'>

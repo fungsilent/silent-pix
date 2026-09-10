@@ -4,6 +4,8 @@ import { render } from 'solid-js/web'
 import { App } from '#/App'
 import { shouldRetryQuery } from '#/lib/error'
 
+import '@fontsource-variable/manrope'
+import '@fontsource-variable/noto-sans-tc/wght.css'
 import '#/styles.css'
 
 const root = document.getElementById('root')

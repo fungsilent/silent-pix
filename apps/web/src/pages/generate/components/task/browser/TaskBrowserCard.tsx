@@ -1,6 +1,7 @@
 import { Check } from 'lucide-solid'
 
 import { Button } from '#/components/base/Button'
+import { CenteredText } from '#/components/base/CenteredText'
 import { TaskStatus } from '#/components/task/TaskStatus'
 import { cn } from '#/lib/cn'
 import { formatDateTime } from '#/lib/format'
@@ -53,9 +54,13 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
                     placeholderIconSize={26}
                     classes={{ root: 'aspect-square w-full' }}
                 >
-                    <span class='absolute bottom-1 right-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-medium leading-none text-white tabular-nums'>
+                    <CenteredText
+                        classes={{
+                            root: 'absolute bottom-1 right-1 rounded-md bg-black/75 px-2 py-1 text-[10px] font-semibold text-white/90 shadow-sm ring-1 ring-white/10 tabular-nums backdrop-blur-[3px]',
+                        }}
+                    >
                         {props.task.outputCount}
-                    </span>
+                    </CenteredText>
                 </TaskThumbnail>
             </Button>
             <Button

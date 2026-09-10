@@ -1,6 +1,5 @@
+import { CenteredText } from '#/components/base/CenteredText'
 import { cn } from '#/lib/cn'
-
-import type { JSX } from 'solid-js'
 
 export type BadgeTone =
     | 'amber'
@@ -11,7 +10,7 @@ export type BadgeTone =
     | 'slate'
 
 type BadgeProps = {
-    children: JSX.Element
+    children: string | number
     tone?: BadgeTone | undefined
 }
 
@@ -26,13 +25,15 @@ const toneClass: Record<BadgeTone, string> = {
 
 export function Badge(props: BadgeProps) {
     return (
-        <div
-            class={cn(
-                'inline-flex h-5 shrink-0 items-center justify-center rounded-md px-2 text-[0.72rem] font-medium leading-none',
-                toneClass[props.tone ?? 'neutral'],
-            )}
+        <CenteredText
+            classes={{
+                root: cn(
+                    'h-5 shrink-0 rounded-md px-2 text-[0.72rem] font-medium',
+                    toneClass[props.tone ?? 'neutral'],
+                ),
+            }}
         >
             {props.children}
-        </div>
+        </CenteredText>
     )
 }

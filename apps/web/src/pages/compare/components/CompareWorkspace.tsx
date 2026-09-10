@@ -2,6 +2,7 @@ import { Expand, Eye, EyeOff, ImagePlus, X } from 'lucide-solid'
 import { createEffect, createMemo, createSignal, For, onCleanup, onMount, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
+import { CenteredText } from '#/components/base/CenteredText'
 import { ImagePickerDialog } from '#/components/image/ImagePickerDialog'
 import { ImageViewer } from '#/components/viewer/ImageViewer'
 import { ZoomControls } from '#/components/viewer/ZoomControls'
@@ -355,9 +356,13 @@ function CompareThumbnailStrip(props: CompareThumbnailStripProps) {
                                 >
                                     {label()}
                                 </span>
-                                <span class='absolute left-1.5 top-1.5 rounded bg-black/70 px-1.5 text-[10px] font-bold tabular-nums text-white'>
+                                <CenteredText
+                                    classes={{
+                                        root: 'absolute left-1.5 top-1.5 rounded-md bg-black/75 px-2 py-1 text-[10px] font-semibold text-white/90 shadow-sm ring-1 ring-white/10 tabular-nums backdrop-blur-[3px]',
+                                    }}
+                                >
                                     {entry.hidden ? '—' : index() + 1}
-                                </span>
+                                </CenteredText>
                             </Button>
                             <Button
                                 variant='ghost'
@@ -409,9 +414,13 @@ type CurrentCompareImageProps = {
 function CurrentCompareImage(props: CurrentCompareImageProps) {
     return (
         <div class='absolute left-3 top-3 z-10 flex max-w-[calc(100%-24px)] items-center gap-2 rounded-md border border-white/[0.09] bg-surface/75 px-2.5 py-1 text-xs text-fg-secondary backdrop-blur-[8px]'>
-            <span class='grid size-4 shrink-0 place-items-center rounded bg-accent text-[10px] font-bold text-white'>
+            <CenteredText
+                classes={{
+                    root: 'h-4 min-w-4 shrink-0 rounded bg-accent px-1 text-[10px] font-bold text-white',
+                }}
+            >
                 {props.index + 1}
-            </span>
+            </CenteredText>
             <span class='truncate'>{originLabel(props.entry.origin) ?? props.entry.image.id.slice(0, 8)}</span>
             <span class='shrink-0 text-fg-muted tabular-nums'>
                 · {props.entry.image.width} × {props.entry.image.height}
