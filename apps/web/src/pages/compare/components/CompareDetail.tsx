@@ -1,6 +1,7 @@
 import { createMemo, Show } from 'solid-js'
 
-import { CollapseButton, CollapsedBar, Panel, PanelContent, PanelHeader } from '#/components/base/Panel'
+import { Bar } from '#/components/base/Bar'
+import { CollapseButton, CollapsedBar, Panel, PanelContent } from '#/components/base/Panel'
 import { TaskDetail } from '#/components/task/detail/TaskDetail'
 import { useTaskDetailQuery } from '#/features/task/task.query'
 import { ReferenceImageDetail } from '#/pages/compare/components/ReferenceImageDetail'
@@ -127,15 +128,17 @@ function DetailStatus(props: DetailStatusProps) {
                     <CollapsedBar onClick={panel.toggle} />
                 ) : (
                     <div class='flex h-full min-h-0 flex-col'>
-                        <PanelHeader
-                            title='Detail'
-                            action={(
+                        <Bar.Root classes={{ root: 'px-2' }}>
+                            <Bar.Group>
+                                <Bar.Title>Detail</Bar.Title>
+                            </Bar.Group>
+                            <Bar.Actions>
                                 <CollapseButton
                                     collapsed={panel.isCollapsed()}
                                     onClick={panel.toggle}
                                 />
-                            )}
-                        />
+                            </Bar.Actions>
+                        </Bar.Root>
                         <PanelContent>
                             {props.message && (
                                 <p class='m-0 py-4 text-center text-xs text-fg-muted'>

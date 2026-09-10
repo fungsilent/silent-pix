@@ -1,9 +1,9 @@
 import { Minimize2, Pin, Search, Trash2 } from 'lucide-solid'
 import { Show } from 'solid-js'
 
+import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
 import { IssueChip } from '#/components/base/IssueChip'
-import { PanelHeader } from '#/components/base/Panel'
 import { Text } from '#/components/field/Text'
 import { TaskFilterChips } from '#/pages/generate/components/task/TaskFilterChips'
 
@@ -32,36 +32,37 @@ type TaskBrowserToolbarProps = {
 export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
     return (
         <div class='flex shrink-0 flex-col border-b border-line-subtle bg-surface'>
-            <PanelHeader
-                title='Tasks'
-                action={(
-                    <div class='flex min-w-0 flex-1 items-center justify-end gap-2'>
-                        <Text
-                            label='Search tasks'
-                            value={props.search}
-                            placeholder='task name or task ID...'
-                            icon={(
-                                <Search
-                                    size={14}
-                                    strokeWidth={1.7}
-                                />
-                            )}
-                            classes={{ root: 'min-w-0 flex-1', label: 'hidden' }}
-                            onInput={props.onSearchChange}
-                        />
-                        <Button
-                            variant='ghost'
-                            classes={{ root: 'size-8 shrink-0 p-0' }}
-                            onClick={props.onCollapse}
-                        >
-                            <Minimize2
-                                size={16}
-                                strokeWidth={1.8}
+            <Bar.Root classes={{ root: 'px-2' }}>
+                <Bar.Group>
+                    <Bar.Title>Tasks</Bar.Title>
+                </Bar.Group>
+                <Bar.Actions classes={{ root: 'flex-1 justify-end' }}>
+                    <Text
+                        label='Search tasks'
+                        value={props.search}
+                        placeholder='task name or task ID...'
+                        icon={(
+                            <Search
+                                size={14}
+                                strokeWidth={1.7}
                             />
-                        </Button>
-                    </div>
-                )}
-            />
+                        )}
+                        classes={{ root: 'min-w-0 flex-1', label: 'hidden' }}
+                        onInput={props.onSearchChange}
+                    />
+                    <Button
+                        size='bar'
+                        variant='ghost'
+                        classes={{ root: 'size-[30px] shrink-0 p-0' }}
+                        onClick={props.onCollapse}
+                    >
+                        <Minimize2
+                            size={16}
+                            strokeWidth={1.8}
+                        />
+                    </Button>
+                </Bar.Actions>
+            </Bar.Root>
             <div class='flex min-w-0 flex-wrap items-center gap-2'>
                 <TaskFilterChips
                     values={props.taskFlags}

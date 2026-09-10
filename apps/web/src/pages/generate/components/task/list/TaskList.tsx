@@ -1,10 +1,11 @@
 import { Expand, RefreshCw } from 'lucide-solid'
 import { createMemo, For, Show } from 'solid-js'
 
+import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
 import { FieldHint } from '#/components/base/FieldHint'
 import { Loading } from '#/components/base/Loading'
-import { CollapseButton, Panel, PanelContent, PanelHeader } from '#/components/base/Panel'
+import { CollapseButton, Panel, PanelContent } from '#/components/base/Panel'
 import { useTaskFeedQuery, useTaskFlagMutation } from '#/features/task/task.query'
 import { toErrorMessage } from '#/lib/error'
 import { TaskItem, TaskItemSkeleton } from '#/pages/generate/components/task/list/TaskItem'
@@ -34,27 +35,28 @@ export function TaskList() {
         >
             {panel => (
                 <div class='flex h-full min-h-0 flex-col'>
-                    <PanelHeader
-                        title='Tasks'
-                        action={(
-                            <div class='flex shrink-0 items-center gap-1'>
-                                <Button
-                                    variant='ghost'
-                                    classes={{ root: 'size-8 shrink-0 p-0' }}
-                                    onClick={() => taskStore.setBrowserOpen(true)}
-                                >
-                                    <Expand
-                                        size={15}
-                                        strokeWidth={1.8}
-                                    />
-                                </Button>
-                                <CollapseButton
-                                    collapsed={panel.isCollapsed()}
-                                    onClick={panel.toggle}
+                    <Bar.Root classes={{ root: 'px-2' }}>
+                        <Bar.Group>
+                            <Bar.Title>Tasks</Bar.Title>
+                        </Bar.Group>
+                        <Bar.Actions classes={{ root: 'gap-1' }}>
+                            <Button
+                                size='bar'
+                                variant='ghost'
+                                classes={{ root: 'size-[30px] shrink-0 p-0' }}
+                                onClick={() => taskStore.setBrowserOpen(true)}
+                            >
+                                <Expand
+                                    size={15}
+                                    strokeWidth={1.8}
                                 />
-                            </div>
-                        )}
-                    />
+                            </Button>
+                            <CollapseButton
+                                collapsed={panel.isCollapsed()}
+                                onClick={panel.toggle}
+                            />
+                        </Bar.Actions>
+                    </Bar.Root>
                     <Show when={!panel.isCollapsed()}>
                         <TaskFilterChips
                             values={taskStore.state.feedTaskFlags}

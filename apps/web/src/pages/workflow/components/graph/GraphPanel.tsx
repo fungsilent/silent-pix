@@ -1,6 +1,6 @@
 import { Show } from 'solid-js'
 
-import { PanelHeader } from '#/components/base/Panel'
+import { Bar } from '#/components/base/Bar'
 import { GraphEditor } from '#/pages/workflow/components/graph/GraphEditor'
 import { useWorkflowStore } from '#/pages/workflow/store'
 
@@ -12,10 +12,11 @@ export function GraphPanel() {
 
     return (
         <section class='flex min-w-0 flex-1 flex-col overflow-hidden border-r border-line bg-surface'>
-            <PanelHeader
-                title='API JSON'
-                classes={{ root: 'px-4' }}
-            />
+            <Bar.Root>
+                <Bar.Group>
+                    <Bar.Title>API JSON</Bar.Title>
+                </Bar.Group>
+            </Bar.Root>
 
             <div class='flex min-h-0 flex-1 flex-col px-4 pb-3'>
                 <span class='pb-1.5 text-xs leading-none text-fg-muted'>Graph</span>

@@ -2,10 +2,10 @@ import { Plus } from 'lucide-solid'
 import { For, Show } from 'solid-js'
 
 import { Badge } from '#/components/base/Badge'
+import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
 import { Line } from '#/components/base/Line'
 import { Loading } from '#/components/base/Loading'
-import { PanelHeader } from '#/components/base/Panel'
 import { DetailTitle } from '#/components/detail'
 import { cn } from '#/lib/cn'
 import { useWorkflowStore } from '#/pages/workflow/store'
@@ -22,13 +22,15 @@ export function WorkflowList() {
 
     return (
         <aside class='flex w-[200px] flex-none flex-col overflow-hidden border-r border-line bg-surface'>
-            <PanelHeader
-                title='Workflows'
-                classes={{ root: 'pl-3 pr-2' }}
-                action={(
+            <Bar.Root classes={{ root: 'pl-3 pr-2' }}>
+                <Bar.Group>
+                    <Bar.Title>Workflows</Bar.Title>
+                </Bar.Group>
+                <Bar.Actions>
                     <Button
+                        size='bar'
                         variant='ghost'
-                        classes={{ root: 'size-8 shrink-0 p-0' }}
+                        classes={{ root: 'size-[30px] shrink-0 p-0' }}
                         onClick={() => store.startCreate()}
                     >
                         <Plus
@@ -36,8 +38,8 @@ export function WorkflowList() {
                             strokeWidth={1.8}
                         />
                     </Button>
-                )}
-            />
+                </Bar.Actions>
+            </Bar.Root>
 
             <div class='scrollbar-thin flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-2 pb-3'>
                 <Loading.Swap

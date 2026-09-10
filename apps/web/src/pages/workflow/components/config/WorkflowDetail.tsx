@@ -2,10 +2,10 @@ import { Save, Workflow } from 'lucide-solid'
 import { createMemo, createSignal, Show } from 'solid-js'
 
 import { ApiError } from '#/api/api.client'
+import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
 import { IssueChip } from '#/components/base/IssueChip'
 import { Line } from '#/components/base/Line'
-import { PanelHeader } from '#/components/base/Panel'
 import { WorkflowInfo } from '#/pages/workflow/components/config/WorkflowInfo'
 import { WorkflowMapping } from '#/pages/workflow/components/config/WorkflowMapping'
 import {
@@ -91,43 +91,43 @@ export function WorkflowDetail() {
             class='flex w-[620px] flex-none flex-col overflow-hidden bg-surface'
             onSubmit={event => void handleSubmit(event)}
         >
-            <PanelHeader
-                title='Detail'
-                classes={{ root: 'px-4' }}
-                action={(
-                    <Show when={store.hasSelection()}>
-                        <div class='flex min-w-0 flex-1 items-center justify-end gap-2'>
-                            <IssueChip
-                                issues={issues()}
-                                open={issuesOpen()}
-                                onOpenChange={setIssuesOpen}
-                            />
+            <Bar.Root>
+                <Bar.Group>
+                    <Bar.Title>Detail</Bar.Title>
+                </Bar.Group>
+                <Show when={store.hasSelection()}>
+                    <Bar.Actions classes={{ root: 'flex-1 justify-end' }}>
+                        <IssueChip
+                            issues={issues()}
+                            open={issuesOpen()}
+                            onOpenChange={setIssuesOpen}
+                        />
 
-                            <Show
-                                when={!store.selection().isArchived}
-                                fallback={
-                                    <span class='shrink-0 text-[11.5px] leading-none text-fg-muted'>
-                                        Read-only · archived
-                                    </span>
-                                }
+                        <Show
+                            when={!store.selection().isArchived}
+                            fallback={
+                                <span class='shrink-0 text-[11.5px] leading-none text-fg-muted'>
+                                    Read-only · archived
+                                </span>
+                            }
+                        >
+                            <Button
+                                size='bar'
+                                variant='primary'
+                                type='submit'
+                                disabled={!canSave()}
+                                classes={{ root: 'shrink-0 font-semibold disabled:cursor-not-allowed disabled:opacity-60' }}
                             >
-                                <Button
-                                    variant='primary'
-                                    type='submit'
-                                    disabled={!canSave()}
-                                    classes={{ root: 'shrink-0 px-3.5 disabled:cursor-not-allowed disabled:opacity-60' }}
-                                >
-                                    <Save
-                                        size={13}
-                                        strokeWidth={1.7}
-                                    />
-                                    {isSaving() ? 'Saving' : 'Save'}
-                                </Button>
-                            </Show>
-                        </div>
-                    </Show>
-                )}
-            />
+                                <Save
+                                    size={13}
+                                    strokeWidth={1.7}
+                                />
+                                {isSaving() ? 'Saving' : 'Save'}
+                            </Button>
+                        </Show>
+                    </Bar.Actions>
+                </Show>
+            </Bar.Root>
 
             <Show
                 when={store.hasSelection()}

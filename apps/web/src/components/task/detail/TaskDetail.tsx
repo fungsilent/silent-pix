@@ -1,7 +1,8 @@
 import { Show } from 'solid-js'
 
+import { Bar } from '#/components/base/Bar'
 import { Line } from '#/components/base/Line'
-import { CollapseButton, CollapsedBar, Panel, PanelContent, PanelHeader } from '#/components/base/Panel'
+import { CollapseButton, CollapsedBar, Panel, PanelContent } from '#/components/base/Panel'
 import { TaskConfig } from '#/components/task/detail/TaskConfig'
 import { TaskImage } from '#/components/task/detail/TaskImage'
 import { TaskInfo } from '#/components/task/detail/TaskInfo'
@@ -145,15 +146,17 @@ function TaskDetailPanel(props: TaskDetailPanelProps) {
                     <CollapsedBar onClick={panel.toggle} />
                 ) : (
                     <div class='flex h-full min-h-0 flex-col'>
-                        <PanelHeader
-                            title='Detail'
-                            action={(
+                        <Bar.Root classes={{ root: 'px-2' }}>
+                            <Bar.Group>
+                                <Bar.Title>Detail</Bar.Title>
+                            </Bar.Group>
+                            <Bar.Actions>
                                 <CollapseButton
                                     collapsed={panel.isCollapsed()}
                                     onClick={panel.toggle}
                                 />
-                            )}
-                        />
+                            </Bar.Actions>
+                        </Bar.Root>
                         <PanelContent
                             classes={{
                                 content: 'gap-3 px-4 pt-0 pb-5',

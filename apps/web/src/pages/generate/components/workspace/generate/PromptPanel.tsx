@@ -1,6 +1,7 @@
 import { Sparkles } from 'lucide-solid'
 import { createEffect, createSignal, on, Show } from 'solid-js'
 
+import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
 import { IssueChip } from '#/components/base/IssueChip'
 import { Loading } from '#/components/base/Loading'
@@ -64,9 +65,9 @@ export function PromptPanel() {
 
     return (
         <section class='flex shrink-0 flex-col overflow-hidden border-b border-line-subtle bg-surface'>
-            <div class='flex min-h-12 shrink-0 items-center justify-between gap-3 px-4 py-2'>
-                <div class='flex shrink-0 items-center gap-2'>
-                    <h2 class='m-0 text-sm font-bold leading-none text-fg'>Prompt</h2>
+            <Bar.Root>
+                <Bar.Group>
+                    <Bar.Title>Prompt</Bar.Title>
                     <PromptToggle
                         kind='positive'
                         visible={visible('positive')}
@@ -77,31 +78,31 @@ export function PromptPanel() {
                         visible={visible('negative')}
                         onClick={() => store.togglePromptVisible('negative')}
                     />
-                </div>
+                </Bar.Group>
 
-                <div class='flex min-w-0 flex-1 justify-end'>
+                <Bar.Actions>
                     <IssueChip
                         issues={issues()}
                         open={issuesOpen()}
                         onOpenChange={setIssuesOpen}
                     />
-                </div>
-
-                <Button
-                    type='submit'
-                    variant='primary'
-                    disabled={isSubmitting() || isLoading()}
-                    classes={{
-                        root: 'px-4 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-60'
-                    }}
-                >
-                    <Sparkles
-                        size={16}
-                        strokeWidth={2.2}
-                    />
-                    {isSubmitting() ? 'Creating...' : 'Generate'}
-                </Button>
-            </div>
+                    <Button
+                        size='bar'
+                        type='submit'
+                        variant='primary'
+                        disabled={isSubmitting() || isLoading()}
+                        classes={{
+                            root: 'shrink-0 font-semibold disabled:cursor-not-allowed disabled:opacity-60'
+                        }}
+                    >
+                        <Sparkles
+                            size={16}
+                            strokeWidth={2.2}
+                        />
+                        {isSubmitting() ? 'Creating...' : 'Generate'}
+                    </Button>
+                </Bar.Actions>
+            </Bar.Root>
 
             <div
                 class='flex flex-col gap-1'
@@ -148,6 +149,7 @@ type PromptToggleProps = {
 function PromptToggle(props: PromptToggleProps) {
     return (
         <Button
+            size='bar'
             variant={props.visible ? 'accent' : 'default'}
             classes={{
                 root: cn(

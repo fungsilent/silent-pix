@@ -62,27 +62,6 @@ export function Panel(props: PanelProps) {
     )
 }
 
-/* MARK: Panel */
-type PanelHeaderProps = {
-    title?: string
-    action?: JSX.Element
-    classes?: {
-        root?: string
-        title?: string
-    }
-}
-
-export function PanelHeader(props: PanelHeaderProps) {
-    return (
-        <div class={cn('flex h-12 flex-none items-center justify-between gap-2 px-2', props.classes?.root)}>
-            <h2 class={cn('m-0 truncate text-[13px] font-semibold leading-none text-fg', props.classes?.title)}>
-                {props.title}
-            </h2>
-            {props.action}
-        </div>
-    )
-}
-
 /* MARK: CollapsedBar */
 type CollapsedBarProps = {
     onClick: () => void
@@ -110,7 +89,7 @@ export function CollapseButton(props: CollapseButtonProps) {
     return (
         <Button
             variant='ghost'
-            classes={{ root: 'size-8 shrink-0 p-0' }}
+            classes={{ root: 'size-[30px] shrink-0 p-0' }}
             onClick={props.onClick}
         >
             {

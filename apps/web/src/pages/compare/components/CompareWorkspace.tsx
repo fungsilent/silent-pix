@@ -1,6 +1,7 @@
 import { Expand, Eye, EyeOff, ImagePlus, X } from 'lucide-solid'
 import { createEffect, createMemo, createSignal, For, onCleanup, onMount, Show } from 'solid-js'
 
+import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
 import { CenteredText } from '#/components/base/CenteredText'
 import { ImagePickerDialog } from '#/components/image/ImagePickerDialog'
@@ -131,17 +132,17 @@ export function CompareWorkspace() {
         <section
             class='flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-canvas'
         >
-            <header class='flex min-h-12 shrink-0 items-center justify-between gap-3 border-b border-line-subtle bg-surface px-4 py-2'>
-                <div class='flex min-w-0 items-baseline gap-2'>
-                    <h2 class='m-0 text-sm font-bold leading-none text-fg'>Compare</h2>
-                    <span class='text-[11.5px] tabular-nums text-fg-muted'>
+            <Bar.Root classes={{ root: 'border-b border-line-subtle' }}>
+                <Bar.Group>
+                    <Bar.Title>Compare</Bar.Title>
+                    <Bar.Meta classes={{ root: 'tabular-nums' }}>
                         {entries().length} / {allEntries().length} shown
-                    </span>
-                </div>
-                <div class='flex shrink-0 items-center gap-2'>
+                    </Bar.Meta>
+                </Bar.Group>
+                <Bar.Actions>
                     <Show when={hiddenCount() > 0}>
                         <Button
-                            classes={{ root: 'h-[30px] px-3 text-xs' }}
+                            size='bar'
                             onClick={compareStore.showAllCompare}
                         >
                             Show all
@@ -149,15 +150,16 @@ export function CompareWorkspace() {
                     </Show>
                     <Show when={allEntries().length > 0}>
                         <Button
-                            classes={{ root: 'h-[30px] px-3 text-xs' }}
+                            size='bar'
                             onClick={compareStore.clearCompare}
                         >
                             Clear
                         </Button>
                     </Show>
                     <Button
+                        size='bar'
                         variant='primary'
-                        classes={{ root: 'shrink-0 px-4 text-sm font-bold' }}
+                        classes={{ root: 'shrink-0 font-semibold' }}
                         onClick={() => setPickerOpen(true)}
                     >
                         <ImagePlus
@@ -166,8 +168,8 @@ export function CompareWorkspace() {
                         />
                         Add images
                     </Button>
-                </div>
-            </header>
+                </Bar.Actions>
+            </Bar.Root>
 
             <Show
                 when={allEntries().length > 0}

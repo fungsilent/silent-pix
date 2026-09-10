@@ -5,8 +5,10 @@ import { cn } from '#/lib/cn'
 import type { JSX } from 'solid-js'
 
 type ButtonVariant = 'accent' | 'danger' | 'default' | 'ghost' | 'primary'
+type ButtonSize = 'bar'
 
 type ButtonProps = JSX.ButtonHTMLAttributes<HTMLButtonElement> & {
+    size?: ButtonSize
     variant?: ButtonVariant
     classes?: {
         root?: string
@@ -26,7 +28,7 @@ const variantClass: Record<ButtonVariant, string> = {
 }
 
 export function Button(props: ButtonProps) {
-    const [local, rest] = splitProps(props, ['variant', 'classes', 'class', 'type', 'children'])
+    const [local, rest] = splitProps(props, ['size', 'variant', 'classes', 'class', 'type', 'children'])
 
     return (
         <button
@@ -34,6 +36,7 @@ export function Button(props: ButtonProps) {
             type={local.type ?? 'button'}
             class={cn(
                 'flex cursor-pointer items-center justify-center gap-2 rounded-md border border-transparent px-3 py-1.5 text-xs outline-none focus-visible:border-accent focus-visible:ring-3 focus-visible:ring-accent/40',
+                local.size === 'bar' && 'h-[30px] px-3 py-0 text-xs',
                 variantClass[local.variant ?? 'default'],
                 local.classes?.root,
                 local.class,

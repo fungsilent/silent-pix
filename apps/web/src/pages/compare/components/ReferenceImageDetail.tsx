@@ -1,5 +1,6 @@
+import { Bar } from '#/components/base/Bar'
 import { Line } from '#/components/base/Line'
-import { CollapseButton, CollapsedBar, Panel, PanelContent, PanelHeader } from '#/components/base/Panel'
+import { CollapseButton, CollapsedBar, Panel, PanelContent } from '#/components/base/Panel'
 import { DetailRow, DetailSection } from '#/components/detail'
 import { Number } from '#/components/field'
 import { formatDateTime } from '#/lib/format'
@@ -24,15 +25,17 @@ export function ReferenceImageDetail(props: ReferenceImageDetailProps) {
                     <CollapsedBar onClick={panel.toggle} />
                 ) : (
                     <div class='flex h-full min-h-0 flex-col'>
-                        <PanelHeader
-                            title='Detail'
-                            action={(
+                        <Bar.Root classes={{ root: 'px-2' }}>
+                            <Bar.Group>
+                                <Bar.Title>Detail</Bar.Title>
+                            </Bar.Group>
+                            <Bar.Actions>
                                 <CollapseButton
                                     collapsed={panel.isCollapsed()}
                                     onClick={panel.toggle}
                                 />
-                            )}
-                        />
+                            </Bar.Actions>
+                        </Bar.Root>
                         <PanelContent
                             classes={{
                                 content: 'gap-3 px-4 pt-0 pb-5',
@@ -98,4 +101,3 @@ function ReferenceImageContent(props: ReferenceImageContentProps) {
         </>
     )
 }
-
