@@ -5,7 +5,6 @@
     { "path": "./packages/event" },
     { "path": "./packages/db" },
     { "path": "./apps/server" },
-    { "path": "./apps/web" },
-    { "path": "./apps/desktop" }
+    { "path": "./apps/web" }
   ]
 }

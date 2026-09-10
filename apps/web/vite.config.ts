@@ -111,7 +111,7 @@ export default defineConfig({
         port: Number.parseInt(process.env.WEB_PORT ?? '5173', 10),
         proxy: {
             '/api': {
-                target: `http://${process.env.SERVER_HOST ?? '127.0.0.1'}:${process.env.SERVER_PORT ?? '3070'}`,
+                target: process.env.SERVER_URL ?? `http://${process.env.SERVER_HOST ?? '127.0.0.1'}:${process.env.SERVER_PORT ?? '3070'}`,
                 changeOrigin: true,
                 ws: true,
             },

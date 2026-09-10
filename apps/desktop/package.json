@@ -3,14 +3,13 @@
     "private": true,
     "version": "0.1.0",
     "type": "module",
-    "main": "./dist/index.js",
-    "types": "./dist/index.d.ts",
     "scripts": {
-        "dev": "tsx src/index.ts",
-        "build": "tsc -p tsconfig.json",
-        "typecheck": "tsc -p tsconfig.json --noEmit"
+        "dev": "tauri dev",
+        "build:desktop": "tauri build",
+        "check:native": "cargo check --manifest-path Cargo.toml",
+        "tauri": "tauri"
     },
     "devDependencies": {
-        "tsx": "^4.23.1"
+        "@tauri-apps/cli": "^2.11.4"
     }
 }
