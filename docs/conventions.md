@@ -1,6 +1,9 @@
 # Conventions
 
-Concise repo rules for humans and agents.
+Repo conventions for humans and agents. `architecture.md` describes current
+structure and known gaps; `../AGENTS.md` contains implementation constraints.
+Keep these documents aligned; label current exceptions rather than inventing
+parallel rules.
 
 ---
 
@@ -21,41 +24,22 @@ Rules:
 
 ## Types and Contracts
 
-Find the existing definition before writing a type. Do not hand-write a copy of
-something a library or `packages/shared` already declares.
+Find the existing definition before writing a type. Library boundaries use the
+library's public types; shared REST/event boundaries use inferred Zod output
+types. Do not copy those contracts into competing hand-written definitions.
+A component may define its own narrow props contract. Shared fields do not make
+that independent UI contract an invalid duplicate.
 
-Rules:
+For internal Eden APIs, preserve route-derived types and narrow declared errors
+by status. Construct application errors from `(status, code, message)` without
+re-parsing typed inputs, successes, or declared error bodies. Preserve domain
+error evidence when its consumer needs it.
 
-```txt
-- library shapes come from the library's own exported types
-- payload validation comes from the shared Zod schema, not hand-written narrowing
-- a hand-written structural subset is a silent duplicate: it goes stale without ever failing to compile
-- if the existing definition is awkward to use, prove it with a compile before replacing it
-```
-
-Examples:
-
-```ts
-// no — a hand-written subset of the client library's response
-type TreatyResult<T> = { data: T | null, error: { status: unknown, value: unknown } | null }
-
-// yes — the library already declares both
-Treaty.TreatyResponse<Record<number, unknown>>
-Treaty.Error<Treaty.TreatyResponse<Record<number, unknown>>>
-```
-
-```ts
-// no — re-implements appApi.errorResponse by hand
-if (typeof value !== 'object' || value === null || !('error' in value)) return undefined
-
-// yes — validate with the contract itself
-const body = appApi.errorResponse.safeParse(value)
-```
-
-A declared type describes the contract, not runtime reality. Eden types a route's
-error as `status: 422 | 500`, but a transport failure produces `status: 503` with an
-`Error` in `value` — neither is in the declared union. So reusing the library type
-does not remove the need to narrow untrusted values; it only removes the duplicate.
+Transport failures and unexpected response shapes need separate handling. They
+are not declared route outcomes. Validate untrusted data at that boundary when
+needed; do not widen every internal error to `unknown` to justify parsing again.
+ComfyUI responses, imported files, and other external inputs require runtime
+validation. Server-only integration schemas stay with their adapter.
 
 ---
 
@@ -105,20 +89,22 @@ Use workspace package imports.
 Correct:
 
 ```ts
-import { TaskStatus } from '@silent-pix/shared'
+import type { TaskApi } from '@silent-pix/shared'
+
+type Status = TaskApi.TaskStatus
 ```
 
 Wrong:
 
 ```ts
-import { TaskStatus } from '../../packages/shared/src'
+import type { TaskApi } from '../../packages/shared/src'
 ```
 
 Inside `apps/web/src`, use the web source alias:
 
 ```ts
-import { Button } from '@/components/base/Button'
-import { TaskList } from '@/pages/generate/components/task/TaskList'
+import { Button } from '#/components/base/Button'
+import { TaskList } from '#/pages/generate/components/task/list/TaskList'
 ```
 
 Do not use relative imports inside `apps/web/src`:
@@ -131,7 +117,7 @@ Rules:
 
 ```txt
 - no cross-package relative imports
-- no relative imports inside `apps/web/src`; use `@/`
+- no relative imports inside `apps/web/src`; use `#/`
 - no importing another package's src directly
 - avoid circular package dependencies
 ```
@@ -149,20 +135,23 @@ apps/web
     Page-specific UI lives under that page folder, e.g. `apps/web/src/pages/generate/components`.
 
 apps/server
-    Hono server, routes, env, lifecycle.
+    Elysia app, middleware, domain routes/services, server env, lifecycle.
 
 apps/desktop
     desktop shell and startup model.
 
 packages/shared
-    shared contracts only.
-    Domain modules live at the root; REST modules live under `api/`.
+    Canonical domain values/validation under `contract/`; REST under `api/`; events under `event/`.
+    Legacy Workflow definitions still live in root `comfy.ts` / `config.ts`.
 
 packages/event
-    event contracts and WebSocket helpers only.
+    Generic WebSocket transport helpers only; domain events belong in shared.
 
 packages/db
-    persistence only.
+    SQLite client, Drizzle schema/migrations, maintenance scripts.
+
+packages/env
+    Node-only base env and path resolution for server and DB scripts.
 ```
 
 Do not mix ownership.
@@ -171,30 +160,37 @@ Do not mix ownership.
 
 ```txt
 packages/shared/src/
-    config.ts       generator fields the web can control; ConfigSchema
-    comfy.ts        ComfyUI API graph format, parsing, mapping validation
-    api/<module>.ts REST request/response only
-    event/<module>.ts server-to-web event contracts
-    index.ts        root exports
+    contract/<domain>.ts  canonical reusable values/resources and validation
+    api/<domain>...       REST query coercion, params, requests, responses
+    event/<domain>.ts     server-to-web envelopes
+    index.ts             explicit public catalogs/type exports
 ```
 
-Dependency runs one way: `api/* -> comfy -> config`. A domain module never
-imports an API module.
+API and event modules may reference canonical contracts; canonical contracts
+must not depend on transport modules. Group by domain, not schema role, and do
+not extract fragments merely because two Zod expressions look alike.
 
-A type belongs to the module that defines its shape, not the module it appears
-in most often. `ConfigSchema` and `Comfy.Graph` are the shape the database
-column requires; REST is a consumer of them, so they are root types and
-`workflowApi` composes its schemas from them. Never re-export a domain type
-through an API namespace - `WorkflowApi.ComfyGraph` was exactly that mistake.
+Existing Workflow graph/mapping definitions still live in `comfy.ts` and
+`config.ts`; these are legacy locations, not the template for new domains.
+Database columns may use a canonical value type when the JSON shape matches
+exactly; DB row/storage types remain DB-owned.
 
-Root exports use a namespace when the module owns a cluster of related types
-(`Comfy.Graph`, `Comfy.Node`, `Comfy.MappingIssue`) and flat types when the
-names already stand alone (`ConfigSchema`, `GeneratorField`, `Mapping`).
+REST schemas use explicit `xxxApi` catalogs and types use `XxxApi` namespaces.
+Canonical values may be exposed through a consuming API catalog when externally
+needed; that exposure does not transfer domain ownership. Avoid duplicate aliases.
+Existing `Comfy`/`config` catalogs and flat `ConfigSchema`, `GeneratorField`, and
+`Mapping` exports remain explicit compatibility exceptions. Do not add parallel
+exports or rename public contracts merely to make every module look alike.
 
-Inside `packages/shared`, imports use the `#shared/*` alias, not `#/*`. Every
-package defines its own `#/*`, and tsx applies the entry package's tsconfig
-paths to every file it loads, so a shared file importing `#/config` resolves to
-the server's `src/config.ts`.
+Only externally consumed symbols belong in the public surface. List catalog
+members explicitly; do not spread or export-star runtime schemas. Keep schema
+and logic sections before inferred types, using the shared comment categories
+specified in AGENTS.md.
+
+Source aliases are `#/` except within shared, which uses `#shared/`. The distinct
+shared prefix avoids a known collision when tsx applies the entry package's
+paths to loaded shared files. Preserve it until an alternative is validated
+across development, typechecking, and production package resolution.
 
 ---
 
@@ -223,63 +219,37 @@ Service handles:
 - lifecycle decisions
 ```
 
-Repository handles:
+Services query Drizzle directly and own transaction/batch boundaries. Do not
+add a repository layer. Keep related operations in their domain; split only
+for a distinct responsibility or isolated complexity.
+
+An optional model module can own:
 
 ```txt
-- DB reads/writes
-- transactions
-- persistence details
+- DB row -> domain model conversion
+- domain types and cohesive resource projections
 ```
 
-Model handles:
-
-```txt
-- DB row -> domain model cast
-- domain-only types
-```
-
-`<module>.model.ts` may import a contract schema to parse persisted JSON - that
-is still the database side of the boundary. It must not build response payloads.
-A model knows the database, not the wire.
+A model file is optional. It may parse persisted JSON with a canonical contract
+and own cohesive domain conversions, including resource projections when that
+is its explicit responsibility. `image.model.ts` currently owns image resource
+projection. Keep mappings local or domain-owned; avoid a generic mapper layer.
 
 ### Response shaping
 
-A service method returns a domain result. Only a dedicated `get<X>Response`
-method narrows to an API response type.
+The domain service owns response data and query semantics; the route selects
+HTTP statuses. Choose the smallest response path that supplies the required
+fields:
 
-```ts
-findWorkflow(database, workflowId)        // WorkflowModel | null
-getWorkflowResponse(database, workflowId) // GetWorkflowResponse | undefined
-create(database, payload)                 // WorkflowModel
-update(database, id, revision, payload)   // done(WorkflowModel) | fail(code)
-```
+- Return/project the mutation result when it already contains the response.
+- Use a domain `get<X>Response` read when joined or computed fields are needed.
+- Share a domain projection when it has the same semantic responsibility across
+  callers; do not duplicate it merely because it has only two consumers.
 
-A mutation writes and returns the domain model. The route then re-reads the
-response, the same way the web invalidates a query after a mutation:
-
-```ts
-const result = await workflowService.update(database, workflowId, body.revision, payload)
-
-if (!result.ok) {
-    return status(failure.status, { error: { code: result.error, message: failure.message } })
-}
-
-const workflow = await workflowService.getWorkflowResponse(database, result.data.id)
-
-if (!workflow) {
-    throw new Error('Updated workflow could not be loaded.')
-}
-
-return workflow
-```
-
-One read path means one shape. Fields the mutation never computed - `taskCount`,
-joined names, image lists - come back for free, and detail, event and mutation
-payloads cannot drift apart. The extra SELECT is the price of that guarantee.
-
-Do not extract a projection helper just to share it between two call sites.
-Either the projection belongs to a `get<X>Response`, or each response site
-writes its own fields.
+A separate read is not mandatory and does not guarantee an atomic snapshot with
+the mutation. Decide which state the response represents when concurrent writes
+matter. Related detail/event/mutation projections must stay consistent, but
+need not have identical fields. Do not add a generic mapper or repository layer.
 
 ---
 
@@ -303,12 +273,16 @@ branch on:
 }
 ```
 
-Declare a Zod schema for the request and for every response status. Do not leak
-raw internal errors.
+Declare Zod schemas for request inputs and each supported JSON response status.
+Binary image 200 and bodyless 304 responses use native `Response`; document
+Content-Type, cache headers, sha256 ETag, and body semantics rather than invent
+a JSON envelope/schema for bytes. JSON error responses still use shared schemas.
+Do not leak raw internal errors.
 
 ### Multipart
 
-A request that may carry a file keeps every other field inside one object:
+A request that may carry a file keeps every other field inside one object.
+The following illustrates the transport shape, not the complete validation:
 
 ```ts
 z.object({
@@ -317,14 +291,19 @@ z.object({
 })
 ```
 
+Task create must accept exactly three cases: no reference, stored image id, or
+uploaded File. The shared schema must reject id plus File. That mutual-exclusion
+check is still missing in the current implementation. Web sends `name: null`;
+it does not inherit the source task name.
+
 Eden switches to `FormData` as soon as it sees a `File`, and `FormData` values
-are strings. Arrays are appended element by element, so an empty one appends
-nothing and the field disappears; `null` and numbers arrive as `"null"` and
+are strings. Primitive arrays are appended element by element, so an empty
+one appends nothing and the field disappears; `null` and numbers arrive as `"null"` and
 `"0"`. A single object is stringified whole, so everything inside it survives.
 Only the file belongs at the top level.
 
-Elysia's formData parser runs `JSON.parse` over each field, so the payload is
-already an object by the time the handler sees it. Declare it as one - a
+With the current Eden/Elysia integration, the JSON-encoded `payload` is parsed
+back into an object before the handler sees it. Declare it as one - a
 `z.string()` will fail validation, and no manual parsing is needed.
 
 ---
@@ -344,10 +323,10 @@ So both paths exist and both run:
 
 ```ts
 // the acting client, from the response it already has
-onSuccess: result => applyTaskRemoved(queryClient, result.id)
+onSuccess: result => applyTasksRemoved(queryClient, [result.id])
 
 // every other client, from the broadcast
-case 'task.removed': applyTaskRemoved(queryClient, event.taskId)
+case 'task.removed': applyTasksRemoved(queryClient, event.taskIds)
 ```
 
 They call the same function, and that function is written to be idempotent —
@@ -367,10 +346,11 @@ Rules:
 - server validates every outbound event before broadcast
 - browser connection helpers live in `packages/event/src/client.ts`
 - Node WebSocket server helpers live in `packages/event/src/server.ts`
-- an event carries the fields required to patch existing list and detail query caches
-- patch from the payload; `invalidateQueries` is for reconnect recovery, not the normal path
-- when a payload cannot cover a cache — `workflow.changed` has no graph — patch what it does
-  cover and invalidate only the entry it cannot, and only when the local copy is behind
+- an event carries the fields needed for its supported cache updates; incomplete projections use invalidation
+- patch when the payload determines the result; otherwise invalidate affected queries
+- database membership/collation/search semantics stay server-owned; invalidate when fields cannot decide membership
+- consider dependent domains: task changes can affect Image queries as well as Task queries
+- for a Workflow detail, invalidate when its summary shows it is behind; the event has no graph
 - a mutation applies its own result in `onSuccess`; never rely on the round trip
 - the event handler and the mutation share one idempotent function per outcome
 - reconnecting invalidates what went stale while the socket was gone
@@ -379,10 +359,10 @@ Rules:
 - the client must validate every inbound event; an event that fails validation is not evidence the connection is alive
 - the heartbeat interval lives in `packages/shared`; both sides derive their timers from it
 - when the connection is lost the client must treat health as unknown, never reuse the last snapshot
-- no DB imports
-- no Hono imports
+- no DB or Elysia imports in shared event contracts or generic transport helpers
 - validated WebSocket snapshots update query caches directly; REST `/health` remains for bootstrap and external checks
-- the socket carries what no response can, not a copy of what one already returned
+- the acting client applies its HTTP outcome immediately; other clients receive the same change through events
+- asynchronous lifecycle changes also arrive through events; SQLite/REST remain the recovery source
 ```
 
 ---
@@ -408,11 +388,11 @@ Rules:
 - shared class recipes live in `apps/web/src/lib/theme.ts` beside `cn.ts`; tokens stay in `styles.css`
 - app-level chrome such as `Header` lives in `apps/web/src/components` and is used from `App.tsx`
 - page-specific components go in `apps/web/src/pages/<page>/components`
-- a `components` folder holds components only
-- page-scoped non-component logic sits at the page root, beside that page's store
-- logic that carries no page-specific knowledge goes in `apps/web/src/lib`, even when only one page uses it today
+- component-specific non-component logic may live beside its component, including editor documents, commands, and decorations
+- page-wide logic sits at the page root; keep narrow single-consumer logic with its owner
+- move browser utilities to `lib` for a clear shared responsibility, not merely because they could be generic
 - generate task-list components live in `apps/web/src/pages/generate/components/task`
-- generate detail/config components live in `apps/web/src/pages/generate/components/config`
+- Generate-specific detail/config adapters live in `pages/generate/components/config`; cross-page task detail UI lives in `components/task/detail`
 - page components should not own app-level header layout
 - generate page mock data may exist only as UI placeholder data
 - mock UI data must not become backend state or task lifecycle authority
@@ -426,7 +406,7 @@ Rules:
 - Do not add a generic form abstraction
 - prefer `classes`/named class slots for reusable components when one `class` string is too vague
 - composition vs configuration: children whose structure varies take `children`; components where only values vary take props
-- a `classes` slot map growing past three keys means that component wants composition, not another slot
+- choose composition when consumers vary structure; slot/consumer counts are not fixed refactor thresholds
 ```
 
 ### Composition or configuration
@@ -451,10 +431,10 @@ base/Panel                                 collapsed swaps all  → render prop
 detail/*                                   rows/groups/grids    → composition
 ```
 
-Two warning signs that a configuration component is outgrowing itself: the
-`classes` slot map passing three keys, and a prop that exists for exactly one
-call site. Neither is a reason to convert on the spot — wait for a third call
-site that wants a different internal structure, then convert.
+Review a configuration component when its props obscure the relationship
+between inputs and layout. Use composition when consumer structures actually
+differ. A single-consumer prop or several class slots can be appropriate; no
+fixed number of slots or consumers triggers or blocks a refactor.
 
 Dot-notation namespaces (`Detail.Row`) are export ergonomics, not composition.
 Flat named exports through a folder barrel are the default; introduce a
@@ -493,7 +473,7 @@ components/detail/*
     section spacing, and title hierarchy match across pages.
 
 components/field/*
-    Shared Ark UI-based form/control primitives. Keep them generic and reusable; page-specific label groups, rows, and mock data belong in page components.
+    Shared form/control primitives. Keep domain label groups and rows in their page or shared domain component, not in generic fields.
 
 lib/*
     Non-component browser logic with no page-specific knowledge: class merging, stores, event dispatch, error mapping, image zoom/pan.
@@ -510,17 +490,20 @@ pages/generate/components/task/*
     Generate-page-only task list and task item UI.
 
 pages/generate/components/config/*
-    Generate-page-only task detail, config field layout, and LoRA stack UI.
+    Generate-specific form/query adapters for shared task detail UI.
 
-pages/generate/components/TaskStatus.tsx
-    Generate-page-only status display.
+components/task/detail/*
+    Task detail/config/LoRA UI shared by Generate and Compare.
+
+components/task/TaskStatus.tsx
+    Shared task status display.
 ```
 
 ---
 
 ## Env
 
-Required dev defaults:
+Development configuration example (replace absolute path placeholders):
 
 ```env
 NODE_ENV=development
@@ -530,6 +513,8 @@ SERVER_PORT=3070
 WEB_PORT=5173
 
 COMFYUI_BASE_URL=http://127.0.0.1:8188
+COMFYUI_STORAGE_PREFIX=/absolute/path/as-seen-by-comfyui/storage
+COMFYUI_OUTPUT_DIR=/absolute/path/as-seen-by-server/comfyui/output
 
 APP_DATA_DIR=./.local/data
 DATABASE_PATH=./.local/data/silent-pix.sqlite
@@ -540,8 +525,11 @@ Rules:
 
 ```txt
 - COMFYUI_BASE_URL is backend-only
-- frontend env must not expose ComfyUI
-- production desktop mode overrides data paths
+- frontend env must not expose ComfyUI connection/storage configuration
+- COMFYUI_STORAGE_PREFIX points to APP_STORAGE_DIR as seen by ComfyUI
+- COMFYUI_OUTPUT_DIR points to ComfyUI output as seen by the server
+- DATABASE_PATH and APP_STORAGE_DIR are configured independently; APP_DATA_DIR does not derive them
+- production must supply OS app-data paths; automatic Desktop overrides are not implemented
 - do not assume cwd is repo root
 ```
 
@@ -556,7 +544,7 @@ Rules:
 ```txt
 - migrations for schema changes
 - services query Drizzle directly; there is no repository layer
-- explicit transactions for multi-write consistency
+- transactions or atomic statement batches for multi-write consistency
 - no image binary in DB
 - no Prisma
 - no PostgreSQL
@@ -583,11 +571,17 @@ task_images   id, task id, image id, type, sort index, created at
 Rules:
 
 ```txt
-- prefer relative paths
+- store image paths relative to APP_STORAGE_DIR
 - the same bytes are stored once, whoever they came from
 - an image row and its file are deleted only when the last reference is gone
 - the database commits before the filesystem unlinks, never the reverse
 - image metadata is sniffed from the bytes, never trusted from the client
+- coordinate ingest/reference/delete/GC so cleanup cannot unlink newly referenced or republished content
+- DB foreign keys and commit-before-unlink do not by themselves protect filesystem concurrency
+- server mutations share the image-domain async mutex from lookup/ingest through reference commit or cleanup unlink
+- callers own the complete lock boundary; image mutation helpers do not acquire it again
+- ComfyUI execution/downloads stay outside the image lock
+- the mutex covers one server process only; standalone GC and multiple writers remain uncoordinated
 ```
 
 `images` knows nothing about tasks. `task_images` carries what a task does with a
@@ -630,14 +624,19 @@ env
 Suggested patterns:
 
 ```txt
-*.schema.ts
-*.repo.ts
-*.service.ts
-*.routes.ts
-*.client.ts
-*.config.ts
-*.types.ts
+<domain>.route.ts
+<domain>.service.ts
+<domain>.model.ts       when cohesive conversions/types need a separate owner
+<domain>.event.ts
+<domain>.query.ts
+<domain>.cache.ts       when cache behavior warrants separation
+<domain>.key.ts         when query/cache/event consumers share keys
+<integration>.client.ts
 ```
+
+These are naming patterns, not a checklist of files to create. Keep short,
+single-use schemas, types, and helpers local. Split by responsibility rather
+than line count; avoid speculative layers and generic dumping grounds.
 
 Avoid vague files:
 

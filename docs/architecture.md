@@ -2,6 +2,10 @@
 
 Silent Pix is a local-first desktop/web app. The backend owns task state, persistence, and ComfyUI communication.
 
+This document describes current architecture and explicitly labels known gaps.
+Implementation constraints live in `../AGENTS.md`; detailed conventions live in
+`conventions.md`. Keep all three aligned.
+
 ---
 
 ## Source of Truth
@@ -12,7 +16,7 @@ Filesystem = image bytes, addressed by content hash
 Memory     = active runtime state only
 REST       = actions and queries
 Realtime   = validated cache-update snapshots
-Frontend   = UI state only
+Frontend   = UI/form state and caches of backend data; no durable authority
 ComfyUI    = execution backend only
 ```
 
@@ -56,51 +60,30 @@ Current web structure:
 
 ```txt
 apps/web/src/
-    App.tsx
-        app shell, shared Header, and event client lifecycle
-
+    App.tsx                 app shell, Header composition, event client lifecycle
+    api/                    Eden REST wrappers
+    features/<domain>/      Query hooks, keys, cache updates, event handling
     components/
-        Header.tsx
-            app-level header
-
-        base/
-            shared low-level UI primitives, such as Button, Label, Line, Panel, and Tag
-
-        field/
-            shared Ark UI-based form/control primitives, such as Editable, Number, Select, Slider, and Text
-
-    pages/generate/
-        generate workspace shell
-
-    pages/generate/components/
-        task/
-            generate-page task list and item UI
-
-        config/
-            generate-page detail/config mock UI
-
-        TaskStatus.tsx
-            generate-page status display
-
-    temp/
-        temporary mock assets/data for UI shaping only
+        Header.tsx          app-level header
+        base/               shared low-level primitives
+        field/              shared form/control primitives
+        detail/             shared detail-panel composition
+        task/               shared TaskStatus and task detail UI
+        image/, viewer/     shared image picker and viewing UI
+    pages/generate/         generation form, task list/browser, page adapters
+    pages/workflow/         graph/mapping editor and Workflow management
+    pages/compare/          image comparison workspace
+    store/                  shared UI choices and connection state
+    lib/                    shared browser utilities
 ```
 
-`apps/web` uses `@/` as an alias to `apps/web/src`.
+Source imports use `#/`; see `conventions.md` for the shared-package exception.
+Component-specific editor logic may stay beside the component. Temporary working
+assets belong in repo-root `temp/`, not a required Web source folder.
 
-Generate page status:
-
-```txt
-- layout foundation only
-- static/mock task list, task detail, config fields, and LoRA stack placeholders are allowed
-- collapsible panels and form controls are UI state only
-- page editor state is page-scoped through context
-- Zod validates submit/API payload boundaries; there is no generic form abstraction
-- no task queue
-- no task lifecycle authority
-- no ComfyUI calls
-- no durable image/task/config state
-```
+Generate uses real Task APIs, TanStack Query for server data, and page-scoped
+TanStack Form for editable values. The default draft supplies initial form
+values; it is not a backend task. Task lifecycle authority stays in the server.
 
 Web state:
 
@@ -115,7 +98,8 @@ Web state:
 
 ### `apps/server`
 
-Owns backend entrypoint.
+Owns the backend entrypoint and domain services under `src/module/<domain>`.
+Services own database queries, business rules, and execution orchestration.
 
 Allowed:
 
@@ -148,14 +132,11 @@ route -> service -> Drizzle -> SQLite
 
 Owns desktop shell only.
 
-Allowed later:
+Current implementation is a Tauri window hosting the Web UI. Development uses
+the Vite API/WS proxy; the shell does not start the backend or ComfyUI.
 
-```txt
-- app window
-- OS app data path resolution
-- backend process startup/connection
-- local REST/WS connection to the backend
-```
+OS app-data resolution, backend startup/selection, and packaged remote
+connectivity remain future work. See `../apps/desktop/README.md`.
 
 Forbidden:
 
@@ -171,14 +152,20 @@ Desktop mode is a first-class target.
 
 ### `packages/shared`
 
-Shared REST and WebSocket contracts only.
+Owns canonical domain values and shared validation used by REST and WebSocket
+contracts, plus the transport contracts themselves. Domain definitions belong
+under `src/contract`; REST under `src/api`; events under `src/event`.
+
+Legacy Workflow graph/mapping definitions remain in `src/comfy.ts` and
+`src/config.ts`. The Web option mapper `comfy.toNodeOptions` also remains here
+as a known ownership gap; UI projections should belong to Web.
 
 Event contracts live under `packages/shared/src/event/<module>.ts`, divided by domain module. The aggregate `event.serverEvent` schema is the runtime source of truth for outbound server events.
 
 Allowed:
 
 ```txt
-- DTOs
+- canonical domain values and pure shared validation
 - enums
 - schemas
 - shared API types
@@ -245,6 +232,14 @@ Forbidden:
 
 ---
 
+### `packages/env`
+
+Owns Node-only base env loading and repo-relative path resolution shared by the
+server and DB scripts. Server-specific ComfyUI/HTTP config remains in
+`apps/server/src/config.ts`. Web must not import this package.
+
+---
+
 ## Backend
 
 Use:
@@ -263,6 +258,11 @@ Do not introduce:
 ```
 
 Routes must stay thin. Domain logic belongs in services.
+
+Current task generation starts as an untracked background Promise from the
+create route. Shutdown does not await all task finalization before closing the
+DB, and restart does not recover persisted queued/running tasks. These are
+known lifecycle gaps, not a guarantee supplied by REST cache recovery.
 
 ---
 
@@ -285,13 +285,14 @@ Do not use:
 
 SQLite stores metadata and durable state only. Image binary data stays on filesystem.
 
-SQLite init:
+The database client explicitly initializes:
 
 ```sql
-PRAGMA journal_mode = WAL;
 PRAGMA foreign_keys = ON;
-PRAGMA busy_timeout = 5000;
 ```
+
+It does not explicitly configure WAL or `busy_timeout`. Any future policy for
+those settings belongs in the database client and requires runtime validation.
 
 ---
 
@@ -314,23 +315,33 @@ Rules:
   retryable failure.
 - The mime type comes from sniffing the bytes. Never from the client's
   `Content-Type` and never from a filename.
-- JPEG EXIF orientation is normalised into the stored width and height, so the
-  browser preview, the row and the tensor ComfyUI decodes all agree. The bytes
-  are never transcoded.
+- Stored JPEG width/height account for EXIF orientations that swap axes. Bytes
+  are not transcoded; agreement with browser and ComfyUI decoding must be
+  checked with orientation-bearing images.
 
 Ownership lives in `task_images`, a join carrying the role (`input` / `output`,
 with `mask` / `control` reserved) and the batch position:
 
 - `images.hash` is UNIQUE. That index, not application code, is what enforces
   "the same image is never stored twice".
-- `task_images.image_id` is `ON DELETE RESTRICT`, so deleting a task can never
-  remove a file another task still uses.
+- `task_images.image_id` is `ON DELETE RESTRICT`, protecting referenced image
+  rows from deletion. This does not protect filesystem operations.
 - An image row and its file are deleted only when the last reference is gone.
-- The database commits before the filesystem unlinks, never the reverse. The
-  other order leaves a row pointing at a missing file, which never self-heals;
-  this order leaves an orphan file, which `pnpm db:gc` sweeps.
+- The database commits before the filesystem unlinks. An unlink failure may
+  leave an orphan file for `pnpm db:gc`, but this ordering alone does not make
+  deletion safe against concurrent ingest or reference creation.
+- Required invariant: cleanup must not unlink content another operation has
+  referenced or republished. Within one server process, the image-domain
+  `withImageMutation` mutex serializes lookup/ingest through reference commit
+  and orphan deletion through unlink. ComfyUI execution/downloads stay outside
+  this lock; read-only requests do not acquire it.
+- The mutex is process-local. It does not protect against a second server or
+  the standalone GC script. GC applies a grace period to orphan rows, not to
+  stray files or temporary writes; concurrent GC and ingest remain unsafe.
 
-Production data must live in OS app data directory. Dev data may use `./.local/data`.
+Production data must live in an OS app-data directory. Dev data may use
+`./.local/data`. Paths are configurable today; automatic Desktop production
+path overrides are not implemented.
 
 ---
 
@@ -340,19 +351,29 @@ REST:
 
 ```txt
 - return authoritative backend state
-- expose health and future resource APIs
+- expose health, Task list/detail/create/rename/delete/flags/options, Image list/bytes, and Workflow management
 ```
 
 WebSocket foundation:
 
 ```txt
 - endpoint: GET /api/event
-- local clients only
+- same-origin Web client; development proxy can target a configured remote server
+- client identity and authentication are not implemented
 - server events only
-- current business notification: `task.changed` with task lifecycle snapshot fields
+- current events: `task.created`, `task.changed`, `task.removed`,
+  `workflow.changed`, `workflow.removed`, and `health.snapshot`
 - server validates every outbound event through `event.serverEvent.parse()` before broadcast
 - connection state comes from WebSocket open, close, and reconnect lifecycle callbacks
 ```
+
+Image byte responses use native `Response`:
+
+| Status | Body | Headers / condition |
+| --- | --- | --- |
+| 200 | Stored PNG/JPEG bytes | Sniffed Content-Type, Content-Length, quoted sha256 ETag, `Cache-Control: public, max-age=31536000, immutable` |
+| 304 | No body | Matching `If-None-Match`; cache metadata headers |
+| 404 | Shared JSON error | Image row or file not found |
 
 Realtime is not durable; SQLite remains authoritative and REST restores missed state.
 
@@ -362,32 +383,33 @@ Current frontend event usage:
 - App.tsx owns the local server-event client lifecycle
 - `apps/web/src/lib/event.ts` dispatches decoded `Event.ServerEvent` values
 - a successful `POST /api/task` response seeds the local feed and detail caches before task selection
-- `task.changed` patches matching task feed and detail cache data without another request
-- a WebSocket reconnection invalidates `taskKeys.all` once to recover events missed while disconnected
-- Header may display connection status
+- `task.created` inserts feed entries; `task.changed` patches feed/detail; `task.removed` carries `taskIds`
+- Workflow events update summaries and invalidate detail when its payload is insufficient
+- a WebSocket reconnection invalidates task and workflow queries to recover missed events
+- Header displays connection and service health
 - generate task UI initializes from REST and applies server-validated realtime snapshots
 ```
 
 ---
 
+Known synchronization gaps: task detail snapshot updates omit name, and Image
+queries are not invalidated by task events or WS recovery. The required policy
+is to patch when sufficient fields are available and otherwise invalidate
+affected queries, including cross-domain dependencies.
+
 ## ComfyUI Boundary
 
 Only backend talks to ComfyUI.
 
-Frontend must not know:
-
-```txt
-- ComfyUI URL
-- ComfyUI API shape
-- ComfyUI websocket protocol
-- ComfyUI internal node IDs
-```
+Frontend must not connect to ComfyUI or know its server connection config or
+execution protocol. Workflow UI may read and edit the shared API graph format,
+node IDs, and mappings through Silent Pix APIs.
 
 Backend translates Silent Pix tasks into ComfyUI execution.
 
 Reference images are handed over as an absolute path, not as bytes. ComfyUI
-opens the file directly out of Silent Pix storage, so nothing is copied,
-re-encoded or retained on its side.
+opens the file directly out of Silent Pix storage. Silent Pix does not upload
+reference bytes or create a separate reference copy for ComfyUI.
 
 ```txt
 COMFYUI_STORAGE_PREFIX = the same directory as APP_STORAGE_DIR, spelled the way
@@ -396,8 +418,8 @@ COMFYUI_STORAGE_PREFIX = the same directory as APP_STORAGE_DIR, spelled the way
 
 The two processes may run under different operating systems, so that second
 spelling cannot be derived with `node:path` and has to be configured. It must be
-absolute: a relative path resolves against ComfyUI's own working directory,
-finds nothing, and the loader answers with a black image instead of an error.
+absolute: a relative path could resolve against a different working directory.
+The resulting failure behavior depends on the ComfyUI loader.
 
 The graph decides txt2img versus img2img by itself - an empty path takes the
 empty-latent branch, a real path takes the encode branch - so the server sets one
