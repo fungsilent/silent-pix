@@ -16,6 +16,7 @@ import { buildComfyPrompt, resolveSeed, txt2imgRuntime } from '#/lib/comfy/comfy
 import { absolutePath } from '#/lib/image/image.store'
 import { done, fail } from '#/lib/service-result'
 import { toImageResource } from '#/module/image/image.model'
+import { withImageMutation } from '#/module/image/image.mutation'
 import { imageService } from '#/module/image/image.service'
 import { comfyImagePath } from '#/module/image/image.util'
 import { taskChanged } from '#/module/task/task.event'
@@ -157,96 +158,98 @@ export const taskService = {
 
         if (workflow.archivedAt !== null) return fail('WORKFLOW_ARCHIVED')
 
-        let inputImage: ImageApi.ImageResource | undefined
-        let inputImageId: UUID | undefined
-        let ingestedImageId: UUID | undefined
+        return withImageMutation(async () => {
+            let inputImage: ImageApi.ImageResource | undefined
+            let inputImageId: UUID | undefined
+            let ingestedImageId: UUID | undefined
 
-        if (payload.referenceImageId) {
-            // img2img: task output image
-            const existing = await imageService.findImage(
-                database,
-                toUUID(payload.referenceImageId, 'referenceImageId'),
-            )
-            if (!existing) return fail('REFERENCE_IMAGE_NOT_FOUND')
+            if (payload.referenceImageId) {
+                // img2img: task output image
+                const existing = await imageService.findImage(
+                    database,
+                    toUUID(payload.referenceImageId, 'referenceImageId'),
+                )
+                if (!existing) return fail('REFERENCE_IMAGE_NOT_FOUND')
 
-            inputImageId = existing.id
-            inputImage = toImageResource(existing)
-        }
-        else if (request.referenceImage) {
-            // img2img: upload image
-            const imageBytes = new Uint8Array(await request.referenceImage.arrayBuffer())
-            const ingested = await imageService.ingest(database, imageBytes)
-            if (!ingested.ok) return fail(ingested.error)
-
-            inputImageId = ingested.data.image.id
-            inputImage = toImageResource(ingested.data.image)
-            if (ingested.data.created) {
-                ingestedImageId = ingested.data.image.id
+                inputImageId = existing.id
+                inputImage = toImageResource(existing)
             }
-        }
+            else if (request.referenceImage) {
+                // img2img: upload image
+                const imageBytes = new Uint8Array(await request.referenceImage.arrayBuffer())
+                const ingested = await imageService.ingest(database, imageBytes)
+                if (!ingested.ok) return fail(ingested.error)
 
-        const createdAt = Date.now()
-        const generateConfig: GenerateConfig = {
-            config: {
-                ...payload.config,
-                seed: resolveSeed(payload.config.seed),
-                ...(inputImage
-                    ? {
-                        width: inputImage.width,
-                        height: inputImage.height,
-                        /* latent 來自 VAEEncode，EmptyLatentImage.batch_size 在死分支上 */
-                        batch: 1,
-                    }
-                    : { denoise: 1 }),
-            },
-            lora: payload.lora,
-            prompt: payload.prompt,
-        }
-
-        try {
-            const createdTask = await database.db.transaction(async transaction => {
-                const [inserted] = await transaction
-                    .insert(tasks)
-                    .values({
-                        name: payload.name || null,
-                        status: 'queued',
-                        workflowId,
-                        config: generateConfig,
-                        createdAt,
-                        updatedAt: createdAt,
-                    })
-                    .returning()
-
-                if (!inserted) {
-                    throw new Error('Task insert returned no row.')
+                inputImageId = ingested.data.image.id
+                inputImage = toImageResource(ingested.data.image)
+                if (ingested.data.created) {
+                    ingestedImageId = ingested.data.image.id
                 }
+            }
 
-                if (inputImageId) {
-                    await transaction
-                        .insert(taskImages)
+            const createdAt = Date.now()
+            const generateConfig: GenerateConfig = {
+                config: {
+                    ...payload.config,
+                    seed: resolveSeed(payload.config.seed),
+                    ...(inputImage
+                        ? {
+                            width: inputImage.width,
+                            height: inputImage.height,
+                            /* latent 來自 VAEEncode，EmptyLatentImage.batch_size 在死分支上 */
+                            batch: 1,
+                        }
+                        : { denoise: 1 }),
+                },
+                lora: payload.lora,
+                prompt: payload.prompt,
+            }
+
+            try {
+                const createdTask = await database.db.transaction(async transaction => {
+                    const [inserted] = await transaction
+                        .insert(tasks)
                         .values({
-                            taskId: inserted.id,
-                            imageId: inputImageId,
-                            type: 'input',
-                            sortIndex: 0,
+                            name: payload.name || null,
+                            status: 'queued',
+                            workflowId,
+                            config: generateConfig,
                             createdAt,
+                            updatedAt: createdAt,
                         })
+                        .returning()
+
+                    if (!inserted) {
+                        throw new Error('Task insert returned no row.')
+                    }
+
+                    if (inputImageId) {
+                        await transaction
+                            .insert(taskImages)
+                            .values({
+                                taskId: inserted.id,
+                                imageId: inputImageId,
+                                type: 'input',
+                                sortIndex: 0,
+                                createdAt,
+                            })
+                    }
+
+                    return inserted
+                })
+
+                return done(castTaskModel(createdTask))
+            }
+            catch (error) {
+                console.error('Task create failed.', error)
+
+                if (ingestedImageId) {
+                    await imageService.deleteUnreferenced(database, [ingestedImageId])
                 }
 
-                return inserted
-            })
-
-            return done(castTaskModel(createdTask))
-        }
-        catch (error) {
-            console.error('Task create failed.', error)
-
-            if (ingestedImageId) {
-                await imageService.deleteUnreferenced(database, [ingestedImageId])
+                return fail('CREATE_TASK_FAIL')
             }
-
-            return fail('CREATE_TASK_FAIL')
-        }
+        })
     },
 
     async setFlags(
@@ -290,103 +293,105 @@ export const taskService = {
     ) {
         const allowActive = options?.allowActive ?? false
 
-        let removed: { ids: UUID[], imageIds: UUID[] }
+        return withImageMutation(async () => {
+            let removed: { ids: UUID[], imageIds: UUID[] }
 
-        if (request.scope === 'selected') {
-            const taskIds = request.taskIds.map(taskId => toUUID(taskId, 'taskId'))
-            const targetsQuery = database.db
-                .select({ id: tasks.id, status: tasks.status })
-                .from(tasks)
-                .where(inArray(tasks.id, taskIds))
-            const relatedQuery = database.db
-                .selectDistinct({ imageId: taskImages.imageId })
-                .from(taskImages)
-                .where(inArray(taskImages.taskId, taskIds))
+            if (request.scope === 'selected') {
+                const taskIds = request.taskIds.map(taskId => toUUID(taskId, 'taskId'))
+                const targetsQuery = database.db
+                    .select({ id: tasks.id, status: tasks.status })
+                    .from(tasks)
+                    .where(inArray(tasks.id, taskIds))
+                const relatedQuery = database.db
+                    .selectDistinct({ imageId: taskImages.imageId })
+                    .from(taskImages)
+                    .where(inArray(taskImages.taskId, taskIds))
 
-            /* 驗證查詢與帶 guard 的刪除必須留在同一個 batch，才能維持全有全無。 */
-            const allTargetsExist = sql`(
+                /* 驗證查詢與帶 guard 的刪除必須留在同一個 batch，才能維持全有全無。 */
+                const allTargetsExist = sql`(
                 SELECT count(*) FROM ${tasks}
                 WHERE ${inArray(tasks.id, taskIds)}
             ) = ${taskIds.length}`
-            const noActiveTargets = sql`NOT EXISTS (
+                const noActiveTargets = sql`NOT EXISTS (
                 SELECT 1 FROM ${tasks}
                 WHERE ${inArray(tasks.id, taskIds)}
                     AND ${or(eq(tasks.status, 'queued'), eq(tasks.status, 'running'))}
             )`
-            const deleteCondition = allowActive
-                ? and(inArray(tasks.id, taskIds), allTargetsExist)
-                : and(inArray(tasks.id, taskIds), allTargetsExist, noActiveTargets)
-            const deleteQuery = database.db
-                .delete(tasks)
-                .where(deleteCondition)
+                const deleteCondition = allowActive
+                    ? and(inArray(tasks.id, taskIds), allTargetsExist)
+                    : and(inArray(tasks.id, taskIds), allTargetsExist, noActiveTargets)
+                const deleteQuery = database.db
+                    .delete(tasks)
+                    .where(deleteCondition)
 
-            const [targets, related, deleted] = await database.db.batch([
-                targetsQuery,
-                relatedQuery,
-                deleteQuery,
-            ] as const)
+                const [targets, related, deleted] = await database.db.batch([
+                    targetsQuery,
+                    relatedQuery,
+                    deleteQuery,
+                ] as const)
 
-            if (targets.length !== taskIds.length) {
-                return fail('TASK_NOT_FOUND')
+                if (targets.length !== taskIds.length) {
+                    return fail('TASK_NOT_FOUND')
+                }
+
+                if (!allowActive && targets.some(target => (
+                    target.status === 'queued' || target.status === 'running'
+                ))) {
+                    return fail('TASK_ACTIVE')
+                }
+
+                if (deleted.rowsAffected !== taskIds.length) {
+                    throw new Error('Task delete count changed during batch.')
+                }
+
+                removed = {
+                    ids: taskIds,
+                    imageIds: related.map(relation => relation.imageId),
+                }
+            }
+            else {
+                const discardCondition = and(
+                    eq(tasks.discard, true),
+                    notInArray(tasks.status, ['queued', 'running']),
+                )
+                const targetsQuery = database.db
+                    .select({ id: tasks.id })
+                    .from(tasks)
+                    .where(discardCondition)
+                const relatedQuery = database.db
+                    .selectDistinct({ imageId: taskImages.imageId })
+                    .from(taskImages)
+                    .innerJoin(tasks, eq(tasks.id, taskImages.taskId))
+                    .where(discardCondition)
+                const deleteQuery = database.db
+                    .delete(tasks)
+                    .where(discardCondition)
+
+                const [targets, related, deleted] = await database.db.batch([
+                    targetsQuery,
+                    relatedQuery,
+                    deleteQuery,
+                ] as const)
+
+                if (deleted.rowsAffected !== targets.length) {
+                    throw new Error('Discard task delete count changed during batch.')
+                }
+
+                removed = {
+                    ids: targets.map(task => task.id),
+                    imageIds: related.map(relation => relation.imageId),
+                }
             }
 
-            if (!allowActive && targets.some(target => (
-                target.status === 'queued' || target.status === 'running'
-            ))) {
-                return fail('TASK_ACTIVE')
-            }
-
-            if (deleted.rowsAffected !== taskIds.length) {
-                throw new Error('Task delete count changed during batch.')
-            }
-
-            removed = {
-                ids: taskIds,
-                imageIds: related.map(relation => relation.imageId),
-            }
-        }
-        else {
-            const discardCondition = and(
-                eq(tasks.discard, true),
-                notInArray(tasks.status, ['queued', 'running']),
+            const deletedImageCount = await imageService.deleteUnreferenced(
+                database,
+                [...new Set(removed.imageIds)],
             )
-            const targetsQuery = database.db
-                .select({ id: tasks.id })
-                .from(tasks)
-                .where(discardCondition)
-            const relatedQuery = database.db
-                .selectDistinct({ imageId: taskImages.imageId })
-                .from(taskImages)
-                .innerJoin(tasks, eq(tasks.id, taskImages.taskId))
-                .where(discardCondition)
-            const deleteQuery = database.db
-                .delete(tasks)
-                .where(discardCondition)
 
-            const [targets, related, deleted] = await database.db.batch([
-                targetsQuery,
-                relatedQuery,
-                deleteQuery,
-            ] as const)
-
-            if (deleted.rowsAffected !== targets.length) {
-                throw new Error('Discard task delete count changed during batch.')
-            }
-
-            removed = {
-                ids: targets.map(task => task.id),
-                imageIds: related.map(relation => relation.imageId),
-            }
-        }
-
-        const deletedImageCount = await imageService.deleteUnreferenced(
-            database,
-            [...new Set(removed.imageIds)],
-        )
-
-        return done({
-            ids: removed.ids,
-            deletedImageCount,
+            return done({
+                ids: removed.ids,
+                deletedImageCount,
+            })
         })
     },
 
@@ -622,26 +627,64 @@ export const taskService = {
                 })),
             )
 
-            for (const { image, index, bytes } of downloaded) {
-                const ingested = await imageService.ingest(database, bytes)
+            let storageError: string | undefined
+            let completed = false
 
-                if (!ingested.ok) {
-                    await taskService.fail(
-                        database,
-                        taskId,
-                        ingested.error,
-                        'ComfyUI output could not be stored.',
-                        pushEvent,
-                    )
-                    return
+            await withImageMutation(async () => {
+                const ingestedImageIds: UUID[] = []
+                const cleanupIngestedImages = async () => {
+                    if (ingestedImageIds.length === 0) return
+
+                    const imageIds = ingestedImageIds.splice(0)
+                    await imageService.deleteUnreferenced(database, imageIds)
                 }
 
-                outputs.push({ imageId: ingested.data.image.id, sortIndex: index })
+                try {
+                    for (const { index, bytes } of downloaded) {
+                        const ingested = await imageService.ingest(database, bytes)
 
-                await removeComfyImage(config.comfyuiOutputDir, image)
+                        if (!ingested.ok) {
+                            storageError = ingested.error
+                            await cleanupIngestedImages()
+                            return
+                        }
+
+                        outputs.push({ imageId: ingested.data.image.id, sortIndex: index })
+                        if (ingested.data.created) {
+                            ingestedImageIds.push(ingested.data.image.id)
+                        }
+                    }
+
+                    completed = await completeTaskMutation(database, taskId, outputs)
+                    if (!completed) {
+                        await cleanupIngestedImages()
+                    }
+                }
+                catch (error) {
+                    await cleanupIngestedImages()
+                    throw error
+                }
+            })
+
+            if (storageError) {
+                await taskService.fail(
+                    database,
+                    taskId,
+                    storageError,
+                    'ComfyUI output could not be stored.',
+                    pushEvent,
+                )
+                return
             }
 
-            await taskService.complete(database, taskId, outputs, pushEvent)
+            if (completed) {
+                await taskService.publishChanged(database, taskId, pushEvent)
+
+                /* Comfy output cleanup and history deletion do not hold the image lock. */
+                for (const { image } of downloaded) {
+                    await removeComfyImage(config.comfyuiOutputDir, image)
+                }
+            }
 
             try {
                 await client.deleteHistory(result.promptId)
@@ -654,8 +697,9 @@ export const taskService = {
             console.error(`Task ${taskId} generation failed.`, error)
 
             /*
-             * 錯誤路徑不 unlink 任何東西。內容定址下剛「寫入」的檔案很可能是別的
-             * task 正在引用的既有檔案，刪掉就是刪掉活的圖。孤兒交給 db:gc。
+             * ingest/complete 失敗時，剛由本次操作建立的孤兒已在同一把 lock 內清理。
+             * 這裡不再碰 image rows；內容定址下既有檔案可能被別的 task 引用，孤兒交給
+             * db:gc。
              */
             const code = error instanceof ComfyError
                 ? error.code
@@ -666,47 +710,6 @@ export const taskService = {
 
             await taskService.fail(database, taskId, code, message, pushEvent)
         }
-    },
-
-    async complete(
-        database: DatabaseClient,
-        taskId: UUID,
-        outputs: { imageId: UUID, sortIndex: number }[],
-        pushEvent: PushEvent,
-    ) {
-        const item = await taskService.findTask(database, taskId)
-        if (!item) {
-            return
-        }
-
-        const createdAt = Date.now()
-
-        await database.db.transaction(async tx => {
-            if (outputs.length) {
-                await tx
-                    .insert(taskImages)
-                    .values(outputs.map(output => ({
-                        taskId,
-                        imageId: output.imageId,
-                        type: 'output' as const,
-                        sortIndex: output.sortIndex,
-                        createdAt,
-                    })))
-                    .run()
-            }
-
-            await tx.update(tasks)
-                .set({
-                    status: 'done',
-                    updatedAt: Date.now(),
-                    errorCode: null,
-                    errorMessage: null,
-                })
-                .where(eq(tasks.id, taskId))
-                .run()
-        })
-
-        await taskService.publishChanged(database, taskId, pushEvent)
     },
 
     async fail(
@@ -757,6 +760,47 @@ export const taskService = {
             value: name,
         }))
     },
+}
+
+/* Caller owns the image mutation lock; event publication belongs outside it. */
+async function completeTaskMutation(
+    database: DatabaseClient,
+    taskId: UUID,
+    outputs: { imageId: UUID, sortIndex: number }[],
+): Promise<boolean> {
+    const item = await taskService.findTask(database, taskId)
+    if (!item) {
+        return false
+    }
+
+    const createdAt = Date.now()
+
+    await database.db.transaction(async tx => {
+        if (outputs.length) {
+            await tx
+                .insert(taskImages)
+                .values(outputs.map(output => ({
+                    taskId,
+                    imageId: output.imageId,
+                    type: 'output' as const,
+                    sortIndex: output.sortIndex,
+                    createdAt,
+                })))
+                .run()
+        }
+
+        await tx.update(tasks)
+            .set({
+                status: 'done',
+                updatedAt: Date.now(),
+                errorCode: null,
+                errorMessage: null,
+            })
+            .where(eq(tasks.id, taskId))
+            .run()
+    })
+
+    return true
 }
 
 /* 只有 output 進畫廊；輸入圖是另一個欄位，混進來會出現在縮圖與 viewer 裡 */

@@ -1,5 +1,5 @@
 import { images, taskImages, tasks } from '@silent-pix/db'
-import { and, asc, desc, eq, exists, gt, inArray, isNull, like, lt, ne, or, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, exists, gt, inArray, like, lt, ne, notExists, or, sql } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/sqlite-core'
 
 import { loadConfig } from '#/config'
@@ -23,6 +23,9 @@ export const imageService = {
     /*
      * 內容定址的寫入。相同位元組只會有一列一檔，所以這裡對「同一張圖被上傳兩次」
      * 與「模型重複生出同一張圖」是同一條路徑，不需要特別處理。
+     *
+     * 呼叫端必須持有 image mutation lock，並把 ingest 與建立 task_images reference
+     * 放在同一個 lock ownership 內。
      */
     async ingest(database: DatabaseClient, bytes: Uint8Array) {
         if (bytes.byteLength === 0) {
@@ -241,6 +244,7 @@ export const imageService = {
     /*
      * 只刪掉「已經沒有任何 task_images 指著」的那些。呼叫端要在 DB 交易 commit 之後
      * 才呼叫，順序反過來一旦失敗就會留下指向不存在檔案的有效列。
+     * 呼叫端必須持有 image mutation lock；這個 helper 不自行取得鎖，避免 nested lock。
      */
     async deleteUnreferenced(database: DatabaseClient, imageIds: UUID[]): Promise<number> {
         if (imageIds.length === 0) {
@@ -248,34 +252,31 @@ export const imageService = {
         }
 
         const uniqueImageIds = [...new Set(imageIds)]
-        const orphans: { id: UUID, path: string }[] = []
+        let deletedCount = 0
 
         for (const chunk of chunkArray(uniqueImageIds, 500)) {
-            const rows = await database.db
-                .select({ id: images.id, path: images.path })
-                .from(images)
-                .leftJoin(taskImages, eq(taskImages.imageId, images.id))
-                .where(and(inArray(images.id, chunk), isNull(taskImages.id)))
-                .all()
-            orphans.push(...rows)
-        }
-
-        if (orphans.length === 0) {
-            return 0
-        }
-
-        for (const chunk of chunkArray(orphans.map(orphan => orphan.id), 500)) {
-            await database.db
+            const deleted = await database.db
                 .delete(images)
-                .where(inArray(images.id, chunk))
-                .run()
+                .where(and(
+                    inArray(images.id, chunk),
+                    notExists(
+                        database.db
+                            .select({ one: sql`1` })
+                            .from(taskImages)
+                            .where(eq(taskImages.imageId, images.id)),
+                    ),
+                ))
+                .returning({ id: images.id, path: images.path })
+
+            /* The delete is committed before unlinking; only rows deleted now may be unlinked. */
+            for (const orphan of deleted) {
+                await unlinkContent(config.appStorageDir, orphan.path)
+            }
+
+            deletedCount += deleted.length
         }
 
-        for (const orphan of orphans) {
-            await unlinkContent(config.appStorageDir, orphan.path)
-        }
-
-        return orphans.length
+        return deletedCount
     },
 }
 
