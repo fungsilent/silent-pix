@@ -1,4 +1,5 @@
 import { getImageRequest } from '#shared/api/image/detail'
+import { imageGarbageCollectionResponse } from '#shared/api/image/garbage-collection'
 import {
     getImagesQuery,
     getImagesResponse,
@@ -11,6 +12,7 @@ import {
 /* MARK: catalog */
 
 export const imageApi = {
+    imageGarbageCollectionResponse,
     getImageRequest,
     getImagesQuery,
     getImagesResponse,
@@ -26,6 +28,7 @@ export type {
     ImageResource,
     ImageUsage,
 } from '#shared/contract/image'
+export type { ImageGarbageCollectionResponse } from '#shared/api/image/garbage-collection'
 export type {
     GetImagesQuery,
     GetImagesResponse,

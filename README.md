@@ -145,7 +145,14 @@ pnpm db:migrate
 pnpm db:seed
 pnpm db:reset
 pnpm db:studio
+pnpm image:gc
+pnpm image:gc:offline -- --confirm-server-stopped
 ```
+
+`pnpm image:gc` asks the running server to perform image garbage collection.
+It does not directly access SQLite or storage and fails without fallback when
+the server is unavailable. The offline command is for explicit stopped-server
+recovery only and requires the exact confirmation flag.
 
 ---
 

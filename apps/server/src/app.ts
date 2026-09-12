@@ -6,6 +6,8 @@ import { loadConfig } from '#/config'
 import { errorCatchMiddleware } from '#/middleware/error-catch'
 import { createHealthBroadcaster } from '#/module/app/app.health'
 import { appRoutes } from '#/module/app/app.route'
+import { imageGarbageCollectionRoutes } from '#/module/image/image.garbage.route'
+import { waitForImageMutationDrain } from '#/module/image/image.mutation'
 import { imageRoutes } from '#/module/image/image.route'
 import { taskRoutes } from '#/module/task/task.route'
 import { workflowRoutes } from '#/module/workflow/workflow.route'
@@ -26,15 +28,9 @@ export async function createApp() {
 
     store.comfyClient.start()
 
-    return new Elysia({ adapter: node() })
+    const app = new Elysia({ adapter: node() })
         .onStart(() => {
             store.comfyClient.start()
-        })
-        .onStop(() => {
-            health.stop()
-            store.eventChannel.close()
-            store.comfyClient.close()
-            store.database.close()
         })
         .use(errorCatchMiddleware)
         .ws('/api/event', {
@@ -58,9 +54,21 @@ export async function createApp() {
             app => app
                 .use(appRoutes)
                 .use(imageRoutes)
+                .use(imageGarbageCollectionRoutes)
                 .use(taskRoutes)
                 .use(workflowRoutes),
         )
+
+    return {
+        app,
+        async close(): Promise<void> {
+            health.stop()
+            store.eventChannel.close()
+            store.comfyClient.close()
+            await waitForImageMutationDrain()
+            store.database.close()
+        },
+    }
 }
 
-export type Api = Awaited<ReturnType<typeof createApp>>
+export type Api = Awaited<ReturnType<typeof createApp>>['app']

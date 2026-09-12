@@ -85,6 +85,7 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
                 415: appApi.errorResponse,
                 422: appApi.errorResponse,
                 500: appApi.errorResponse,
+                503: appApi.errorResponse,
             },
         },
     )
@@ -221,6 +222,7 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
                 409: appApi.errorResponse,
                 422: appApi.errorResponse,
                 500: appApi.errorResponse,
+                503: appApi.errorResponse,
             },
         },
     )
@@ -252,6 +254,7 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
                 404: appApi.errorResponse,
                 422: appApi.errorResponse,
                 500: appApi.errorResponse,
+                503: appApi.errorResponse,
             },
         },
     )

@@ -51,16 +51,17 @@ export async function writeContent(
     }
 }
 
-export async function unlinkContent(storageRoot: string, relativePath: string): Promise<void> {
-    await unlinkQuietly(absolutePath(storageRoot, relativePath))
+export async function unlinkContent(storageRoot: string, relativePath: string): Promise<boolean> {
+    return unlinkQuietly(absolutePath(storageRoot, relativePath))
 }
 
-async function unlinkQuietly(filePath: string): Promise<void> {
+async function unlinkQuietly(filePath: string): Promise<boolean> {
     try {
         await unlink(filePath)
+        return true
     } catch (cause) {
         if (cause instanceof Error && 'code' in cause && cause.code === 'ENOENT') {
-            return
+            return false
         }
         throw cause
     }

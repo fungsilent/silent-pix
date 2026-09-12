@@ -247,27 +247,10 @@ export const imageService = {
      * 呼叫端必須持有 image mutation lock；這個 helper 不自行取得鎖，避免 nested lock。
      */
     async deleteUnreferenced(database: DatabaseClient, imageIds: UUID[]): Promise<number> {
-        if (imageIds.length === 0) {
-            return 0
-        }
-
-        const uniqueImageIds = [...new Set(imageIds)]
         let deletedCount = 0
 
-        for (const chunk of chunkArray(uniqueImageIds, 500)) {
-            const deleted = await database.db
-                .delete(images)
-                .where(and(
-                    inArray(images.id, chunk),
-                    notExists(
-                        database.db
-                            .select({ one: sql`1` })
-                            .from(taskImages)
-                            .where(eq(taskImages.imageId, images.id)),
-                    ),
-                ))
-                .returning({ id: images.id, path: images.path })
-
+        for (const chunk of chunkArray([...new Set(imageIds)], 500)) {
+            const deleted = await deleteUnreferencedRows(database, chunk)
             /* The delete is committed before unlinking; only rows deleted now may be unlinked. */
             for (const orphan of deleted) {
                 await unlinkContent(config.appStorageDir, orphan.path)
@@ -278,6 +261,39 @@ export const imageService = {
 
         return deletedCount
     },
+}
+
+/*
+ * Guarded row deletion is shared by normal task cleanup and garbage collection.
+ * It intentionally has no filesystem side effect: callers decide their unlink
+ * error policy after the database commit and must already hold the image lock.
+ */
+export async function deleteUnreferencedRows(
+    database: DatabaseClient,
+    imageIds: UUID[],
+): Promise<Array<{ id: UUID, path: string }>> {
+    if (imageIds.length === 0) {
+        return []
+    }
+
+    const deleted: Array<{ id: UUID, path: string }> = []
+
+    for (const chunk of chunkArray([...new Set(imageIds)], 500)) {
+        deleted.push(...await database.db
+            .delete(images)
+            .where(and(
+                inArray(images.id, chunk),
+                notExists(
+                    database.db
+                        .select({ one: sql`1` })
+                        .from(taskImages)
+                        .where(eq(taskImages.imageId, images.id)),
+                ),
+            ))
+            .returning({ id: images.id, path: images.path }))
+    }
+
+    return deleted
 }
 
 function chunkArray<T>(values: T[], size: number): T[][] {

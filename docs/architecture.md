@@ -328,16 +328,24 @@ with `mask` / `control` reserved) and the batch position:
   rows from deletion. This does not protect filesystem operations.
 - An image row and its file are deleted only when the last reference is gone.
 - The database commits before the filesystem unlinks. An unlink failure may
-  leave an orphan file for `pnpm db:gc`, but this ordering alone does not make
-  deletion safe against concurrent ingest or reference creation.
+  leave an orphan file for the server-owned image garbage collection route.
+  This ordering alone does not make deletion safe against concurrent ingest or
+  reference creation.
 - Required invariant: cleanup must not unlink content another operation has
   referenced or republished. Within one server process, the image-domain
   `withImageMutation` mutex serializes lookup/ingest through reference commit
   and orphan deletion through unlink. ComfyUI execution/downloads stay outside
   this lock; read-only requests do not acquire it.
-- The mutex is process-local. It does not protect against a second server or
-  the standalone GC script. GC applies a grace period to orphan rows, not to
-  stray files or temporary writes; concurrent GC and ingest remain unsafe.
+- Online image garbage collection runs in the server image domain under the
+  same mutex and applies its grace period to orphan rows, recognized stray
+  files, and recognized temporary writes. The normal `pnpm image:gc` command is
+  only an HTTP trigger; it never opens the database or storage and never falls
+  back when the server is unavailable.
+- The mutex is process-local. The supported deployment has one server writer
+  per database/storage pair; a second server or writer sharing either is
+  unsupported. `pnpm image:gc:offline -- --confirm-server-stopped` is an
+  explicit stopped-server recovery command and still requires the operator to
+  confirm that all writers have stopped.
 
 Production data must live in an OS app-data directory. Dev data may use
 `./.local/data`. Paths are configurable today; automatic Desktop production

@@ -1,6 +1,7 @@
 import { Elysia } from 'elysia'
 
 import { ComfyError } from '#/lib/comfy/comfy.client'
+import { ImageMutationUnavailableError } from '#/module/image/image.mutation'
 
 export const errorCatchMiddleware = new Elysia({ name: 'error-catch' })
     .onError(
@@ -20,6 +21,15 @@ export const errorCatchMiddleware = new Elysia({ name: 'error-catch' })
                     error: {
                         code: 'ROUTE_NOT_FOUND',
                         message: 'Route not found.',
+                    },
+                })
+            }
+
+            if (error instanceof ImageMutationUnavailableError) {
+                return status(503, {
+                    error: {
+                        code: error.code,
+                        message: error.message,
                     },
                 })
             }
