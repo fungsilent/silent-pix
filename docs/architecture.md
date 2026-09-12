@@ -370,6 +370,17 @@ REST:
 - expose health, Task list/detail/create/rename/delete/flags/options, Image list/bytes, and Workflow management
 ```
 
+Task create uses a shared no-upload/upload union at the HTTP boundary:
+
+| Request variant | `payload.referenceImageId` | Top-level `referenceImage` |
+| --- | --- | --- |
+| txt2img | omitted or `null` | absent |
+| stored image img2img | UUID | absent |
+| uploaded image img2img | `null` | `File` |
+
+UUID plus `File` is rejected by schema validation before `taskService.create()`;
+the payload/File transport positions remain unchanged for Eden multipart.
+
 WebSocket foundation:
 
 ```txt

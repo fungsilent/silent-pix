@@ -27,10 +27,22 @@ const createTaskPayload = z.object({
  * 帶 File 時 Eden 自動使用 multipart，Elysia formData parser 會把 payload
  * JSON.parse 回物件；未帶 File 時則是單純 JSON。兩種傳輸共用這份 contract。
  */
-export const createTaskRequest = z.object({
+const createTaskWithoutUpload = z.object({
     payload: createTaskPayload,
-    referenceImage: z.file().optional(),
+    referenceImage: z.undefined().optional(),
 })
+
+const createTaskWithUpload = z.object({
+    payload: createTaskPayload.extend({
+        referenceImageId: z.null().default(null),
+    }),
+    referenceImage: z.file(),
+})
+
+export const createTaskRequest = z.union([
+    createTaskWithoutUpload,
+    createTaskWithUpload,
+])
 
 /* MARK: response */
 

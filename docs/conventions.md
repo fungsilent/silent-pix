@@ -300,9 +300,8 @@ z.object({
 ```
 
 Task create must accept exactly three cases: no reference, stored image id, or
-uploaded File. The shared schema must reject id plus File. That mutual-exclusion
-check is still missing in the current implementation. Web sends `name: null`;
-it does not inherit the source task name.
+uploaded File. The shared union schema rejects id plus File before the service
+boundary. Web sends `name: null`; it does not inherit the source task name.
 
 Eden switches to `FormData` as soon as it sees a `File`, and `FormData` values
 are strings. Primitive arrays are appended element by element, so an empty

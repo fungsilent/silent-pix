@@ -181,30 +181,43 @@ export function toCreateTaskRequest(values: GenerateValues): TaskApi.CreateTaskR
     const reference = values.referenceImage
     const seed = values.seed.trim()
 
+    const payloadBase = {
+        /* name 是 task 建立後的手動標籤，不從 draft / base task 帶入 */
+        name: null,
+        workflowId: values.workflowId,
+        config: {
+            seed: seed === '' ? null : seed,
+            steps: values.steps,
+            cfg: values.cfg,
+            width: values.width,
+            height: values.height,
+            batch: values.batch,
+            sampler: normalizeSampler(values.sampler.trim()),
+            /* 沒有參考圖時 server 一律改成 1，這裡送什麼都不影響結果 */
+            denoise: values.denoise,
+        },
+        lora: values.lora,
+        prompt: {
+            positive: values.positive,
+            negative: values.negative,
+        },
+    }
+
+    if (reference?.type === 'local') {
+        return {
+            /* 上傳新檔案就把 File 放在外層，Eden 會因此改走 multipart */
+            payload: {
+                ...payloadBase,
+                referenceImageId: null,
+            },
+            referenceImage: reference.file,
+        }
+    }
+
     return {
-        /* 上傳新檔案就把 File 放在外層，Eden 會因此改走 multipart */
-        ...(reference?.type === 'local' ? { referenceImage: reference.file } : {}),
         payload: {
-            /* name 是 task 建立後的手動標籤，不從 draft / base task 帶入 */
-            name: null,
-            workflowId: values.workflowId,
+            ...payloadBase,
             referenceImageId: reference?.type === 'asset' ? reference.image.id : null,
-            config: {
-                seed: seed === '' ? null : seed,
-                steps: values.steps,
-                cfg: values.cfg,
-                width: values.width,
-                height: values.height,
-                batch: values.batch,
-                sampler: normalizeSampler(values.sampler.trim()),
-                /* 沒有參考圖時 server 一律改成 1，這裡送什麼都不影響結果 */
-                denoise: values.denoise,
-            },
-            lora: values.lora,
-            prompt: {
-                positive: values.positive,
-                negative: values.negative,
-            },
         },
     }
 }
