@@ -30,6 +30,27 @@ export const compareStore = createStore(initialState, store => ({
         store.set('compare', current => [...current, ...additions])
     },
 
+    updateTaskName(taskId: string, name: string | null) {
+        store.set('compare', current => {
+            let changed = false
+            const updated = current.map(entry => {
+                const origin = entry.origin
+
+                if (!origin || origin.taskId !== taskId || origin.taskName === name) {
+                    return entry
+                }
+
+                changed = true
+                return {
+                    ...entry,
+                    origin: { ...origin, taskName: name },
+                }
+            })
+
+            return changed ? updated : current
+        })
+    },
+
     selectCompare(imageId: string) {
         if (store.state.compare.some(entry => entry.image.id === imageId && !entry.hidden)) {
             store.set('selectedCompareImageId', imageId)

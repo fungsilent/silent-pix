@@ -79,7 +79,7 @@ export function cacheTaskChanged(
         : updateTaskFeed(current, scope, toTaskListItem(task), true))
     queryClient.setQueryData<TaskApi.GetTaskResponse>(
         taskKeys.detail({ taskId: task.id }),
-        current => updateTaskDetail(current, task),
+        current => current ? applySnapshot(current, task) : current,
     )
 }
 
@@ -449,8 +449,19 @@ function applySnapshot(
     task: TaskApi.GetTaskResponse,
     snapshot: Event.Task.Snapshot,
 ): TaskApi.GetTaskResponse {
+    if (
+        task.name === snapshot.name
+        && task.status === snapshot.status
+        && task.pin === snapshot.pin
+        && task.discard === snapshot.discard
+        && sameImages(task.images, snapshot.images)
+    ) {
+        return task
+    }
+
     return {
         ...task,
+        name: snapshot.name,
         status: snapshot.status,
         pin: snapshot.pin,
         discard: snapshot.discard,
@@ -470,32 +481,6 @@ function toTaskListItem(task: Event.Task.Snapshot): TaskApi.TaskListItem {
         outputCount: task.outputCount,
         createdAt: task.createdAt,
         ...(thumbnail ? { thumbnail } : {}),
-    }
-}
-
-function updateTaskDetail(
-    current: TaskApi.GetTaskResponse | undefined,
-    task: Event.Task.Snapshot,
-): TaskApi.GetTaskResponse | undefined {
-    if (!current) {
-        return current
-    }
-
-    if (
-        current.status === task.status
-        && current.pin === task.pin
-        && current.discard === task.discard
-        && sameImages(current.images, task.images)
-    ) {
-        return current
-    }
-
-    return {
-        ...current,
-        status: task.status,
-        pin: task.pin,
-        discard: task.discard,
-        images: task.images,
     }
 }
 

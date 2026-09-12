@@ -1,18 +1,13 @@
 import { useInfiniteQuery } from '@tanstack/solid-query'
 
 import { imageApi } from '#/api/image'
+import { imageKeys } from '#/features/image/image.key'
 
 import type { ImageApi } from '@silent-pix/shared'
+import type { ImageListQueryInput } from '#/features/image/image.key'
 import type { Accessor } from 'solid-js'
 
 const imageListLimit = 30
-type ImageListQueryInput = Omit<ImageApi.GetImagesQuery, 'cursor'>
-
-const imageKeys = {
-    all: ['images'] as const,
-    lists: () => [...imageKeys.all, 'list'] as const,
-    list: (input: ImageListQueryInput) => [...imageKeys.lists(), input] as const,
-}
 
 export function useImageListQuery(
     enabled: Accessor<boolean>,

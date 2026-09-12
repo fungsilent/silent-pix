@@ -1,4 +1,4 @@
-import { createEffect, on, Show } from 'solid-js'
+import { createEffect, createMemo, on, Show } from 'solid-js'
 
 import { ApiError } from '#/api/api.client'
 import { useCreateTaskMutation, useTaskDetailQuery } from '#/features/task/task.query'
@@ -51,17 +51,32 @@ export function GeneratePage() {
      * loadTask 是整包覆寫 values，所以原本的寫法會讓任何一則 task.changed
      * ——包含正在跑的那個 task 自己的進度更新——把使用者打到一半的表單抹掉。
      */
-    createEffect(on(
-        () => [taskStore.state.selectedTaskId, taskDetailQuery.data?.id] as const,
-        () => {
-            /* query refetch 暫時沒有 data 時，保留同一 task 的編輯內容。 */
-            const task = detail.task()
+    const taskId = createMemo(() => detail.task()?.id)
+    const taskName = createMemo(() => detail.task()?.name)
 
-            if (task) {
-                generateStore.loadTask(task)
-            }
-        },
-    ))
+    createEffect(on([taskId, taskName], ([taskIdValue, serverName], previous) => {
+        /* query refetch 暫時沒有 data 時，保留同一 task 的編輯內容。 */
+        const task = detail.task()
+
+        if (!taskIdValue || !task) {
+            return
+        }
+
+        if (generateStore.state.taskId !== taskIdValue) {
+            generateStore.loadTask(task)
+            return
+        }
+
+        if (previous?.[0] !== taskIdValue) {
+            return
+        }
+
+        const previousServerName = previous[1] ?? ''
+
+        if (generateStore.form.getFieldValue('name') === previousServerName) {
+            generateStore.form.setFieldValue('name', serverName ?? '')
+        }
+    }))
 
     const handleSubmit = async (event: SubmitEvent) => {
         event.preventDefault()

@@ -401,17 +401,33 @@ Current frontend event usage:
 - a successful `POST /api/task` response seeds the local feed and detail caches before task selection
 - `task.created` inserts feed entries; `task.changed` patches feed/detail; `task.removed` carries `taskIds`
 - Workflow events update summaries and invalidate detail when its payload is insufficient
-- a WebSocket reconnection invalidates task and workflow queries to recover missed events
+- a WebSocket reconnection invalidates task, image, and workflow queries to recover missed events
 - Header displays connection and service health
 - generate task UI initializes from REST and applies server-validated realtime snapshots
 ```
 
 ---
 
-Known synchronization gaps: task detail snapshot updates omit name, and Image
-queries are not invalidated by task events or WS recovery. The required policy
-is to patch when sufficient fields are available and otherwise invalidate
-affected queries, including cross-domain dependencies.
+Image list queries are server-owned projections. Task created/changed/removed
+events and successful local task create/rename/flag/delete mutations invalidate
+`imageKeys.lists()`; active lists refetch and inactive lists become stale for
+the next open. WebSocket reconnect invalidates the broader `imageKeys.all` key
+alongside the task and workflow roots to recover missed events. The server
+recomputes image search membership, task-flag filtering, origin metadata, and
+earliest use.
+
+Task detail snapshots project `name`, `status`, `pin`, `discard`, and `images`
+with referential equality when all projected values are unchanged. Generate
+coordinates the Query-owned task detail with its page-scoped TanStack Form:
+changing task identity loads the full task, while a same-task server rename only
+updates the form `name` when it still equals the previous server name (`null`
+maps to the form boundary value `''`). Local Name, prompt, and config edits are
+preserved.
+
+Compare selections are frontend-owned UI state: local rename responses and
+remote `task.changed` events patch `origin.taskName` for matching selected
+origins. Replaying the same name returns the existing Compare array and entry
+references. This narrow UI-state patch is separate from Image list invalidation.
 
 ## ComfyUI Boundary
 

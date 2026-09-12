@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/solid-query'
 
 import { taskApi } from '#/api/task'
+import { invalidateImageLists } from '#/features/image/image.cache'
 import {
     cacheCreatedTaskResponse,
     cacheTaskFlagsPatched,
@@ -8,6 +9,7 @@ import {
 } from '#/features/task/task.cache'
 import { applyTasksRemoved } from '#/features/task/task.event'
 import { taskKeys } from '#/features/task/task.key'
+import { compareStore } from '#/store/compare'
 import { taskStore } from '#/store/task'
 
 import type { TaskApi } from '@silent-pix/shared'
@@ -90,6 +92,7 @@ export function useCreateTaskMutation() {
         mutationFn: (request: TaskApi.CreateTaskRequest) => taskApi.create(request),
         onSuccess: task => {
             cacheCreatedTaskResponse(queryClient, task)
+            invalidateImageLists(queryClient)
         },
     }))
 }
@@ -103,6 +106,8 @@ export function useRenameTaskMutation() {
         ) => taskApi.rename(request),
         onSuccess: task => {
             cacheTaskRenamed(queryClient, task)
+            compareStore.updateTaskName(task.id, task.name)
+            invalidateImageLists(queryClient)
         },
     }))
 }
@@ -114,6 +119,7 @@ export function useTaskFlagMutation() {
         mutationFn: (request: TaskApi.UpdateTaskFlagsRequest) => taskApi.setFlags(request),
         onSuccess: result => {
             cacheTaskFlagsPatched(queryClient, result.tasks)
+            invalidateImageLists(queryClient)
         },
     }))
 }
