@@ -43,7 +43,7 @@ export function Select(props: SelectProps) {
             onValueChange={details => {
                 const value = details.value[0]
 
-                if (value) {
+                if (value !== undefined) {
                     props.onChange?.(value)
                 }
             }}
