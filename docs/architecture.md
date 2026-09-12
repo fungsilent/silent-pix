@@ -264,6 +264,14 @@ create route. Shutdown does not await all task finalization before closing the
 DB, and restart does not recover persisted queued/running tasks. These are
 known lifecycle gaps, not a guarantee supplied by REST cache recovery.
 
+Task creation reads one Workflow through `workflowService.findWorkflow()`, which
+already converts the DB row to the complete `WorkflowModel` with
+`castWorkflowModel()`. The insert records that model's `id` and `revision`, and
+the create route passes the same model to the background generation call, so an
+update to the Workflow after creation cannot change the prompt for that task.
+This model remains in process memory only; legacy tasks with
+`workflowRevision = 0` remain an unknown revision and are not backfilled.
+
 ---
 
 ## Database

@@ -1,7 +1,7 @@
 import { createDatabaseClient } from '@silent-pix/db'
 
 import { loadConfig } from '#/config'
-import { imageGarbageCollection } from '../../dist/module/image/image.garbage'
+import { imageGarbageCollection } from '#/module/image/image.garbage'
 
 const confirmationFlag = '--confirm-server-stopped'
 const probeTimeoutMs = 3_000

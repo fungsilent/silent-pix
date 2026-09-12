@@ -62,17 +62,18 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
                 })
             }
 
-            const createdTask = await taskService.getTaskResponse(database, creation.data.id)
+            const { task, workflow } = creation.data
+            const createdTask = await taskService.getTaskResponse(database, task.id)
             if (!createdTask) {
                 throw new Error('Created task could not be loaded.')
             }
 
-            const snapshot = await taskService.snapshot(database, creation.data.id)
-            if (snapshot) {
-                pushEvent(taskCreated(snapshot))
+            const taskSnapshot = await taskService.snapshot(database, task.id)
+            if (taskSnapshot) {
+                pushEvent(taskCreated(taskSnapshot))
             }
 
-            void taskService.generate(database, comfyClient, creation.data.id, pushEvent)
+            void taskService.generate(database, comfyClient, task.id, workflow, pushEvent)
 
             return status(201, createdTask)
         },

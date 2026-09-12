@@ -212,7 +212,8 @@ export const taskService = {
                         .values({
                             name: payload.name || null,
                             status: 'queued',
-                            workflowId,
+                            workflowId: workflow.id,
+                            workflowRevision: workflow.revision,
                             config: generateConfig,
                             createdAt,
                             updatedAt: createdAt,
@@ -238,7 +239,10 @@ export const taskService = {
                     return inserted
                 })
 
-                return done(castTaskModel(createdTask))
+                return done({
+                    task: castTaskModel(createdTask),
+                    workflow,
+                })
             }
             catch (error) {
                 console.error('Task create failed.', error)
@@ -544,10 +548,10 @@ export const taskService = {
         database: DatabaseClient,
         client: ComfyClient,
         taskId: UUID,
+        workflow: WorkflowModel,
         pushEvent: PushEvent,
     ) {
         const item = await taskService.findTask(database, taskId, {
-            includeWorkflow: true,
             includeImage: true,
         })
 
@@ -578,8 +582,8 @@ export const taskService = {
             }
 
             const prompt = buildComfyPrompt(
-                item.workflow.graph,
-                item.workflow.configSchema,
+                workflow.graph,
+                workflow.configSchema,
                 item.task.config,
                 runtime,
             )

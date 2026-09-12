@@ -223,6 +223,14 @@ Services query Drizzle directly and own transaction/batch boundaries. Do not
 add a repository layer. Keep related operations in their domain; split only
 for a distinct responsibility or isolated complexity.
 
+Task creation uses the complete `WorkflowModel` returned by
+`workflowService.findWorkflow()`, whose existing `castWorkflowModel()` call is
+the DB row-to-domain conversion boundary. The task stores that model's `id` and
+`revision`, and the same model must flow into generation; generation must not
+re-read the current Workflow. This protects the task's recorded revision from a
+Workflow update between create and execution. The model is process-local, so
+legacy `workflowRevision = 0` rows remain unknown rather than being backfilled.
+
 An optional model module can own:
 
 ```txt
