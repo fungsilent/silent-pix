@@ -1,5 +1,5 @@
-import { images, taskImages, tasks } from '@silent-pix/db'
-import { and, asc, desc, eq, exists, gt, inArray, like, lt, ne, notExists, or, sql } from 'drizzle-orm'
+import { images, isUUID, taskImages, tasks } from '@silent-pix/db'
+import { and, asc, desc, eq, exists, gt, inArray, like, lt, ne, notExists, or } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/sqlite-core'
 
 import { loadConfig } from '#/config'
@@ -14,7 +14,7 @@ import type { ImageApi } from '@silent-pix/shared'
 
 const config = loadConfig()
 
-type ImageCursor = { usedAt: number, sortIndex: number, id: string }
+type ImageCursor = { usedAt: number, sortIndex: number, id: UUID }
 
 /* mask / control 還沒有 UI，對外只承認這兩種 */
 const displayTypes = ['input', 'output'] as const
@@ -145,7 +145,7 @@ export const imageService = {
                         and(
                             eq(taskImages.createdAt, cursor.usedAt),
                             eq(taskImages.sortIndex, cursor.sortIndex),
-                            sql`${taskImages.id} < ${cursor.id}`,
+                            lt(taskImages.id, cursor.id),
                         ),
                     )
                     : undefined,
@@ -156,7 +156,7 @@ export const imageService = {
                 search || query.taskFlags || query.type
                     ? exists(
                         database.db
-                            .select({ one: sql`1` })
+                            .select({ id: matchingUsage.id })
                             .from(matchingUsage)
                             .innerJoin(matchingTask, eq(matchingTask.id, matchingUsage.taskId))
                             .where(and(
@@ -285,7 +285,7 @@ export async function deleteUnreferencedRows(
                 inArray(images.id, chunk),
                 notExists(
                     database.db
-                        .select({ one: sql`1` })
+                        .select({ id: taskImages.id })
                         .from(taskImages)
                         .where(eq(taskImages.imageId, images.id)),
                 ),
@@ -355,6 +355,7 @@ function isImageCursor(value: unknown): value is ImageCursor {
     return Number.isInteger(cursor.usedAt)
         && Number.isInteger(cursor.sortIndex)
         && typeof cursor.id === 'string'
+        && isUUID(cursor.id)
 }
 
 function encodeCursor(cursor: ImageCursor): string {

@@ -89,7 +89,7 @@ These are implementation constraints. `docs/architecture.md` describes current s
 ## Storage and Boundaries
 
 - Use SQLite + Drizzle only. Do not add other database engines, ORMs, queues, or cloud database services.
-- Server services query `database.db` with Drizzle directly. Do not add a repository layer or use raw SQLite outside the database client.
+- Server services query `database.db` with Drizzle directly. Do not add a repository layer, use raw SQLite outside the database client, or use Drizzle's `sql` tagged template in `apps/server`.
 - Frontend must never call ComfyUI, access SQLite, or know backend-only env values. Workflow UI may edit the shared graph/mapping contract, including node IDs; connection and execution protocols remain server-owned.
 - Backend is the source of truth for durable state. Frontend state is UI state only.
 - WebSocket event contracts live under `packages/shared/src/event`, divided by domain module.

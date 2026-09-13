@@ -2,7 +2,7 @@ import { lstat, readdir } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 
 import { images, taskImages } from '@silent-pix/db'
-import { and, eq, lt, notExists, sql } from 'drizzle-orm'
+import { and, eq, lt, notExists } from 'drizzle-orm'
 
 import { loadConfig } from '#/config'
 import { unlinkContent } from '#/lib/image/image.store'
@@ -47,7 +47,7 @@ export const imageGarbageCollection = {
                     lt(images.createdAt, cutoff),
                     notExists(
                         database.db
-                            .select({ one: sql`1` })
+                            .select({ id: taskImages.id })
                             .from(taskImages)
                             .where(eq(taskImages.imageId, images.id)),
                     ),

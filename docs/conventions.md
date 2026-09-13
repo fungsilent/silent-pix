@@ -568,6 +568,7 @@ Rules:
 ```txt
 - migrations for schema changes
 - services query Drizzle directly; there is no repository layer
+- server queries use typed Drizzle query builders, operators, and subqueries; do not use raw SQL or Drizzle's `sql` tagged template in `apps/server`
 - transactions or atomic statement batches for multi-write consistency
 - no image binary in DB
 - no Prisma

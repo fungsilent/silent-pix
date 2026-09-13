@@ -171,5 +171,17 @@ export default defineConfig(
             },
         },
     },
-)
 
+    {
+        files: ['apps/server/**/*.ts'],
+        rules: {
+            'no-restricted-imports': ['error', {
+                paths: [{
+                    name: 'drizzle-orm',
+                    importNames: ['sql'],
+                    message: 'Server queries must use Drizzle query builders and operators.',
+                }],
+            }],
+        },
+    },
+)

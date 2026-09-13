@@ -1,6 +1,6 @@
 import { tasks, workflows } from '@silent-pix/db'
 import { comfy } from '@silent-pix/shared'
-import { and, asc, count, eq, isNull, sql } from 'drizzle-orm'
+import { and, asc, count, eq, isNull } from 'drizzle-orm'
 
 import { stringify } from '#/lib/json/json.stringify'
 import { done, fail } from '#/lib/service-result'
@@ -134,7 +134,7 @@ export const workflowService = {
                 name: payload.name,
                 graph: payload.graph,
                 configSchema: payload.configSchema,
-                ...(unchanged ? {} : { revision: sql`${workflows.revision} + 1` }),
+                ...(unchanged ? {} : { revision: expectedRevision + 1 }),
                 updatedAt: Date.now(),
             })
             .where(and(

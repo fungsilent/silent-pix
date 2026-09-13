@@ -2,11 +2,12 @@ import { existsSync } from 'node:fs'
 
 import {
     images,
+    isUUID,
     taskImages,
     tasks,
     toUUID,
 } from '@silent-pix/db'
-import { and, asc, count, desc, eq, inArray, like, notInArray, or, sql } from 'drizzle-orm'
+import { and, asc, count, desc, eq, inArray, like, lt, notExists, notInArray, or } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/sqlite-core'
 
 import { loadConfig } from '#/config'
@@ -33,7 +34,7 @@ import type { WorkflowModel } from '#/module/workflow/workflow.model'
 
 const config = loadConfig()
 
-type TaskCursor = { createdAt: number, id: string }
+type TaskCursor = { createdAt: number, id: UUID }
 
 export const taskService = {
     // MARK: CRUD
@@ -317,6 +318,7 @@ export const taskService = {
 
             if (request.scope === 'selected') {
                 const taskIds = request.taskIds.map(taskId => toUUID(taskId, 'taskId'))
+                const guardedTasks = alias(tasks, 'guardedTasks')
                 const targetsQuery = database.db
                     .select({ id: tasks.id, status: tasks.status })
                     .from(tasks)
@@ -327,15 +329,19 @@ export const taskService = {
                     .where(inArray(taskImages.taskId, taskIds))
 
                 /* 驗證查詢與帶 guard 的刪除必須留在同一個 batch，才能維持全有全無。 */
-                const allTargetsExist = sql`(
-                SELECT count(*) FROM ${tasks}
-                WHERE ${inArray(tasks.id, taskIds)}
-            ) = ${taskIds.length}`
-                const noActiveTargets = sql`NOT EXISTS (
-                SELECT 1 FROM ${tasks}
-                WHERE ${inArray(tasks.id, taskIds)}
-                    AND ${or(eq(tasks.status, 'queued'), eq(tasks.status, 'running'))}
-            )`
+                const allTargetsExist = eq(
+                    database.db.$count(tasks, inArray(tasks.id, taskIds)),
+                    taskIds.length,
+                )
+                const noActiveTargets = notExists(
+                    database.db
+                        .select({ id: guardedTasks.id })
+                        .from(guardedTasks)
+                        .where(and(
+                            inArray(guardedTasks.id, taskIds),
+                            inArray(guardedTasks.status, ['queued', 'running']),
+                        )),
+                )
                 const deleteCondition = allowActive
                     ? and(inArray(tasks.id, taskIds), allTargetsExist)
                     : and(inArray(tasks.id, taskIds), allTargetsExist, noActiveTargets)
@@ -486,7 +492,13 @@ export const taskService = {
                     )
                     : undefined,
                 cursor
-                    ? sql`(${tasks.createdAt}, ${tasks.id}) < (${cursor.createdAt}, ${cursor.id})`
+                    ? or(
+                        lt(tasks.createdAt, cursor.createdAt),
+                        and(
+                            eq(tasks.createdAt, cursor.createdAt),
+                            lt(tasks.id, cursor.id),
+                        ),
+                    )
                     : undefined,
                 search
                     ? or(
@@ -837,7 +849,7 @@ function isTaskCursor(value: unknown): value is TaskCursor {
         && Number.isSafeInteger(cursor.createdAt)
         && cursor.createdAt >= 0
         && typeof cursor.id === 'string'
-        && cursor.id.length > 0
+        && isUUID(cursor.id)
 }
 
 function encodeCursor(createdAt: number, id: string): string {
