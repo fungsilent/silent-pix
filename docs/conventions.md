@@ -231,6 +231,16 @@ re-read the current Workflow. This protects the task's recorded revision from a
 Workflow update between create and execution. The model is process-local, so
 legacy `workflowRevision = 0` rows remain unknown rather than being backfilled.
 
+At startup, `createApp()` awaits `taskService.failInterruptedTasks()` after
+`serverStore.init()` opens SQLite and before the first `ComfyClient.start()`.
+The single guarded update changes persisted `queued` and `running` tasks to
+`failed` with `errorCode = SERVER_RESTARTED` and an explanatory message. It does
+not resume tasks or publish recovery events; clients obtain the durable result
+through subsequent REST initial/recovery synchronization. Generation remains a
+detached, untracked background Promise, so graceful shutdown does not drain it
+and late finalization against a closed DB remains a known unsupported lifecycle
+case.
+
 An optional model module can own:
 
 ```txt

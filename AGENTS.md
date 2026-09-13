@@ -62,6 +62,7 @@ These are implementation constraints. `docs/architecture.md` describes current s
 - REST provides initial and recovery synchronization. A successful task-create response seeds the originating client's feed and detail caches; `task.created` inserts tasks for other clients and `task.changed` updates existing cache entries.
 - Web task creation sends `name: null` under the current contract; name is a post-create manual label and must not be inherited from the base task.
 - Task create uses the complete `WorkflowModel` returned by `workflowService.findWorkflow()` (after its existing `castWorkflowModel()` DB-row conversion), persists its `id` and `revision` on the task, and passes that same model to generation; generation must not re-read the current Workflow. Legacy `workflowRevision = 0` rows remain unknown and are not backfilled by this flow.
+- On server startup, `createApp()` awaits `taskService.failInterruptedTasks()` after `serverStore.init()` opens SQLite and before the first `ComfyClient.start()`. Persisted `queued` and `running` tasks are changed to `failed` with `errorCode = SERVER_RESTARTED`; startup does not resume them or publish recovery events because it runs before clients can connect, and clients obtain the recovered task state through subsequent REST initial/recovery synchronization. Task generation remains a detached, untracked background Promise: graceful shutdown does not drain it, and late finalization after the DB closes remains an unsupported known limit.
 
 ## Web UI and State
 

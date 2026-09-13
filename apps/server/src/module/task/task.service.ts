@@ -149,6 +149,21 @@ export const taskService = {
     },
 
     // MARK: Service
+    async failInterruptedTasks(database: DatabaseClient): Promise<UUID[]> {
+        const rows = await database.db
+            .update(tasks)
+            .set({
+                status: 'failed',
+                errorCode: 'SERVER_RESTARTED',
+                errorMessage: 'Generation was interrupted before the server restarted.',
+                updatedAt: Date.now(),
+            })
+            .where(inArray(tasks.status, ['queued', 'running']))
+            .returning({ id: tasks.id })
+
+        return rows.map(row => row.id)
+    },
+
     async create(database: DatabaseClient, request: TaskApi.CreateTaskRequest) {
         const { payload } = request
         const workflowId = toUUID(payload.workflowId, 'workflowId')

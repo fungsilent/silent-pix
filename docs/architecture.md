@@ -261,8 +261,14 @@ Routes must stay thin. Domain logic belongs in services.
 
 Current task generation starts as an untracked background Promise from the
 create route. Shutdown does not await all task finalization before closing the
-DB, and restart does not recover persisted queued/running tasks. These are
-known lifecycle gaps, not a guarantee supplied by REST cache recovery.
+DB; this detached-generation lifecycle gap remains unsupported. On startup,
+after the DB is opened and before the first ComfyUI start, `createApp()` awaits
+`taskService.failInterruptedTasks()`, which changes persisted `queued` and
+`running` tasks to `failed` with `errorCode = SERVER_RESTARTED`. Recovery does
+not resume generation or publish events before clients connect; clients obtain
+the recovered task state through subsequent REST initial/recovery
+synchronization. This startup operation is the recovery guarantee, not
+shutdown draining.
 
 Task creation reads one Workflow through `workflowService.findWorkflow()`, which
 already converts the DB row to the complete `WorkflowModel` with

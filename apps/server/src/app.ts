@@ -10,11 +10,17 @@ import { imageGarbageCollectionRoutes } from '#/module/image/image.garbage.route
 import { waitForImageMutationDrain } from '#/module/image/image.mutation'
 import { imageRoutes } from '#/module/image/image.route'
 import { taskRoutes } from '#/module/task/task.route'
+import { taskService } from '#/module/task/task.service'
 import { workflowRoutes } from '#/module/workflow/workflow.route'
 
 export async function createApp() {
     const env = loadConfig()
     const store = await serverStore.init(env)
+
+    const recoveredTaskIds = await taskService.failInterruptedTasks(store.database)
+    if (recoveredTaskIds.length > 0) {
+        console.info(`Recovered ${recoveredTaskIds.length} interrupted task(s) after server restart.`)
+    }
 
     const health = createHealthBroadcaster({
         channel: store.eventChannel,
