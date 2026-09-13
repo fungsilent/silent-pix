@@ -238,6 +238,14 @@ re-read the current Workflow. This protects the task's recorded revision from a
 Workflow update between create and execution. The model is process-local, so
 legacy `workflowRevision = 0` rows remain unknown rather than being backfilled.
 
+`taskExecution.generate()` owns task generation's ComfyUI orchestration and
+its generation-only completion transaction. It may call `taskService` for task
+reads, writes, and publication. Keep the dependency one-way:
+`task.service.ts` owns resource queries, business operations, startup recovery,
+snapshots, and public options and must not import the execution module.
+The route launches generation as a detached, untracked Promise; tracking,
+cancellation, and shutdown draining are not part of this boundary.
+
 At startup, `createApp()` awaits `taskService.failInterruptedTasks()` after
 `serverStore.init()` opens SQLite and before the first `ComfyClient.start()`.
 The single guarded update changes persisted `queued` and `running` tasks to

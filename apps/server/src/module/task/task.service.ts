@@ -1,5 +1,3 @@
-import { existsSync } from 'node:fs'
-
 import {
     images,
     isUUID,
@@ -10,16 +8,11 @@ import {
 import { and, asc, count, desc, eq, inArray, like, lt, notExists, notInArray, or } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/sqlite-core'
 
-import { loadConfig } from '#/config'
-import { ComfyError } from '#/lib/comfy/comfy.client'
-import { removeComfyImage } from '#/lib/comfy/comfy.output'
-import { buildComfyPrompt, resolveSeed, txt2imgRuntime } from '#/lib/comfy/comfy.prompt'
-import { absolutePath } from '#/lib/image/image.store'
+import { resolveSeed } from '#/lib/comfy/comfy.prompt'
 import { done, fail } from '#/lib/service-result'
 import { toImageResource } from '#/module/image/image.model'
 import { withImageMutation } from '#/module/image/image.mutation'
 import { imageService } from '#/module/image/image.service'
-import { comfyImagePath } from '#/module/image/image.util'
 import { taskChanged } from '#/module/task/task.event'
 import { castTaskModel } from '#/module/task/task.model'
 import { workflowService } from '#/module/workflow/workflow.service'
@@ -31,8 +24,6 @@ import type { ComfyClient } from '#/lib/comfy/comfy.client'
 import type { GenerateConfig } from '#/lib/comfy/comfy.prompt'
 import type { TaskImageModel, TaskModel } from '#/module/task/task.model'
 import type { WorkflowModel } from '#/module/workflow/workflow.model'
-
-const config = loadConfig()
 
 type TaskCursor = { createdAt: number, id: UUID }
 
@@ -571,199 +562,6 @@ export const taskService = {
         pushEvent(taskChanged(snapshot))
     },
 
-    async generate(
-        database: DatabaseClient,
-        client: ComfyClient,
-        taskId: UUID,
-        workflow: WorkflowModel,
-        pushEvent: PushEvent,
-    ) {
-        const item = await taskService.findTask(database, taskId, {
-            includeImage: true,
-        })
-
-        if (!item) {
-            return
-        }
-
-        try {
-            const input = item.images.find(relation => relation.type === 'input')
-            let runtime = txt2imgRuntime
-
-            if (input) {
-                /* 使用 image path 才為圖片輸入，先確認檔案是否存在 */
-                if (!existsSync(absolutePath(config.appStorageDir, input.image.path))) {
-                    await taskService.fail(
-                        database,
-                        taskId,
-                        'REFERENCE_IMAGE_FILE_MISSING',
-                        'Reference image file is missing from storage.',
-                        pushEvent,
-                    )
-                    return
-                }
-
-                runtime = {
-                    initImagePath: comfyImagePath(config.comfyuiStoragePrefix, input.image.path),
-                }
-            }
-
-            const prompt = buildComfyPrompt(
-                workflow.graph,
-                workflow.configSchema,
-                item.task.config,
-                runtime,
-            )
-            const result = await client.execute(prompt, {
-                async onPromptCreated(promptId) {
-                    await taskService.updateTask(database, {
-                        id: taskId,
-                        comfyPromptId: promptId,
-                    })
-                },
-                async onRunning() {
-                    await taskService.updateTask(
-                        database,
-                        {
-                            id: taskId,
-                            status: 'running',
-                        },
-                        {
-                            limtedStatus: ['queued']
-                        })
-                    await taskService.publishChanged(database, taskId, pushEvent)
-                },
-            })
-            const outputImages = Object.values(result.history.outputs ?? {})
-                .flatMap(output => output.images ?? [])
-
-            if (!outputImages.length) {
-                await taskService.fail(
-                    database,
-                    taskId,
-                    'COMFY_OUTPUT_MISSING',
-                    'ComfyUI did not return any output images.',
-                    pushEvent,
-                )
-                return
-            }
-
-            const outputs: { imageId: UUID, sortIndex: number }[] = []
-
-            const downloaded = await Promise.all(
-                outputImages.map(async (image, index) => ({
-                    image,
-                    index,
-                    bytes: await client.downloadImage(image),
-                })),
-            )
-
-            let storageError: string | undefined
-            let completed = false
-
-            await withImageMutation(async () => {
-                const ingestedImageIds: UUID[] = []
-                const cleanupIngestedImages = async () => {
-                    if (ingestedImageIds.length === 0) return
-
-                    const imageIds = ingestedImageIds.splice(0)
-                    await imageService.deleteUnreferenced(database, imageIds)
-                }
-
-                try {
-                    for (const { index, bytes } of downloaded) {
-                        const ingested = await imageService.ingest(database, bytes)
-
-                        if (!ingested.ok) {
-                            storageError = ingested.error
-                            await cleanupIngestedImages()
-                            return
-                        }
-
-                        outputs.push({ imageId: ingested.data.image.id, sortIndex: index })
-                        if (ingested.data.created) {
-                            ingestedImageIds.push(ingested.data.image.id)
-                        }
-                    }
-
-                    completed = await completeTaskMutation(database, taskId, outputs)
-                    if (!completed) {
-                        await cleanupIngestedImages()
-                    }
-                }
-                catch (error) {
-                    await cleanupIngestedImages()
-                    throw error
-                }
-            })
-
-            if (storageError) {
-                await taskService.fail(
-                    database,
-                    taskId,
-                    storageError,
-                    'ComfyUI output could not be stored.',
-                    pushEvent,
-                )
-                return
-            }
-
-            if (completed) {
-                await taskService.publishChanged(database, taskId, pushEvent)
-
-                /* Comfy output cleanup and history deletion do not hold the image lock. */
-                for (const { image } of downloaded) {
-                    await removeComfyImage(config.comfyuiOutputDir, image)
-                }
-            }
-
-            try {
-                await client.deleteHistory(result.promptId)
-            }
-            catch (error) {
-                console.error(`Failed to remove Comfy history for task ${taskId}.`, error)
-            }
-        }
-        catch (error) {
-            console.error(`Task ${taskId} generation failed.`, error)
-
-            /*
-             * ingest/complete 失敗時，剛由本次操作建立的孤兒已在同一把 lock 內清理。
-             * 這裡不再碰 image rows；內容定址下既有檔案可能被別的 task 引用，孤兒交給
-             * db:gc。
-             */
-            const code = error instanceof ComfyError
-                ? error.code
-                : 'TASK_GENERATE_ERROR'
-            const message = error instanceof Error
-                ? error.message
-                : 'An unexpected task generation error occurred.'
-
-            await taskService.fail(database, taskId, code, message, pushEvent)
-        }
-    },
-
-    async fail(
-        database: DatabaseClient,
-        taskId: UUID,
-        errorCode: string,
-        errorMessage: string,
-        pushEvent: PushEvent,
-    ) {
-        await taskService.updateTask(
-            database,
-            {
-                id: taskId,
-                status: 'failed',
-                errorCode,
-                errorMessage,
-            },
-            {
-                limtedStatus: ['queued', 'running'],
-            })
-        await taskService.publishChanged(database, taskId, pushEvent)
-    },
-
     // MARK: Option
     async samplerList(comfyClient: ComfyClient) {
         const comfySamplers = new Set(await comfyClient.getSamplerNames())
@@ -791,47 +589,6 @@ export const taskService = {
             value: name,
         }))
     },
-}
-
-/* Caller owns the image mutation lock; event publication belongs outside it. */
-async function completeTaskMutation(
-    database: DatabaseClient,
-    taskId: UUID,
-    outputs: { imageId: UUID, sortIndex: number }[],
-): Promise<boolean> {
-    const item = await taskService.findTask(database, taskId)
-    if (!item) {
-        return false
-    }
-
-    const createdAt = Date.now()
-
-    await database.db.transaction(async tx => {
-        if (outputs.length) {
-            await tx
-                .insert(taskImages)
-                .values(outputs.map(output => ({
-                    taskId,
-                    imageId: output.imageId,
-                    type: 'output' as const,
-                    sortIndex: output.sortIndex,
-                    createdAt,
-                })))
-                .run()
-        }
-
-        await tx.update(tasks)
-            .set({
-                status: 'done',
-                updatedAt: Date.now(),
-                errorCode: null,
-                errorMessage: null,
-            })
-            .where(eq(tasks.id, taskId))
-            .run()
-    })
-
-    return true
 }
 
 /* 只有 output 進畫廊；輸入圖是另一個欄位，混進來會出現在縮圖與 viewer 裡 */

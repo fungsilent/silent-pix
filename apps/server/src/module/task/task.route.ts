@@ -6,6 +6,7 @@ import { comfyMiddleware } from '#/middleware/comfy'
 import { databaseMiddleware } from '#/middleware/database'
 import { eventMiddleware } from '#/middleware/event'
 import { taskCreated, taskRemoved } from '#/module/task/task.event'
+import { taskExecution } from '#/module/task/task.execution'
 import { taskService } from '#/module/task/task.service'
 
 export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
@@ -73,7 +74,7 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
                 pushEvent(taskCreated(taskSnapshot))
             }
 
-            void taskService.generate(database, comfyClient, task.id, workflow, pushEvent)
+            void taskExecution.generate(database, comfyClient, task.id, workflow, pushEvent)
 
             return status(201, createdTask)
         },

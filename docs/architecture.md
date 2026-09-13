@@ -105,7 +105,11 @@ Web state:
 ### `apps/server`
 
 Owns the backend entrypoint and domain services under `src/module/<domain>`.
-Services own database queries, business rules, and execution orchestration.
+Domain services own their domain queries, business rules, and lifecycle
+operations. Within the task domain, `taskExecution` is a sibling to
+`taskService` that owns generation orchestration and its generation-only
+completion transaction; this is a cohesive task-domain split, not a generic
+new layer.
 
 Allowed:
 
@@ -283,6 +287,14 @@ the create route passes the same model to the background generation call, so an
 update to the Workflow after creation cannot change the prompt for that task.
 This model remains in process memory only; legacy tasks with
 `workflowRevision = 0` remain an unknown revision and are not backfilled.
+
+`taskExecution.generate()` owns detached ComfyUI flow, including prompt
+construction, output ingestion and its completion transaction, failure mutation,
+and ComfyUI cleanup. It may call `taskService` for task reads, writes, and
+publication; `task.service.ts` does not import the execution module. Resource
+queries, startup recovery, snapshots, and public option methods remain owned by
+`task.service.ts`. No execution tracking, cancellation, or shutdown draining is
+provided.
 
 ---
 
