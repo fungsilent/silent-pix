@@ -16,12 +16,14 @@ import {
     toWorkflowValues,
 } from '#/pages/workflow/form'
 import { toValidationIssues } from '#/pages/workflow/issue'
+import { toNodeOptions } from '#/pages/workflow/node-option'
 import { isColdLoading } from '#/store/loading'
 
 import type { Comfy, ConfigSchema, GeneratorField, Mapping, WorkflowApi } from '@silent-pix/shared'
 import type { AppIssue } from '#/lib/issue'
 import type { GraphParse, LineMark } from '#/pages/workflow/components/graph/graph.document'
 import type { WorkflowFormValues, WorkflowRecord } from '#/pages/workflow/form'
+import type { WorkflowNodeOption } from '#/pages/workflow/node-option'
 import type { JSX } from 'solid-js'
 
 type WorkflowUiState = {
@@ -135,7 +137,7 @@ export function createWorkflowStore() {
         return {
             parse,
             graph: parse.graph,
-            nodeOptions: comfy.toNodeOptions(parse.graph),
+            nodeOptions: toNodeOptions(parse.graph),
             mappingIssues,
             lineMarks: createLineMarks(graphText, configSchema, mappingIssues),
         }
@@ -386,7 +388,7 @@ export type WorkflowSelection = {
 export type WorkflowGraphState = {
     parse: GraphParse
     graph: Comfy.Graph | undefined
-    nodeOptions: Comfy.NodeOption[]
+    nodeOptions: WorkflowNodeOption[]
     mappingIssues: Comfy.MappingIssue[]
     lineMarks: Map<number, LineMark>
 }

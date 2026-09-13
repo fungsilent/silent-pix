@@ -33,7 +33,7 @@ export const mappingIssue = z.object({
 /* MARK: helpers */
 
 /* NOTE: ComfyUI 的 API format 裡，一個 input 的值若是 [nodeId, slot] 就代表它接了線。 */
-function isLink(value: unknown): value is readonly [string, number] {
+export function isGraphLink(value: unknown): value is readonly [string, number] {
     if (!Array.isArray(value) || value.length !== 2) {
         return false
     }
@@ -94,28 +94,12 @@ export function validateMapping(value: Graph, schema: ConfigSchema): MappingIssu
             continue
         }
 
-        if (isLink(target.inputs[binding.input])) {
+        if (isGraphLink(target.inputs[binding.input])) {
             issues.push(issue('input-linked'))
         }
     }
 
     return issues
-}
-
-/*
- * NOTE:
- * _meta.title 優先，沒有才用 class_type；值是連線的 input 排除掉。
- * 這個 mapper 目前仍由 shared façade 匯出，避免擴大 Web ownership 的 migration。
- */
-export function toNodeOptions(value: Graph): NodeOption[] {
-    return Object.entries(value).map(([nodeId, target]) => ({
-        nodeId,
-        label: target._meta?.title?.trim() || target.class_type,
-        classType: target.class_type,
-        inputs: Object.entries(target.inputs)
-            .filter(([, input]) => !isLink(input))
-            .map(([input]) => input),
-    }))
 }
 
 /* MARK: inferred types */
@@ -128,10 +112,3 @@ export type ParseApiGraphFailure = 'not-object' | 'ui-format' | 'invalid-node'
 type ParseApiGraphResult =
     | { ok: true, graph: Graph }
     | { ok: false, reason: ParseApiGraphFailure }
-
-export type NodeOption = {
-    nodeId: string
-    label: string
-    classType: string
-    inputs: readonly string[]
-}

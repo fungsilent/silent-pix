@@ -7,8 +7,9 @@ import { Select } from '#/components/field'
 import { fieldGroups } from '#/pages/workflow/generator-field'
 import { useWorkflowStore } from '#/pages/workflow/store'
 
-import type { Comfy, GeneratorField, Mapping } from '@silent-pix/shared'
+import type { GeneratorField, Mapping } from '@silent-pix/shared'
 import type { SelectOption } from '#/components/field'
+import type { WorkflowNodeOption } from '#/pages/workflow/node-option'
 import type { Accessor } from 'solid-js'
 
 const unboundValue = ''
@@ -61,7 +62,7 @@ type MappingRowProps = {
     field: GeneratorField
     binding: Mapping | undefined
     loading: Accessor<boolean>
-    nodeOptions: Comfy.NodeOption[]
+    nodeOptions: WorkflowNodeOption[]
     readOnly: boolean
     onChange: (field: GeneratorField, value: Mapping | undefined) => void
 }

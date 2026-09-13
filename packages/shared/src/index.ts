@@ -1,4 +1,4 @@
-import { parseApiGraph, toNodeOptions, validateMapping } from '#shared/comfy'
+import { isGraphLink, parseApiGraph, validateMapping } from '#shared/comfy'
 import { configSchema, generatorFields, isGeneratorField } from '#shared/config'
 import { heartbeatIntervalMs, staleTimeoutMs } from '#shared/event/health'
 import { serverEvent } from '#shared/event/index'
@@ -6,8 +6,8 @@ import { serverEvent } from '#shared/event/index'
 export { appApi } from '#shared/api/app'
 
 export const comfy = {
+    isGraphLink,
     parseApiGraph,
-    toNodeOptions,
     validateMapping,
 }
 export type * as Comfy from '#shared/comfy'
