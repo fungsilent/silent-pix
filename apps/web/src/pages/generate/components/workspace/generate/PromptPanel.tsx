@@ -9,7 +9,7 @@ import { cn } from '#/lib/cn'
 import { promptDefaultHeight, promptMinHeight } from '#/pages/generate/components/workspace/generate/prompt/prompt.theme'
 import { PromptEditor } from '#/pages/generate/components/workspace/generate/prompt/PromptEditor'
 import { useGenerateDetail } from '#/pages/generate/detail'
-import { useOptionIssues } from '#/pages/generate/issue'
+import { useRuntimeIssues } from '#/pages/generate/issue.runtime'
 import { useGenerateStore } from '#/pages/generate/store'
 
 import type { PromptDocument } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
@@ -28,9 +28,9 @@ export function PromptPanel() {
     const isLoading = detail.loading
     const form = store.form
     const isSubmitting = form.useSelector(state => state.isSubmitting)
-    const optionIssues = useOptionIssues()
+    const runtimeIssues = useRuntimeIssues()
     const [issuesOpen, setIssuesOpen] = createSignal(false)
-    const issues = () => [...optionIssues(), ...store.state.submitIssues]
+    const issues = () => [...runtimeIssues(), ...store.state.submitIssues]
     /*
      * 只有「剛按下 Generate」才自動展開。常駐來源（選項載入失敗）會讓計數在
      * 使用者什麼都沒做時變動，那時候彈開等於無故打擾。
