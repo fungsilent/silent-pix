@@ -1,26 +1,41 @@
 import { randomUUID } from 'node:crypto'
 
+import { z } from 'zod'
+
 import type { ComfyPrompt } from '#/lib/comfy/comfy.prompt'
 
-export type ComfyImage = {
-    filename: string
-    subfolder: string
-    type: string
-}
+const comfyImage = z.object({
+    filename: z.string(),
+    subfolder: z.string(),
+    type: z.string(),
+}).loose()
 
-export type ComfyHistory = {
-    outputs?: Record<string, {
-        images?: ComfyImage[]
-    }>
-}
+const comfyHistory = z.object({
+    outputs: z.record(
+        z.string(),
+        z.object({
+            images: z.array(comfyImage).optional(),
+        }).loose(),
+    ).optional(),
+}).loose()
 
-type ComfyPromptResponse = {
-    prompt_id?: string
-    error?: unknown
-    node_errors?: unknown
-}
+const comfyHistoryResponse = z.record(z.string(), comfyHistory)
 
-type ComfyHistoryResponse = Record<string, ComfyHistory>
+const comfyPromptResponse = z.object({
+    prompt_id: z.string().optional(),
+    error: z.unknown().optional(),
+    node_errors: z.unknown().optional(),
+}).loose().refine(value => (
+    value.prompt_id !== undefined || value.error !== undefined
+))
+
+const comfySocketMessage = z.object({
+    type: z.string(),
+    data: z.record(z.string(), z.unknown()),
+}).loose()
+
+export type ComfyImage = z.output<typeof comfyImage>
+export type ComfyHistory = z.output<typeof comfyHistory>
 
 type ExecuteCallbacks = {
     onPromptCreated?: (promptId: string) => Promise<void>
@@ -202,7 +217,7 @@ export class ComfyClient {
             )
         }
 
-        const body = await readJson<unknown>(response)
+        const body = await readJson(response)
 
         if (!response.ok) {
             throw new ComfyError(
@@ -241,7 +256,7 @@ export class ComfyClient {
 
         let body: unknown
         try {
-            body = await readJson<unknown>(response)
+            body = await readJson(response)
         }
         catch {
             if (!response.ok) {
@@ -425,12 +440,10 @@ export class ComfyClient {
     }
 
     private async handleMessage(value: string): Promise<void> {
-        const message = parseJson<{
-            type?: string
-            data?: Record<string, unknown>
-        }>(value)
+        const parsed = comfySocketMessage.safeParse(parseJson(value))
+        if (!parsed.success) return
 
-        if (!message?.type || !message.data) return
+        const message = parsed.data
 
         const promptId = typeof message.data.prompt_id === 'string'
             ? message.data.prompt_id
@@ -523,7 +536,15 @@ export class ComfyClient {
                 prompt,
             }),
         })
-        const body = await readJson<ComfyPromptResponse>(response)
+        const parsed = comfyPromptResponse.safeParse(await readJson(response))
+        if (!parsed.success) {
+            throw new ComfyError(
+                'Comfy prompt returned an invalid response shape.',
+                'COMFY_INVALID_RESPONSE',
+            )
+        }
+
+        const body = parsed.data
 
         if (!response.ok || body.error) {
             throw new ComfyError(
@@ -532,7 +553,14 @@ export class ComfyClient {
             )
         }
 
-        if (body.prompt_id && body.prompt_id !== promptId) {
+        if (!body.prompt_id) {
+            throw new ComfyError(
+                'Comfy prompt response does not contain a prompt ID.',
+                'COMFY_INVALID_RESPONSE',
+            )
+        }
+
+        if (body.prompt_id !== promptId) {
             throw new ComfyError(
                 'Comfy returned an unexpected prompt ID.',
                 'COMFY_PROMPT_ID_ERROR',
@@ -544,7 +572,15 @@ export class ComfyClient {
         const response = await fetch(
             new URL(`history/${encodeURIComponent(promptId)}`, this.baseUrl),
         )
-        const body = await readJson<ComfyHistoryResponse>(response)
+        const parsed = comfyHistoryResponse.safeParse(await readJson(response))
+        if (!parsed.success) {
+            throw new ComfyError(
+                'Comfy history returned an invalid response shape.',
+                'COMFY_INVALID_RESPONSE',
+            )
+        }
+
+        const body = parsed.data
 
         if (!response.ok) {
             throw new ComfyError(
@@ -557,9 +593,9 @@ export class ComfyClient {
     }
 }
 
-async function readJson<T>(response: Response): Promise<T> {
+async function readJson(response: Response): Promise<unknown> {
     try {
-        return await response.json() as T
+        return await response.json()
     }
     catch {
         throw new ComfyError('Comfy returned invalid JSON.', 'COMFY_INVALID_RESPONSE')
@@ -571,8 +607,8 @@ function formatComfyError(value: unknown): string {
         return value
     }
 
-    if (value && typeof value === 'object' && !Array.isArray(value)) {
-        const record = value as Record<string, unknown>
+    if (isRecord(value)) {
+        const record = value
         const message = typeof record.message === 'string' ? record.message : undefined
         const details = typeof record.details === 'string' ? record.details : undefined
         const type = typeof record.type === 'string' ? record.type : undefined
@@ -616,9 +652,9 @@ function isStringArray(value: unknown): value is string[] {
     return Array.isArray(value) && value.every(item => typeof item === 'string')
 }
 
-function parseJson<T>(value: string): T | undefined {
+function parseJson(value: string): unknown {
     try {
-        return JSON.parse(value) as T
+        return JSON.parse(value)
     }
     catch {
         return undefined

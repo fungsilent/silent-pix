@@ -81,6 +81,12 @@ Source imports use `#/`; see `conventions.md` for the shared-package exception.
 Component-specific editor logic may stay beside the component. Temporary working
 assets belong in repo-root `temp/`, not a required Web source folder.
 
+Eden wrappers in `apps/web/src/api` keep each route's inferred success and
+declared error types. `unwrap` maps declared `{ status, value.error }` bodies
+directly to `ApiError`; transport failures and malformed runtime values remain
+separate fallbacks. Workflow mutation mapping errors retain their `issues`
+evidence for the page's existing issue projection.
+
 Generate uses real Task APIs, TanStack Query for server data, and page-scoped
 TanStack Form for editable values. The default draft supplies initial form
 values; it is not a backend task. Task lifecycle authority stays in the server.
@@ -469,6 +475,13 @@ The two processes may run under different operating systems, so that second
 spelling cannot be derived with `node:path` and has to be configured. It must be
 absolute: a relative path could resolve against a different working directory.
 The resulting failure behavior depends on the ComfyUI loader.
+
+`ComfyClient` owns permissive Zod schemas for ComfyUI's prompt, history, and
+WebSocket envelopes. Its JSON readers return `unknown`; HTTP payloads are
+validated before generation logic and malformed responses become
+`COMFY_INVALID_RESPONSE`. WebSocket JSON that cannot satisfy the envelope is
+ignored, as are valid events unrelated to a pending prompt. Sampler and LoRA
+option responses keep their existing local shape checks.
 
 The graph decides txt2img versus img2img by itself - an empty path takes the
 empty-latent branch, a real path takes the encode branch - so the server sets one

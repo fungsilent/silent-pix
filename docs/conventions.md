@@ -41,6 +41,13 @@ needed; do not widen every internal error to `unknown` to justify parsing again.
 ComfyUI responses, imported files, and other external inputs require runtime
 validation. Server-only integration schemas stay with their adapter.
 
+In `apps/web/src/api/api.client.ts`, `unwrap` receives the request-inferred
+Eden error union and reads declared error fields directly. Its optional mapper
+is for domain evidence such as the Workflow mapping `issues`; it does not copy
+or re-parse a route union. In `apps/server/src/lib/comfy/comfy.client.ts`,
+`readJson` and `parseJson` return `unknown`, and the adapter's local Zod schemas
+validate prompt/history HTTP values and WebSocket envelopes before use.
+
 ---
 
 ## Formatting

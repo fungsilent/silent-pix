@@ -1,8 +1,8 @@
 import { treaty } from '@elysia/eden'
-import { appApi } from '@silent-pix/shared'
 
 import type { Treaty } from '@elysia/eden'
 import type { Api } from '@silent-pix/server/api'
+import type { AppApi } from '@silent-pix/shared'
 
 const requestTimeoutMs = 10_000
 
@@ -30,30 +30,50 @@ export class ApiError extends Error {
 export const networkErrorCode = 'NETWORK_ERROR'
 export const unexpectedErrorCode = 'UNEXPECTED_ERROR'
 
-type AnyResponse = Record<number, unknown>
+type TreatyError = {
+    status: number
+    value: AppApi.ErrorResponse
+}
+type InternalTreatyResult<TData, TError extends TreatyError> = {
+    data: TData
+    error: null
+} | {
+    data: null
+    error: TError
+}
 
 export async function unwrap<
-    TResponse extends Treaty.TreatyResponse<AnyResponse>,
->(request: Promise<TResponse>): Promise<NonNullable<TResponse['data']>> {
+    TData,
+    TError extends TreatyError,
+>(
+    request: Promise<InternalTreatyResult<TData, TError>>,
+    mapDeclaredError?: (error: TError) => ApiError,
+): Promise<NonNullable<TData>> {
     const { data, error } = await request
 
     if (error) {
-        throw toApiError(error)
+        throw toApiError(error, mapDeclaredError)
     }
 
-    return data as NonNullable<TResponse['data']>
+    return data as NonNullable<TData>
 }
 
-function toApiError(error: Treaty.Error<Treaty.TreatyResponse<AnyResponse>>): ApiError {
-    const body = appApi.errorResponse.safeParse(error.value)
-
-    if (body.success) {
-        return new ApiError(error.status, body.data.error.code, body.data.error.message)
-    }
-
+export function toApiError<TError extends TreatyError>(
+    error: TError,
+    mapDeclaredError?: (error: TError) => ApiError,
+): ApiError {
     if (error.value instanceof Error) {
         return new ApiError(error.status, networkErrorCode, 'Server is unreachable.')
     }
 
-    return new ApiError(error.status, unexpectedErrorCode, 'The server returned an unexpected response.')
+    try {
+        if (mapDeclaredError) {
+            return mapDeclaredError(error)
+        }
+
+        return new ApiError(error.status, error.value.error.code, error.value.error.message)
+    }
+    catch {
+        return new ApiError(error.status, unexpectedErrorCode, 'The server returned an unexpected response.')
+    }
 }

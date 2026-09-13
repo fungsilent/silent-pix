@@ -1,4 +1,5 @@
 import { ApiError } from '#/api/api.client'
+import { WorkflowMappingApiError } from '#/api/workflow'
 import { toErrorMessage, toIssueMessage } from '#/lib/error'
 
 import type { Comfy } from '@silent-pix/shared'
@@ -157,6 +158,10 @@ export function toSaveIssues(input: {
             field: 'Save',
             message: 'This workflow changed elsewhere. Reload to see it, or copy your JSON out first.',
         }]
+    }
+
+    if (input.error instanceof WorkflowMappingApiError) {
+        return toMappingIssues(input.error.issues)
     }
 
     return [{

@@ -18,6 +18,8 @@ export const appRoutes = new Elysia({ name: 'app-route' })
         {
             response: {
                 200: appApi.getHealthResponse,
+                422: appApi.errorResponse,
+                500: appApi.errorResponse,
             },
         },
     )

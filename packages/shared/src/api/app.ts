@@ -23,4 +23,5 @@ export const appApi = {
 
 /* MARK: inferred types */
 
+export type ErrorResponse = z.output<typeof errorResponse>
 export type GetHealthResponse = z.output<typeof getHealthResponse>
