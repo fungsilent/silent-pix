@@ -1,12 +1,9 @@
 import { images, taskImages } from '@silent-pix/db'
 import { and, eq, inArray, notExists } from 'drizzle-orm'
 
-import { loadConfig } from '#/config'
 import { unlinkContent } from '#/lib/image/image.store'
 
 import type { DatabaseClient, UUID } from '@silent-pix/db'
-
-const config = loadConfig()
 
 type RemovedImageContent = {
     id: UUID
@@ -39,7 +36,7 @@ export const imageCleanup = {
             /* DELETE commits before filesystem unlink; failure leaves recoverable stray content. */
             for (const row of rows) {
                 try {
-                    const unlinked = await unlinkContent(config.appStorageDir, row.path)
+                    const unlinked = await unlinkContent(row.path)
                     removed.push({
                         ...row,
                         unlink: unlinked ? 'removed' : 'missing',

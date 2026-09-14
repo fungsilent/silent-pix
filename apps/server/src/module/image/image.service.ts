@@ -4,7 +4,6 @@ import { images, isUUID, taskImages, tasks } from '@silent-pix/db'
 import { and, asc, desc, eq, exists, gt, inArray, like, lt, ne, or } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/sqlite-core'
 
-import { loadConfig } from '#/config'
 import { readImageMeta } from '#/lib/image/image.meta'
 import { contentExists, contentPath, writeContent } from '#/lib/image/image.store'
 import { done, fail } from '#/lib/service-result'
@@ -12,8 +11,6 @@ import { toImageResource, toImageUsageType } from '#/module/image/image.model'
 
 import type { DatabaseClient, ImageSelect, UUID } from '@silent-pix/db'
 import type { ImageApi } from '@silent-pix/shared'
-
-const config = loadConfig()
 
 type ImageCursor = { usedAt: number, sortIndex: number, id: UUID }
 
@@ -42,8 +39,8 @@ export const imageService = {
 
         if (existing) {
             /* 列在但檔案不見了（unlink 成功、commit 失敗之類）就補寫回去 */
-            if (!await contentExists(config.appStorageDir, existing.path)) {
-                await writeContent(config.appStorageDir, existing.path, bytes)
+            if (!await contentExists(existing.path)) {
+                await writeContent(existing.path, bytes)
             }
 
             return done({ image: existing, created: false })
@@ -55,7 +52,7 @@ export const imageService = {
         }
 
         const path = contentPath(hash, meta.mime)
-        await writeContent(config.appStorageDir, path, bytes)
+        await writeContent(path, bytes)
 
         const [inserted] = await database.db
             .insert(images)

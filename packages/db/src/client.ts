@@ -4,6 +4,7 @@ import { dirname } from 'node:path'
 import { createClient } from '@libsql/client'
 import { drizzle } from 'drizzle-orm/libsql'
 
+import { loadConfig } from '#/config'
 import * as schema from '#/schema/schema.export'
 
 import type { LibSQLDatabase } from 'drizzle-orm/libsql'
@@ -14,7 +15,8 @@ export type DatabaseClient = {
     close: () => void
 }
 
-export async function createDatabaseClient(databasePath: string): Promise<DatabaseClient> {
+export async function createDatabaseClient(): Promise<DatabaseClient> {
+    const { databasePath } = loadConfig()
     await mkdir(dirname(databasePath), { recursive: true })
 
     const client = createClient({

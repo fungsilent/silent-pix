@@ -3,7 +3,6 @@ import { existsSync } from 'node:fs'
 import { taskImages, tasks } from '@silent-pix/db'
 import { eq } from 'drizzle-orm'
 
-import { loadConfig } from '#/config'
 import { ComfyError } from '#/lib/comfy/comfy.client'
 import { removeComfyImage } from '#/lib/comfy/comfy.output'
 import { buildComfyPrompt, txt2imgRuntime } from '#/lib/comfy/comfy.prompt'
@@ -18,8 +17,6 @@ import type { DatabaseClient, UUID } from '@silent-pix/db'
 import type { PushEvent } from '#/app.store'
 import type { ComfyClient } from '#/lib/comfy/comfy.client'
 import type { WorkflowModel } from '#/module/workflow/workflow.model'
-
-const config = loadConfig()
 
 export const taskExecution = {
     async generate(
@@ -43,7 +40,7 @@ export const taskExecution = {
 
             if (input) {
                 /* 使用 image path 才為圖片輸入，先確認檔案是否存在 */
-                if (!existsSync(absolutePath(config.appStorageDir, input.image.path))) {
+                if (!existsSync(absolutePath(input.image.path))) {
                     await failTask(
                         database,
                         taskId,
@@ -55,7 +52,7 @@ export const taskExecution = {
                 }
 
                 runtime = {
-                    initImagePath: comfyImagePath(config.comfyuiStoragePrefix, input.image.path),
+                    initImagePath: comfyImagePath(input.image.path),
                 }
             }
 
@@ -164,7 +161,7 @@ export const taskExecution = {
 
                 /* Comfy output cleanup and history deletion do not hold the image lock. */
                 for (const { image } of downloaded) {
-                    await removeComfyImage(config.comfyuiOutputDir, image)
+                    await removeComfyImage(image)
                 }
             }
 

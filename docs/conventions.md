@@ -566,7 +566,49 @@ Rules:
 - DATABASE_PATH and APP_STORAGE_DIR are configured independently; APP_DATA_DIR does not derive them
 - production must supply OS app-data paths; automatic Desktop overrides are not implemented
 - do not assume cwd is repo root
+- env is the only runtime configuration override channel
+- the capability that owns the side effect loads its env-backed value directly
+- project-owned APIs do not receive env-backed values as arguments or options
+- isolated validation sets env before importing the owning module
 ```
+
+Ownership mapping:
+
+| Env-backed value | Direct owner | Project-owned API shape |
+|---|---|---|
+| `DATABASE_PATH` | `packages/db/src/client.ts` | `createDatabaseClient()` |
+| `SERVER_HOST`, `SERVER_PORT` | server/CLI entrypoint that binds or probes HTTP | no reusable server-address option |
+| `WEB_PORT`, development proxy target | `apps/web/vite.config.ts` | Vite reads build/dev env directly |
+| `COMFYUI_BASE_URL` | `ComfyClient` | `new ComfyClient()` |
+| `APP_STORAGE_DIR` | image store; GC owns only its directory sweep | `readContent(path)`, `writeContent(path, bytes)`, `unlinkContent(path)` |
+| `COMFYUI_STORAGE_PREFIX` | reference-path conversion owner | conversion accepts only the relative image path |
+| `COMFYUI_OUTPUT_DIR` | Comfy output cleanup owner | cleanup accepts only the `ComfyImage` |
+
+```ts
+// Project-owned capability: canonical config is internal.
+export async function createDatabaseClient() {
+    const { databasePath } = loadConfig()
+    return createClient({ url: `file:${databasePath}` })
+}
+
+await createDatabaseClient()
+
+// Do not create a second config channel.
+await createDatabaseClient(config.databasePath)
+await imageGarbageCollection.collect(database, { storageRoot: config.appStorageDir })
+```
+
+Passing config to a third-party API is required at the owner boundary and is
+allowed:
+
+```ts
+const config = loadConfig()
+app.listen({ hostname: config.serverHost, port: config.serverPort })
+```
+
+Keep non-config inputs explicit. `DatabaseClient`, IDs, relative paths, request
+payloads, GC `graceMs`, and an injected `now` value describe an operation; they
+are not alternative env sources.
 
 ---
 

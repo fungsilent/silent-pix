@@ -79,13 +79,13 @@ export const imageGarbageCollection = {
 type ImageGarbageCollectionUnlinkResult = 'missing' | 'removed' | 'failed'
 
 async function unlinkForImageGarbageCollection(
-    relativePath: string,
+    imagePath: string,
 ): Promise<ImageGarbageCollectionUnlinkResult> {
     try {
-        return await unlinkContent(config.appStorageDir, relativePath) ? 'removed' : 'missing'
+        return await unlinkContent(imagePath) ? 'removed' : 'missing'
     }
     catch (cause) {
-        console.error(`Failed to unlink image garbage-collection file ${relativePath}.`, cause)
+        console.error(`Failed to unlink image garbage-collection file ${imagePath}.`, cause)
         return 'failed'
     }
 }
@@ -125,8 +125,8 @@ async function sweepImageGarbageCollectionFiles(
             continue
         }
 
-        const relativePath = `images/${entry.name}`
-        if (knownPaths.has(relativePath)) {
+        const imagePath = `images/${entry.name}`
+        if (knownPaths.has(imagePath)) {
             continue
         }
 
@@ -148,7 +148,7 @@ async function sweepImageGarbageCollectionFiles(
                 continue
             }
 
-            console.error(`Failed to inspect image garbage-collection file ${relativePath}.`, cause)
+            console.error(`Failed to inspect image garbage-collection file ${imagePath}.`, cause)
             unlinkFailureCount += 1
             continue
         }
@@ -157,7 +157,7 @@ async function sweepImageGarbageCollectionFiles(
             continue
         }
 
-        const result = await unlinkForImageGarbageCollection(relativePath)
+        const result = await unlinkForImageGarbageCollection(imagePath)
         if (result === 'failed') {
             unlinkFailureCount += 1
             continue

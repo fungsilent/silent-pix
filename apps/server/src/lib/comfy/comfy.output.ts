@@ -1,10 +1,14 @@
 import { unlink } from 'node:fs/promises'
 import { isAbsolute, relative, resolve } from 'node:path'
 
+import { loadConfig } from '#/config'
+
 import type { ComfyImage } from '#/lib/comfy/comfy.client'
 
-export async function removeComfyImage(outputDir: string, image: ComfyImage): Promise<void> {
-    const target = resolveComfyImagePath(outputDir, image)
+const config = loadConfig()
+
+export async function removeComfyImage(image: ComfyImage): Promise<void> {
+    const target = resolveComfyImagePath(image)
 
     if (!target) return
 
@@ -17,10 +21,10 @@ export async function removeComfyImage(outputDir: string, image: ComfyImage): Pr
     }
 }
 
-function resolveComfyImagePath(outputDir: string, image: ComfyImage): string | undefined {
+function resolveComfyImagePath(image: ComfyImage): string | undefined {
     if (!image.filename) return undefined
 
-    const base = resolve(outputDir)
+    const base = resolve(config.comfyuiOutputDir)
     const target = resolve(base, image.subfolder, image.filename)
     const inside = relative(base, target)
 

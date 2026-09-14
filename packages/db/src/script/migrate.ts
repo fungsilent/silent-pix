@@ -6,7 +6,7 @@ import { createDatabaseClient } from '#/client'
 import { loadConfig } from '#/config'
 
 const config = loadConfig()
-const database = await createDatabaseClient(config.databasePath)
+const database = await createDatabaseClient()
 
 try {
     await migrate(database.db, {

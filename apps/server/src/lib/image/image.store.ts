@@ -2,7 +2,11 @@ import { randomUUID } from 'node:crypto'
 import { access, mkdir, readFile, rename, unlink, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 
+import { loadConfig } from '#/config'
+
 import type { ImageApi } from '@silent-pix/shared'
+
+const config = loadConfig()
 
 const extensionByMime: Record<ImageApi.ImageMime, string> = {
     'image/jpeg': 'jpg',
@@ -14,30 +18,29 @@ export function contentPath(hash: string, mime: ImageApi.ImageMime): string {
     return `images/${hash}.${extensionByMime[mime]}`
 }
 
-export function absolutePath(storageRoot: string, relativePath: string): string {
-    return resolve(storageRoot, relativePath)
+export function absolutePath(relativePath: string): string {
+    return resolve(config.appStorageDir, relativePath)
 }
 
-export async function contentExists(storageRoot: string, relativePath: string): Promise<boolean> {
+export async function contentExists(relativePath: string): Promise<boolean> {
     try {
-        await access(absolutePath(storageRoot, relativePath))
+        await access(absolutePath(relativePath))
         return true
     } catch {
         return false
     }
 }
 
-export function readContent(storageRoot: string, relativePath: string): Promise<Buffer> {
-    return readFile(absolutePath(storageRoot, relativePath))
+export function readContent(relativePath: string): Promise<Buffer> {
+    return readFile(absolutePath(relativePath))
 }
 
 /* 寫入 image。先寫暫存檔再 rename，防止中途失敗污染 storage */
 export async function writeContent(
-    storageRoot: string,
     relativePath: string,
     bytes: Uint8Array,
 ): Promise<void> {
-    const target = absolutePath(storageRoot, relativePath)
+    const target = absolutePath(relativePath)
     const temporary = `${target}.tmp-${randomUUID()}`
 
     await mkdir(dirname(target), { recursive: true })
@@ -51,8 +54,8 @@ export async function writeContent(
     }
 }
 
-export async function unlinkContent(storageRoot: string, relativePath: string): Promise<boolean> {
-    return unlinkQuietly(absolutePath(storageRoot, relativePath))
+export async function unlinkContent(relativePath: string): Promise<boolean> {
+    return unlinkQuietly(absolutePath(relativePath))
 }
 
 async function unlinkQuietly(filePath: string): Promise<boolean> {

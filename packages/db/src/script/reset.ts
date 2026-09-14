@@ -3,7 +3,7 @@ import { loadConfig } from '#/config'
 import { images, taskImages, tasks, workflows } from '#/schema/schema.export'
 
 const config = loadConfig()
-const database = await createDatabaseClient(config.databasePath)
+const database = await createDatabaseClient()
 
 try {
     await database.db.transaction(async databaseTransaction => {

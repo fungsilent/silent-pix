@@ -250,6 +250,33 @@ Owns Node-only base env loading and repo-relative path resolution shared by the
 server and DB scripts. Server-specific ComfyUI/HTTP config remains in
 `apps/server/src/config.ts`. Web must not import this package.
 
+Configuration has one runtime path:
+
+```text
+process.env / .env
+  └─ packages/env base config
+      ├─ packages/db config ──→ database client ──→ LibSQL
+      └─ apps/server config
+          ├─ server entrypoint ──→ Elysia listen
+          ├─ ComfyClient ────────→ ComfyUI HTTP/WebSocket
+          ├─ image store ────────→ Silent Pix storage filesystem
+          └─ Comfy path/output ──→ ComfyUI-visible filesystems
+```
+
+The capability that owns the side effect loads its env-backed value directly.
+Project-owned constructors and helpers do not accept database paths, base URLs,
+storage roots, or ComfyUI filesystem roots from callers. This prevents a second
+configuration channel from disagreeing with the canonical env value.
+
+Resolved values still cross into third-party calls at the owning boundary—for
+example Elysia `listen`, LibSQL `createClient`, and Drizzle migration options.
+Domain/dependency inputs such as a `DatabaseClient`, image ID, relative image
+path, GC grace period, or clock value are not env configuration and remain
+explicit arguments.
+
+Isolated validation changes configuration through process env before importing
+the owning module; runtime option objects do not provide config overrides.
+
 ---
 
 ## Backend

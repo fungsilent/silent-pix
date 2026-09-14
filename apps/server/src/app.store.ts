@@ -6,7 +6,6 @@ import { ComfyClient } from '#/lib/comfy/comfy.client'
 
 import type { EventChannel } from '@silent-pix/event/server'
 import type { Event } from '@silent-pix/shared'
-import type { ServerConfig } from '#/config'
 
 export type PushEvent = (value: Event.ServerEvent) => void
 
@@ -21,13 +20,13 @@ let initialized = false
 let store: Store
 
 export const serverStore = {
-    async init(env: ServerConfig): Promise<Store> {
+    async init(): Promise<Store> {
         if (initialized) {
             throw new Error('[ServerStore] Already initialized.')
         }
 
-        const database = await createDatabaseClient(env.databasePath)
-        const comfyClient = new ComfyClient(env.comfyuiBaseUrl)
+        const database = await createDatabaseClient()
+        const comfyClient = new ComfyClient()
         const eventChannel = createEventChannel<Event.ServerEvent>()
         const pushEvent: PushEvent = value => {
             const parsed = event.serverEvent.parse(value)

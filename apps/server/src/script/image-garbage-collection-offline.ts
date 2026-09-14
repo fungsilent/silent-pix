@@ -14,10 +14,9 @@ if (args.length !== 1 || args[0] !== confirmationFlag) {
 }
 else {
     try {
-        const config = loadConfig()
-        await requireServerStopped(config.serverPort)
+        await requireServerStopped()
 
-        const database = await createDatabaseClient(config.databasePath)
+        const database = await createDatabaseClient()
 
         try {
             const result = await imageGarbageCollection.collect(database)
@@ -37,7 +36,8 @@ else {
     }
 }
 
-async function requireServerStopped(serverPort: number): Promise<void> {
+async function requireServerStopped(): Promise<void> {
+    const { serverPort } = loadConfig()
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), probeTimeoutMs)
 

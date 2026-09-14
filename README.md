@@ -115,13 +115,18 @@ SERVER_PORT=3070
 WEB_PORT=5173
 
 COMFYUI_BASE_URL=http://127.0.0.1:8188
+COMFYUI_STORAGE_PREFIX=/absolute/path/as-seen-by-comfyui/storage
+COMFYUI_OUTPUT_DIR=/absolute/path/as-seen-by-server/comfyui/output
 
 APP_DATA_DIR=./.local/data
 DATABASE_PATH=./.local/data/silent-pix.sqlite
 APP_STORAGE_DIR=./.local/data/storage
 ```
 
-`COMFYUI_BASE_URL` is backend-only.
+ComfyUI connection and filesystem values are backend-only. Runtime capabilities
+read their env-backed configuration directly; callers pass domain inputs, not
+database paths, base URLs, storage roots, or ComfyUI filesystem roots. Change
+runtime configuration through `.env`/process env rather than function options.
 
 ---
 

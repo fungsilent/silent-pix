@@ -2,7 +2,6 @@ import { node } from '@elysiajs/node'
 import { Elysia } from 'elysia'
 
 import { serverStore } from '#/app.store'
-import { loadConfig } from '#/config'
 import { errorCatchMiddleware } from '#/middleware/error-catch'
 import { createHealthBroadcaster } from '#/module/app/app.health'
 import { appRoutes } from '#/module/app/app.route'
@@ -14,8 +13,7 @@ import { taskService } from '#/module/task/task.service'
 import { workflowRoutes } from '#/module/workflow/workflow.route'
 
 export async function createApp() {
-    const env = loadConfig()
-    const store = await serverStore.init(env)
+    const store = await serverStore.init()
 
     const recoveredTaskIds = await taskService.failInterruptedTasks(store.database)
     if (recoveredTaskIds.length > 0) {

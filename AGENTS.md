@@ -105,6 +105,7 @@ These are implementation constraints. `docs/architecture.md` describes current s
 - Image metadata is sniffed from the bytes. Never trust the client's declared type, and never derive it from a filename.
 - Silent Pix supplies reference images to ComfyUI by absolute path into its storage, without uploading bytes or creating a separate reference-image copy for ComfyUI.
 - Do not assume cwd is repo root. Resolve runtime paths explicitly and keep production app data overrides possible.
+- Runtime values owned by env/config are read directly by the owning capability. Project-owned APIs must not accept those values as application arguments: `createDatabaseClient()`, `ComfyClient`, image storage helpers, and ComfyUI filesystem helpers load their own canonical config. Environment variables are the supported override boundary; set them before importing the owner in an isolated validation process. Passing a resolved value from its owner into a third-party API such as Elysia, LibSQL, or Drizzle is expected and is not a second project config channel.
 
 ## Plan Documents
 

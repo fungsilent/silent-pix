@@ -2,14 +2,11 @@ import { toUUID } from '@silent-pix/db'
 import { appApi, imageApi } from '@silent-pix/shared'
 import { Elysia } from 'elysia'
 
-import { loadConfig } from '#/config'
 import { readContent } from '#/lib/image/image.store'
 import { databaseMiddleware } from '#/middleware/database'
 import { imageService } from '#/module/image/image.service'
 
 import type { ImageApi } from '@silent-pix/shared'
-
-const storageRoot = loadConfig().appStorageDir
 
 export const imageRoutes = new Elysia({ name: 'image-routes', prefix: '/image' })
     .use(databaseMiddleware)
@@ -60,7 +57,7 @@ export const imageRoutes = new Elysia({ name: 'image-routes', prefix: '/image' }
             }
 
             try {
-                const bytes = new Uint8Array(await readContent(storageRoot, image.path))
+                const bytes = new Uint8Array(await readContent(image.path))
 
                 return new Response(bytes, { headers: cacheHeaders(image, etag) })
             }

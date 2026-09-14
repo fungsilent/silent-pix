@@ -77,7 +77,7 @@ function readWorkflow(directoryName: string): WorkflowSeed {
     }
 }
 
-const database = await createDatabaseClient(dbConfig.databasePath)
+const database = await createDatabaseClient()
 
 try {
     const workflowDirectories = readdirSync(seedRoot, { withFileTypes: true })

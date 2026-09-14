@@ -2,6 +2,8 @@ import { randomUUID } from 'node:crypto'
 
 import { z } from 'zod'
 
+import { loadConfig } from '#/config'
+
 import type { ComfyPrompt } from '#/lib/comfy/comfy.prompt'
 
 const comfyImage = z.object({
@@ -92,8 +94,9 @@ export class ComfyClient {
     private statusListener: ((connected: boolean) => void) | undefined
     private lastNotifiedStatus: boolean | undefined
 
-    constructor(baseUrl: string) {
-        this.baseUrl = new URL(baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`)
+    constructor() {
+        const { comfyuiBaseUrl } = loadConfig()
+        this.baseUrl = new URL(comfyuiBaseUrl.endsWith('/') ? comfyuiBaseUrl : `${comfyuiBaseUrl}/`)
     }
 
     /* socket 狀態一翻就通知，這是 health 能即時反應的來源 */
