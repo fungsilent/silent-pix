@@ -10,6 +10,7 @@ import { alias } from 'drizzle-orm/sqlite-core'
 
 import { resolveSeed } from '#/lib/comfy/comfy.prompt'
 import { done, fail } from '#/lib/service-result'
+import { imageCleanup } from '#/module/image/image.cleanup'
 import { toImageResource } from '#/module/image/image.model'
 import { withImageMutation } from '#/module/image/image.mutation'
 import { imageService } from '#/module/image/image.service'
@@ -255,7 +256,7 @@ export const taskService = {
                 console.error('Task create failed.', error)
 
                 if (ingestedImageId) {
-                    await imageService.deleteUnreferenced(database, [ingestedImageId])
+                    await imageCleanup.removeUnreferenced(database, [ingestedImageId])
                 }
 
                 return fail('CREATE_TASK_FAIL')
@@ -399,14 +400,14 @@ export const taskService = {
                 }
             }
 
-            const deletedImageCount = await imageService.deleteUnreferenced(
+            const deletedImages = await imageCleanup.removeUnreferenced(
                 database,
-                [...new Set(removed.imageIds)],
+                removed.imageIds,
             )
 
             return done({
                 ids: removed.ids,
-                deletedImageCount,
+                deletedImageCount: deletedImages.length,
             })
         })
     },

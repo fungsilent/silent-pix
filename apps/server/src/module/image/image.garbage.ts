@@ -6,8 +6,8 @@ import { and, eq, lt, notExists } from 'drizzle-orm'
 
 import { loadConfig } from '#/config'
 import { unlinkContent } from '#/lib/image/image.store'
+import { imageCleanup } from '#/module/image/image.cleanup'
 import { withImageMutation } from '#/module/image/image.mutation'
-import { deleteUnreferencedRows } from '#/module/image/image.service'
 
 import type { DatabaseClient } from '@silent-pix/db'
 import type { ImageApi } from '@silent-pix/shared'
@@ -20,7 +20,6 @@ const temporaryImageName = /^[a-f0-9]{64}\.(?:jpg|png)\.tmp-[0-9a-f]{8}-[0-9a-f]
 export type ImageGarbageCollectionOptions = {
     graceMs?: number
     now?: number
-    storageRoot?: string
 }
 
 export const imageGarbageCollection = {
@@ -31,7 +30,6 @@ export const imageGarbageCollection = {
         return withImageMutation(async () => {
             const graceMs = options.graceMs ?? defaultGraceMs
             const cutoff = (options.now ?? Date.now()) - graceMs
-            const storageRoot = options.storageRoot ?? config.appStorageDir
             const knownPaths = new Set(
                 await database.db
                     .select({ path: images.path })
@@ -54,32 +52,21 @@ export const imageGarbageCollection = {
                 ))
                 .all()
 
-            const orphanRows = await deleteUnreferencedRows(
+            const orphanItems = await imageCleanup.removeUnreferenced(
                 database,
                 orphanCandidates.map(row => row.id),
             )
 
-            let orphanRowFileCount = 0
-            let unlinkFailureCount = 0
-
-            for (const orphan of orphanRows) {
-                const result = await unlinkForImageGarbageCollection(storageRoot, orphan.path)
-                if (result === 'removed') {
-                    orphanRowFileCount += 1
-                }
-                else if (result === 'failed') {
-                    unlinkFailureCount += 1
-                }
-            }
+            const orphanRowFileCount = orphanItems.filter(item => item.unlink === 'removed').length
+            const unlinkFailureCount = orphanItems.filter(item => item.unlink === 'failed').length
 
             const files = await sweepImageGarbageCollectionFiles(
-                storageRoot,
                 knownPaths,
                 cutoff,
             )
 
             return {
-                orphanRowCount: orphanRows.length,
+                orphanRowCount: orphanItems.length,
                 orphanRowFileCount,
                 strayFileCount: files.strayFileCount,
                 temporaryFileCount: files.temporaryFileCount,
@@ -92,11 +79,10 @@ export const imageGarbageCollection = {
 type ImageGarbageCollectionUnlinkResult = 'missing' | 'removed' | 'failed'
 
 async function unlinkForImageGarbageCollection(
-    storageRoot: string,
     relativePath: string,
 ): Promise<ImageGarbageCollectionUnlinkResult> {
     try {
-        return await unlinkContent(storageRoot, relativePath) ? 'removed' : 'missing'
+        return await unlinkContent(config.appStorageDir, relativePath) ? 'removed' : 'missing'
     }
     catch (cause) {
         console.error(`Failed to unlink image garbage-collection file ${relativePath}.`, cause)
@@ -105,7 +91,6 @@ async function unlinkForImageGarbageCollection(
 }
 
 async function sweepImageGarbageCollectionFiles(
-    storageRoot: string,
     knownPaths: Set<string>,
     cutoff: number,
 ): Promise<{
@@ -113,7 +98,7 @@ async function sweepImageGarbageCollectionFiles(
     temporaryFileCount: number
     unlinkFailureCount: number
 }> {
-    const imagesRoot = resolve(storageRoot, 'images')
+    const imagesRoot = resolve(config.appStorageDir, 'images')
     let entries
 
     try {
@@ -172,7 +157,7 @@ async function sweepImageGarbageCollectionFiles(
             continue
         }
 
-        const result = await unlinkForImageGarbageCollection(storageRoot, relativePath)
+        const result = await unlinkForImageGarbageCollection(relativePath)
         if (result === 'failed') {
             unlinkFailureCount += 1
             continue

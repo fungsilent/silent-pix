@@ -8,6 +8,7 @@ import { ComfyError } from '#/lib/comfy/comfy.client'
 import { removeComfyImage } from '#/lib/comfy/comfy.output'
 import { buildComfyPrompt, txt2imgRuntime } from '#/lib/comfy/comfy.prompt'
 import { absolutePath } from '#/lib/image/image.store'
+import { imageCleanup } from '#/module/image/image.cleanup'
 import { withImageMutation } from '#/module/image/image.mutation'
 import { imageService } from '#/module/image/image.service'
 import { comfyImagePath } from '#/module/image/image.util'
@@ -117,7 +118,7 @@ export const taskExecution = {
                     if (ingestedImageIds.length === 0) return
 
                     const imageIds = ingestedImageIds.splice(0)
-                    await imageService.deleteUnreferenced(database, imageIds)
+                    await imageCleanup.removeUnreferenced(database, imageIds)
                 }
 
                 try {

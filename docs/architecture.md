@@ -365,6 +365,11 @@ with `mask` / `control` reserved) and the batch position:
   leave an orphan file for the server-owned image garbage collection route.
   This ordering alone does not make deletion safe against concurrent ingest or
   reference creation.
+- `imageCleanup.removeUnreferenced()` is the shared guarded row-delete and
+  unlink capability. It deduplicates/chunks candidate IDs, rechecks
+  `NOT EXISTS(task_images)`, returns each `DELETE RETURNING id/path` row with
+  its unlink outcome, and is called by task cleanup and GC while the caller
+  owns the image mutation lock.
 - Required invariant: cleanup must not unlink content another operation has
   referenced or republished. Within one server process, the image-domain
   `withImageMutation` mutex serializes lookup/ingest through reference commit
@@ -375,6 +380,9 @@ with `mask` / `control` reserved) and the batch position:
   files, and recognized temporary writes. The normal `pnpm image:gc` command is
   only an HTTP trigger; it never opens the database or storage and never falls
   back when the server is unavailable.
+- Runtime image cleanup and GC filesystem sweeps resolve from canonical
+  `config.appStorageDir`; the offline recovery command has no storage-root
+  override.
 - The mutex is process-local. The supported deployment has one server writer
   per database/storage pair; a second server or writer sharing either is
   unsupported. `pnpm image:gc:offline -- --confirm-server-stopped` is an

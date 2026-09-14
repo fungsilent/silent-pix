@@ -20,9 +20,7 @@ else {
         const database = await createDatabaseClient(config.databasePath)
 
         try {
-            const result = await imageGarbageCollection.collect(database, {
-                storageRoot: config.appStorageDir,
-            })
+            const result = await imageGarbageCollection.collect(database)
             console.log(JSON.stringify(result))
 
             if (result.unlinkFailureCount > 0) {

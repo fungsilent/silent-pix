@@ -616,10 +616,12 @@ Rules:
 - DB foreign keys and commit-before-unlink do not by themselves protect filesystem concurrency
 - server mutations share the image-domain async mutex from lookup/ingest through reference commit or cleanup unlink
 - callers own the complete lock boundary; image mutation helpers do not acquire it again
+- `imageCleanup.removeUnreferenced()` owns deduplication, 500-ID chunks, guarded `DELETE ... NOT EXISTS(task_images) RETURNING id/path`, and per-item unlink outcomes; task cleanup and GC reuse its result
 - ComfyUI execution/downloads stay outside the image lock
 - online GC is owned by the server image domain and runs through `withImageMutation`; `pnpm image:gc` only triggers `POST /api/image/garbage-collection`
 - the supported deployment has one server writer for each database/storage pair; sharing either with another writer is unsupported
 - `pnpm image:gc:offline -- --confirm-server-stopped` is explicit stopped-server recovery; normal GC never falls back to direct cleanup
+- image cleanup and GC filesystem sweeps use canonical `config.appStorageDir`; GC has no storage-root override
 ```
 
 `images` knows nothing about tasks. `task_images` carries what a task does with a

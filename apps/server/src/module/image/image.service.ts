@@ -1,12 +1,12 @@
 import { createHash } from 'node:crypto'
 
 import { images, isUUID, taskImages, tasks } from '@silent-pix/db'
-import { and, asc, desc, eq, exists, gt, inArray, like, lt, ne, notExists, or } from 'drizzle-orm'
+import { and, asc, desc, eq, exists, gt, inArray, like, lt, ne, or } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/sqlite-core'
 
 import { loadConfig } from '#/config'
 import { readImageMeta } from '#/lib/image/image.meta'
-import { contentExists, contentPath, unlinkContent, writeContent } from '#/lib/image/image.store'
+import { contentExists, contentPath, writeContent } from '#/lib/image/image.store'
 import { done, fail } from '#/lib/service-result'
 import { toImageResource, toImageUsageType } from '#/module/image/image.model'
 
@@ -242,69 +242,6 @@ export const imageService = {
         return rows[0]?.usage
     },
 
-    /*
-     * 只刪掉「已經沒有任何 task_images 指著」的那些。呼叫端要在 DB 交易 commit 之後
-     * 才呼叫，順序反過來一旦失敗就會留下指向不存在檔案的有效列。
-     * 呼叫端必須持有 image mutation lock；這個 helper 不自行取得鎖，避免 nested lock。
-     */
-    async deleteUnreferenced(database: DatabaseClient, imageIds: UUID[]): Promise<number> {
-        let deletedCount = 0
-
-        for (const chunk of chunkArray([...new Set(imageIds)], 500)) {
-            const deleted = await deleteUnreferencedRows(database, chunk)
-            /* The delete is committed before unlinking; only rows deleted now may be unlinked. */
-            for (const orphan of deleted) {
-                await unlinkContent(config.appStorageDir, orphan.path)
-            }
-
-            deletedCount += deleted.length
-        }
-
-        return deletedCount
-    },
-}
-
-/*
- * Guarded row deletion is shared by normal task cleanup and garbage collection.
- * It intentionally has no filesystem side effect: callers decide their unlink
- * error policy after the database commit and must already hold the image lock.
- */
-export async function deleteUnreferencedRows(
-    database: DatabaseClient,
-    imageIds: UUID[],
-): Promise<Array<{ id: UUID, path: string }>> {
-    if (imageIds.length === 0) {
-        return []
-    }
-
-    const deleted: Array<{ id: UUID, path: string }> = []
-
-    for (const chunk of chunkArray([...new Set(imageIds)], 500)) {
-        deleted.push(...await database.db
-            .delete(images)
-            .where(and(
-                inArray(images.id, chunk),
-                notExists(
-                    database.db
-                        .select({ id: taskImages.id })
-                        .from(taskImages)
-                        .where(eq(taskImages.imageId, images.id)),
-                ),
-            ))
-            .returning({ id: images.id, path: images.path }))
-    }
-
-    return deleted
-}
-
-function chunkArray<T>(values: T[], size: number): T[][] {
-    const chunks: T[][] = []
-
-    for (let index = 0; index < values.length; index += size) {
-        chunks.push(values.slice(index, index + size))
-    }
-
-    return chunks
 }
 
 async function selectOrigins(
