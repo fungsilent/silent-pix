@@ -2,7 +2,7 @@ import { imageSize } from 'image-size'
 
 import type { ImageApi } from '@silent-pix/shared'
 
-export type ImageMeta = {
+type ImageMeta = {
     mime: ImageApi.ImageMime
     width: number
     height: number

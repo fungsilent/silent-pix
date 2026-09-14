@@ -3,8 +3,6 @@ import { imageUrl } from '#/module/image/image.util'
 import type { ImageSelect, TaskImageSelect } from '@silent-pix/db'
 import type { ImageApi } from '@silent-pix/shared'
 
-export type ImageModel = ImageSelect
-
 export function toImageResource(image: ImageSelect): ImageApi.ImageResource {
     return {
         id: image.id,

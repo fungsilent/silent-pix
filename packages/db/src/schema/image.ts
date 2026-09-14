@@ -11,7 +11,6 @@ import {
 import { uuidCheck } from '#/schema/schema.util'
 import { createUUID } from '#/uuid'
 
-import type { UpdateData } from '#/schema/schema.util'
 import type { UUID } from '#/uuid'
 
 export const imageMimes = ['image/png', 'image/jpeg'] as const
@@ -44,5 +43,3 @@ export const images = sqliteTable('images', {
 ])
 
 export type ImageSelect = typeof images.$inferSelect
-export type ImageInsert = typeof images.$inferInsert
-export type ImageUpdate = UpdateData<ImageInsert>
