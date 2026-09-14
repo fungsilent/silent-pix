@@ -180,7 +180,7 @@ export const taskExecution = {
             /*
              * ingest/complete 失敗時，剛由本次操作建立的孤兒已在同一把 lock 內清理。
              * 這裡不再碰 image rows；內容定址下既有檔案可能被別的 task 引用，孤兒交給
-             * db:gc。
+             * server-owned image GC（`pnpm image:gc`）。
              */
             const code = error instanceof ComfyError
                 ? error.code

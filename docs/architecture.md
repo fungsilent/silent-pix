@@ -230,7 +230,7 @@ Allowed:
 - migrations
 - SQLite client creation
 - DB init helpers
-- maintenance scripts (seed, reset, gc)
+- maintenance scripts (migrate, seed, reset)
 ```
 
 Forbidden:
@@ -402,10 +402,11 @@ Task create uses a shared no-upload/upload union at the HTTP boundary:
 | --- | --- | --- |
 | txt2img | omitted or `null` | absent |
 | stored image img2img | UUID | absent |
-| uploaded image img2img | `null` | `File` |
+| uploaded image img2img | omitted or `null` | `File` |
 
 UUID plus `File` is rejected by schema validation before `taskService.create()`;
-the payload/File transport positions remain unchanged for Eden multipart.
+an omitted `referenceImageId` becomes `null` after validation. The payload/File
+transport positions remain unchanged for Eden multipart.
 
 WebSocket foundation:
 
@@ -448,10 +449,10 @@ Current frontend event usage:
 Image list queries are server-owned projections. Task created/changed/removed
 events and successful local task create/rename/flag/delete mutations invalidate
 `imageKeys.lists()`; active lists refetch and inactive lists become stale for
-the next open. WebSocket reconnect invalidates the broader `imageKeys.all` key
-alongside the task and workflow roots to recover missed events. The server
-recomputes image search membership, task-flag filtering, origin metadata, and
-earliest use.
+the next open. WebSocket reconnect uses `invalidateImageLists()` to invalidate
+`imageKeys.lists()`, alongside the task and workflow roots, to recover missed
+events. The server recomputes image search membership, task-flag filtering,
+origin metadata, and earliest use.
 
 Task detail snapshots project `name`, `status`, `pin`, `discard`, and `images`
 with referential equality when all projected values are unchanged. Generate
