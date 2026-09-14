@@ -149,7 +149,7 @@ apps/desktop
 
 packages/shared
     Canonical domain values/validation under `contract/`; REST under `api/`; events under `event/`.
-    Legacy Workflow definitions still live in root `comfy.ts` / `config.ts`.
+    Workflow definitions live under `contract/workflow/{resource,graph,config}.ts`.
 
 packages/event
     Generic WebSocket transport helpers only; domain events belong in shared.
@@ -167,7 +167,8 @@ Do not mix ownership.
 
 ```txt
 packages/shared/src/
-    contract/<domain>.ts  canonical reusable values/resources and validation
+    contract/<domain>.ts or contract/<domain>/*
+                           canonical reusable values/resources and validation
     api/<domain>...       REST query coercion, params, requests, responses
     event/<domain>.ts     server-to-web envelopes
     index.ts             explicit public catalogs/type exports
@@ -177,8 +178,10 @@ API and event modules may reference canonical contracts; canonical contracts
 must not depend on transport modules. Group by domain, not schema role, and do
 not extract fragments merely because two Zod expressions look alike.
 
-Existing Workflow graph/mapping definitions still live in `comfy.ts` and
-`config.ts`; these are legacy locations, not the template for new domains.
+Workflow graph, mapping, and resource definitions currently live under
+`contract/workflow/{resource,graph,config}.ts`, grouped by domain while keeping
+their distinct responsibilities; this layout does not prescribe file splits
+for other domains.
 Database columns may use a canonical value type when the JSON shape matches
 exactly; DB row/storage types remain DB-owned.
 

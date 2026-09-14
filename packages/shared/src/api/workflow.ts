@@ -1,10 +1,10 @@
 import { z } from 'zod'
 
-import * as comfy from '#shared/comfy'
-import { configSchema } from '#shared/config'
-import { workflowName, workflowSummary } from '#shared/contract/workflow'
+import { configSchema } from '#shared/contract/workflow/config'
+import * as comfy from '#shared/contract/workflow/graph'
+import { workflowName, workflowSummary } from '#shared/contract/workflow/resource'
 
-export type { WorkflowSummary } from '#shared/contract/workflow'
+export type { WorkflowSummary } from '#shared/contract/workflow/resource'
 
 /* MARK: params */
 

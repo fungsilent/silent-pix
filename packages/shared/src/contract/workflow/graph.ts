@@ -1,8 +1,8 @@
 import { z } from 'zod'
 
-import { generatorField, generatorFields } from '#shared/config'
+import { generatorField, generatorFields } from '#shared/contract/workflow/config'
 
-import type { ConfigSchema } from '#shared/config'
+import type { ConfigSchema } from '#shared/contract/workflow/config'
 
 /* MARK: values */
 
@@ -21,7 +21,7 @@ const mappingIssueReason = z.enum(['node-missing', 'input-missing', 'input-linke
 /*
  * NOTE:
  * 綁定驗證是 graph 與 config 的交界：規則要同時認得兩邊，
- * 所以放這裡（comfy -> config 單向相依），不另開 module。
+ * 所以放這裡（graph -> config 單向相依），不另開 module。
  */
 export const mappingIssue = z.object({
     field: generatorField,

@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { workflowSummary } from '#shared/contract/workflow'
+import { workflowSummary } from '#shared/contract/workflow/resource'
 
 /* MARK: event */
 

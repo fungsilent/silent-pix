@@ -166,11 +166,11 @@ Owns canonical domain values and shared validation used by REST and WebSocket
 contracts, plus the transport contracts themselves. Domain definitions belong
 under `src/contract`; REST under `src/api`; events under `src/event`.
 
-Legacy Workflow graph/mapping definitions remain in `src/comfy.ts` and
-`src/config.ts`; relocating them under one canonical Workflow domain remains a
-known gap. The Workflow editor option projection belongs to
-`apps/web/src/pages/workflow/node-option.ts`, where `toNodeOptions()` owns the
-Web-only view model and uses the shared `comfy.isGraphLink()` predicate.
+Workflow canonical definitions are grouped under
+`src/contract/workflow/{resource,graph,config}.ts`. The Workflow editor option
+projection belongs to `apps/web/src/pages/workflow/node-option.ts`, where
+`toNodeOptions()` owns the Web-only view model and uses the shared
+`comfy.isGraphLink()` predicate.
 
 Event contracts live under `packages/shared/src/event/<module>.ts`, divided by domain module. The aggregate `event.serverEvent` schema is the runtime source of truth for outbound server events.
 
