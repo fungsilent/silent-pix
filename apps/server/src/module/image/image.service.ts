@@ -234,50 +234,40 @@ export const imageService = {
         imageId: UUID,
         excludeTaskId?: UUID,
     ): Promise<ImageApi.ImageUsage | undefined> {
-        const rows = await selectOrigins(database, [imageId], excludeTaskId)
+        const row = await database.db
+            .select({
+                taskId: taskImages.taskId,
+                taskName: tasks.name,
+                type: taskImages.type,
+                sortIndex: taskImages.sortIndex,
+            })
+            .from(taskImages)
+            .innerJoin(tasks, eq(tasks.id, taskImages.taskId))
+            .where(and(
+                eq(taskImages.imageId, imageId),
+                inArray(taskImages.type, displayTypes),
+                excludeTaskId ? ne(taskImages.taskId, excludeTaskId) : undefined,
+            ))
+            .orderBy(asc(taskImages.createdAt), asc(taskImages.id))
+            .limit(1)
+            .get()
 
-        return rows[0]?.usage
-    },
+        if (!row) {
+            return undefined
+        }
 
-}
-
-async function selectOrigins(
-    database: DatabaseClient,
-    imageIds: UUID[],
-    excludeTaskId?: UUID,
-) {
-    const rows = await database.db
-        .select({
-            imageId: taskImages.imageId,
-            taskId: taskImages.taskId,
-            taskName: tasks.name,
-            type: taskImages.type,
-            sortIndex: taskImages.sortIndex,
-        })
-        .from(taskImages)
-        .innerJoin(tasks, eq(tasks.id, taskImages.taskId))
-        .where(and(
-            inArray(taskImages.imageId, imageIds),
-            excludeTaskId ? ne(taskImages.taskId, excludeTaskId) : undefined,
-        ))
-        .orderBy(asc(taskImages.createdAt), asc(taskImages.id))
-        .all()
-
-    return rows.flatMap(row => {
         const type = toImageUsageType(row.type)
 
         return type
-            ? [{
-                imageId: row.imageId,
-                usage: {
-                    taskId: row.taskId,
-                    taskName: row.taskName,
-                    type,
-                    sortIndex: row.sortIndex,
-                },
-            }]
-            : []
-    })
+            ? {
+                taskId: row.taskId,
+                taskName: row.taskName,
+                type,
+                sortIndex: row.sortIndex,
+            }
+            : undefined
+    },
+
 }
 
 function isImageCursor(value: unknown): value is ImageCursor {
