@@ -1,9 +1,10 @@
+import { createHash } from 'node:crypto'
+
 import { images, isUUID, taskImages, tasks } from '@silent-pix/db'
 import { and, asc, desc, eq, exists, gt, inArray, like, lt, ne, notExists, or } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/sqlite-core'
 
 import { loadConfig } from '#/config'
-import { hashBytes } from '#/lib/image/image.hash'
 import { readImageMeta } from '#/lib/image/image.meta'
 import { contentExists, contentPath, unlinkContent, writeContent } from '#/lib/image/image.store'
 import { done, fail } from '#/lib/service-result'
@@ -32,7 +33,7 @@ export const imageService = {
             return fail('IMAGE_EMPTY')
         }
 
-        const hash = hashBytes(bytes)
+        const hash = createHash('sha256').update(bytes).digest('hex')
         const existing = await database.db
             .select()
             .from(images)
