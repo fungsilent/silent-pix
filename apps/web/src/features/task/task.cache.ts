@@ -5,6 +5,7 @@ import type { InfiniteData, QueryClient } from '@tanstack/solid-query'
 
 type TaskFeedData = InfiniteData<TaskApi.GetTasksResponse, string | undefined>
 type TaskFeedScope = ReturnType<typeof taskKeys.feed>[2]
+type TaskFlagValues = Pick<TaskApi.TaskFlagState, 'pin' | 'discard'>
 type FeedWriteResult = {
     data: TaskFeedData | undefined
     invalidate: boolean
@@ -161,7 +162,7 @@ export function cacheTaskFlagsPatched(
                     updateTaskFeed(result.data, scope, source, true),
                 )
             }
-            else if (current && mayMatchTaskFeedFlags(task, scope)) {
+            else if (current && matchesTaskFeedFlags(task, scope)) {
                 result.invalidate = true
             }
         }
@@ -366,7 +367,7 @@ function mergeFeedWriteResult(
 }
 
 function matchesTaskFeedFlags(
-    item: TaskApi.TaskListItem,
+    item: TaskFlagValues,
     scope: TaskFeedScope,
 ): boolean {
     return scope.taskFlags === undefined || scope.taskFlags.some(flag => (
@@ -375,19 +376,6 @@ function matchesTaskFeedFlags(
             : flag === 'pin'
                 ? item.pin
                 : item.discard
-    ))
-}
-
-function mayMatchTaskFeedFlags(
-    task: TaskApi.TaskFlagState,
-    scope: TaskFeedScope,
-): boolean {
-    return scope.taskFlags === undefined || scope.taskFlags.some(flag => (
-        flag === 'unflag'
-            ? !task.pin && !task.discard
-            : flag === 'pin'
-                ? task.pin
-                : task.discard
     ))
 }
 
