@@ -58,7 +58,12 @@ export const imageRoutes = new Elysia({ name: 'image-routes', prefix: '/image' }
             }
 
             try {
-                const bytes = new Uint8Array(await readContent(image.path))
+                const content = await readContent(image.path)
+                const bytes = new Uint8Array(
+                    content.buffer as ArrayBuffer,
+                    content.byteOffset,
+                    content.byteLength,
+                )
 
                 return new Response(bytes, { headers: cacheHeaders(image, etag) })
             }
