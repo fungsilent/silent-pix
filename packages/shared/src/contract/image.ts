@@ -2,7 +2,8 @@ import { z } from 'zod'
 
 /* MARK: primitives */
 
-const imageMime = z.enum(['image/png', 'image/jpeg'])
+export const imageMimeValues = ['image/png', 'image/jpeg'] as const
+export const imageMime = z.enum(imageMimeValues)
 
 /* MARK: resources */
 

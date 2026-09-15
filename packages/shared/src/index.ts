@@ -1,3 +1,4 @@
+import { imageMime, imageMimeValues } from '#shared/contract/image'
 import { configSchema, generatorFields, isGeneratorField } from '#shared/contract/workflow/config'
 import { isGraphLink, parseApiGraph, validateMapping } from '#shared/contract/workflow/graph'
 import { heartbeatIntervalMs, staleTimeoutMs } from '#shared/event/health'
@@ -22,6 +23,12 @@ export type {
     GeneratorField,
     Mapping,
 } from '#shared/contract/workflow/config'
+
+export const image = {
+    imageMime,
+    imageMimeValues,
+} as const
+export type * as Image from '#shared/contract/image'
 
 export type * as AppApi from '#shared/api/app'
 

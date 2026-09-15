@@ -1,3 +1,4 @@
+import { image } from '@silent-pix/shared'
 import { ImagePlus, RotateCcw, Search, X } from 'lucide-solid'
 import { createSignal, Show } from 'solid-js'
 
@@ -50,8 +51,6 @@ type TaskImageProps = {
     data: TaskImageData
     loading: Accessor<boolean>
 }
-
-const acceptedMimes = ['image/png', 'image/jpeg']
 
 export function TaskImage(props: TaskImageProps) {
     const reference = () => props.data.reference()
@@ -109,7 +108,7 @@ export function TaskImage(props: TaskImageProps) {
                         <>
                             <Loading.Mask loading={props.loading}>
                                 <FileDrop
-                                    accept={acceptedMimes}
+                                    accept={[...image.imageMimeValues]}
                                     onAccept={onReferenceFile}
                                     onReject={onReferenceReject}
                                 >

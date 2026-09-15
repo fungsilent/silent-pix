@@ -1,3 +1,4 @@
+import { image } from '@silent-pix/shared'
 import { sql } from 'drizzle-orm'
 import {
     check,
@@ -11,18 +12,15 @@ import {
 import { uuidCheck } from '#/schema/schema.util'
 import { createUUID } from '#/uuid'
 
+import type { Image } from '@silent-pix/shared'
 import type { UUID } from '#/uuid'
-
-export const imageMimes = ['image/png', 'image/jpeg'] as const
-
-export type ImageMime = typeof imageMimes[number]
 
 /* 內容定址：一張圖只以 sha256 存一份，task 透過 task_images 引用它。 */
 export const images = sqliteTable('images', {
     id: text('id').$type<UUID>().primaryKey().$defaultFn(createUUID),
     hash: text('hash').notNull(),
     path: text('path').notNull(),
-    mime: text('mime', { enum: imageMimes }).$type<ImageMime>().notNull(),
+    mime: text('mime', { enum: image.imageMimeValues }).$type<Image.ImageMime>().notNull(),
     width: integer('width').notNull(),
     height: integer('height').notNull(),
     sizeBytes: integer('size_bytes').notNull(),
