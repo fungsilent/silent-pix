@@ -121,7 +121,7 @@ async function sweepImageGarbageCollectionFiles(
     let unlinkFailureCount = 0
 
     for (const entry of entries) {
-        if (!entry.isFile() || entry.isSymbolicLink()) {
+        if (!entry.isFile()) {
             continue
         }
 
