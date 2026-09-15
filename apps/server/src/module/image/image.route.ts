@@ -2,6 +2,7 @@ import { toUUID } from '@silent-pix/db'
 import { appApi, imageApi } from '@silent-pix/shared'
 import { Elysia } from 'elysia'
 
+import { isFileNotFoundError } from '#/lib/error/node.error'
 import { readContent } from '#/lib/image/image.store'
 import { databaseMiddleware } from '#/middleware/database'
 import { imageService } from '#/module/image/image.service'
@@ -92,10 +93,4 @@ function cacheHeaders(image: { mime: ImageApi.ImageMime, sizeBytes: number }, et
         'cache-control': 'public, max-age=31536000, immutable',
         etag,
     }
-}
-
-function isFileNotFoundError(error: unknown): boolean {
-    return error instanceof Error
-        && 'code' in error
-        && error.code === 'ENOENT'
 }

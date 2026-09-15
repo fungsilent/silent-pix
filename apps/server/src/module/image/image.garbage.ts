@@ -5,6 +5,7 @@ import { images, taskImages } from '@silent-pix/db'
 import { and, eq, lt, notExists } from 'drizzle-orm'
 
 import { loadConfig } from '#/config'
+import { isFileNotFoundError } from '#/lib/error/node.error'
 import { unlinkContent } from '#/lib/image/image.store'
 import { imageCleanup } from '#/module/image/image.cleanup'
 import { withImageMutation } from '#/module/image/image.mutation'
@@ -105,7 +106,7 @@ async function sweepImageGarbageCollectionFiles(
         entries = await readdir(imagesRoot, { withFileTypes: true })
     }
     catch (cause) {
-        if (isMissingEntry(cause)) {
+        if (isFileNotFoundError(cause)) {
             return {
                 strayFileCount: 0,
                 temporaryFileCount: 0,
@@ -144,7 +145,7 @@ async function sweepImageGarbageCollectionFiles(
             modifiedAt = (await lstat(join(imagesRoot, entry.name))).mtimeMs
         }
         catch (cause) {
-            if (isMissingEntry(cause)) {
+            if (isFileNotFoundError(cause)) {
                 continue
             }
 
@@ -179,10 +180,4 @@ async function sweepImageGarbageCollectionFiles(
         temporaryFileCount,
         unlinkFailureCount,
     }
-}
-
-function isMissingEntry(cause: unknown): boolean {
-    return cause instanceof Error
-        && 'code' in cause
-        && cause.code === 'ENOENT'
 }

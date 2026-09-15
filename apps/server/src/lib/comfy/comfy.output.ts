@@ -2,6 +2,7 @@ import { unlink } from 'node:fs/promises'
 import { isAbsolute, relative, resolve } from 'node:path'
 
 import { loadConfig } from '#/config'
+import { isFileNotFoundError } from '#/lib/error/node.error'
 
 import type { ComfyImage } from '#/lib/comfy/comfy.client'
 
@@ -15,7 +16,7 @@ export async function removeComfyImage(image: ComfyImage): Promise<void> {
     try {
         await unlink(target)
     } catch (cause) {
-        if (cause instanceof Error && 'code' in cause && cause.code === 'ENOENT') return
+        if (isFileNotFoundError(cause)) return
 
         console.error(`Failed to remove Comfy image ${target}.`, cause)
     }

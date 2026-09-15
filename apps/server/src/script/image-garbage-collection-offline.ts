@@ -1,6 +1,7 @@
 import { createDatabaseClient } from '@silent-pix/db'
 
 import { loadConfig } from '#/config'
+import { isConnectionRefused } from '#/lib/error/node.error'
 import { imageGarbageCollection } from '#/module/image/image.garbage'
 
 const confirmationFlag = '--confirm-server-stopped'
@@ -58,18 +59,4 @@ async function requireServerStopped(): Promise<void> {
     }
 
     throw new Error('The server responded to the probe; refusing offline cleanup.')
-}
-
-function isConnectionRefused(cause: unknown): boolean {
-    let current: unknown = cause
-
-    while (current && typeof current === 'object') {
-        if ('code' in current && current.code === 'ECONNREFUSED') {
-            return true
-        }
-
-        current = 'cause' in current ? current.cause : undefined
-    }
-
-    return false
 }

@@ -3,6 +3,7 @@ import { access, mkdir, readFile, rename, unlink, writeFile } from 'node:fs/prom
 import { dirname, resolve } from 'node:path'
 
 import { loadConfig } from '#/config'
+import { isFileNotFoundError } from '#/lib/error/node.error'
 
 import type { ImageApi } from '@silent-pix/shared'
 
@@ -63,7 +64,7 @@ async function unlinkQuietly(filePath: string): Promise<boolean> {
         await unlink(filePath)
         return true
     } catch (cause) {
-        if (cause instanceof Error && 'code' in cause && cause.code === 'ENOENT') {
+        if (isFileNotFoundError(cause)) {
             return false
         }
         throw cause

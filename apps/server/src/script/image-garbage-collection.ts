@@ -1,6 +1,7 @@
 import { appApi, imageApi } from '@silent-pix/shared'
 
 import { loadConfig } from '#/config'
+import { isConnectionRefused } from '#/lib/error/node.error'
 
 const garbageCollectionPath = '/api/image/garbage-collection'
 const requestTimeoutMs = 30_000
@@ -61,18 +62,4 @@ async function requestImageGarbageCollection(): Promise<Response> {
 
 function isTimeout(cause: unknown): boolean {
     return cause instanceof Error && cause.name === 'AbortError'
-}
-
-function isConnectionRefused(cause: unknown): boolean {
-    let current: unknown = cause
-
-    while (current && typeof current === 'object') {
-        if ('code' in current && current.code === 'ECONNREFUSED') {
-            return true
-        }
-
-        current = 'cause' in current ? current.cause : undefined
-    }
-
-    return false
 }
