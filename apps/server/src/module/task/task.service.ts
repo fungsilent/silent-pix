@@ -19,7 +19,7 @@ import { castTaskModel } from '#/module/task/task.model'
 import { workflowService } from '#/module/workflow/workflow.service'
 
 import type { DatabaseClient, TaskStatus, TaskUpdate, UUID } from '@silent-pix/db'
-import type { ImageApi, TaskApi } from '@silent-pix/shared'
+import type { Event, ImageApi, TaskApi } from '@silent-pix/shared'
 import type { PushEvent } from '#/app.store'
 import type { ComfyClient } from '#/lib/comfy/comfy.client'
 import type { GenerateConfig } from '#/lib/comfy/comfy.prompt'
@@ -28,54 +28,95 @@ import type { WorkflowModel } from '#/module/workflow/workflow.model'
 
 type TaskCursor = { createdAt: number, id: UUID }
 
+type FoundTask<HasWorkflow extends boolean, HasImages extends boolean> = {
+    task: TaskModel
+    workflow: HasWorkflow extends true ? WorkflowModel : never
+    images: HasImages extends true ? TaskImageModel[] : never
+}
+
+type FindTaskOptions<HasWorkflow extends boolean = false, HasImages extends boolean = false> = {
+    includeWorkflow?: HasWorkflow
+    includeImage?: HasImages
+}
+
 export const taskService = {
     // MARK: CRUD
     async findTask<HasWorkflow extends boolean = false, HasImages extends boolean = false>(
         database: DatabaseClient,
         taskId: UUID,
-        options?: {
-            includeWorkflow?: HasWorkflow,
-            includeImage?: HasImages,
+        options?: FindTaskOptions<HasWorkflow, HasImages>,
+    ): Promise<FoundTask<HasWorkflow, HasImages> | undefined> {
+        const [item] = await taskService.findTasks(database, [taskId], options)
+        return item
+    },
+
+    async findTasks<HasWorkflow extends boolean = false, HasImages extends boolean = false>(
+        database: DatabaseClient,
+        taskIds: readonly UUID[],
+        options?: FindTaskOptions<HasWorkflow, HasImages>,
+    ): Promise<FoundTask<HasWorkflow, HasImages>[]> {
+        if (!taskIds.length) {
+            return []
         }
-    ): Promise<undefined | {
-        task: TaskModel
-        workflow: HasWorkflow extends true ? WorkflowModel : never
-        images: HasImages extends true ? TaskImageModel[] : never
-    }> {
-        const { includeWorkflow, includeImage } = options || {}
-        const [task] = await database.db
+
+        const taskRows = await database.db
             .select()
             .from(tasks)
-            .where(eq(tasks.id, taskId))
+            .where(inArray(tasks.id, taskIds))
 
-        if (!task) return undefined
-
-        let workflow: WorkflowModel | undefined = undefined
-        if (includeWorkflow) {
-            const _workflow = await workflowService.findWorkflow(database, task.workflowId)
-            if (!_workflow) {
-                return undefined
+        const workflowsById = new Map<UUID, WorkflowModel>()
+        if (options?.includeWorkflow) {
+            const workflowRows = await workflowService.findWorkflows(
+                database,
+                taskRows.map(row => row.workflowId),
+            )
+            for (const workflow of workflowRows) {
+                workflowsById.set(workflow.id, workflow)
             }
-            workflow = _workflow
         }
 
-        let taskImageModels: TaskImageModel[] | undefined = undefined
-        if (includeImage) {
-            const rows = await database.db
+        const foundTaskRows = options?.includeWorkflow
+            ? taskRows.filter(row => workflowsById.has(row.workflowId))
+            : taskRows
+        const tasksById = new Map(foundTaskRows.map(row => [row.id, row]))
+
+        const imagesByTaskId = new Map<UUID, TaskImageModel[]>()
+        if (options?.includeImage && foundTaskRows.length > 0) {
+            const imageRows = await database.db
                 .select({ relation: taskImages, image: images })
                 .from(taskImages)
                 .innerJoin(images, eq(images.id, taskImages.imageId))
-                .where(eq(taskImages.taskId, task.id))
-                .orderBy(asc(taskImages.type), asc(taskImages.sortIndex))
+                .where(inArray(taskImages.taskId, foundTaskRows.map(row => row.id)))
+                .orderBy(
+                    asc(taskImages.taskId),
+                    asc(taskImages.type),
+                    asc(taskImages.sortIndex),
+                )
 
-            taskImageModels = rows.map(row => ({ ...row.relation, image: row.image }))
+            for (const row of imageRows) {
+                const relations = imagesByTaskId.get(row.relation.taskId) ?? []
+                relations.push({ ...row.relation, image: row.image })
+                imagesByTaskId.set(row.relation.taskId, relations)
+            }
         }
 
-        return {
-            task: castTaskModel(task),
-            workflow: workflow as HasWorkflow extends true ? WorkflowModel : never,
-            images: taskImageModels as HasImages extends true ? TaskImageModel[] : never,
-        }
+        return taskIds.flatMap(taskId => {
+            const taskRow = tasksById.get(taskId)
+            if (!taskRow) {
+                return []
+            }
+
+            const workflow = workflowsById.get(taskRow.workflowId)
+            const relatedImages = imagesByTaskId.get(taskRow.id) ?? []
+
+            return {
+                task: castTaskModel(taskRow),
+                workflow: workflow as HasWorkflow extends true ? WorkflowModel : never,
+                images: (options?.includeImage ? relatedImages : undefined) as HasImages extends true
+                    ? TaskImageModel[]
+                    : never,
+            }
+        })
     },
 
     async getTaskResponse(
@@ -531,22 +572,35 @@ export const taskService = {
         database: DatabaseClient,
         taskId: UUID,
     ) {
-        const item = await taskService.findTask(database, taskId, { includeImage: true })
+        const [snapshot] = await taskService.snapshotMany(database, [taskId])
 
-        if (!item) {
-            return undefined
+        return snapshot
+    },
+
+    async snapshotMany(
+        database: DatabaseClient,
+        taskIds: UUID[],
+    ): Promise<Event.Task.Snapshot[]> {
+        const items = await taskService.findTasks(database, taskIds, {
+            includeImage: true,
+        })
+
+        const snapshots: Event.Task.Snapshot[] = []
+        for (const item of items) {
+            const outputImages = toOutputResources(item.images)
+            snapshots.push({
+                id: item.task.id,
+                name: item.task.name,
+                status: item.task.status,
+                pin: item.task.pin,
+                discard: item.task.discard,
+                createdAt: item.task.createdAt.toISOString(),
+                images: outputImages,
+                outputCount: outputImages.length,
+            })
         }
 
-        return {
-            id: item.task.id,
-            name: item.task.name,
-            status: item.task.status,
-            pin: item.task.pin,
-            discard: item.task.discard,
-            createdAt: item.task.createdAt.toISOString(),
-            images: toOutputResources(item.images),
-            outputCount: item.images.filter(image => image.type === 'output').length,
-        }
+        return snapshots
     },
 
     async publishChanged(
@@ -554,13 +608,19 @@ export const taskService = {
         taskId: UUID,
         pushEvent: PushEvent,
     ): Promise<void> {
-        const snapshot = await taskService.snapshot(database, taskId)
+        await taskService.publishChangedMany(database, [taskId], pushEvent)
+    },
 
-        if (!snapshot) {
-            return
+    async publishChangedMany(
+        database: DatabaseClient,
+        taskIds: UUID[],
+        pushEvent: PushEvent,
+    ): Promise<void> {
+        const snapshots = await taskService.snapshotMany(database, taskIds)
+
+        for (const snapshot of snapshots) {
+            pushEvent(taskChanged(snapshot))
         }
-
-        pushEvent(taskChanged(snapshot))
     },
 
     // MARK: Option

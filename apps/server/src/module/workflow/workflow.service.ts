@@ -1,26 +1,41 @@
 import { tasks, workflows } from '@silent-pix/db'
 import { comfy } from '@silent-pix/shared'
-import { and, asc, count, eq, isNull } from 'drizzle-orm'
+import { and, asc, count, eq, inArray, isNull } from 'drizzle-orm'
 
 import { stringify } from '#/lib/json/json.stringify'
 import { done, fail } from '#/lib/service-result'
 import { castWorkflowModel } from '#/module/workflow/workflow.model'
 
-import type { DatabaseClient, WorkflowInsert } from '@silent-pix/db'
+import type { DatabaseClient, UUID, WorkflowInsert } from '@silent-pix/db'
 import type { Comfy, ConfigSchema, WorkflowApi } from '@silent-pix/shared'
 import type { WorkflowModel } from '#/module/workflow/workflow.model'
 
 export const workflowService = {
     // MARK: CRUD
     async findWorkflow(database: DatabaseClient, workflowId: WorkflowModel['id']) {
-        const [workflow] = await database.db
+        const [workflow] = await workflowService.findWorkflows(database, [workflowId])
+
+        return workflow ?? null
+    },
+
+    async findWorkflows(database: DatabaseClient, workflowIds: readonly UUID[]) {
+        if (!workflowIds.length) {
+            return []
+        }
+
+        const workflowRows = await database.db
             .select()
             .from(workflows)
-            .where(eq(workflows.id, workflowId))
+            .where(inArray(workflows.id, workflowIds))
 
-        return workflow
-            ? castWorkflowModel(workflow)
-            : null
+        const workflowsById = new Map(
+            workflowRows.map(workflow => [workflow.id, castWorkflowModel(workflow)]),
+        )
+
+        return workflowIds.flatMap(workflowId => {
+            const workflow = workflowsById.get(workflowId)
+            return workflow ? [workflow] : []
+        })
     },
 
     async getWorkflowResponse(

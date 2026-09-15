@@ -143,9 +143,11 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
                 })
             }
 
-            for (const task of result.data.tasks) {
-                await taskService.publishChanged(database, task.id, pushEvent)
-            }
+            await taskService.publishChangedMany(
+                database,
+                result.data.tasks.map(task => task.id),
+                pushEvent,
+            )
 
             return result.data
         },
