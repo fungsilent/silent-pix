@@ -3,6 +3,7 @@ import { existsSync } from 'node:fs'
 import { taskImages, tasks } from '@silent-pix/db'
 import { eq } from 'drizzle-orm'
 
+import { loadConfig } from '#/config'
 import { ComfyError } from '#/lib/comfy/comfy.client'
 import { removeComfyImage } from '#/lib/comfy/comfy.output'
 import { buildComfyPrompt, txt2imgRuntime } from '#/lib/comfy/comfy.prompt'
@@ -10,13 +11,14 @@ import { absolutePath } from '#/lib/image/image.store'
 import { imageCleanup } from '#/module/image/image.cleanup'
 import { withImageMutation } from '#/module/image/image.mutation'
 import { imageService } from '#/module/image/image.service'
-import { comfyImagePath } from '#/module/image/image.util'
 import { taskService } from '#/module/task/task.service'
 
 import type { DatabaseClient, UUID } from '@silent-pix/db'
 import type { PushEvent } from '#/app.store'
 import type { ComfyClient } from '#/lib/comfy/comfy.client'
 import type { WorkflowModel } from '#/module/workflow/workflow.model'
+
+const config = loadConfig()
 
 export const taskExecution = {
     async generate(
@@ -211,6 +213,18 @@ async function failTask(
             limtedStatus: ['queued', 'running'],
         })
     await taskService.publishChanged(database, taskId, pushEvent)
+}
+
+/*
+ * 把 images.path 這個 posix 相對路徑轉成 ComfyUI 那一側的絕對路徑。
+ * prefix 含反斜線就當它是 Windows 路徑，分隔符跟著換。
+ */
+function comfyImagePath(relativePath: string): string {
+    const prefix = config.comfyuiStoragePrefix
+    const separator = prefix.includes('\\') ? '\\' : '/'
+    const trimmed = prefix.replace(/[\\/]+$/, '')
+
+    return `${trimmed}${separator}${relativePath.split('/').join(separator)}`
 }
 
 /* Caller owns the image mutation lock; event publication belongs outside it. */
