@@ -27,6 +27,7 @@ These are implementation constraints. `docs/architecture.md` describes current s
 - Declare Zod schemas for request inputs and JSON responses for each supported HTTP status. Binary image responses and bodyless 304 responses use native `Response`; document their status, headers, and body semantics instead of inventing JSON schemas for them.
 - Error responses use `{ error: { code, message } }`.
 - `errorCatchMiddleware` handles Elysia/framework errors and unexpected exceptions. Preserve meaningful HTTP statuses, log internal errors server-side, and never expose raw `Error` objects.
+- Workflow mapping validation is a service invariant: module-local `checkMapping()` runs inside `workflowService.create()` and `workflowService.update()` before any write (and before update lookup/error checks); routes map its issues to the existing 422 response and publish events only after success.
 - Shared REST request/response schemas live in `packages/shared` and are the runtime source of truth.
 - API boundary types use `XxxQuery`, `XxxRequest`, and `XxxResponse`. Use validated Zod output types; never expose coercible `z.input` types containing `unknown`.
 - Export REST contracts by namespace (`taskApi.x` for schemas, `TaskApi.X` for types); do not add duplicate flat REST exports or `XxxSchema` aliases. Keep existing canonical `Comfy`/`config` catalogs and the single flat exports `ConfigSchema`, `GeneratorField`, and `Mapping` as explicit compatibility exceptions; do not add parallel aliases or infer a new flat-export convention from them.

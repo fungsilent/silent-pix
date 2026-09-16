@@ -233,6 +233,14 @@ Services query Drizzle directly and own transaction/batch boundaries. Do not
 add a repository layer. Keep related operations in their domain; split only
 for a distinct responsibility or isolated complexity.
 
+Workflow mapping validation is a service invariant. A module-local
+`checkMapping()` runs inside `workflowService.create()` and
+`workflowService.update()` before any Drizzle write; update performs it before
+lookup, archive, and revision checks so an invalid mapping keeps its 422
+precedence. The route passes request data to the mutation, maps the service
+failure's `issues` to the existing 422 response, and publishes
+`workflow.changed` only after the mutation and response load succeed.
+
 The server lifecycle owns a `DatabaseClient` instance named `databaseClient`.
 It exposes the Drizzle `Database` as `databaseClient.database`, plus `check`
 and `close`; only startup, health, and shutdown use those lifecycle methods.

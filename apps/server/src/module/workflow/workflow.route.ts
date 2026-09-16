@@ -7,7 +7,7 @@ import { eventMiddleware } from '#/middleware/event'
 import { workflowChanged, workflowRemoved } from '#/module/workflow/workflow.event'
 import { workflowService } from '#/module/workflow/workflow.service'
 
-import type { WorkflowApi } from '@silent-pix/shared'
+import type { Comfy, WorkflowApi } from '@silent-pix/shared'
 
 export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/workflow' })
     .use(databaseMiddleware)
@@ -57,19 +57,17 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
     .post(
         '/',
         async ({ body, databaseClient, pushEvent, status }) => {
-            const checked = workflowService.checkMapping(body.graph, body.configSchema)
-
-            if (!checked.ok) {
-                return status(422, toMappingError(checked))
-            }
-
             const created = await workflowService.create(databaseClient.database, {
                 name: body.name,
-                graph: checked.data,
+                graph: body.graph,
                 configSchema: body.configSchema,
             })
 
-            const workflow = await workflowService.getWorkflowResponse(databaseClient.database, created.id)
+            if (!created.ok) {
+                return status(422, toMappingError(created.data))
+            }
+
+            const workflow = await workflowService.getWorkflowResponse(databaseClient.database, created.data.id)
 
             if (!workflow) {
                 throw new Error('Created workflow could not be loaded.')
@@ -96,24 +94,22 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
     .put(
         '/:workflowId',
         async ({ body, databaseClient, params, pushEvent, status }) => {
-            const checked = workflowService.checkMapping(body.graph, body.configSchema)
-
-            if (!checked.ok) {
-                return status(422, toMappingError(checked))
-            }
-
             const result = await workflowService.update(
                 databaseClient.database,
                 toUUID(params.workflowId, 'workflowId'),
                 body.revision,
                 {
                     name: body.name,
-                    graph: checked.data,
+                    graph: body.graph,
                     configSchema: body.configSchema,
                 },
             )
 
             if (!result.ok) {
+                if (result.error === 'WORKFLOW_MAPPING_INVALID') {
+                    return status(422, toMappingError(result.data))
+                }
+
                 const failure = updateFailures[result.error]
 
                 return status(failure.status, {
@@ -216,14 +212,14 @@ const updateFailures = {
 } as const satisfies Record<string, { status: number, message: string }>
 
 /* service 只回 code 與證據，人話留在 route */
-function toMappingError(failure: Extract<ReturnType<typeof workflowService.checkMapping>, { ok: false }>): WorkflowApi.WorkflowMutationErrorResponse {
+function toMappingError(issues: Comfy.MappingIssue[]): WorkflowApi.WorkflowMutationErrorResponse {
     return {
         error: {
-            code: failure.error,
-            message: failure.data.length === 1
+            code: 'WORKFLOW_MAPPING_INVALID',
+            message: issues.length === 1
                 ? 'One binding does not resolve against this graph.'
-                : `${failure.data.length} bindings do not resolve against this graph.`,
+                : `${issues.length} bindings do not resolve against this graph.`,
         },
-        issues: failure.data,
+        issues,
     }
 }

@@ -158,6 +158,20 @@ route
 ```
 
 Domain services query `Database` directly and own transaction/batch boundaries.
+
+Workflow mutation ownership is explicit:
+
+```txt
+POST/PUT /workflow
+    └ workflowService.create/update
+       ├ mapping invalid → service failure with issues; no write or event
+       └ success → load response → publish workflow.changed → return HTTP response
+```
+
+`update()` validates mapping before lookup, archive, or revision checks, so its
+422 mapping failure precedence remains stable. The route owns only HTTP status
+selection and the existing mapping-error response shape.
+
 Transaction-compatible leaf capabilities accept only their precise narrow
 `Pick<Database, ...>` capability. The server does not add a repository layer or
 use raw SQLite/Drizzle `sql` outside the database client.

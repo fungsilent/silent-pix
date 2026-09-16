@@ -60,17 +60,6 @@ export const workflowService = {
         }
     },
 
-    // MARK: service
-    checkMapping(graph: Comfy.Graph, configSchema: ConfigSchema) {
-        const issues = comfy.validateMapping(graph, configSchema)
-
-        if (issues.length > 0) {
-            return fail('WORKFLOW_MAPPING_INVALID', issues)
-        }
-
-        return done(graph)
-    },
-
     async list(database: Database): Promise<WorkflowApi.WorkflowSummary[]> {
         const rows = await database
             .select()
@@ -93,13 +82,19 @@ export const workflowService = {
         database: Database,
         payload: Pick<WorkflowInsert, 'name' | 'graph' | 'configSchema'>,
     ) {
+        const checked = checkMapping(payload.graph, payload.configSchema)
+
+        if (!checked.ok) {
+            return checked
+        }
+
         const now = Date.now()
 
         const [created] = await database
             .insert(workflows)
             .values({
                 name: payload.name,
-                graph: payload.graph,
+                graph: checked.data,
                 configSchema: payload.configSchema,
                 revision: 1,
                 archivedAt: null,
@@ -112,7 +107,7 @@ export const workflowService = {
             throw new Error('Workflow insert returned no row.')
         }
 
-        return castWorkflowModel(created)
+        return done(castWorkflowModel(created))
     },
 
     /*
@@ -125,6 +120,12 @@ export const workflowService = {
         expectedRevision: number,
         payload: Pick<WorkflowInsert, 'name' | 'graph' | 'configSchema'>,
     ) {
+        const checked = checkMapping(payload.graph, payload.configSchema)
+
+        if (!checked.ok) {
+            return checked
+        }
+
         const current = await workflowService.findWorkflow(database, workflowId)
 
         if (!current) {
@@ -140,14 +141,14 @@ export const workflowService = {
         }
 
         /* 內容沒變就不推 revision，*/
-        const unchanged = stringify(current.graph) === stringify(payload.graph)
+        const unchanged = stringify(current.graph) === stringify(checked.data)
             && stringify(current.configSchema) === stringify(payload.configSchema)
 
         const [updated] = await database
             .update(workflows)
             .set({
                 name: payload.name,
-                graph: payload.graph,
+                graph: checked.data,
                 configSchema: payload.configSchema,
                 ...(unchanged ? {} : { revision: expectedRevision + 1 }),
                 updatedAt: Date.now(),
@@ -244,4 +245,14 @@ export const workflowService = {
 
         return row?.value ?? 0
     },
+}
+
+function checkMapping(graph: Comfy.Graph, configSchema: ConfigSchema) {
+    const issues = comfy.validateMapping(graph, configSchema)
+
+    if (issues.length > 0) {
+        return fail('WORKFLOW_MAPPING_INVALID', issues)
+    }
+
+    return done(graph)
 }
