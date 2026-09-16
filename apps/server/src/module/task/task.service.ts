@@ -398,8 +398,8 @@ export const taskService = {
         })
     },
 
-    async remove(database: DatabaseClient, taskId: UUID) {
-        const result = await taskService.removeMany(
+    async removeTask(database: DatabaseClient, taskId: UUID) {
+        const result = await taskService.removeTasks(
             database,
             { scope: 'selected', taskIds: [taskId] },
             { allowActive: true },
@@ -410,7 +410,7 @@ export const taskService = {
             : fail(result.error)
     },
 
-    async removeMany(
+    async removeTasks(
         database: DatabaseClient,
         request: TaskApi.DeleteTasksRequest,
         options?: { allowActive?: boolean },

@@ -192,7 +192,7 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
     .delete(
         '/',
         async ({ body, database, pushEvent, status }) => {
-            const result = await taskService.removeMany(database, body)
+            const result = await taskService.removeTasks(database, body)
 
             if (!result.ok) {
                 if (result.error === 'TASK_ACTIVE') {
@@ -233,7 +233,7 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
     .delete(
         '/:taskId',
         async ({ database, params, pushEvent, status }) => {
-            const result = await taskService.remove(
+            const result = await taskService.removeTask(
                 database,
                 toUUID(params.taskId, 'taskId'),
             )

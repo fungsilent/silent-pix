@@ -129,7 +129,7 @@ export function useDeleteSelectedTasksMutation() {
 
     return useMutation(() => ({
         mutationFn: (request: Extract<TaskApi.DeleteTasksRequest, { scope: 'selected' }>) => (
-            taskApi.removeMany(request)
+            taskApi.removeTasks(request)
         ),
         onSuccess: result => {
             applyTasksRemoved(queryClient, result.ids)
@@ -141,7 +141,7 @@ export function useDeleteDiscardedTasksMutation() {
     const queryClient = useQueryClient()
 
     return useMutation(() => ({
-        mutationFn: () => taskApi.removeMany(
+        mutationFn: () => taskApi.removeTasks(
             { scope: 'discard' },
             AbortSignal.timeout(60_000),
         ),
@@ -155,7 +155,7 @@ export function useDeleteTaskMutation() {
     const queryClient = useQueryClient()
 
     return useMutation(() => ({
-        mutationFn: (request: TaskApi.DeleteTaskRequest) => taskApi.remove(request),
+        mutationFn: (request: TaskApi.DeleteTaskRequest) => taskApi.removeTask(request),
         onSuccess: result => {
             applyTasksRemoved(queryClient, [result.id])
         },

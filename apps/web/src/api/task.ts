@@ -33,7 +33,7 @@ export const taskApi = {
         return unwrap(apiClient.api.task.flag.patch(request))
     },
 
-    removeMany(
+    removeTasks(
         request: TaskApi.DeleteTasksRequest,
         signal?: AbortSignal,
     ): Promise<TaskApi.DeleteTasksResponse> {
@@ -43,7 +43,7 @@ export const taskApi = {
         ))
     },
 
-    remove(request: TaskApi.DeleteTaskRequest): Promise<TaskApi.DeleteTaskResponse> {
+    removeTask(request: TaskApi.DeleteTaskRequest): Promise<TaskApi.DeleteTaskResponse> {
         return unwrap(apiClient.api.task({ taskId: request.taskId }).delete())
     },
 
