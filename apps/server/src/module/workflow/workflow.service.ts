@@ -188,12 +188,9 @@ export const workflowService = {
         }
 
         return database.db.transaction(async transaction => {
-            const [counted] = await transaction
-                .select({ value: count() })
-                .from(tasks)
-                .where(eq(tasks.workflowId, workflowId))
+            const taskCount = await workflowService.countTasks(transaction, workflowId)
 
-            if ((counted?.value ?? 0) === 0) {
+            if (taskCount === 0) {
                 const [deleted] = await transaction
                     .delete(workflows)
                     .where(eq(workflows.id, workflowId))
@@ -236,8 +233,14 @@ export const workflowService = {
         })
     },
 
-    async countTasks(database: DatabaseClient, workflowId: WorkflowModel['id']) {
-        const [row] = await database.db
+    async countTasks(
+        databaseOrTransaction: DatabaseClient | Pick<DatabaseClient['db'], 'select'>,
+        workflowId: WorkflowModel['id'],
+    ) {
+        const executor = 'db' in databaseOrTransaction
+            ? databaseOrTransaction.db
+            : databaseOrTransaction
+        const [row] = await executor
             .select({ value: count() })
             .from(tasks)
             .where(eq(tasks.workflowId, workflowId))
