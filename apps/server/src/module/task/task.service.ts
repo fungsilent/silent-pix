@@ -626,13 +626,13 @@ export const taskService = {
     // MARK: Option
     async samplerList(comfyClient: ComfyClient) {
         const comfySamplers = new Set(await comfyClient.getSamplerNames())
-        const allowSamplers = new Set([
+        const allowedSamplers = [
             'er_sde',
             'euler_a',
             'dpmpp_2m_sde_gpu',
             'euler'
-        ])
-        const availableSamplers = [...allowSamplers]
+        ]
+        const availableSamplers = allowedSamplers
             .filter(sampler => comfySamplers.has(sampler))
             .map(sampler => ({
                 label: sampler,
