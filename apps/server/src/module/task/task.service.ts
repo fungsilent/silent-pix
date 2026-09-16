@@ -339,6 +339,18 @@ export const taskService = {
         return done({ tasks: updated })
     },
 
+    async remove(database: DatabaseClient, taskId: UUID) {
+        const result = await taskService.removeMany(
+            database,
+            { scope: 'selected', taskIds: [taskId] },
+            { allowActive: true },
+        )
+
+        return result.ok
+            ? done({ id: taskId })
+            : fail(result.error)
+    },
+
     async removeMany(
         database: DatabaseClient,
         request: TaskApi.DeleteTasksRequest,
@@ -451,18 +463,6 @@ export const taskService = {
                 deletedImageCount: deletedImages.length,
             })
         })
-    },
-
-    async remove(database: DatabaseClient, taskId: UUID) {
-        const result = await taskService.removeMany(
-            database,
-            { scope: 'selected', taskIds: [taskId] },
-            { allowActive: true },
-        )
-
-        return result.ok
-            ? done({ id: taskId })
-            : fail(result.error)
     },
 
     async getTasks(

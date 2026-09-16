@@ -33,13 +33,12 @@ export const taskApi = {
         return unwrap(apiClient.api.task.flag.patch(request))
     },
 
-    removeMany(request: TaskApi.DeleteTasksRequest): Promise<TaskApi.DeleteTasksResponse> {
-        return unwrap(apiClient.api.task.delete(request))
-    },
-
-    removeDiscarded(signal?: AbortSignal): Promise<TaskApi.DeleteTasksResponse> {
+    removeMany(
+        request: TaskApi.DeleteTasksRequest,
+        signal?: AbortSignal,
+    ): Promise<TaskApi.DeleteTasksResponse> {
         return unwrap(apiClient.api.task.delete(
-            { scope: 'discard' },
+            request,
             signal ? { fetch: { signal } } : {},
         ))
     },

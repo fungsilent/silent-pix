@@ -141,7 +141,10 @@ export function useDeleteDiscardedTasksMutation() {
     const queryClient = useQueryClient()
 
     return useMutation(() => ({
-        mutationFn: () => taskApi.removeDiscarded(AbortSignal.timeout(60_000)),
+        mutationFn: () => taskApi.removeMany(
+            { scope: 'discard' },
+            AbortSignal.timeout(60_000),
+        ),
         onSuccess: result => {
             applyTasksRemoved(queryClient, result.ids)
         },
