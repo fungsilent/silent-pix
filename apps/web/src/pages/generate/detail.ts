@@ -2,7 +2,7 @@ import { createContext, useContext } from 'solid-js'
 
 import { isPreviewing } from '#/store/loading'
 
-import type { GenerateTask } from '#/pages/generate/form'
+import type { TaskApi } from '@silent-pix/shared'
 import type { Accessor, JSX } from 'solid-js'
 
 /*
@@ -14,11 +14,12 @@ import type { Accessor, JSX } from 'solid-js'
  * CompareDetail 有自己的 detail query，在它內部再包一層同類 provider 覆蓋。
  */
 export type GenerateDetail = {
+    draft: Accessor<boolean>
     /* query 失敗且沒有可用 task */
     error: Accessor<boolean>
     loading: Accessor<boolean>
     /* cold loading 或 error 時為 undefined */
-    task: Accessor<GenerateTask | undefined>
+    task: Accessor<TaskApi.GetTaskResponse | undefined>
 }
 
 /* 尚未套用預覽規則的原始 query 狀態 */
@@ -33,6 +34,7 @@ export type GenerateDetailSource = GenerateDetail
  */
 export function createGenerateDetail(source: GenerateDetailSource): GenerateDetail {
     return {
+        draft: () => !isPreviewing() && source.draft(),
         error: () => !isPreviewing() && source.error(),
         loading: () => isPreviewing() || source.loading(),
         task: () => isPreviewing() ? undefined : source.task(),

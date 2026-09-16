@@ -55,64 +55,45 @@ export type GenerateValues = z.output<typeof generateSchema>
 
 export type PromptKind = 'positive' | 'negative'
 
-export type GenerateTask = Omit<TaskApi.GetTaskResponse, 'createdAt' | 'status' | 'config'> & {
-    createdAt: TaskApi.GetTaskResponse['createdAt'] | null
-    status: TaskApi.GetTaskResponse['status'] | null
-    config: TaskApi.CreateTaskPayload['config']
-}
-
-export const draftTask: GenerateTask = {
-    id: '#',
-    name: null,
-    status: null,
-    pin: false,
-    discard: false,
-    createdAt: null,
-    workflow: '',
-    /* draft 還沒有 workflow，兩個都是 0：TaskDetail 看到 0 就不提示 drift */
-    workflowRevision: 0,
-    currentWorkflowRevision: 1,
-    config: {
-        seed: null,
-        steps: 40,
-        cfg: 4,
-        width: 1536,
-        height: 1536,
-        batch: 1,
-        sampler: 'dpmpp_2m_sde_gpu',
-        denoise: 0.7,
-    },
+export const draftGenerateValues: GenerateValues = {
+    name: '',
+    workflowId: '',
+    cfg: 4,
+    height: 1536,
     lora: [],
-    prompt: {
-        negative: {
-            text: `nsfw, worst quality, low quality,
+    negative: {
+        text: `nsfw, worst quality, low quality,
 bad anatomy, bad hands, malformed hands, extra fingers, missing fingers,
 extra limbs, twisted body, poorly drawn face, asymmetrical eyes,
 blurry, messy lineart, flat shading, low detail,
 wrong outfit, inaccurate clothing details, wrong colors,
 extra accessories, text, watermark, logo, cropped, out of frame,`,
-            groups: [{
-                id: 'draft-negative-quality',
-                name: '畫質',
-                fromLine: 1,
-                toLine: 6,
-                enabled: true,
-                disabledTokenIndexes: [],
-            }],
-        },
-        positive: {
-            text: 'masterpiece, best quality, score_9, score_8, highres, anime screenshot,',
-            groups: [{
-                id: 'draft-positive-quality',
-                name: '畫質',
-                fromLine: 1,
-                toLine: 1,
-                enabled: true,
-                disabledTokenIndexes: [],
-            }],
-        },
+        groups: [{
+            id: 'draft-negative-quality',
+            name: '畫質',
+            fromLine: 1,
+            toLine: 6,
+            enabled: true,
+            disabledTokenIndexes: [],
+        }],
     },
-    images: [],
+    positive: {
+        text: 'masterpiece, best quality, score_9, score_8, highres, anime screenshot,',
+        groups: [{
+            id: 'draft-positive-quality',
+            name: '畫質',
+            fromLine: 1,
+            toLine: 1,
+            enabled: true,
+            disabledTokenIndexes: [],
+        }],
+    },
+    sampler: 'dpmpp_2m_sde_gpu',
+    seed: '',
+    steps: 40,
+    width: 1536,
+    batch: 1,
+    denoise: 0.7,
     referenceImage: null,
 }
 
@@ -142,7 +123,7 @@ export function toViewerImage(reference: ReferenceImage) {
     }
 }
 
-export const toGenerateValues = (task: GenerateTask): GenerateValues => ({
+export const toGenerateValues = (task: TaskApi.GetTaskResponse): GenerateValues => ({
     // 表單一律用字串，未命名與送出時的 null 在邊界轉換
     name: task.name ?? '',
     cfg: task.config.cfg,
@@ -163,7 +144,7 @@ export const toGenerateValues = (task: GenerateTask): GenerateValues => ({
             origin: task.referenceImage.origin,
         }
         : null,
-    workflowId: task.workflowId ?? '',
+    workflowId: task.workflowId,
 })
 
 function normalizeSampler(value: string): string {
@@ -237,11 +218,11 @@ type GenerateFormOptions = {
 }
 
 export function createGenerateForm(
-    initialTask: GenerateTask,
+    initialValues: GenerateValues,
     options: GenerateFormOptions,
 ) {
     return createForm(() => ({
-        defaultValues: cloneGenerateValues(toGenerateValues(initialTask)),
+        defaultValues: cloneGenerateValues(initialValues),
         validators: {
             onSubmit: ({ value }) => {
                 const result = generateSchema.safeParse(value)

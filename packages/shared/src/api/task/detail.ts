@@ -18,7 +18,7 @@ export const getTaskResponse = z.object({
     pin: z.boolean(),
     discard: z.boolean(),
     createdAt: z.iso.datetime(),
-    workflowId: z.uuid().optional(),
+    workflowId: z.uuid(),
     workflow: z.string(),
     workflowRevision: z.number().int().nonnegative(),
     currentWorkflowRevision: z.number().int().positive(),

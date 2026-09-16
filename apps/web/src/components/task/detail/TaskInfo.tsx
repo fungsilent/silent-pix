@@ -18,11 +18,12 @@ import type { Accessor } from 'solid-js'
 export type TaskInfoData = {
     id: Accessor<string | undefined>
     name: Accessor<string>
-    status: Accessor<TaskApi.TaskStatus | null | undefined>
-    createdAt: Accessor<string | null | undefined>
+    status: Accessor<TaskApi.TaskStatus | undefined>
+    createdAt: Accessor<string | undefined>
 }
 
 export type TaskInfoCreateData = TaskInfoData & {
+    draft: Accessor<boolean>
     imageCount: Accessor<number>
     renameError: Accessor<string | undefined>
     renamePending: Accessor<boolean>
@@ -50,7 +51,17 @@ export function TaskInfo(props: TaskInfoProps) {
     const [deleteOpen, setDeleteOpen] = createSignal(false)
     const [deleteError, setDeleteError] = createSignal<string>()
     const isCreate = () => props.mode === 'create'
-    const hasDelete = () => isCreate() && props.data.status() != null
+    const isDraft = () => {
+        if (props.mode !== 'create') {
+            return false
+        }
+
+        return props.data.draft()
+    }
+    const hasDelete = () => isCreate()
+        && !isDraft()
+        && !props.loading()
+        && props.data.status() !== undefined
     const renamePending = () => props.mode === 'create' ? props.data.renamePending() : false
     const renameError = () => props.mode === 'create' ? props.data.renameError() : undefined
     const deletePending = () => props.mode === 'create' ? props.data.deletePending() : false
@@ -106,7 +117,11 @@ export function TaskInfo(props: TaskInfoProps) {
                 <div class='flex min-w-0 flex-col gap-1'>
                     <Loading.Mask loading={props.loading}>
                         <Editable
-                            disabled={props.mode === 'view' || props.data.status() == null || renamePending()}
+                            disabled={props.mode === 'view'
+                                || isDraft()
+                                || props.loading()
+                                || props.data.status() === undefined
+                                || renamePending()}
                             label='Name'
                             value={props.data.name()}
                             onChange={value => {
@@ -129,16 +144,18 @@ export function TaskInfo(props: TaskInfoProps) {
             <DetailRow label='Status'>
                 <Loading.Mask loading={props.loading}>
                     <Show
-                        when={props.data.status() !== undefined}
-                        /* cold 時只留 Badge 的 h-5 外框，不冒充 Draft */
-                        fallback={<Badge>{'\u00A0'}</Badge>}
+                        when={isDraft()}
+                        fallback={(
+                            <Show
+                                when={props.data.status()}
+                                /* cold 時只留 Badge 的 h-5 外框，不冒充 Draft */
+                                fallback={<Badge>{'\u00A0'}</Badge>}
+                            >
+                                {status => <TaskStatus status={status()} />}
+                            </Show>
+                        )}
                     >
-                        <Show
-                            when={props.data.status()}
-                            fallback={<Badge tone='slate'>Draft</Badge>}
-                        >
-                            {status => <TaskStatus status={status()} />}
-                        </Show>
+                        <Badge tone='slate'>Draft</Badge>
                     </Show>
                 </Loading.Mask>
             </DetailRow>

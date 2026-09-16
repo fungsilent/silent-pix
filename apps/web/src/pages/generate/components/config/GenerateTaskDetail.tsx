@@ -186,7 +186,7 @@ export function GenerateTaskDetail() {
         setRenameError()
         const current = detail.task()
 
-        if (!current || current.status === null || renameMutation.isPending) {
+        if (!current || renameMutation.isPending) {
             return
         }
 
@@ -293,6 +293,7 @@ export function GenerateTaskDetail() {
         name,
         status: () => detail.task()?.status,
         createdAt: () => detail.task()?.createdAt,
+        draft: detail.draft,
         imageCount: () => detail.task()?.images.length ?? 0,
         renameError,
         renamePending: () => renameMutation.isPending,
@@ -309,7 +310,7 @@ export function GenerateTaskDetail() {
         workflowOptions,
         samplerOptions,
         hasReference: () => referenceImage() !== null,
-        isDraft: () => detail.task()?.status === null,
+        isDraft: detail.draft,
         restorableSeed: () => detail.task()?.config.seed ?? null,
         workflowLoading: () => workflowQuery.isLoading,
         workflowError: () => workflowQuery.isError,

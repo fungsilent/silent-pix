@@ -8,7 +8,7 @@ import { TaskBrowser } from '#/pages/generate/components/task/browser/TaskBrowse
 import { TaskList } from '#/pages/generate/components/task/list/TaskList'
 import { GenerateWorkspace } from '#/pages/generate/components/workspace/generate/GenerateWorkspace'
 import { createGenerateDetail, GenerateDetailProvider } from '#/pages/generate/detail'
-import { draftTask, toCreateTaskRequest } from '#/pages/generate/form'
+import { toCreateTaskRequest } from '#/pages/generate/form'
 import { toSubmitIssue } from '#/pages/generate/issue'
 import {
     createGenerateStore,
@@ -24,7 +24,7 @@ export function GeneratePage() {
         const selectedTaskId = taskStore.state.selectedTaskId
 
         if (!selectedTaskId) {
-            return draftTask
+            return undefined
         }
 
         return taskDetailQuery.data?.id === selectedTaskId
@@ -32,13 +32,14 @@ export function GeneratePage() {
             : undefined
     }
     const detail = createGenerateDetail({
+        draft: () => taskStore.state.selectedTaskId === undefined,
         error: () => Boolean(taskStore.state.selectedTaskId)
             && taskDetailQuery.isError
             && acceptedTask() === undefined,
         loading: () => Boolean(taskStore.state.selectedTaskId) && taskDetailQuery.isLoading,
         task: acceptedTask,
     })
-    const generateStore = createGenerateStore(draftTask, {
+    const generateStore = createGenerateStore({
         onSubmit: async values => {
             const response = await createTaskMutation.mutateAsync(toCreateTaskRequest(values))
             taskStore.selectTask(response.id)
@@ -53,8 +54,17 @@ export function GeneratePage() {
      */
     const taskId = createMemo(() => detail.task()?.id)
     const taskName = createMemo(() => detail.task()?.name)
+    const draft = createMemo(() => detail.draft())
 
-    createEffect(on([taskId, taskName], ([taskIdValue, serverName], previous) => {
+    createEffect(on([taskId, taskName, draft], ([taskIdValue, serverName, draftValue], previous) => {
+        if (draftValue) {
+            if (previous?.[2] === false) {
+                generateStore.loadDraft()
+            }
+
+            return
+        }
+
         /* query refetch 暫時沒有 data 時，保留同一 task 的編輯內容。 */
         const task = detail.task()
 

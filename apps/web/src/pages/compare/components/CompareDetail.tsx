@@ -73,7 +73,7 @@ export function CompareDetail() {
             return current
                 ? [{
                     label: current.workflow || current.workflowId || '-',
-                    value: current.workflowId ?? '',
+                    value: current.workflowId,
                 }]
                 : []
         },

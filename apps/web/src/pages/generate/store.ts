@@ -4,14 +4,14 @@ import { createStore } from '#/lib/store'
 import {
     cloneGenerateValues,
     createGenerateForm,
-    draftTask,
+    draftGenerateValues,
     referenceSize,
     toGenerateValues,
 } from '#/pages/generate/form'
 import { toValidationIssues } from '#/pages/generate/issue'
 
+import type { TaskApi } from '@silent-pix/shared'
 import type {
-    GenerateTask,
     GenerateValues,
     PromptKind,
     ReferenceImage,
@@ -24,7 +24,7 @@ export type { ReferenceImage } from '#/pages/generate/form'
 type GenerateUiState = {
     submitIssues: GenerateIssue[]
     submitToken: number
-    taskId: string
+    taskId: string | undefined
     promptVisible: Record<PromptKind, boolean>
 }
 
@@ -33,13 +33,12 @@ export type GenerateStoreOptions = {
 }
 
 export function createGenerateStore(
-    initialTask: GenerateTask = draftTask,
     options: GenerateStoreOptions = {},
 ) {
     const initialState: GenerateUiState = {
         submitIssues: [],
         submitToken: 0,
-        taskId: initialTask.id,
+        taskId: undefined,
         promptVisible: { positive: true, negative: true },
     }
 
@@ -61,14 +60,14 @@ export function createGenerateStore(
         }),
     )
 
-    const form = createGenerateForm(initialTask, {
+    const form = createGenerateForm(draftGenerateValues, {
         onInvalid: issues => uiStore.reportSubmitIssues(toValidationIssues(issues)),
         onSubmit: async values => {
             await options.onSubmit?.(values)
         },
     })
 
-    const loadTask = (task: GenerateTask) => {
+    const loadTask = (task: TaskApi.GetTaskResponse) => {
         /* 同一 task 的 task.changed 只更新 query cache，不重設編輯中的表單。 */
         if (uiStore.state.taskId === task.id) {
             return
@@ -77,6 +76,16 @@ export function createGenerateStore(
         releaseLocalPreview(form.getFieldValue('referenceImage'))
         form.reset(cloneGenerateValues(toGenerateValues(task)))
         uiStore.set('taskId', task.id)
+    }
+
+    const loadDraft = () => {
+        if (uiStore.state.taskId === undefined) {
+            return
+        }
+
+        releaseLocalPreview(form.getFieldValue('referenceImage'))
+        form.reset(cloneGenerateValues(draftGenerateValues))
+        uiStore.set('taskId', undefined)
     }
 
     const setReferenceImage = (reference: ReferenceImage) => {
@@ -121,6 +130,7 @@ export function createGenerateStore(
         ...uiStore,
         form,
         loadTask,
+        loadDraft,
         setReferenceImage,
         clearReferenceImage,
         applyLoraSelection,
