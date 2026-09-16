@@ -18,8 +18,8 @@ import { taskChanged } from '#/module/task/task.event'
 import { castTaskModel } from '#/module/task/task.model'
 import { workflowService } from '#/module/workflow/workflow.service'
 
-import type { DatabaseClient, TaskStatus, TaskUpdate, UUID } from '@silent-pix/db'
-import type { Event, ImageApi, TaskApi } from '@silent-pix/shared'
+import type { DatabaseClient, TaskUpdate, UUID } from '@silent-pix/db'
+import type { Event, ImageApi, Task, TaskApi } from '@silent-pix/shared'
 import type { PushEvent } from '#/app.store'
 import type { ComfyClient } from '#/lib/comfy/comfy.client'
 import type { GenerateConfig } from '#/lib/comfy/comfy.prompt'
@@ -162,7 +162,7 @@ export const taskService = {
         database: DatabaseClient,
         task: TaskUpdate,
         options?: {
-            limtedStatus?: TaskStatus[],
+            limtedStatus?: Task.TaskStatus[],
         }
     ) {
         const { limtedStatus } = options || {}

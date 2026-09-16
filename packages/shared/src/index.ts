@@ -1,4 +1,8 @@
 import { imageMime, imageMimeValues } from '#shared/contract/image'
+import {
+    taskFilterFlags,
+    taskStatuses,
+} from '#shared/contract/task'
 import { configSchema, generatorFields, isGeneratorField } from '#shared/contract/workflow/config'
 import { isGraphLink, parseApiGraph, validateMapping } from '#shared/contract/workflow/graph'
 import { heartbeatIntervalMs, staleTimeoutMs } from '#shared/event/health'
@@ -29,6 +33,12 @@ export const image = {
     imageMimeValues,
 } as const
 export type * as Image from '#shared/contract/image'
+
+export const task = {
+    statuses: taskStatuses,
+    filterFlags: taskFilterFlags,
+} as const
+export type * as Task from '#shared/contract/task'
 
 export type * as AppApi from '#shared/api/app'
 

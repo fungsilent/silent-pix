@@ -1,9 +1,11 @@
+import { task } from '@silent-pix/shared'
+
 import { createStore } from '#/lib/store'
 
 import type { TaskApi } from '@silent-pix/shared'
 
 type TaskFilterFlag = TaskApi.TaskFilterFlag
-const taskFilterFlagOrder: TaskFilterFlag[] = ['unflag', 'pin', 'discard']
+const taskFilterFlagOrder = task.filterFlags
 
 type TaskStoreState = {
     selectedTaskId: string | undefined

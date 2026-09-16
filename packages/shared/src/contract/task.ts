@@ -2,11 +2,14 @@ import { z } from 'zod'
 
 /* MARK: primitives */
 
-export const taskStatus = z.enum(['queued', 'running', 'done', 'failed'])
+export const taskStatuses = ['queued', 'running', 'done', 'failed'] as const
+export const taskFilterFlags = ['unflag', 'pin', 'discard'] as const
+
+export const taskStatus = z.enum(taskStatuses)
 
 export const taskFlag = z.enum(['pin', 'discard'])
 
-export const taskFilterFlag = z.enum(['unflag', 'pin', 'discard'])
+export const taskFilterFlag = z.enum(taskFilterFlags)
 
 /* MARK: values */
 

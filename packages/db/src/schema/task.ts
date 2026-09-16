@@ -1,3 +1,4 @@
+import { task } from '@silent-pix/shared'
 import { sql } from 'drizzle-orm'
 import {
     check,
@@ -12,17 +13,16 @@ import { uuidCheck } from '#/schema/schema.util'
 import { workflows } from '#/schema/workflow'
 import { createUUID } from '#/uuid'
 
+import type { Task } from '@silent-pix/shared'
 import type { JsonObject, UpdateData } from '#/schema/schema.util'
 import type { UUID } from '#/uuid'
-
-export type TaskStatus = 'queued' | 'running' | 'done' | 'failed'
 
 export const tasks = sqliteTable('tasks', {
     id: text('id').$type<UUID>().primaryKey().$defaultFn(createUUID),
     name: text('name'),
     status: text('status', {
-        enum: ['queued', 'running', 'done', 'failed'],
-    }).$type<TaskStatus>().notNull(),
+        enum: task.statuses,
+    }).$type<Task.TaskStatus>().notNull(),
     pin: integer('pin', { mode: 'boolean' }).notNull().default(false),
     discard: integer('discard', { mode: 'boolean' }).notNull().default(false),
     workflowId: text('workflow_id').$type<UUID>().notNull().references(() => workflows.id, {

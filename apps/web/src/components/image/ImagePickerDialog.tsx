@@ -1,3 +1,4 @@
+import { task } from '@silent-pix/shared'
 import {
     Check,
     FlagOff,
@@ -47,7 +48,7 @@ const imageSkeletonCells = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 type ImageType = ImageApi.ImageUsage['type']
 type ImageTaskFlag = TaskApi.TaskFilterFlag
-const taskFlagOrder: ImageTaskFlag[] = ['unflag', 'pin', 'discard']
+const taskFlagOrder = task.filterFlags
 
 type ImageFilterOption<Value extends string> = {
     value: Value
