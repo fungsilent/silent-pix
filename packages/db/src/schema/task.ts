@@ -54,5 +54,4 @@ export const tasks = sqliteTable('tasks', {
 ])
 
 export type TaskSelect = typeof tasks.$inferSelect
-export type TaskInsert = typeof tasks.$inferInsert
-export type TaskUpdate = UpdateData<TaskInsert>
+export type TaskUpdate = UpdateData<typeof tasks.$inferInsert>

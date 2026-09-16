@@ -13,13 +13,12 @@ import { uuidCheck } from '#/schema/schema.util'
 import { tasks } from '#/schema/task'
 import { createUUID } from '#/uuid'
 
-import type { UpdateData } from '#/schema/schema.util'
 import type { UUID } from '#/uuid'
 
 /* mask = Inpainting / control = ControlNet */
-export const taskImageTypes = ['input', 'output', 'mask', 'control'] as const
+const taskImageTypes = ['input', 'output', 'mask', 'control'] as const
 
-export type TaskImageType = typeof taskImageTypes[number]
+type TaskImageType = typeof taskImageTypes[number]
 
 /* task 與 image 的多對多關聯：某個 task 以某種身分、在第幾個位置用了某張圖 */
 export const taskImages = sqliteTable('task_images', {
@@ -52,5 +51,3 @@ export const taskImages = sqliteTable('task_images', {
 ])
 
 export type TaskImageSelect = typeof taskImages.$inferSelect
-export type TaskImageInsert = typeof taskImages.$inferInsert
-export type TaskImageUpdate = UpdateData<TaskImageInsert>
