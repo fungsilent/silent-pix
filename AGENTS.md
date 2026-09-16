@@ -90,7 +90,9 @@ These are implementation constraints. `docs/architecture.md` describes current s
 ## Storage and Boundaries
 
 - Use SQLite + Drizzle only. Do not add other database engines, ORMs, queues, or cloud database services.
-- Server services query `database.db` with Drizzle directly. Do not add a repository layer, use raw SQLite outside the database client, or use Drizzle's `sql` tagged template in `apps/server`.
+- Server lifecycle owns a `DatabaseClient` instance named `databaseClient`; it exposes the Drizzle `Database` as `databaseClient.database` plus `check` and `close`, and only startup, health, and shutdown may use the lifecycle methods.
+- `databaseMiddleware` injects that `databaseClient` into Elysia route context. Domain routes pass `databaseClient.database` to services; domain services query `Database` directly. Transaction-compatible leaf capabilities accept only their precise narrow `Pick<Database, ...>` capability.
+- Do not add a repository layer, use raw SQLite outside the database client, or use Drizzle's `sql` tagged template in `apps/server`.
 - Frontend must never call ComfyUI, access SQLite, or know backend-only env values. Workflow UI may edit the shared graph/mapping contract, including node IDs; connection and execution protocols remain server-owned.
 - Backend is the source of truth for durable state. Frontend state is UI state only.
 - WebSocket event contracts live under `packages/shared/src/event`, divided by domain module.

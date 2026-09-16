@@ -6,12 +6,12 @@ import { createDatabaseClient } from '#/client'
 import { loadConfig } from '#/config'
 
 const config = loadConfig()
-const database = await createDatabaseClient()
+const databaseClient = await createDatabaseClient()
 
 try {
-    await migrate(database.db, {
+    await migrate(databaseClient.database, {
         migrationsFolder: resolve(config.packageRoot, 'migrations'),
     })
 } finally {
-    database.close()
+    databaseClient.close()
 }

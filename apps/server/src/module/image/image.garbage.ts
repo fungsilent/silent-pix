@@ -10,7 +10,7 @@ import { unlinkContent } from '#/lib/image/image.store'
 import { imageCleanup } from '#/module/image/image.cleanup'
 import { withImageMutation } from '#/module/image/image.mutation'
 
-import type { DatabaseClient } from '@silent-pix/db'
+import type { Database } from '@silent-pix/db'
 import type { ImageApi } from '@silent-pix/shared'
 
 const config = loadConfig()
@@ -25,27 +25,27 @@ export type ImageGarbageCollectionOptions = {
 
 export const imageGarbageCollection = {
     collect(
-        database: DatabaseClient,
+        database: Database,
         options: ImageGarbageCollectionOptions = {},
     ): Promise<ImageApi.ImageGarbageCollectionResponse> {
         return withImageMutation(async () => {
             const graceMs = options.graceMs ?? defaultGraceMs
             const cutoff = (options.now ?? Date.now()) - graceMs
             const knownPaths = new Set(
-                await database.db
+                await database
                     .select({ path: images.path })
                     .from(images)
                     .all()
                     .then(rows => rows.map(row => row.path)),
             )
 
-            const orphanCandidates = await database.db
+            const orphanCandidates = await database
                 .select({ id: images.id })
                 .from(images)
                 .where(and(
                     lt(images.createdAt, cutoff),
                     notExists(
-                        database.db
+                        database
                             .select({ id: taskImages.id })
                             .from(taskImages)
                             .where(eq(taskImages.imageId, images.id)),

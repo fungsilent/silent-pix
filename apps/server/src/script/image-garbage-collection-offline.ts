@@ -17,10 +17,10 @@ else {
     try {
         await requireServerStopped()
 
-        const database = await createDatabaseClient()
+        const databaseClient = await createDatabaseClient()
 
         try {
-            const result = await imageGarbageCollection.collect(database)
+            const result = await imageGarbageCollection.collect(databaseClient.database)
             console.log(JSON.stringify(result))
 
             if (result.unlinkFailureCount > 0) {
@@ -28,7 +28,7 @@ else {
             }
         }
         finally {
-            database.close()
+            databaseClient.close()
         }
     }
     catch (cause) {

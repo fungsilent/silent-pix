@@ -9,8 +9,10 @@ import * as schema from '#/schema/schema.export'
 
 import type { LibSQLDatabase } from 'drizzle-orm/libsql'
 
+export type Database = LibSQLDatabase<typeof schema>
+
 export type DatabaseClient = {
-    db: LibSQLDatabase<typeof schema>
+    database: Database
     check: () => Promise<boolean>
     close: () => void
 }
@@ -25,7 +27,7 @@ export async function createDatabaseClient(): Promise<DatabaseClient> {
 
     await client.execute('PRAGMA foreign_keys = ON')
 
-    const db = drizzle({
+    const database = drizzle({
         client,
         schema,
     })
@@ -33,7 +35,7 @@ export async function createDatabaseClient(): Promise<DatabaseClient> {
     let closed = false
 
     return {
-        db,
+        database,
         async check() {
             try {
                 if (closed) {

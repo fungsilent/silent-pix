@@ -15,7 +15,7 @@ import { workflowRoutes } from '#/module/workflow/workflow.route'
 export async function createApp() {
     const store = await serverStore.init()
 
-    const recoveredTaskIds = await taskService.failInterruptedTasks(store.database)
+    const recoveredTaskIds = await taskService.failInterruptedTasks(store.databaseClient.database)
     if (recoveredTaskIds.length > 0) {
         console.info(`Recovered ${recoveredTaskIds.length} interrupted task(s) after server restart.`)
     }
@@ -23,7 +23,7 @@ export async function createApp() {
     const health = createHealthBroadcaster({
         channel: store.eventChannel,
         comfyClient: store.comfyClient,
-        database: store.database,
+        databaseClient: store.databaseClient,
     })
 
     store.comfyClient.onStatusChange(() => {
@@ -70,7 +70,7 @@ export async function createApp() {
             store.eventChannel.close()
             store.comfyClient.close()
             await waitForImageMutationDrain()
-            store.database.close()
+            store.databaseClient.close()
         },
     }
 }

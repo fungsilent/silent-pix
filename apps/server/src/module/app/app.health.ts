@@ -10,13 +10,13 @@ import type { ComfyClient } from '#/lib/comfy/comfy.client'
 type HealthBroadcasterOptions = {
     channel: EventChannel<Event.ServerEvent>
     comfyClient: ComfyClient
-    database: DatabaseClient
+    databaseClient: DatabaseClient
 }
 
 export type HealthBroadcaster = ReturnType<typeof createHealthBroadcaster>
 
 export function createHealthBroadcaster(options: HealthBroadcasterOptions) {
-    const { channel, comfyClient, database } = options
+    const { channel, comfyClient, databaseClient } = options
 
     let cachedDatabase = false
     let probing: Promise<void> | undefined
@@ -34,7 +34,7 @@ export function createHealthBroadcaster(options: HealthBroadcasterOptions) {
 
         probing = (async () => {
             try {
-                cachedDatabase = await database.check()
+                cachedDatabase = await databaseClient.check()
             }
             finally {
                 probing = undefined

@@ -6,24 +6,24 @@ import { stringify } from '#/lib/json/json.stringify'
 import { done, fail } from '#/lib/service-result'
 import { castWorkflowModel } from '#/module/workflow/workflow.model'
 
-import type { DatabaseClient, UUID, WorkflowInsert } from '@silent-pix/db'
+import type { Database, UUID, WorkflowInsert } from '@silent-pix/db'
 import type { Comfy, ConfigSchema, WorkflowApi } from '@silent-pix/shared'
 import type { WorkflowModel } from '#/module/workflow/workflow.model'
 
 export const workflowService = {
     // MARK: CRUD
-    async findWorkflow(database: DatabaseClient, workflowId: WorkflowModel['id']) {
+    async findWorkflow(database: Database, workflowId: WorkflowModel['id']) {
         const [workflow] = await workflowService.findWorkflows(database, [workflowId])
 
         return workflow ?? null
     },
 
-    async findWorkflows(database: DatabaseClient, workflowIds: readonly UUID[]) {
+    async findWorkflows(database: Database, workflowIds: readonly UUID[]) {
         if (!workflowIds.length) {
             return []
         }
 
-        const workflowRows = await database.db
+        const workflowRows = await database
             .select()
             .from(workflows)
             .where(inArray(workflows.id, workflowIds))
@@ -39,7 +39,7 @@ export const workflowService = {
     },
 
     async getWorkflowResponse(
-        database: DatabaseClient,
+        database: Database,
         workflowId: WorkflowModel['id'],
     ): Promise<WorkflowApi.GetWorkflowResponse | undefined> {
         const workflow = await workflowService.findWorkflow(database, workflowId)
@@ -71,8 +71,8 @@ export const workflowService = {
         return done(graph)
     },
 
-    async list(database: DatabaseClient): Promise<WorkflowApi.WorkflowSummary[]> {
-        const rows = await database.db
+    async list(database: Database): Promise<WorkflowApi.WorkflowSummary[]> {
+        const rows = await database
             .select()
             .from(workflows)
             .orderBy(asc(workflows.name))
@@ -90,12 +90,12 @@ export const workflowService = {
     },
 
     async create(
-        database: DatabaseClient,
+        database: Database,
         payload: Pick<WorkflowInsert, 'name' | 'graph' | 'configSchema'>,
     ) {
         const now = Date.now()
 
-        const [created] = await database.db
+        const [created] = await database
             .insert(workflows)
             .values({
                 name: payload.name,
@@ -120,7 +120,7 @@ export const workflowService = {
      * 插進來的另一次存檔不會被靜靜蓋掉。讀出來只是為了分辨要回哪一種錯誤。
      */
     async update(
-        database: DatabaseClient,
+        database: Database,
         workflowId: WorkflowModel['id'],
         expectedRevision: number,
         payload: Pick<WorkflowInsert, 'name' | 'graph' | 'configSchema'>,
@@ -143,7 +143,7 @@ export const workflowService = {
         const unchanged = stringify(current.graph) === stringify(payload.graph)
             && stringify(current.configSchema) === stringify(payload.configSchema)
 
-        const [updated] = await database.db
+        const [updated] = await database
             .update(workflows)
             .set({
                 name: payload.name,
@@ -180,14 +180,14 @@ export const workflowService = {
         return done(castWorkflowModel(updated))
     },
 
-    async remove(database: DatabaseClient, workflowId: WorkflowModel['id']) {
+    async remove(database: Database, workflowId: WorkflowModel['id']) {
         const current = await workflowService.findWorkflow(database, workflowId)
 
         if (!current) {
             return fail('WORKFLOW_NOT_FOUND')
         }
 
-        return database.db.transaction(async transaction => {
+        return database.transaction(async transaction => {
             const taskCount = await workflowService.countTasks(transaction, workflowId)
 
             if (taskCount === 0) {
@@ -234,13 +234,10 @@ export const workflowService = {
     },
 
     async countTasks(
-        databaseOrTransaction: DatabaseClient | Pick<DatabaseClient['db'], 'select'>,
+        database: Pick<Database, 'select'>,
         workflowId: WorkflowModel['id'],
     ) {
-        const executor = 'db' in databaseOrTransaction
-            ? databaseOrTransaction.db
-            : databaseOrTransaction
-        const [row] = await executor
+        const [row] = await database
             .select({ value: count() })
             .from(tasks)
             .where(eq(tasks.workflowId, workflowId))

@@ -3,7 +3,7 @@ import { and, eq, inArray, notExists } from 'drizzle-orm'
 
 import { unlinkContent } from '#/lib/image/image.store'
 
-import type { DatabaseClient, UUID } from '@silent-pix/db'
+import type { Database, UUID } from '@silent-pix/db'
 
 type RemovedImageContent = {
     id: UUID
@@ -14,18 +14,18 @@ type RemovedImageContent = {
 export const imageCleanup = {
     /* Caller owns withImageMutation; every unlink target comes from DELETE RETURNING. */
     async removeUnreferenced(
-        database: DatabaseClient,
+        database: Database,
         imageIds: UUID[],
     ): Promise<RemovedImageContent[]> {
         const removed: RemovedImageContent[] = []
 
         for (const chunk of chunkArray([...new Set(imageIds)], 500)) {
-            const rows = await database.db
+            const rows = await database
                 .delete(images)
                 .where(and(
                     inArray(images.id, chunk),
                     notExists(
-                        database.db
+                        database
                             .select({ id: taskImages.id })
                             .from(taskImages)
                             .where(eq(taskImages.imageId, images.id)),

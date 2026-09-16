@@ -11,7 +11,7 @@ import { imageService } from '#/module/image/image.service'
 import { taskImageService } from '#/module/task/task.image.service'
 import { taskService } from '#/module/task/task.service'
 
-import type { DatabaseClient, UUID } from '@silent-pix/db'
+import type { Database, UUID } from '@silent-pix/db'
 import type { PushEvent } from '#/app.store'
 import type { ComfyClient } from '#/lib/comfy/comfy.client'
 import type { WorkflowModel } from '#/module/workflow/workflow.model'
@@ -20,7 +20,7 @@ const config = loadConfig()
 
 export const taskExecution = {
     async generate(
-        database: DatabaseClient,
+        database: Database,
         client: ComfyClient,
         taskId: UUID,
         workflow: WorkflowModel,
@@ -193,7 +193,7 @@ export const taskExecution = {
 }
 
 async function failTask(
-    database: DatabaseClient,
+    database: Database,
     taskId: UUID,
     errorCode: string,
     errorMessage: string,
@@ -227,7 +227,7 @@ function comfyImagePath(relativePath: string): string {
 
 /* Caller owns the image mutation lock; event publication belongs outside it. */
 async function completeTaskMutation(
-    database: DatabaseClient,
+    database: Database,
     taskId: UUID,
     outputs: { imageId: UUID, sortIndex: number }[],
 ): Promise<boolean> {
@@ -236,7 +236,7 @@ async function completeTaskMutation(
         return false
     }
 
-    await database.db.transaction(async tx => {
+    await database.transaction(async tx => {
         await taskImageService.addReferences(
             tx,
             outputs.map(output => ({

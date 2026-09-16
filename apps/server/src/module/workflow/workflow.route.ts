@@ -14,8 +14,8 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
     .use(eventMiddleware)
     .get(
         '/',
-        async ({ database }) => ({
-            options: await workflowService.list(database),
+        async ({ databaseClient }) => ({
+            options: await workflowService.list(databaseClient.database),
         }),
         {
             response: {
@@ -27,9 +27,9 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
     )
     .get(
         '/:workflowId',
-        async ({ database, params, status }) => {
+        async ({ databaseClient, params, status }) => {
             const workflow = await workflowService.getWorkflowResponse(
-                database,
+                databaseClient.database,
                 toUUID(params.workflowId, 'workflowId'),
             )
 
@@ -56,20 +56,20 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
     )
     .post(
         '/',
-        async ({ body, database, pushEvent, status }) => {
+        async ({ body, databaseClient, pushEvent, status }) => {
             const checked = workflowService.checkMapping(body.graph, body.configSchema)
 
             if (!checked.ok) {
                 return status(422, toMappingError(checked))
             }
 
-            const created = await workflowService.create(database, {
+            const created = await workflowService.create(databaseClient.database, {
                 name: body.name,
                 graph: checked.data,
                 configSchema: body.configSchema,
             })
 
-            const workflow = await workflowService.getWorkflowResponse(database, created.id)
+            const workflow = await workflowService.getWorkflowResponse(databaseClient.database, created.id)
 
             if (!workflow) {
                 throw new Error('Created workflow could not be loaded.')
@@ -95,7 +95,7 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
     )
     .put(
         '/:workflowId',
-        async ({ body, database, params, pushEvent, status }) => {
+        async ({ body, databaseClient, params, pushEvent, status }) => {
             const checked = workflowService.checkMapping(body.graph, body.configSchema)
 
             if (!checked.ok) {
@@ -103,7 +103,7 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
             }
 
             const result = await workflowService.update(
-                database,
+                databaseClient.database,
                 toUUID(params.workflowId, 'workflowId'),
                 body.revision,
                 {
@@ -124,7 +124,7 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
                 })
             }
 
-            const workflow = await workflowService.getWorkflowResponse(database, result.data.id)
+            const workflow = await workflowService.getWorkflowResponse(databaseClient.database, result.data.id)
 
             if (!workflow) {
                 throw new Error('Updated workflow could not be loaded.')
@@ -154,9 +154,9 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
 
     .delete(
         '/:workflowId',
-        async ({ database, params, pushEvent, status }) => {
+        async ({ databaseClient, params, pushEvent, status }) => {
             const result = await workflowService.remove(
-                database,
+                databaseClient.database,
                 toUUID(params.workflowId, 'workflowId'),
             )
 

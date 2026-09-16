@@ -10,7 +10,7 @@ import type { Event } from '@silent-pix/shared'
 export type PushEvent = (value: Event.ServerEvent) => void
 
 type Store = {
-    database: Awaited<ReturnType<typeof createDatabaseClient>>
+    databaseClient: Awaited<ReturnType<typeof createDatabaseClient>>
     comfyClient: ComfyClient
     eventChannel: EventChannel<Event.ServerEvent>
     pushEvent: PushEvent
@@ -25,7 +25,7 @@ export const serverStore = {
             throw new Error('[ServerStore] Already initialized.')
         }
 
-        const database = await createDatabaseClient()
+        const databaseClient = await createDatabaseClient()
         const comfyClient = new ComfyClient()
         const eventChannel = createEventChannel<Event.ServerEvent>()
         const pushEvent: PushEvent = value => {
@@ -34,7 +34,7 @@ export const serverStore = {
         }
 
         store = {
-            database,
+            databaseClient,
             comfyClient,
             eventChannel,
             pushEvent,

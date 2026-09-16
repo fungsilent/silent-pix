@@ -13,8 +13,8 @@ export const imageRoutes = new Elysia({ name: 'image-routes', prefix: '/image' }
     .use(databaseMiddleware)
     .get(
         '/',
-        async ({ database, query, status }) => {
-            const result = await imageService.listImages(database, query)
+        async ({ databaseClient, query, status }) => {
+            const result = await imageService.listImages(databaseClient.database, query)
 
             if (!result.ok) {
                 return status(422, {
@@ -38,8 +38,8 @@ export const imageRoutes = new Elysia({ name: 'image-routes', prefix: '/image' }
     )
     .get(
         '/:imageId',
-        async ({ database, params, request, status }) => {
-            const image = await imageService.findImage(database, toUUID(params.imageId, 'imageId'))
+        async ({ databaseClient, params, request, status }) => {
+            const image = await imageService.findImage(databaseClient.database, toUUID(params.imageId, 'imageId'))
 
             if (!image) {
                 return status(404, {

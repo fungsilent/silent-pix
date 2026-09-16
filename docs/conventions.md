@@ -233,6 +233,14 @@ Services query Drizzle directly and own transaction/batch boundaries. Do not
 add a repository layer. Keep related operations in their domain; split only
 for a distinct responsibility or isolated complexity.
 
+The server lifecycle owns a `DatabaseClient` instance named `databaseClient`.
+It exposes the Drizzle `Database` as `databaseClient.database`, plus `check`
+and `close`; only startup, health, and shutdown use those lifecycle methods.
+`databaseMiddleware` injects `databaseClient` into Elysia route context. Domain
+routes pass `databaseClient.database` to services, and transaction-compatible
+leaf capabilities accept only their precise narrow `Pick<Database, ...>`
+capability. Do not use raw SQLite or Drizzle `sql` in server domain code.
+
 Task creation uses the complete `WorkflowModel` returned by
 `workflowService.findWorkflow()`, whose existing `castWorkflowModel()` call is
 the DB row-to-domain conversion boundary. The task stores that model's `id` and
@@ -606,9 +614,10 @@ const config = loadConfig()
 app.listen({ hostname: config.serverHost, port: config.serverPort })
 ```
 
-Keep non-config inputs explicit. `DatabaseClient`, IDs, relative paths, request
+Keep non-config inputs explicit. `Database`, IDs, relative paths, request
 payloads, GC `graceMs`, and an injected `now` value describe an operation; they
-are not alternative env sources.
+are not alternative env sources. The lifecycle `DatabaseClient` is owned by
+`databaseClient` at startup, health, and shutdown boundaries.
 
 ---
 

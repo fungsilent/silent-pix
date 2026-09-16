@@ -9,7 +9,7 @@ import { contentExists, contentPath, writeContent } from '#/lib/image/image.stor
 import { done, fail } from '#/lib/service-result'
 import { toImageResource, toImageUsageType } from '#/module/image/image.model'
 
-import type { DatabaseClient, ImageSelect, UUID } from '@silent-pix/db'
+import type { Database, ImageSelect, UUID } from '@silent-pix/db'
 import type { ImageApi } from '@silent-pix/shared'
 
 type ImageCursor = { usedAt: number, sortIndex: number, id: UUID }
@@ -25,13 +25,13 @@ export const imageService = {
      * 呼叫端必須持有 image mutation lock，並把 ingest 與建立 task_images reference
      * 放在同一個 lock ownership 內。
      */
-    async ingest(database: DatabaseClient, bytes: Uint8Array) {
+    async ingest(database: Database, bytes: Uint8Array) {
         if (bytes.byteLength === 0) {
             return fail('IMAGE_EMPTY')
         }
 
         const hash = createHash('sha256').update(bytes).digest('hex')
-        const existing = await database.db
+        const existing = await database
             .select()
             .from(images)
             .where(eq(images.hash, hash))
@@ -54,7 +54,7 @@ export const imageService = {
         const path = contentPath(hash, meta.mime)
         await writeContent(path, bytes)
 
-        const [inserted] = await database.db
+        const [inserted] = await database
             .insert(images)
             .values({
                 hash,
@@ -73,7 +73,7 @@ export const imageService = {
         }
 
         /* 併發輸家：贏家寫的是同一份位元組，讀它的列就好，檔案不必也不能刪 */
-        const winner = await database.db
+        const winner = await database
             .select()
             .from(images)
             .where(eq(images.hash, hash))
@@ -84,8 +84,8 @@ export const imageService = {
             : fail('IMAGE_STORE_FAILED')
     },
 
-    findImage(database: DatabaseClient, imageId: UUID): Promise<ImageSelect | undefined> {
-        return database.db
+    findImage(database: Database, imageId: UUID): Promise<ImageSelect | undefined> {
+        return database
             .select()
             .from(images)
             .where(eq(images.id, imageId))
@@ -93,7 +93,7 @@ export const imageService = {
     },
 
     /* picker 的清單：一格一張圖。同一張圖被多個 task 用只出現一次，取最早那一次引用。 */
-    async listImages(database: DatabaseClient, query: ImageApi.GetImagesQuery) {
+    async listImages(database: Database, query: ImageApi.GetImagesQuery) {
         const cursor = query.cursor === undefined ? undefined : decodeCursor(query.cursor)
         if (query.cursor !== undefined && !cursor) {
             return fail('INVALID_IMAGE_CURSOR')
@@ -104,7 +104,7 @@ export const imageService = {
         const matchingUsage = alias(taskImages, 'matchingUsage')
         const matchingTask = alias(tasks, 'matchingTask')
 
-        const rows = await database.db
+        const rows = await database
             .select({
                 taskId: taskImages.taskId,
                 taskName: tasks.name,
@@ -120,7 +120,7 @@ export const imageService = {
             .where(and(
                 inArray(taskImages.type, displayTypes),
                 /* 只留每張圖最早的那一次引用，這就是「一格一張圖」的實作 */
-                eq(taskImages.id, database.db
+                eq(taskImages.id, database
                     .select({ id: earliest.id })
                     .from(earliest)
                     .where(and(
@@ -153,7 +153,7 @@ export const imageService = {
                  */
                 search || query.taskFlags || query.type
                     ? exists(
-                        database.db
+                        database
                             .select({ id: matchingUsage.id })
                             .from(matchingUsage)
                             .innerJoin(matchingTask, eq(matchingTask.id, matchingUsage.taskId))
@@ -230,11 +230,11 @@ export const imageService = {
      * 自己這一次引用，那不構成出處，回 undefined 讓 UI 不畫來源按鈕。
      */
     async findOrigin(
-        database: DatabaseClient,
+        database: Database,
         imageId: UUID,
         excludeTaskId?: UUID,
     ): Promise<ImageApi.ImageUsage | undefined> {
-        const row = await database.db
+        const row = await database
             .select({
                 taskId: taskImages.taskId,
                 taskName: tasks.name,

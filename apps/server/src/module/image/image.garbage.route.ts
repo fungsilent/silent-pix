@@ -11,7 +11,7 @@ export const imageGarbageCollectionRoutes = new Elysia({
     .use(databaseMiddleware)
     .post(
         '/garbage-collection',
-        async ({ database }) => imageGarbageCollection.collect(database),
+        async ({ databaseClient }) => imageGarbageCollection.collect(databaseClient.database),
         {
             response: {
                 200: imageApi.imageGarbageCollectionResponse,

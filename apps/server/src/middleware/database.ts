@@ -6,5 +6,5 @@ export const databaseMiddleware = new Elysia({ name: 'database-middleware' })
     .derive(
         { as: 'scoped' },
         () => ({
-            database: serverStore.get().database,
+            databaseClient: serverStore.get().databaseClient,
         }))

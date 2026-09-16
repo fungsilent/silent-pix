@@ -15,8 +15,8 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
     .use(eventMiddleware)
     .get(
         '/',
-        async ({ database, query, status }) => {
-            const result = await taskService.getTasks(database, query)
+        async ({ databaseClient, query, status }) => {
+            const result = await taskService.getTasks(databaseClient.database, query)
 
             if (!result.ok) {
                 return status(422, {
@@ -40,8 +40,8 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
     )
     .post(
         '/',
-        async ({ body, database, comfyClient, pushEvent, status }) => {
-            const creation = await taskService.create(database, body)
+        async ({ body, databaseClient, comfyClient, pushEvent, status }) => {
+            const creation = await taskService.create(databaseClient.database, body)
 
             if (!creation.ok) {
                 const failure = createFailures[creation.error]
@@ -64,17 +64,17 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
             }
 
             const { task, workflow } = creation.data
-            const createdTask = await taskService.getTaskResponse(database, task.id)
+            const createdTask = await taskService.getTaskResponse(databaseClient.database, task.id)
             if (!createdTask) {
                 throw new Error('Created task could not be loaded.')
             }
 
-            const taskSnapshot = await taskService.snapshot(database, task.id)
+            const taskSnapshot = await taskService.snapshot(databaseClient.database, task.id)
             if (taskSnapshot) {
                 pushEvent(taskCreated(taskSnapshot))
             }
 
-            void taskExecution.generate(database, comfyClient, task.id, workflow, pushEvent)
+            void taskExecution.generate(databaseClient.database, comfyClient, task.id, workflow, pushEvent)
 
             return status(201, createdTask)
         },
@@ -93,9 +93,9 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
     )
     .patch(
         '/:taskId/name',
-        async ({ body, database, params, pushEvent, status }) => {
+        async ({ body, databaseClient, params, pushEvent, status }) => {
             const taskId = toUUID(params.taskId, 'taskId')
-            const renamed = await taskService.updateTask(database, {
+            const renamed = await taskService.updateTask(databaseClient.database, {
                 id: taskId,
                 name: body.name,
             })
@@ -109,12 +109,12 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
                 })
             }
 
-            const task = await taskService.getTaskResponse(database, taskId)
+            const task = await taskService.getTaskResponse(databaseClient.database, taskId)
             if (!task) {
                 throw new Error('Renamed task could not be loaded.')
             }
 
-            await taskService.publishChanged(database, taskId, pushEvent)
+            await taskService.publishChanged(databaseClient.database, taskId, pushEvent)
 
             return task
         },
@@ -131,8 +131,8 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
     )
     .patch(
         '/flag',
-        async ({ body, database, pushEvent, status }) => {
-            const result = await taskService.setFlags(database, body)
+        async ({ body, databaseClient, pushEvent, status }) => {
+            const result = await taskService.setFlags(databaseClient.database, body)
 
             if (!result.ok) {
                 return status(404, {
@@ -144,7 +144,7 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
             }
 
             await taskService.publishChangedMany(
-                database,
+                databaseClient.database,
                 result.data.tasks.map(task => task.id),
                 pushEvent,
             )
@@ -163,9 +163,9 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
     )
     .get(
         '/:taskId',
-        async ({ database, params, status }) => {
+        async ({ databaseClient, params, status }) => {
             const task = await taskService.getTaskResponse(
-                database,
+                databaseClient.database,
                 toUUID(params.taskId, 'taskId'),
             )
             if (!task) {
@@ -191,8 +191,8 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
     )
     .delete(
         '/',
-        async ({ body, database, pushEvent, status }) => {
-            const result = await taskService.removeTasks(database, body)
+        async ({ body, databaseClient, pushEvent, status }) => {
+            const result = await taskService.removeTasks(databaseClient.database, body)
 
             if (!result.ok) {
                 if (result.error === 'TASK_ACTIVE') {
@@ -232,9 +232,9 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
     )
     .delete(
         '/:taskId',
-        async ({ database, params, pushEvent, status }) => {
+        async ({ databaseClient, params, pushEvent, status }) => {
             const result = await taskService.removeTask(
-                database,
+                databaseClient.database,
                 toUUID(params.taskId, 'taskId'),
             )
 

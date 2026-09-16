@@ -136,6 +136,22 @@ Preferred flow:
 route -> service -> Drizzle -> SQLite
 ```
 
+Elysia database context follows the same boundary:
+
+```txt
+databaseMiddleware
+    └ databaseClient: DatabaseClient
+
+route
+    ├ domain -> service(databaseClient.database, ...)
+    └ health -> databaseClient.check()
+```
+
+Domain services query `Database` directly and own transaction/batch boundaries.
+Transaction-compatible leaf capabilities accept only their precise narrow
+`Pick<Database, ...>` capability. The server does not add a repository layer or
+use raw SQLite/Drizzle `sql` outside the database client.
+
 ---
 
 ### `apps/desktop`
@@ -270,9 +286,11 @@ configuration channel from disagreeing with the canonical env value.
 
 Resolved values still cross into third-party calls at the owning boundary—for
 example Elysia `listen`, LibSQL `createClient`, and Drizzle migration options.
-Domain/dependency inputs such as a `DatabaseClient`, image ID, relative image
-path, GC grace period, or clock value are not env configuration and remain
-explicit arguments.
+The server lifecycle owns a `DatabaseClient` instance named `databaseClient`;
+its `database` property is the Drizzle `Database`, while `check` and `close`
+remain lifecycle capabilities. Domain/dependency inputs such as `Database`,
+image ID, relative image path, GC grace period, or clock value are not env
+configuration and remain explicit arguments.
 
 Isolated validation changes configuration through process env before importing
 the owning module; runtime option objects do not provide config overrides.
@@ -345,6 +363,16 @@ Do not use:
 ```
 
 SQLite stores metadata and durable state only. Image binary data stays on filesystem.
+
+The database client shape is:
+
+```ts
+type DatabaseClient = {
+    database: Database
+    check: () => Promise<boolean>
+    close: () => void
+}
+```
 
 The database client explicitly initializes:
 

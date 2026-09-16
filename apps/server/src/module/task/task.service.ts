@@ -19,7 +19,7 @@ import { taskImageService } from '#/module/task/task.image.service'
 import { castTaskModel } from '#/module/task/task.model'
 import { workflowService } from '#/module/workflow/workflow.service'
 
-import type { DatabaseClient, TaskSelect, UUID } from '@silent-pix/db'
+import type { Database, TaskSelect, UUID } from '@silent-pix/db'
 import type { Event, ImageApi, Task, TaskApi } from '@silent-pix/shared'
 import type { PushEvent } from '#/app.store'
 import type { ComfyClient } from '#/lib/comfy/comfy.client'
@@ -47,11 +47,6 @@ type TaskUpdateTarget =
     | ({ taskIds: readonly UUID[] } & TaskUpdateOptions)
     | { taskIds?: never, matchStatuses: Task.TaskStatus[] }
 
-type TaskMutationDatabase = DatabaseClient | Pick<
-    DatabaseClient['db'],
-    '$count' | 'update'
->
-
 type FoundTask<HasWorkflow extends boolean, HasImages extends boolean> = {
     task: TaskModel
     workflow: HasWorkflow extends true ? WorkflowModel : never
@@ -66,7 +61,7 @@ type FindTaskOptions<HasWorkflow extends boolean = false, HasImages extends bool
 export const taskService = {
     // MARK: CRUD
     async findTask<HasWorkflow extends boolean = false, HasImages extends boolean = false>(
-        database: DatabaseClient,
+        database: Database,
         taskId: UUID,
         options?: FindTaskOptions<HasWorkflow, HasImages>,
     ): Promise<FoundTask<HasWorkflow, HasImages> | undefined> {
@@ -75,7 +70,7 @@ export const taskService = {
     },
 
     async findTasks<HasWorkflow extends boolean = false, HasImages extends boolean = false>(
-        database: DatabaseClient,
+        database: Database,
         taskIds: readonly UUID[],
         options?: FindTaskOptions<HasWorkflow, HasImages>,
     ): Promise<FoundTask<HasWorkflow, HasImages>[]> {
@@ -83,7 +78,7 @@ export const taskService = {
             return []
         }
 
-        const taskRows = await database.db
+        const taskRows = await database
             .select()
             .from(tasks)
             .where(inArray(tasks.id, taskIds))
@@ -106,7 +101,7 @@ export const taskService = {
 
         const imagesByTaskId = new Map<UUID, TaskImageModel[]>()
         if (options?.includeImage && foundTaskRows.length > 0) {
-            const imageRows = await database.db
+            const imageRows = await database
                 .select({ relation: taskImages, image: images })
                 .from(taskImages)
                 .innerJoin(images, eq(images.id, taskImages.imageId))
@@ -144,7 +139,7 @@ export const taskService = {
     },
 
     async getTaskResponse(
-        database: DatabaseClient,
+        database: Database,
         taskId: UUID,
     ): Promise<TaskApi.GetTaskResponse | undefined> {
         const item = await taskService.findTask(database, taskId, {
@@ -183,13 +178,13 @@ export const taskService = {
     },
 
     async updateTask(
-        databaseOrTransaction: TaskMutationDatabase,
+        database: Pick<Database, '$count' | 'update'>,
         task: Pick<TaskModel, 'id'> & TaskPatch,
         options?: TaskUpdateOptions,
     ): Promise<TaskSelect | undefined> {
         const { id, ...patch } = task
         const updated = await taskService.updateTasks(
-            databaseOrTransaction,
+            database,
             {
                 taskIds: [id],
                 ...(options?.matchStatuses !== undefined
@@ -202,14 +197,10 @@ export const taskService = {
     },
 
     async updateTasks(
-        databaseOrTransaction: TaskMutationDatabase,
+        database: Pick<Database, '$count' | 'update'>,
         target: TaskUpdateTarget,
         patch: TaskPatch,
     ): Promise<TaskSelect[]> {
-        const executor = 'db' in databaseOrTransaction
-            ? databaseOrTransaction.db
-            : databaseOrTransaction
-
         if (target.taskIds !== undefined && !target.taskIds.length) {
             return []
         }
@@ -227,11 +218,11 @@ export const taskService = {
             : and(
                 targetCondition,
                 eq(
-                    executor.$count(tasks, targetCondition),
+                    database.$count(tasks, targetCondition),
                     target.taskIds.length,
                 ),
             )
-        const updated = await executor
+        const updated = await database
             .update(tasks)
             .set({
                 ...patch,
@@ -253,7 +244,7 @@ export const taskService = {
     },
 
     // MARK: Service
-    async failInterruptedTasks(database: DatabaseClient): Promise<UUID[]> {
+    async failInterruptedTasks(database: Database): Promise<UUID[]> {
         const rows = await taskService.updateTasks(
             database,
             {
@@ -269,7 +260,7 @@ export const taskService = {
         return rows.map(row => row.id)
     },
 
-    async create(database: DatabaseClient, request: TaskApi.CreateTaskRequest) {
+    async create(database: Database, request: TaskApi.CreateTaskRequest) {
         const { payload } = request
         const workflowId = toUUID(payload.workflowId, 'workflowId')
         const workflow = await workflowService.findWorkflow(database, workflowId)
@@ -326,7 +317,7 @@ export const taskService = {
             }
 
             try {
-                const createdTask = await database.db.transaction(async transaction => {
+                const createdTask = await database.transaction(async transaction => {
                     const [inserted] = await transaction
                         .insert(tasks)
                         .values({
@@ -374,7 +365,7 @@ export const taskService = {
     },
 
     async setFlags(
-        database: DatabaseClient,
+        database: Database,
         request: TaskApi.UpdateTaskFlagsRequest,
     ) {
         const taskIds = request.taskIds.map(taskId => toUUID(taskId, 'taskId'))
@@ -398,7 +389,7 @@ export const taskService = {
         })
     },
 
-    async removeTask(database: DatabaseClient, taskId: UUID) {
+    async removeTask(database: Database, taskId: UUID) {
         const result = await taskService.removeTasks(
             database,
             { scope: 'selected', taskIds: [taskId] },
@@ -411,7 +402,7 @@ export const taskService = {
     },
 
     async removeTasks(
-        database: DatabaseClient,
+        database: Database,
         request: TaskApi.DeleteTasksRequest,
         options?: { allowActive?: boolean },
     ) {
@@ -423,22 +414,22 @@ export const taskService = {
             if (request.scope === 'selected') {
                 const taskIds = request.taskIds.map(taskId => toUUID(taskId, 'taskId'))
                 const guardedTasks = alias(tasks, 'guardedTasks')
-                const targetsQuery = database.db
+                const targetsQuery = database
                     .select({ id: tasks.id, status: tasks.status })
                     .from(tasks)
                     .where(inArray(tasks.id, taskIds))
-                const relatedQuery = database.db
+                const relatedQuery = database
                     .selectDistinct({ imageId: taskImages.imageId })
                     .from(taskImages)
                     .where(inArray(taskImages.taskId, taskIds))
 
                 /* 驗證查詢與帶 guard 的刪除必須留在同一個 batch，才能維持全有全無。 */
                 const allTargetsExist = eq(
-                    database.db.$count(tasks, inArray(tasks.id, taskIds)),
+                    database.$count(tasks, inArray(tasks.id, taskIds)),
                     taskIds.length,
                 )
                 const noActiveTargets = notExists(
-                    database.db
+                    database
                         .select({ id: guardedTasks.id })
                         .from(guardedTasks)
                         .where(and(
@@ -449,11 +440,11 @@ export const taskService = {
                 const deleteCondition = allowActive
                     ? and(inArray(tasks.id, taskIds), allTargetsExist)
                     : and(inArray(tasks.id, taskIds), allTargetsExist, noActiveTargets)
-                const deleteQuery = database.db
+                const deleteQuery = database
                     .delete(tasks)
                     .where(deleteCondition)
 
-                const [targets, related, deleted] = await database.db.batch([
+                const [targets, related, deleted] = await database.batch([
                     targetsQuery,
                     relatedQuery,
                     deleteQuery,
@@ -483,20 +474,20 @@ export const taskService = {
                     eq(tasks.discard, true),
                     notInArray(tasks.status, ['queued', 'running']),
                 )
-                const targetsQuery = database.db
+                const targetsQuery = database
                     .select({ id: tasks.id })
                     .from(tasks)
                     .where(discardCondition)
-                const relatedQuery = database.db
+                const relatedQuery = database
                     .selectDistinct({ imageId: taskImages.imageId })
                     .from(taskImages)
                     .innerJoin(tasks, eq(tasks.id, taskImages.taskId))
                     .where(discardCondition)
-                const deleteQuery = database.db
+                const deleteQuery = database
                     .delete(tasks)
                     .where(discardCondition)
 
-                const [targets, related, deleted] = await database.db.batch([
+                const [targets, related, deleted] = await database.batch([
                     targetsQuery,
                     relatedQuery,
                     deleteQuery,
@@ -525,7 +516,7 @@ export const taskService = {
     },
 
     async getTasks(
-        database: DatabaseClient,
+        database: Database,
         query: TaskApi.GetTasksQuery,
     ) {
         const cursor = query.cursor === undefined
@@ -538,7 +529,7 @@ export const taskService = {
         const search = query.search?.trim()
         const outputRelations = alias(taskImages, 'outputRelations')
         const outputImages = alias(images, 'outputImages')
-        const outputCount = database.db
+        const outputCount = database
             .select({ count: count().as('count') })
             .from(outputRelations)
             .where(and(
@@ -546,7 +537,7 @@ export const taskService = {
                 eq(outputRelations.type, 'output'),
             ))
             .as('outputCount')
-        const thumbnailImageId = database.db
+        const thumbnailImageId = database
             .select({ id: outputImages.id })
             .from(outputRelations)
             .innerJoin(outputImages, eq(outputImages.id, outputRelations.imageId))
@@ -557,7 +548,7 @@ export const taskService = {
             .orderBy(asc(outputRelations.sortIndex), asc(outputRelations.id))
             .limit(1)
             .as('thumbnailImageId')
-        const rows = await database.db
+        const rows = await database
             .select({
                 id: tasks.id,
                 name: tasks.name,
@@ -628,7 +619,7 @@ export const taskService = {
     },
 
     async snapshot(
-        database: DatabaseClient,
+        database: Database,
         taskId: UUID,
     ) {
         const [snapshot] = await taskService.snapshotMany(database, [taskId])
@@ -637,7 +628,7 @@ export const taskService = {
     },
 
     async snapshotMany(
-        database: DatabaseClient,
+        database: Database,
         taskIds: UUID[],
     ): Promise<Event.Task.Snapshot[]> {
         const items = await taskService.findTasks(database, taskIds, {
@@ -663,7 +654,7 @@ export const taskService = {
     },
 
     async publishChanged(
-        database: DatabaseClient,
+        database: Database,
         taskId: UUID,
         pushEvent: PushEvent,
     ): Promise<void> {
@@ -671,7 +662,7 @@ export const taskService = {
     },
 
     async publishChangedMany(
-        database: DatabaseClient,
+        database: Database,
         taskIds: UUID[],
         pushEvent: PushEvent,
     ): Promise<void> {
