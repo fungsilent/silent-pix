@@ -88,28 +88,6 @@ export function cacheTaskFlagsPatched(
     queryClient: QueryClient,
     tasks: TaskApi.TaskFlagState[],
 ): void {
-    for (const task of tasks) {
-        const snapshot = queryClient.getQueryData<Event.Task.Snapshot>(
-            taskKeys.snapshot(task.id),
-        )
-        if (snapshot) {
-            queryClient.setQueryData<Event.Task.Snapshot>(
-                taskKeys.snapshot(task.id),
-                { ...snapshot, pin: task.pin, discard: task.discard },
-            )
-        }
-
-        const detail = queryClient.getQueryData<TaskApi.GetTaskResponse>(
-            taskKeys.detail({ taskId: task.id }),
-        )
-        if (detail) {
-            queryClient.setQueryData<TaskApi.GetTaskResponse>(
-                taskKeys.detail({ taskId: task.id }),
-                { ...detail, pin: task.pin, discard: task.discard },
-            )
-        }
-    }
-
     const insertionItems = new Map<string, TaskApi.TaskListItem>()
 
     for (const task of tasks) {
@@ -117,23 +95,39 @@ export function cacheTaskFlagsPatched(
             taskKeys.snapshot(task.id),
         )
         if (snapshot) {
-            insertionItems.set(task.id, toTaskListItem({
+            const updatedSnapshot = {
                 ...snapshot,
                 pin: task.pin,
                 discard: task.discard,
-            }))
-            continue
+            }
+            queryClient.setQueryData<Event.Task.Snapshot>(
+                taskKeys.snapshot(task.id),
+                updatedSnapshot,
+            )
+
+            insertionItems.set(task.id, toTaskListItem(updatedSnapshot))
         }
 
         const detail = queryClient.getQueryData<TaskApi.GetTaskResponse>(
             taskKeys.detail({ taskId: task.id }),
         )
         if (detail) {
-            insertionItems.set(task.id, toTaskListItem({
-                ...toTaskSnapshot(detail),
+            const updatedDetail = {
+                ...detail,
                 pin: task.pin,
                 discard: task.discard,
-            }))
+            }
+            queryClient.setQueryData<TaskApi.GetTaskResponse>(
+                taskKeys.detail({ taskId: task.id }),
+                updatedDetail,
+            )
+
+            if (!snapshot) {
+                insertionItems.set(
+                    task.id,
+                    toTaskListItem(toTaskSnapshot(updatedDetail)),
+                )
+            }
         }
     }
 
