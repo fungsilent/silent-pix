@@ -100,6 +100,16 @@ Web state:
 - stores must preserve Solid fine-grained reactivity and native `set` path syntax
 ```
 
+Workflow list ordering is a precise exception to the general backend-owned
+database semantics rule. Server and Web use the same `name` then opaque `id`
+keys: the Server query declares SQLite ordering, while the Web realtime cache
+uses a file-local JavaScript ordinal comparator. It removes any cached summary
+with the same ID, appends the incoming summary, and sorts a new options array
+after save, archive, or `workflow.changed` without mutating the existing cache
+array. Unicode edge ordering may differ between a realtime upsert and a later
+refetch; membership, collation, and `LIKE` semantics for other domains remain
+server-owned.
+
 ---
 
 ### `apps/server`

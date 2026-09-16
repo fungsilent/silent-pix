@@ -391,7 +391,7 @@ Rules:
 - Node WebSocket server helpers live in `packages/event/src/server.ts`
 - an event carries the fields needed for its supported cache updates; incomplete projections use invalidation
 - patch when the payload determines the result; otherwise invalidate affected queries
-- database membership/collation/search semantics stay server-owned; invalidate when fields cannot decide membership
+- database membership/collation/search semantics stay server-owned; invalidate when fields cannot decide membership. Workflow list ordering is the precise exception in which Server and Web use the same `name` then `id` keys: Server declares SQLite ordering, while Web's realtime cache uses a file-local JavaScript ordinal comparator. Unicode edge ordering may differ between realtime upserts and a later refetch; this does not loosen server ownership of membership, collation, or `LIKE` semantics in other domains.
 - consider dependent domains: task changes can affect Image queries as well as Task queries
 - for a Workflow detail, invalidate when its summary shows it is behind; the event has no graph
 - a mutation applies its own result in `onSuccess`; never rely on the round trip

@@ -55,11 +55,12 @@ export function applyWorkflowSummary(
             return current
         }
 
-        const rest = current.options.filter(option => option.id !== summary.id)
-        const index = rest.findIndex(option => comesBefore(summary, option))
-        const at = index < 0 ? rest.length : index
+        const options = current.options
+            .filter(option => option.id !== summary.id)
+            .concat(summary)
+            .sort(compareWorkflowSummary)
 
-        return { options: [...rest.slice(0, at), summary, ...rest.slice(at)] }
+        return { options }
     })
 }
 
@@ -107,8 +108,17 @@ function toSummary(workflow: WorkflowApi.GetWorkflowResponse): WorkflowSummary {
     }
 }
 
-function comesBefore(summary: WorkflowSummary, other: WorkflowSummary): boolean {
-    return summary.name === other.name
-        ? summary.id < other.id
-        : summary.name < other.name
+function compareWorkflowSummary(
+    left: WorkflowSummary,
+    right: WorkflowSummary,
+): number {
+    if (left.name !== right.name) {
+        return left.name < right.name ? -1 : 1
+    }
+
+    if (left.id === right.id) {
+        return 0
+    }
+
+    return left.id < right.id ? -1 : 1
 }

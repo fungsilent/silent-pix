@@ -75,7 +75,7 @@ export const workflowService = {
         const rows = await database
             .select()
             .from(workflows)
-            .orderBy(asc(workflows.name))
+            .orderBy(asc(workflows.name), asc(workflows.id))
 
         return rows.map(row => {
             const workflow = castWorkflowModel(row)
