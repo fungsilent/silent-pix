@@ -15,10 +15,11 @@ import { toImageResource } from '#/module/image/image.model'
 import { withImageMutation } from '#/module/image/image.mutation'
 import { imageService } from '#/module/image/image.service'
 import { taskChanged } from '#/module/task/task.event'
+import { taskImageService } from '#/module/task/task.image.service'
 import { castTaskModel } from '#/module/task/task.model'
 import { workflowService } from '#/module/workflow/workflow.service'
 
-import type { DatabaseClient, TaskUpdate, UUID } from '@silent-pix/db'
+import type { DatabaseClient, TaskSelect, UUID } from '@silent-pix/db'
 import type { Event, ImageApi, Task, TaskApi } from '@silent-pix/shared'
 import type { PushEvent } from '#/app.store'
 import type { ComfyClient } from '#/lib/comfy/comfy.client'
@@ -27,6 +28,29 @@ import type { TaskImageModel, TaskModel } from '#/module/task/task.model'
 import type { WorkflowModel } from '#/module/workflow/workflow.model'
 
 type TaskCursor = { createdAt: number, id: UUID }
+
+type TaskPatch = Partial<Pick<TaskModel,
+    | 'name'
+    | 'status'
+    | 'pin'
+    | 'discard'
+    | 'comfyPromptId'
+    | 'errorCode'
+    | 'errorMessage'
+>>
+
+type TaskUpdateOptions = {
+    matchStatuses?: Task.TaskStatus[]
+}
+
+type TaskUpdateTarget =
+    | ({ taskIds: readonly UUID[] } & TaskUpdateOptions)
+    | { taskIds?: never, matchStatuses: Task.TaskStatus[] }
+
+type TaskMutationDatabase = DatabaseClient | Pick<
+    DatabaseClient['db'],
+    '$count' | 'update'
+>
 
 type FoundTask<HasWorkflow extends boolean, HasImages extends boolean> = {
     task: TaskModel
@@ -159,41 +183,88 @@ export const taskService = {
     },
 
     async updateTask(
-        database: DatabaseClient,
-        task: TaskUpdate,
-        options?: {
-            limtedStatus?: Task.TaskStatus[],
+        databaseOrTransaction: TaskMutationDatabase,
+        task: Pick<TaskModel, 'id'> & TaskPatch,
+        options?: TaskUpdateOptions,
+    ): Promise<TaskSelect | undefined> {
+        const { id, ...patch } = task
+        const updated = await taskService.updateTasks(
+            databaseOrTransaction,
+            {
+                taskIds: [id],
+                ...(options?.matchStatuses !== undefined
+                    ? { matchStatuses: options.matchStatuses }
+                    : {}),
+            },
+            patch,
+        )
+        return updated[0]
+    },
+
+    async updateTasks(
+        databaseOrTransaction: TaskMutationDatabase,
+        target: TaskUpdateTarget,
+        patch: TaskPatch,
+    ): Promise<TaskSelect[]> {
+        const executor = 'db' in databaseOrTransaction
+            ? databaseOrTransaction.db
+            : databaseOrTransaction
+
+        if (target.taskIds !== undefined && !target.taskIds.length) {
+            return []
         }
-    ) {
-        const { limtedStatus } = options || {}
-        const { id, ...data } = task
-        return await database.db
+
+        const targetCondition = target.taskIds === undefined
+            ? inArray(tasks.status, target.matchStatuses)
+            : and(
+                inArray(tasks.id, target.taskIds),
+                target.matchStatuses !== undefined
+                    ? inArray(tasks.status, target.matchStatuses)
+                    : undefined,
+            )
+        const condition = target.taskIds === undefined
+            ? targetCondition
+            : and(
+                targetCondition,
+                eq(
+                    executor.$count(tasks, targetCondition),
+                    target.taskIds.length,
+                ),
+            )
+        const updated = await executor
             .update(tasks)
             .set({
-                ...data,
-                updatedAt: Date.now()
+                ...patch,
+                updatedAt: Date.now(),
             })
-            .where(and(
-                eq(tasks.id, id),
-                limtedStatus
-                    ? inArray(tasks.status, limtedStatus)
-                    : undefined
-            ))
+            .where(condition)
             .returning()
+
+        if (target.taskIds === undefined) {
+            return updated
+        }
+
+        const updatedById = new Map(updated.map(row => [row.id, row]))
+
+        return target.taskIds.flatMap(taskId => {
+            const task = updatedById.get(taskId)
+            return task ? [task] : []
+        })
     },
 
     // MARK: Service
     async failInterruptedTasks(database: DatabaseClient): Promise<UUID[]> {
-        const rows = await database.db
-            .update(tasks)
-            .set({
+        const rows = await taskService.updateTasks(
+            database,
+            {
+                matchStatuses: ['queued', 'running'],
+            },
+            {
                 status: 'failed',
                 errorCode: 'SERVER_RESTARTED',
                 errorMessage: 'Generation was interrupted before the server restarted.',
-                updatedAt: Date.now(),
-            })
-            .where(inArray(tasks.status, ['queued', 'running']))
-            .returning({ id: tasks.id })
+            },
+        )
 
         return rows.map(row => row.id)
     },
@@ -274,15 +345,12 @@ export const taskService = {
                     }
 
                     if (inputImageId) {
-                        await transaction
-                            .insert(taskImages)
-                            .values({
-                                taskId: inserted.id,
-                                imageId: inputImageId,
-                                type: 'input',
-                                sortIndex: 0,
-                                createdAt,
-                            })
+                        await taskImageService.addReference(transaction, {
+                            taskId: inserted.id,
+                            imageId: inputImageId,
+                            type: 'input',
+                            sortIndex: 0,
+                        })
                     }
 
                     return inserted
@@ -315,28 +383,19 @@ export const taskService = {
             : request.flag === 'discard'
                 ? { pin: false, discard: true }
                 : { pin: false, discard: false }
-        const allTasksExist = eq(
-            database.db.$count(tasks, inArray(tasks.id, taskIds)),
-            taskIds.length,
-        )
-        const updated = await database.db
-            .update(tasks)
-            .set({ ...flags, updatedAt: Date.now() })
-            .where(and(
-                inArray(tasks.id, taskIds),
-                allTasksExist,
-            ))
-            .returning({
-                id: tasks.id,
-                pin: tasks.pin,
-                discard: tasks.discard,
-            })
+        const updated = await taskService.updateTasks(database, { taskIds }, flags)
 
         if (updated.length !== taskIds.length) {
             return fail('TASK_NOT_FOUND')
         }
 
-        return done({ tasks: updated })
+        return done({
+            tasks: updated.map(task => ({
+                id: task.id,
+                pin: task.pin,
+                discard: task.discard,
+            })),
+        })
     },
 
     async remove(database: DatabaseClient, taskId: UUID) {

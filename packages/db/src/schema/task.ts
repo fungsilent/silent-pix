@@ -14,7 +14,7 @@ import { workflows } from '#/schema/workflow'
 import { createUUID } from '#/uuid'
 
 import type { Task } from '@silent-pix/shared'
-import type { JsonObject, UpdateData } from '#/schema/schema.util'
+import type { JsonObject } from '#/schema/schema.util'
 import type { UUID } from '#/uuid'
 
 export const tasks = sqliteTable('tasks', {
@@ -54,4 +54,3 @@ export const tasks = sqliteTable('tasks', {
 ])
 
 export type TaskSelect = typeof tasks.$inferSelect
-export type TaskUpdate = UpdateData<typeof tasks.$inferInsert>

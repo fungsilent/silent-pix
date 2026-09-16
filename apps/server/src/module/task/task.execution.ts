@@ -1,8 +1,5 @@
 import { existsSync } from 'node:fs'
 
-import { taskImages, tasks } from '@silent-pix/db'
-import { eq } from 'drizzle-orm'
-
 import { loadConfig } from '#/config'
 import { ComfyError } from '#/lib/comfy/comfy.client'
 import { removeComfyImage } from '#/lib/comfy/comfy.output'
@@ -11,6 +8,7 @@ import { absolutePath } from '#/lib/image/image.store'
 import { imageCleanup } from '#/module/image/image.cleanup'
 import { withImageMutation } from '#/module/image/image.mutation'
 import { imageService } from '#/module/image/image.service'
+import { taskImageService } from '#/module/task/task.image.service'
 import { taskService } from '#/module/task/task.service'
 
 import type { DatabaseClient, UUID } from '@silent-pix/db'
@@ -79,7 +77,7 @@ export const taskExecution = {
                             status: 'running',
                         },
                         {
-                            limtedStatus: ['queued']
+                            matchStatuses: ['queued']
                         })
                     await taskService.publishChanged(database, taskId, pushEvent)
                 },
@@ -210,7 +208,7 @@ async function failTask(
             errorMessage,
         },
         {
-            limtedStatus: ['queued', 'running'],
+            matchStatuses: ['queued', 'running'],
         })
     await taskService.publishChanged(database, taskId, pushEvent)
 }
@@ -238,31 +236,23 @@ async function completeTaskMutation(
         return false
     }
 
-    const createdAt = Date.now()
-
     await database.db.transaction(async tx => {
-        if (outputs.length) {
-            await tx
-                .insert(taskImages)
-                .values(outputs.map(output => ({
-                    taskId,
-                    imageId: output.imageId,
-                    type: 'output' as const,
-                    sortIndex: output.sortIndex,
-                    createdAt,
-                })))
-                .run()
-        }
+        await taskImageService.addReferences(
+            tx,
+            outputs.map(output => ({
+                taskId,
+                imageId: output.imageId,
+                type: 'output',
+                sortIndex: output.sortIndex,
+            })),
+        )
 
-        await tx.update(tasks)
-            .set({
-                status: 'done',
-                updatedAt: Date.now(),
-                errorCode: null,
-                errorMessage: null,
-            })
-            .where(eq(tasks.id, taskId))
-            .run()
+        await taskService.updateTask(tx, {
+            id: taskId,
+            status: 'done',
+            errorCode: null,
+            errorMessage: null,
+        })
     })
 
     return true

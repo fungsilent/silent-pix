@@ -95,7 +95,7 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
         '/:taskId/name',
         async ({ body, database, params, pushEvent, status }) => {
             const taskId = toUUID(params.taskId, 'taskId')
-            const [renamed] = await taskService.updateTask(database, {
+            const renamed = await taskService.updateTask(database, {
                 id: taskId,
                 name: body.name,
             })
