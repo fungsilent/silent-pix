@@ -6,7 +6,7 @@ import { stringify } from '#/lib/json/json.stringify'
 import { done, fail } from '#/lib/service-result'
 import { castWorkflowModel } from '#/module/workflow/workflow.model'
 
-import type { Database, UUID, WorkflowInsert } from '@silent-pix/db'
+import type { Database, UUID } from '@silent-pix/db'
 import type { Comfy, ConfigSchema, WorkflowApi } from '@silent-pix/shared'
 import type { WorkflowModel } from '#/module/workflow/workflow.model'
 
@@ -80,7 +80,7 @@ export const workflowService = {
 
     async create(
         database: Database,
-        payload: Pick<WorkflowInsert, 'name' | 'graph' | 'configSchema'>,
+        payload: Pick<WorkflowModel, 'name' | 'graph' | 'configSchema'>,
     ) {
         const checked = checkMapping(payload.graph, payload.configSchema)
 
@@ -118,7 +118,7 @@ export const workflowService = {
         database: Database,
         workflowId: WorkflowModel['id'],
         expectedRevision: number,
-        payload: Pick<WorkflowInsert, 'name' | 'graph' | 'configSchema'>,
+        payload: Pick<WorkflowModel, 'name' | 'graph' | 'configSchema'>,
     ) {
         const checked = checkMapping(payload.graph, payload.configSchema)
 

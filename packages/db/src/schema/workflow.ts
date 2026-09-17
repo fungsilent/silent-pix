@@ -10,7 +10,6 @@ import { uuidCheck } from '#/schema/schema.util'
 import { createUUID } from '#/uuid'
 
 import type { Comfy, ConfigSchema } from '@silent-pix/shared'
-import type { UpdateData } from '#/schema/schema.util'
 import type { UUID } from '#/uuid'
 
 export const workflows = sqliteTable('workflows', {
@@ -29,5 +28,3 @@ export const workflows = sqliteTable('workflows', {
 ])
 
 export type WorkflowSelect = typeof workflows.$inferSelect
-export type WorkflowInsert = typeof workflows.$inferInsert
-export type WorkflowUpdate = UpdateData<WorkflowInsert>
