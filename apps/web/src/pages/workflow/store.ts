@@ -22,7 +22,7 @@ import { isColdLoading } from '#/store/loading'
 import type { Comfy, ConfigSchema, GeneratorField, Mapping, WorkflowApi } from '@silent-pix/shared'
 import type { AppIssue } from '#/lib/issue'
 import type { GraphParse, LineMark } from '#/pages/workflow/components/graph/graph.document'
-import type { WorkflowFormValues, WorkflowRecord } from '#/pages/workflow/form'
+import type { WorkflowFormValues } from '#/pages/workflow/form'
 import type { WorkflowNodeOption } from '#/pages/workflow/node-option'
 import type { JSX } from 'solid-js'
 
@@ -43,19 +43,6 @@ function createInitialState(): WorkflowUiState {
 }
 
 let draftSequence = 0
-
-export function toWorkflowRecord(detail: WorkflowApi.GetWorkflowResponse): WorkflowRecord {
-    return {
-        id: detail.id,
-        name: detail.name,
-        revision: detail.revision,
-        archivedAt: detail.archivedAt,
-        taskCount: detail.taskCount,
-        graph: detail.graph,
-        graphText: JSON.stringify(detail.graph, null, 2),
-        configSchema: detail.configSchema,
-    }
-}
 
 export function createWorkflowStore() {
     const uiStore = createStore(
@@ -81,11 +68,11 @@ export function createWorkflowStore() {
     const refreshWorkflowList = () => {
         void listQuery.refetch()
     }
-    const record = createMemo((): WorkflowRecord | null => {
+    const record = createMemo((): WorkflowApi.GetWorkflowResponse | null => {
         const detail = detailQuery.data
 
         return detail && detail.id === remoteId()
-            ? toWorkflowRecord(detail)
+            ? detail
             : null
     })
 
@@ -225,9 +212,7 @@ export function createWorkflowStore() {
     }
 
     const applySaved = (detail: WorkflowApi.GetWorkflowResponse) => {
-        const saved = toWorkflowRecord(detail)
-
-        form.reset(toWorkflowValues(saved))
+        form.reset(toWorkflowValues(detail))
         uiStore.set({
             selectedId: detail.id,
             createDraftId: null,

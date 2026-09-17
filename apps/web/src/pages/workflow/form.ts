@@ -2,7 +2,7 @@ import { config, workflowApi } from '@silent-pix/shared'
 import { createForm } from '@tanstack/solid-form'
 import { z } from 'zod'
 
-import type { Comfy, ConfigSchema } from '@silent-pix/shared'
+import type { WorkflowApi } from '@silent-pix/shared'
 import type { ZodIssue } from '#/lib/error'
 
 export const workflowFormSchema = z.object({
@@ -19,22 +19,11 @@ export const emptyWorkflowValues: WorkflowFormValues = {
     configSchema: {},
 }
 
-export type WorkflowRecord = {
-    id: string
-    name: string
-    revision: number
-    archivedAt: string | null
-    taskCount: number
-    graph: Comfy.Graph
-    graphText: string
-    configSchema: ConfigSchema
-}
-
-export function toWorkflowValues(record: WorkflowRecord): WorkflowFormValues {
+export function toWorkflowValues(detail: WorkflowApi.GetWorkflowResponse): WorkflowFormValues {
     return {
-        name: record.name,
-        graphText: record.graphText,
-        configSchema: { ...record.configSchema },
+        name: detail.name,
+        graphText: JSON.stringify(detail.graph, null, 2),
+        configSchema: { ...detail.configSchema },
     }
 }
 
