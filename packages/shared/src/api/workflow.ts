@@ -46,12 +46,19 @@ const createWorkflowResponse = getWorkflowResponse
 
 const updateWorkflowResponse = getWorkflowResponse
 
-const deleteWorkflowResponse = z.object({
-    id: z.uuid(),
-    /* NOTE: 有 task 引用就是 archived，零引用才是 deleted */
-    disposition: z.enum(['archived', 'deleted']),
-    workflow: workflowSummary.nullable(),
-})
+const deleteWorkflowResponse = z.discriminatedUnion('disposition', [
+    z.object({
+        id: z.uuid(),
+        /* NOTE: 有 task 引用就是 archived，零引用才是 deleted */
+        disposition: z.literal('archived'),
+        workflow: workflowSummary,
+    }),
+    z.object({
+        id: z.uuid(),
+        disposition: z.literal('deleted'),
+        workflow: z.null(),
+    }),
+])
 
 /* MARK: errors */
 

@@ -156,12 +156,6 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
             }
 
             const { disposition, workflow } = result.data
-            const summary = {
-                id: workflow.id,
-                name: workflow.name,
-                revision: workflow.revision,
-                archivedAt: workflow.archivedAt?.toISOString() ?? null,
-            }
 
             /*
              * 封存的那筆還在，只是換了狀態——發 removed 會讓其他 client 把
@@ -169,16 +163,25 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
              */
             if (disposition === 'archived') {
                 pushEvent(workflowChanged(workflow))
-            }
-            else {
-                pushEvent(workflowRemoved(workflow.id))
+
+                return {
+                    id: workflow.id,
+                    disposition,
+                    workflow: {
+                        id: workflow.id,
+                        name: workflow.name,
+                        revision: workflow.revision,
+                        archivedAt: workflow.archivedAt?.toISOString() ?? null,
+                    },
+                }
             }
 
-            /* 帶回 summary，發起端的清單可以直接改快取，不必等一趟重抓 */
+            pushEvent(workflowRemoved(workflow.id))
+
             return {
                 id: workflow.id,
                 disposition,
-                workflow: disposition === 'archived' ? summary : null,
+                workflow: null,
             }
         },
         {

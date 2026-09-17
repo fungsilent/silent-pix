@@ -29,10 +29,6 @@ export function cacheWorkflowRemoved(
 
     const summary = result.workflow
 
-    if (!summary) {
-        return
-    }
-
     const queryKey = workflowKeys.detail({ workflowId: summary.id })
 
     queryClient.setQueryData<WorkflowApi.GetWorkflowResponse>(
