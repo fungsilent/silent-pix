@@ -1,9 +1,15 @@
 import type { Event } from '@silent-pix/shared'
+import type { WorkflowModel } from '#/module/workflow/workflow.model'
 
-export function workflowChanged(workflow: Event.Workflow.Changed['workflow']): Event.Workflow.Changed {
+export function workflowChanged(workflow: WorkflowModel): Event.Workflow.Changed {
     return {
         type: 'workflow.changed',
-        workflow,
+        workflow: {
+            id: workflow.id,
+            name: workflow.name,
+            revision: workflow.revision,
+            archivedAt: workflow.archivedAt?.toISOString() ?? null,
+        },
     }
 }
 

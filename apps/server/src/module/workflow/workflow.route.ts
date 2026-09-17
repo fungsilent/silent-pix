@@ -73,12 +73,7 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
                 throw new Error('Created workflow could not be loaded.')
             }
 
-            pushEvent(workflowChanged({
-                id: workflow.id,
-                name: workflow.name,
-                revision: workflow.revision,
-                archivedAt: workflow.archivedAt,
-            }))
+            pushEvent(workflowChanged(created.data))
 
             return status(201, workflow)
         },
@@ -126,12 +121,7 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
                 throw new Error('Updated workflow could not be loaded.')
             }
 
-            pushEvent(workflowChanged({
-                id: workflow.id,
-                name: workflow.name,
-                revision: workflow.revision,
-                archivedAt: workflow.archivedAt,
-            }))
+            pushEvent(workflowChanged(result.data))
 
             return workflow
         },
@@ -178,7 +168,7 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
              * detail 快取整個丟掉。真刪才是 removed。
              */
             if (disposition === 'archived') {
-                pushEvent(workflowChanged(summary))
+                pushEvent(workflowChanged(workflow))
             }
             else {
                 pushEvent(workflowRemoved(workflow.id))

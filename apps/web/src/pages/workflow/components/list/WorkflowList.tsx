@@ -50,16 +50,6 @@ export function WorkflowList() {
                         </For>
                     )}
                 >
-                    <For each={active()}>
-                        {item => (
-                            <Row
-                                id={item.id}
-                                name={item.name}
-                                archived={false}
-                            />
-                        )}
-                    </For>
-
                     <Show when={draftId()}>
                         {value => (
                             <Row
@@ -69,6 +59,16 @@ export function WorkflowList() {
                             />
                         )}
                     </Show>
+
+                    <For each={active()}>
+                        {item => (
+                            <Row
+                                id={item.id}
+                                name={item.name}
+                                archived={false}
+                            />
+                        )}
+                    </For>
 
                     <Show when={archived().length > 0}>
                         <Line />
