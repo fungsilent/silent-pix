@@ -112,6 +112,7 @@ NODE_ENV=development
 
 SERVER_HOST=127.0.0.1
 SERVER_PORT=3070
+WEB_HOST=127.0.0.1
 WEB_PORT=5173
 
 COMFYUI_BASE_URL=http://127.0.0.1:8188
@@ -127,6 +128,11 @@ ComfyUI connection and filesystem values are backend-only. Runtime capabilities
 read their env-backed configuration directly; callers pass domain inputs, not
 database paths, base URLs, storage roots, or ComfyUI filesystem roots. Change
 runtime configuration through `.env`/process env rather than function options.
+
+The repository-root `.env` is the shared development endpoint source for
+Browser Vite, Desktop Vite, and Tauri. `SERVER_URL` is an optional
+process-environment override for the Vite `/api` proxy and is intentionally not
+required in `.env.example`.
 
 ---
 

@@ -80,6 +80,7 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
         },
         {
             body: taskApi.createTaskRequest,
+            headers: taskApi.createTaskHeaders,
             response: {
                 201: taskApi.createTaskResponse,
                 404: appApi.errorResponse,

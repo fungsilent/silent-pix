@@ -145,7 +145,7 @@ apps/server
     Elysia app, middleware, domain routes/services, server env, lifecycle.
 
 apps/desktop
-    desktop shell and startup model.
+    desktop shell and startup model; `script/dev.ts` owns the Tauri dev URL merge from shared Web endpoint env.
 
 packages/shared
     Canonical domain values/validation under `contract/`; REST under `api/`; events under `event/`.
@@ -170,6 +170,7 @@ packages/shared/src/
     contract/<domain>.ts or contract/<domain>/*
                            canonical reusable values/resources and validation
     api/<domain>...       REST query coercion, params, requests, responses
+    api/app.ts            WebSocket handshake query contract (`clientId`)
     event/<domain>.ts     server-to-web envelopes
     index.ts             explicit public catalogs/type exports
 ```
@@ -395,6 +396,11 @@ Rules:
 ```txt
 - aggregate outbound events through `event.serverEvent`
 - server validates every outbound event before broadcast
+- the WebSocket handshake query contract (`clientId`) lives in `packages/shared/src/api/app.ts`; event envelopes remain under `packages/shared/src/event`
+- the Web API client module (`apps/web/src/api/api.client.ts`) exports one per-page UUID `clientId`; its shared fetcher supplies it as `client-id`, while App uses it for the WebSocket `clientId` query, and identity is transport metadata only
+- WebSocket handshakes require `Origin` and `Host`; Server safely parses `Origin` and strictly compares parsed `Origin.host` (including port) with `Host` before upgrade
+- the connection registry remains keyed by `ws.raw`; creator exclusion is not implemented
+- Cloudflare Tunnel configuration must leave `httpHostHeader` unset so the external host remains available for same-origin validation
 - browser connection helpers live in `packages/event/src/client.ts`
 - Node WebSocket server helpers live in `packages/event/src/server.ts`
 - an event carries the fields needed for its supported cache updates; incomplete projections use invalidation
@@ -561,6 +567,7 @@ NODE_ENV=development
 
 SERVER_HOST=127.0.0.1
 SERVER_PORT=3070
+WEB_HOST=127.0.0.1
 WEB_PORT=5173
 
 COMFYUI_BASE_URL=http://127.0.0.1:8188
@@ -580,12 +587,18 @@ Rules:
 - COMFYUI_STORAGE_PREFIX points to APP_STORAGE_DIR as seen by ComfyUI
 - COMFYUI_OUTPUT_DIR points to ComfyUI output as seen by the server
 - DATABASE_PATH and APP_STORAGE_DIR are configured independently; APP_DATA_DIR does not derive them
-- production must supply OS app-data paths; automatic Desktop overrides are not implemented
+- production must supply OS app-data paths; automatic Desktop production path overrides are not implemented
 - do not assume cwd is repo root
 - env is the only runtime configuration override channel
 - the capability that owns the side effect loads its env-backed value directly
 - project-owned APIs do not receive env-backed values as arguments or options
 - isolated validation sets env before importing the owning module
+- the repository-root `.env` is the sole development endpoint source for Browser Vite and Desktop Tauri
+- `apps/web/vite.config.ts` explicitly loads the repository-root `.env` with `loadEnv()`; external process env values override it
+- `apps/desktop/script/dev.ts` runs from the local Desktop cwd, resolves the linked `tauri.conf.json` realpath to load the source repository root `.env`, validates `WEB_HOST`/`WEB_PORT`, and merges their combined endpoint into Tauri at runtime; process env overrides dotenv, `--external-frontend` only removes the normal `beforeDevCommand`, and linked WSL does not require duplicate Windows endpoint variables
+- package scripts, `tauri.conf.json`, and `dev-wsl.bat` must not duplicate development host/port literals or promise simultaneous independent Vite instances
+- `SERVER_URL` is an optional process-environment override for the Vite `/api` proxy and is not required in `.env.example`
+- packaged Desktop remote connectivity and authentication are not implemented; Windows native runtime behavior is not verified from this Linux workspace
 ```
 
 Ownership mapping:
@@ -594,7 +607,8 @@ Ownership mapping:
 |---|---|---|
 | `DATABASE_PATH` | `packages/db/src/client.ts` | `createDatabaseClient()` |
 | `SERVER_HOST`, `SERVER_PORT` | server/CLI entrypoint that binds or probes HTTP | no reusable server-address option |
-| `WEB_PORT`, development proxy target | `apps/web/vite.config.ts` | Vite reads build/dev env directly |
+| `WEB_HOST`, `WEB_PORT` | `apps/web/vite.config.ts`, `apps/desktop/script/dev.ts` | Browser/Desktop Vite and Tauri `--config` merge use the same explicitly loaded root env |
+| `SERVER_URL`, `SERVER_HOST`, `SERVER_PORT` | `apps/web/vite.config.ts`, server/CLI entrypoint | optional proxy override or server bind/probe configuration |
 | `COMFYUI_BASE_URL` | `ComfyClient` | `new ComfyClient()` |
 | `APP_STORAGE_DIR` | image store; GC owns only its directory sweep | `readContent(path)`, `writeContent(path, bytes)`, `unlinkContent(path)` |
 | `COMFYUI_STORAGE_PREFIX` | reference-path conversion owner | conversion accepts only the relative image path |

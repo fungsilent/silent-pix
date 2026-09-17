@@ -5,7 +5,6 @@
   "identifier": "app.silentpix.desktop",
   "build": {
     "frontendDist": "../web/dist",
-    "devUrl": "http://127.0.0.1:1420",
     "beforeDevCommand": {
       "script": "pnpm exec turbo run build --filter=@silent-pix/web^... && pnpm --filter @silent-pix/web dev:desktop",
       "cwd": "../.."

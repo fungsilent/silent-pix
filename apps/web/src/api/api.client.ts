@@ -6,13 +6,27 @@ import type { AppApi } from '@silent-pix/shared'
 
 const requestTimeoutMs = 10_000
 
-export const apiClient: Treaty.Create<Api> = treaty<Api>(window.location.origin, {
+export const clientId = crypto.randomUUID()
+
+export const apiClient: Treaty.Create<Api, { 'client-id': string }> = treaty<Api, { 'client-id': string }>(window.location.origin, {
     parseDate: false,
     throwHttpError: false,
-    fetcher: (input, init) => fetch(input, {
-        ...init,
-        signal: init?.signal ?? AbortSignal.timeout(requestTimeoutMs),
-    }),
+    fetcher: (input, init) => {
+        const headers = new Headers()
+
+        if (init?.headers) {
+            new Headers(init.headers).forEach((value, key) => {
+                headers.set(key, value)
+            })
+        }
+        headers.set('client-id', clientId)
+
+        return fetch(input, {
+            ...init,
+            headers,
+            signal: init?.signal ?? AbortSignal.timeout(requestTimeoutMs),
+        })
+    },
 })
 
 export class ApiError extends Error {

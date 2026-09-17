@@ -4,10 +4,10 @@
     "version": "0.1.0",
     "type": "module",
     "scripts": {
-        "dev": "wait-on tcp:127.0.0.1:3070 && vite --host 127.0.0.1",
+        "dev": "vite",
         "build": "vite build",
         "typecheck": "tsc -p tsconfig.json --noEmit",
-        "dev:desktop": "vite --host 127.0.0.1 --port 1420 --strictPort"
+        "dev:desktop": "vite --mode desktop"
     },
     "imports": {
         "#/*": "./src/*"
@@ -37,7 +37,6 @@
         "tailwindcss": "^4.3.2",
         "typescript": "^7.0.2",
         "vite": "^8.2.0",
-        "vite-plugin-solid": "^2.11.14",
-        "wait-on": "^9.1.0"
+        "vite-plugin-solid": "^2.11.14"
     }
 }

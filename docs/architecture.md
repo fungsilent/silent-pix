@@ -185,8 +185,19 @@ Owns desktop shell only.
 Current implementation is a Tauri window hosting the Web UI. Development uses
 the Vite API/WS proxy; the shell does not start the backend or ComfyUI.
 
+The repository-root `.env` is the shared development endpoint source:
+`WEB_HOST` and `WEB_PORT` configure Browser Vite, Desktop Vite desktop mode,
+and Tauri's development URL. `apps/desktop/script/dev.ts` validates and
+combines those values before injecting the endpoint through a Tauri `--config`
+merge. The normal Tauri `beforeDevCommand` remains in `tauri.conf.json`; WSL
+linked development uses the wrapper's `--external-frontend` override instead
+of generating a second config file. The wrapper runs from the local Desktop
+cwd but resolves the linked `tauri.conf.json` realpath to find the WSL source
+repository `.env`; duplicate Windows endpoint variables are not required. This
+setup does not promise simultaneous independent Vite instances.
+
 OS app-data resolution, backend startup/selection, and packaged remote
-connectivity remain future work. See `../apps/desktop/README.md`.
+connectivity/authentication remain future work. See `../apps/desktop/README.md`.
 
 Forbidden:
 
@@ -500,7 +511,12 @@ WebSocket foundation:
 ```txt
 - endpoint: GET /api/event
 - same-origin Web client; development proxy can target a configured remote server
-- client identity and authentication are not implemented
+- The Web API client module (`apps/web/src/api/api.client.ts`) exports one module-load UUID `clientId` per page; App puts it in the `clientId` query
+- server validates `clientId`, requires `Origin` and `Host`, and strictly compares parsed `Origin.host` (including port) with `Host` before upgrade; `ws.data.query.clientId` is available, while `ws.raw` remains the connection key
+- the shared Web API client fetcher sends the exported `clientId` as the `client-id` header; the task-create route validates it
+- a Cloudflare Tunnel must leave `httpHostHeader` unset so the external host remains available for same-origin validation
+- authentication is not implemented
+- client identity is transport metadata only; `task.created` still broadcasts to every connection and creator exclusion is not implemented
 - server events only
 - current events: `task.created`, `task.changed`, `task.removed`,
   `workflow.changed`, `workflow.removed`, and `health.snapshot`

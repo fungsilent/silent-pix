@@ -4,12 +4,15 @@
     "version": "0.1.0",
     "type": "module",
     "scripts": {
-        "dev": "tauri dev",
+        "dev": "tsx script/dev.ts",
         "build:desktop": "tauri build",
         "check:native": "cargo check --manifest-path Cargo.toml",
+        "typecheck": "tsc -p tsconfig.json --noEmit",
         "tauri": "tauri"
     },
     "devDependencies": {
-        "@tauri-apps/cli": "^2.11.4"
+        "@tauri-apps/cli": "^2.11.4",
+        "tsx": "^4.23.1",
+        "typescript": "^7.0.2"
     }
 }

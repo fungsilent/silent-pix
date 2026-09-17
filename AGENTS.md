@@ -12,6 +12,9 @@ These are implementation constraints. `docs/architecture.md` describes current s
     - `packages/env`: Node-only base env loading and path resolution shared by server and database scripts; server-specific config remains in `apps/server`.
 - Use workspace package imports such as `@silent-pix/shared`; do not use cross-package relative imports.
 - Use `#/` for source imports, except `packages/shared`, which uses `#shared/` to avoid collisions under the current tsx/tsconfig resolution. Do not use `@/`, `./`, or `../` source imports.
+- The repository-root `.env` owns the shared development endpoint: `WEB_HOST`/`WEB_PORT` configure Browser Vite, Desktop Vite desktop mode, and the Tauri development URL. Vite must explicitly load that root env; package scripts and Tauri config must not duplicate host/port literals or promise simultaneous independent Vite instances.
+- `apps/desktop/script/dev.ts` owns the Tauri development lifecycle and injects the validated `WEB_HOST`/`WEB_PORT` endpoint with a runtime `--config` merge. It runs from the local Desktop cwd, resolves the linked `tauri.conf.json` realpath to locate the source repository `.env`, and lets process env override dotenv. `dev-wsl.bat` delegates to that wrapper with `--external-frontend`; the linked wrapper does not require duplicate Windows endpoint variables or generate another Tauri config.
+- Packaged Desktop remote connectivity and authentication remain unimplemented, and Windows native runtime behavior is not considered verified from the Linux workspace.
 - Organize by domain and keep related code together. Split for distinct responsibility or isolated complexity, not a line-count threshold. Do not introduce a layer or file solely for symmetry.
 - Do not add Prettier. Formatting is ESLint + `@stylistic`.
 - This repository has no test script. Do not search for, invent, or add one for plan or validation ceremony; use the existing typecheck, build, lint, and concrete manual acceptance checks.
@@ -98,7 +101,8 @@ These are implementation constraints. `docs/architecture.md` describes current s
 - Backend is the source of truth for durable state. Frontend state is UI state only.
 - WebSocket event contracts live under `packages/shared/src/event`, divided by domain module.
 - The server validates every outbound event through the shared aggregate schema before broadcast.
-- Client ids are not implemented. When they are, the same UUID goes on the WebSocket query and the task-create header so the server can exclude the creator from `task.created`.
+- Client identity is the per-page UUID `clientId` exported by the Web API client module (`apps/web/src/api/api.client.ts`); the shared fetcher supplies it as `client-id`, while the WebSocket query imports the same value. Server validates that header only for task creation and establishes transport identity only. `task.created` still reaches every connection; creator exclusion is not implemented.
+- WebSocket handshakes require `Origin` and `Host`; Server safely parses `Origin` and strictly compares its `host` (including port) with `Host`. A Cloudflare Tunnel must leave `httpHostHeader` unset so this comparison sees the external host.
 - Event and mutation cache updates must be idempotent. Patch when payload fields determine the result; invalidate affected queries when they cannot, including search membership and dependent domains. Reconnection must recover queries affected by missed events. Current recovery covers task, workflow, and image list queries.
 - Store image files on the filesystem and metadata in SQLite. Do not store image binary data in SQLite.
 - Images are content-addressed by sha256 and stored once. `images` owns the content, `task_images` owns what a task does with it. An image row and its file are deleted only when the last reference is gone, and the database commits before the filesystem unlinks.

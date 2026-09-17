@@ -15,6 +15,7 @@ apps/desktop/
   icons/
   src/                 Rust source files only
   script/
+    dev.ts
     dev-wsl.bat
     link-wsl.bat
     link-wsl.ps1
@@ -38,9 +39,15 @@ pnpm install
 pnpm dev:desktop
 ```
 
-This builds the web workspace dependencies, starts Vite at `http://127.0.0.1:1420`, and launches Tauri. An occupied port causes startup to fail instead of selecting another port.
+This builds the web workspace dependencies, starts Vite using `WEB_HOST` and
+`WEB_PORT` from the repository-root `.env`, and launches Tauri with the same
+endpoint. An occupied port causes startup to fail instead of selecting another
+port. Browser and Desktop development use this one endpoint; this workflow does
+not promise simultaneous independent Vite instances.
 
-Start the backend separately. The development API and WebSocket proxy defaults to `http://127.0.0.1:3070`. To use another backend:
+Start the backend separately. The development API and WebSocket proxy use
+`SERVER_HOST` and `SERVER_PORT` from the repository-root `.env`. To use another
+backend, set the optional `SERVER_URL` process override:
 
 ```sh
 SERVER_URL=http://192.168.1.10:3070 pnpm dev:desktop
@@ -53,11 +60,12 @@ $env:SERVER_URL = 'http://192.168.1.10:3070'
 pnpm.cmd dev:desktop
 ```
 
-`SERVER_URL` configures the Vite development proxy only. HTTPS domains are supported, but Cloudflare Access authentication is not integrated yet.
+`SERVER_URL` configures the Vite development proxy only. HTTPS domains are
+supported, but Cloudflare Access authentication is not integrated yet.
 
 ## WSL frontend with a native Windows desktop
 
-Keep frontend development in WSL and compile the native shell in a local Windows directory. The setup links source files from WSL while keeping `node_modules`, `target`, `gen`, and `tauri.wsl.conf.json` on Windows.
+Keep frontend development in WSL and compile the native shell in a local Windows directory. The setup links source files from WSL while keeping `node_modules`, `target`, and `gen` on Windows.
 
 Run the following in Windows PowerShell. Replace every placeholder with your own distribution name (`wsl -l -q`), WSL repository path, and Windows destination. Use a new or empty destination; the setup refuses to overwrite existing files.
 
@@ -84,7 +92,12 @@ pnpm exec turbo run build '--filter=@silent-pix/web^...'
 pnpm --filter @silent-pix/web dev:desktop
 ```
 
-Set `SERVER_URL` on the Vite command when using a remote backend. Confirm that a Windows browser can open `http://127.0.0.1:1420`.
+Set `SERVER_URL` on the Vite command when using a remote backend. The WSL Vite
+process reads `WEB_HOST` and `WEB_PORT` from the WSL repository-root `.env`.
+The linked Desktop wrapper resolves that same WSL root `.env` through the
+realpath of the linked `tauri.conf.json`, so duplicate Windows endpoint
+variables are not required. A Windows browser should open that configured
+endpoint.
 
 In the same Windows PowerShell session:
 
@@ -94,15 +107,15 @@ pnpm.cmd install
 .\script\dev-wsl.bat
 ```
 
-You can also double-click `script/dev-wsl.bat`. It creates `tauri.wsl.conf.json` if missing, disables the frontend startup hook, and connects to the Vite server already running in WSL. On failure, it keeps the console open.
-
-Existing WSL configuration settings are preserved.
-
-The equivalent command, after the configuration exists, is:
-
-```powershell
-pnpm.cmd tauri dev --config tauri.wsl.conf.json
-```
+You can also double-click `script/dev-wsl.bat`. It invokes the same Desktop dev
+wrapper with `--external-frontend`, resolves the WSL repository-root `.env` from
+the linked Tauri config, disables the frontend startup hook through its runtime
+config merge, and connects to the Vite server already running in WSL. It does
+not require duplicate Windows endpoint variables or a global `tsx` installation,
+and does not generate a second Tauri configuration file. When the linked
+`package.json` adds a required launcher dependency, the batch launcher refreshes
+the Windows-local dependencies before startup. On failure, it keeps the console
+open.
 
 Keep both development processes running. UI changes in WSL update through Vite. Rust changes are visible through the links. File watcher notifications across WSL may not trigger reliably; restart the desktop command if a Rust change does not rebuild. Closing the desktop does not stop the backend.
 
@@ -127,7 +140,7 @@ pnpm build:desktop
 
 ## Current limitations
 
-- Packaged builds currently provide the UI shell only. REST, image URLs, and WebSocket connections still use the current origin; production remote connectivity is not wired yet.
+- Packaged builds currently provide the UI shell only. REST, image URLs, and WebSocket connections still use the current origin; packaged remote connectivity and authentication are not wired yet.
 - Server selection, authentication, native file access, tray integration, and automatic updates are not implemented.
 - Icons use the Tauri scaffold defaults.
 - The first native build generates a local `Cargo.lock`; copy it back to the repository and include it in version control after platform validation.

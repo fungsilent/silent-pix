@@ -3,6 +3,7 @@ import { event } from '@silent-pix/shared'
 import { useQueryClient } from '@tanstack/solid-query'
 import { Match, onCleanup, onMount, Switch } from 'solid-js'
 
+import { clientId } from '#/api/api.client'
 import { Header } from '#/components/Header'
 import { invalidateImageLists } from '#/features/image/image.cache'
 import { taskKeys } from '#/features/task/task.key'
@@ -20,8 +21,10 @@ export function App() {
 
     onMount(() => {
         let hasConnected = false
+        const eventsUrl = new URL(createSameOriginEventsUrl())
+        eventsUrl.searchParams.set('clientId', clientId)
         const eventClient = createEventClient<Event.ServerEvent>({
-            url: createSameOriginEventsUrl(),
+            url: eventsUrl.toString(),
             staleTimeoutMs: event.health.staleTimeoutMs,
             parseEvent: value => {
                 const result = event.serverEvent.safeParse(value)

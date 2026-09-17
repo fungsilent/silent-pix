@@ -1,4 +1,5 @@
 import { node } from '@elysiajs/node'
+import { appApi } from '@silent-pix/shared'
 import { Elysia } from 'elysia'
 
 import { serverStore } from '#/app.store'
@@ -38,6 +39,30 @@ export async function createApp() {
         })
         .use(errorCatchMiddleware)
         .ws('/api/event', {
+            beforeHandle: ({ request, status }) => {
+                const origin = request.headers.get('origin')
+                const host = request.headers.get('host')
+                let originHost: string | undefined
+
+                if (origin) {
+                    try {
+                        originHost = new URL(origin).host
+                    }
+                    catch {
+                        originHost = undefined
+                    }
+                }
+
+                if (!host || originHost !== host) {
+                    return status(403, {
+                        error: {
+                            code: 'ORIGIN_NOT_ALLOWED',
+                            message: 'WebSocket origin is not allowed.',
+                        },
+                    })
+                }
+            },
+            query: appApi.eventQuery,
             /*
              * 用 ws.raw 當 key：Elysia 在 open 與 close 交出的是不同的 wrapper 物件，
              * 拿 wrapper 本身當 key 會刪不掉，interval 也就永遠停不下來。
