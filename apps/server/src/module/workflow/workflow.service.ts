@@ -4,7 +4,7 @@ import { and, asc, count, eq, inArray, isNull } from 'drizzle-orm'
 
 import { stringify } from '#/lib/json/json.stringify'
 import { done, fail } from '#/lib/service-result'
-import { castWorkflowModel } from '#/module/workflow/workflow.model'
+import { castWorkflowModel, toWorkflowSummary } from '#/module/workflow/workflow.model'
 
 import type { Database, UUID } from '@silent-pix/db'
 import type { Comfy, ConfigSchema, WorkflowApi } from '@silent-pix/shared'
@@ -49,10 +49,7 @@ export const workflowService = {
         }
 
         return {
-            id: workflow.id,
-            name: workflow.name,
-            revision: workflow.revision,
-            archivedAt: workflow.archivedAt?.toISOString() ?? null,
+            ...toWorkflowSummary(workflow),
             /* Delete 對話框要靠它預告會封存還是真刪 */
             taskCount: await workflowService.countTasks(database, workflow.id),
             graph: workflow.graph,
@@ -66,16 +63,7 @@ export const workflowService = {
             .from(workflows)
             .orderBy(asc(workflows.name), asc(workflows.id))
 
-        return rows.map(row => {
-            const workflow = castWorkflowModel(row)
-
-            return {
-                id: workflow.id,
-                name: workflow.name,
-                revision: workflow.revision,
-                archivedAt: workflow.archivedAt?.toISOString() ?? null,
-            }
-        })
+        return rows.map(row => toWorkflowSummary(castWorkflowModel(row)))
     },
 
     async create(

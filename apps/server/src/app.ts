@@ -1,11 +1,11 @@
 import { node } from '@elysiajs/node'
-import { appApi } from '@silent-pix/shared'
 import { Elysia } from 'elysia'
 
 import { serverStore } from '#/app.store'
 import { errorCatchMiddleware } from '#/middleware/error-catch'
 import { createHealthBroadcaster } from '#/module/app/app.health'
 import { appRoutes } from '#/module/app/app.route'
+import { createEventRoutes } from '#/module/event/event.route'
 import { imageGarbageCollectionRoutes } from '#/module/image/image.garbage.route'
 import { waitForImageMutationDrain } from '#/module/image/image.mutation'
 import { imageRoutes } from '#/module/image/image.route'
@@ -22,7 +22,7 @@ export async function createApp() {
     }
 
     const health = createHealthBroadcaster({
-        channel: store.eventChannel,
+        eventServer: store.eventServer,
         comfyClient: store.comfyClient,
         databaseClient: store.databaseClient,
     })
@@ -38,46 +38,6 @@ export async function createApp() {
             store.comfyClient.start()
         })
         .use(errorCatchMiddleware)
-        .ws('/api/event', {
-            beforeHandle: ({ request, status }) => {
-                const origin = request.headers.get('origin')
-                const host = request.headers.get('host')
-                let originHost: string | undefined
-
-                if (origin) {
-                    try {
-                        originHost = new URL(origin).host
-                    }
-                    catch {
-                        originHost = undefined
-                    }
-                }
-
-                if (!host || originHost !== host) {
-                    return status(403, {
-                        error: {
-                            code: 'ORIGIN_NOT_ALLOWED',
-                            message: 'WebSocket origin is not allowed.',
-                        },
-                    })
-                }
-            },
-            query: appApi.eventQuery,
-            /*
-             * 用 ws.raw 當 key：Elysia 在 open 與 close 交出的是不同的 wrapper 物件，
-             * 拿 wrapper 本身當 key 會刪不掉，interval 也就永遠停不下來。
-             */
-            open: async ws => {
-                store.eventChannel.connect(ws, ws.raw)
-                health.syncTimer()
-                /* 定點傳送，既有連線不該因為有人開新分頁而收到額外快照 */
-                await health.sendInitial(ws)
-            },
-            close: ws => {
-                store.eventChannel.disconnect(ws.raw)
-                health.syncTimer()
-            },
-        })
         .group(
             '/api',
             app => app
@@ -85,14 +45,25 @@ export async function createApp() {
                 .use(imageRoutes)
                 .use(imageGarbageCollectionRoutes)
                 .use(taskRoutes)
-                .use(workflowRoutes),
+                .use(workflowRoutes)
+                .use(createEventRoutes({
+                    eventServer: store.eventServer,
+                    onConnected: async socket => {
+                        health.syncTimer()
+                        /* 定點傳送，既有連線不該因為有人開新分頁而收到額外快照 */
+                        await health.sendInitial(socket)
+                    },
+                    onDisconnected: () => {
+                        health.syncTimer()
+                    },
+                })),
         )
 
     return {
         app,
         async close(): Promise<void> {
             health.stop()
-            store.eventChannel.close()
+            store.eventServer.close()
             store.comfyClient.close()
             await waitForImageMutationDrain()
             store.databaseClient.close()

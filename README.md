@@ -20,8 +20,8 @@ This repo is a clean rebuild. The goal is to define stable architecture first, t
 | Language | TypeScript |
 | Frontend | SolidJS + Vite + Tailwind CSS |
 | Frontend UI helpers | Ark UI + lucide-solid + clsx |
-| Backend | Hono on Node.js |
-| Server events | Local WebSocket foundation |
+| Backend | Elysia on Node.js |
+| Server events | Generic type-keyed EventServer with an Elysia WebSocket adapter |
 | Database | SQLite |
 | DB tooling | Drizzle |
 | Formatting | ESLint + @stylistic |
@@ -52,6 +52,7 @@ Rules:
 - SQLite stores durable state and metadata.
 - Filesystem stores images, thumbnails, uploads, and workflow snapshots.
 - Validated WebSocket task snapshots update frontend query caches in realtime; REST restores state after refresh or reconnection.
+- `apps/server/src/module/event` owns only the `/api/event` Elysia route; the Workflow domain owns the canonical summary projection, and REST/task execution call sites own Task snapshot publication. `packages/event` owns generic connection records and type-keyed validated publication. The Web event feature owns URL/client identity, parsing, reconnect recovery, and aggregate dispatch while domain features own cache handlers.
 
 ---
 
@@ -60,12 +61,12 @@ Rules:
 ```txt
 apps/
     web/        SolidJS frontend and UI foundation
-    server/     Hono backend
+    server/     Elysia backend
     desktop/    desktop shell placeholder
 
 packages/
     shared/     shared DTOs, schemas, enums, types
-    event/      browser-safe event contracts, WS client, WS server helpers
+    event/      browser WebSocket client and generic type-keyed WS server helper
     db/         SQLite / Drizzle schema, client, migrations, repositories
 
 docs/
@@ -201,7 +202,7 @@ Allowed now:
 - monorepo setup
 - TypeScript setup
 - ESLint setup
-- Hono base server
+- Elysia base server
 - SolidJS base app
 - Tailwind-based web UI foundation
 - shared web UI primitives

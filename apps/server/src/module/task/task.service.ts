@@ -14,14 +14,12 @@ import { imageCleanup } from '#/module/image/image.cleanup'
 import { toImageResource } from '#/module/image/image.model'
 import { withImageMutation } from '#/module/image/image.mutation'
 import { imageService } from '#/module/image/image.service'
-import { taskChanged } from '#/module/task/task.event'
 import { taskImageService } from '#/module/task/task.image.service'
 import { castTaskModel } from '#/module/task/task.model'
 import { workflowService } from '#/module/workflow/workflow.service'
 
 import type { Database, TaskSelect, UUID } from '@silent-pix/db'
 import type { Event, ImageApi, Task, TaskApi } from '@silent-pix/shared'
-import type { PushEvent } from '#/app.store'
 import type { ComfyClient } from '#/lib/comfy/comfy.client'
 import type { GenerateConfig } from '#/lib/comfy/comfy.prompt'
 import type { TaskImageModel, TaskModel } from '#/module/task/task.model'
@@ -651,26 +649,6 @@ export const taskService = {
         }
 
         return snapshots
-    },
-
-    async publishChanged(
-        database: Database,
-        taskId: UUID,
-        pushEvent: PushEvent,
-    ): Promise<void> {
-        await taskService.publishChangedMany(database, [taskId], pushEvent)
-    },
-
-    async publishChangedMany(
-        database: Database,
-        taskIds: UUID[],
-        pushEvent: PushEvent,
-    ): Promise<void> {
-        const snapshots = await taskService.snapshotMany(database, taskIds)
-
-        for (const snapshot of snapshots) {
-            pushEvent(taskChanged(snapshot))
-        }
     },
 
     // MARK: Option

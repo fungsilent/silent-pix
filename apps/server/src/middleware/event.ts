@@ -6,5 +6,5 @@ export const eventMiddleware = new Elysia({ name: 'event-middleware' })
     .derive(
         { as: 'scoped' },
         () => ({
-            pushEvent: serverStore.get().pushEvent,
+            publishEvent: serverStore.get().publishEvent,
         }))

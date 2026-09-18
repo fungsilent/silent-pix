@@ -12,7 +12,7 @@ import { taskImageService } from '#/module/task/task.image.service'
 import { taskService } from '#/module/task/task.service'
 
 import type { Database, UUID } from '@silent-pix/db'
-import type { PushEvent } from '#/app.store'
+import type { PublishEvent } from '#/app.store'
 import type { ComfyClient } from '#/lib/comfy/comfy.client'
 import type { WorkflowModel } from '#/module/workflow/workflow.model'
 
@@ -24,7 +24,7 @@ export const taskExecution = {
         client: ComfyClient,
         taskId: UUID,
         workflow: WorkflowModel,
-        pushEvent: PushEvent,
+        publishEvent: PublishEvent,
     ): Promise<void> {
         const item = await taskService.findTask(database, taskId, {
             includeImage: true,
@@ -46,7 +46,7 @@ export const taskExecution = {
                         taskId,
                         'REFERENCE_IMAGE_FILE_MISSING',
                         'Reference image file is missing from storage.',
-                        pushEvent,
+                        publishEvent,
                     )
                     return
                 }
@@ -79,7 +79,10 @@ export const taskExecution = {
                         {
                             matchStatuses: ['queued']
                         })
-                    await taskService.publishChanged(database, taskId, pushEvent)
+                    const task = await taskService.snapshot(database, taskId)
+                    if (task) {
+                        publishEvent('task.changed', { task })
+                    }
                 },
             })
             const outputImages = Object.values(result.history.outputs ?? {})
@@ -91,7 +94,7 @@ export const taskExecution = {
                     taskId,
                     'COMFY_OUTPUT_MISSING',
                     'ComfyUI did not return any output images.',
-                    pushEvent,
+                    publishEvent,
                 )
                 return
             }
@@ -151,13 +154,16 @@ export const taskExecution = {
                     taskId,
                     storageError,
                     'ComfyUI output could not be stored.',
-                    pushEvent,
+                    publishEvent,
                 )
                 return
             }
 
             if (completed) {
-                await taskService.publishChanged(database, taskId, pushEvent)
+                const task = await taskService.snapshot(database, taskId)
+                if (task) {
+                    publishEvent('task.changed', { task })
+                }
 
                 /* Comfy output cleanup and history deletion do not hold the image lock. */
                 for (const { image } of downloaded) {
@@ -187,7 +193,7 @@ export const taskExecution = {
                 ? error.message
                 : 'An unexpected task generation error occurred.'
 
-            await failTask(database, taskId, code, message, pushEvent)
+            await failTask(database, taskId, code, message, publishEvent)
         }
     },
 }
@@ -197,7 +203,7 @@ async function failTask(
     taskId: UUID,
     errorCode: string,
     errorMessage: string,
-    pushEvent: PushEvent,
+    publishEvent: PublishEvent,
 ): Promise<void> {
     await taskService.updateTask(
         database,
@@ -210,7 +216,10 @@ async function failTask(
         {
             matchStatuses: ['queued', 'running'],
         })
-    await taskService.publishChanged(database, taskId, pushEvent)
+    const task = await taskService.snapshot(database, taskId)
+    if (task) {
+        publishEvent('task.changed', { task })
+    }
 }
 
 /*

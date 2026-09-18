@@ -1,14 +1,12 @@
 import { event } from '@silent-pix/shared'
 
-import { healthSnapshot } from '#/module/app/app.event'
-
 import type { DatabaseClient } from '@silent-pix/db'
-import type { EventChannel, EventSocket } from '@silent-pix/event/server'
+import type { EventServer, EventSocket } from '@silent-pix/event/server'
 import type { Event } from '@silent-pix/shared'
 import type { ComfyClient } from '#/lib/comfy/comfy.client'
 
 type HealthBroadcasterOptions = {
-    channel: EventChannel<Event.ServerEvent>
+    eventServer: EventServer<string, Event.ServerEvent>
     comfyClient: ComfyClient
     databaseClient: DatabaseClient
 }
@@ -16,7 +14,7 @@ type HealthBroadcasterOptions = {
 export type HealthBroadcaster = ReturnType<typeof createHealthBroadcaster>
 
 export function createHealthBroadcaster(options: HealthBroadcasterOptions) {
-    const { channel, comfyClient, databaseClient } = options
+    const { eventServer, comfyClient, databaseClient } = options
 
     let cachedDatabase = false
     let probing: Promise<void> | undefined
@@ -45,7 +43,7 @@ export function createHealthBroadcaster(options: HealthBroadcasterOptions) {
     }
 
     const publish = (): void => {
-        channel.broadcast(event.serverEvent.parse(healthSnapshot(snapshot())))
+        eventServer.publish('health.snapshot', { health: snapshot() })
     }
 
     const tick = async (): Promise<void> => {
@@ -55,12 +53,12 @@ export function createHealthBroadcaster(options: HealthBroadcasterOptions) {
 
     return {
         syncTimer(): void {
-            if (channel.size > 0 && !timer) {
+            if (eventServer.size > 0 && !timer) {
                 timer = setInterval(() => void tick(), event.health.heartbeatIntervalMs)
                 return
             }
 
-            if (channel.size === 0 && timer) {
+            if (eventServer.size === 0 && timer) {
                 clearInterval(timer)
                 timer = undefined
             }
@@ -70,7 +68,7 @@ export function createHealthBroadcaster(options: HealthBroadcasterOptions) {
 
         async sendInitial(socket: EventSocket): Promise<void> {
             await probeDatabase()
-            channel.send(socket, event.serverEvent.parse(healthSnapshot(snapshot())))
+            eventServer.send(socket, 'health.snapshot', { health: snapshot() })
         },
 
         stop(): void {

@@ -152,7 +152,8 @@ packages/shared
     Workflow definitions live under `contract/workflow/{resource,graph,config}.ts`.
 
 packages/event
-    Generic WebSocket transport helpers only; domain events belong in shared.
+    Generic browser client and type-keyed EventServer transport helpers only; the
+    Elysia /api/event adapter belongs in apps/server/src/module/event; domain events belong in shared, and Workflow projections belong in the Workflow module.
 
 packages/db
     SQLite client, Drizzle schema/migrations, maintenance scripts.
@@ -260,7 +261,8 @@ legacy `workflowRevision = 0` rows remain unknown rather than being backfilled.
 
 `taskExecution.generate()` owns task generation's ComfyUI orchestration and
 its generation-only completion transaction. It may call `taskService` for task
-reads, writes, and publication. Keep the dependency one-way:
+reads and writes, then loads a canonical snapshot and publishes its lifecycle
+event directly at the call site. Keep the dependency one-way:
 `task.service.ts` owns resource queries, business operations, startup recovery,
 snapshots, and public options and must not import the execution module.
 The route launches generation as a detached, untracked Promise; tracking,
@@ -362,7 +364,7 @@ back into an object before the handler sees it. Declare it as one - a
 
 ## Events
 
-Use `packages/shared/src/event/<module>.ts` for server-to-web event contracts and `packages/event` for generic WebSocket transport helpers.
+Use `packages/shared/src/event/<module>.ts` for server-to-web event contracts and `packages/event` for generic WebSocket transport helpers. The Elysia `/api/event` adapter belongs to `apps/server/src/module/event`; Workflow projections remain in the Workflow domain.
 
 ### REST is the source of truth; the socket syncs everyone else
 
@@ -402,7 +404,8 @@ Rules:
 - the connection registry remains keyed by `ws.raw`; creator exclusion is not implemented
 - Cloudflare Tunnel configuration must leave `httpHostHeader` unset so the external host remains available for same-origin validation
 - browser connection helpers live in `packages/event/src/client.ts`
-- Node WebSocket server helpers live in `packages/event/src/server.ts`
+- Node WebSocket server helpers live in `packages/event/src/server.ts`; the functional Elysia `/api/event` route plugin in `apps/server/src/module/event/event.route.ts` uses the parent app's `@elysiajs/node` `node()` adapter, and the reused Workflow projection lives in `apps/server/src/module/workflow/workflow.model.ts`
+- `apps/web/src/features/event/event.client.ts` owns URL/client identity, connection lifecycle, shared-schema parsing, reconnect recovery, and exhaustive aggregate dispatch; domain cache handlers remain in their existing feature `*.event.ts` files
 - an event carries the fields needed for its supported cache updates; incomplete projections use invalidation
 - patch when the payload determines the result; otherwise invalidate affected queries
 - database membership/collation/search semantics stay server-owned; invalidate when fields cannot decide membership. Workflow list ordering is the precise exception in which Server and Web use the same `name` then `id` keys: Server declares SQLite ordering, while Web's realtime cache uses a file-local JavaScript ordinal comparator. Unicode edge ordering may differ between realtime upserts and a later refetch; this does not loosen server ownership of membership, collation, or `LIKE` semantics in other domains.
@@ -533,7 +536,7 @@ components/field/*
     Shared form/control primitives. Keep domain label groups and rows in their page or shared domain component, not in generic fields.
 
 lib/*
-    Non-component browser logic with no page-specific knowledge: class merging, stores, event dispatch, error mapping, image zoom/pan.
+    Non-component browser logic with no page-specific knowledge: class merging, stores, error mapping, image zoom/pan.
     lib/theme.ts is the exception that is not logic: shared class recipes such as the disabled field look. styles.css owns the tokens;
     theme.ts owns which tokens combine into a role, so components do not each keep a copy.
 

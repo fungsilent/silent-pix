@@ -60,7 +60,7 @@ Current web structure:
 
 ```txt
 apps/web/src/
-    App.tsx                 app shell, Header composition, event client lifecycle
+    App.tsx                 app shell, Header composition, event feature lifecycle hook
     api/                    Eden REST wrappers
     features/<domain>/      Query hooks, keys, cache updates, event handling
     components/
@@ -145,6 +145,24 @@ Preferred flow:
 ```txt
 route -> service -> Drizzle -> SQLite
 ```
+
+Realtime ownership is split by boundary:
+
+```txt
+packages/event/src/server.ts
+    generic EventServer: key/clientId/socket records, parser injection, validated broadcast/send
+apps/server/src/module/event/event.route.ts
+    Functional Elysia /api/event route plugin; parent app supplies @elysiajs/node node(), Origin/Host handshake, query validation, open/close hooks
+apps/server/src/module/workflow/workflow.model.ts
+    Reused WorkflowModel -> WorkflowSummary projection
+apps/server/src/app.store.ts
+    long-lived EventServer and type-keyed publishEvent alias
+apps/server/src/module/app/app.health.ts
+    health snapshot payload and timer/initial-send composition
+```
+
+PHASE 1 keeps publication broadcast to every connected socket. Client-aware
+exclusion is a later phase and is not part of the current runtime behavior.
 
 Elysia database context follows the same boundary:
 
@@ -255,8 +273,14 @@ Allowed:
 
 ```txt
 - browser WebSocket client helper with JSON decoding and reconnect lifecycle
-- Node WebSocket server helper with socket collection and JSON broadcast
+- Node WebSocket server helper with typed connection records and JSON broadcast
 ```
+
+`createEventServer()` is generic over client identity and the aggregate event
+union. The caller injects `parseEvent`; the package does not import Zod, Shared,
+or Elysia. `connect()` records `{ key, clientId, socket }`, while `publish()`
+and `send()` derive the payload from the event type, validate the assembled
+envelope, then serialize it. PHASE 1 does not filter recipients.
 
 Forbidden:
 
@@ -372,11 +396,12 @@ This model remains in process memory only; legacy tasks with
 
 `taskExecution.generate()` owns detached ComfyUI flow, including prompt
 construction, output ingestion and its completion transaction, failure mutation,
-and ComfyUI cleanup. It may call `taskService` for task reads, writes, and
-publication; `task.service.ts` does not import the execution module. Resource
-queries, startup recovery, snapshots, and public option methods remain owned by
-`task.service.ts`. No execution tracking, cancellation, or shutdown draining is
-provided.
+and ComfyUI cleanup. It may call `taskService` for task reads and writes, then
+loads a canonical snapshot and publishes `task.changed` directly at each
+lifecycle call site; `task.service.ts` does not import the execution module.
+Resource queries, startup recovery, snapshots, and public option methods remain
+owned by `task.service.ts`. No execution tracking, cancellation, or shutdown
+draining is provided.
 
 ---
 
@@ -512,7 +537,7 @@ WebSocket foundation:
 - endpoint: GET /api/event
 - same-origin Web client; development proxy can target a configured remote server
 - The Web API client module (`apps/web/src/api/api.client.ts`) exports one module-load UUID `clientId` per page; App puts it in the `clientId` query
-- server validates `clientId`, requires `Origin` and `Host`, and strictly compares parsed `Origin.host` (including port) with `Host` before upgrade; `ws.data.query.clientId` is available, while `ws.raw` remains the connection key
+- server validates `clientId`, requires `Origin` and `Host`, and strictly compares parsed `Origin.host` (including port) with `Host` before upgrade; `ws.data.query.clientId` is passed to the generic EventServer, while `ws.raw` remains the connection key
 - the shared Web API client fetcher sends the exported `clientId` as the `client-id` header; the task-create route validates it
 - a Cloudflare Tunnel must leave `httpHostHeader` unset so the external host remains available for same-origin validation
 - authentication is not implemented
@@ -520,7 +545,7 @@ WebSocket foundation:
 - server events only
 - current events: `task.created`, `task.changed`, `task.removed`,
   `workflow.changed`, `workflow.removed`, and `health.snapshot`
-- server validates every outbound event through `event.serverEvent.parse()` before broadcast
+- the server adapter passes type-keyed payloads to EventServer; its injected `event.serverEvent.parse()` validates every assembled event before broadcast or initial point-to-point send
 - connection state comes from WebSocket open, close, and reconnect lifecycle callbacks
 ```
 
@@ -537,8 +562,8 @@ Realtime is not durable; SQLite remains authoritative and REST restores missed s
 Current frontend event usage:
 
 ```txt
-- App.tsx owns the local server-event client lifecycle
-- `apps/web/src/lib/event.ts` dispatches decoded `Event.ServerEvent` values
+- `apps/web/src/features/event/event.client.ts` owns URL/client identity, browser connection lifecycle, shared-schema parsing, connection status, reconnect recovery, and exhaustive `Event.ServerEvent` dispatch
+- `App.tsx` only starts and cleans up `startServerEvents(queryClient)`
 - a successful `POST /api/task` response seeds the local feed and detail caches before task selection
 - `task.created` inserts feed entries; `task.changed` patches feed/detail; `task.removed` carries `taskIds`
 - Workflow events update summaries and invalidate detail when its payload is insufficient

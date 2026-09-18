@@ -4,7 +4,7 @@ import { Elysia } from 'elysia'
 
 import { databaseMiddleware } from '#/middleware/database'
 import { eventMiddleware } from '#/middleware/event'
-import { workflowChanged, workflowRemoved } from '#/module/workflow/workflow.event'
+import { toWorkflowSummary } from '#/module/workflow/workflow.model'
 import { workflowService } from '#/module/workflow/workflow.service'
 
 import type { Comfy, WorkflowApi } from '@silent-pix/shared'
@@ -56,7 +56,7 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
     )
     .post(
         '/',
-        async ({ body, databaseClient, pushEvent, status }) => {
+        async ({ body, databaseClient, publishEvent, status }) => {
             const created = await workflowService.create(databaseClient.database, {
                 name: body.name,
                 graph: body.graph,
@@ -73,7 +73,9 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
                 throw new Error('Created workflow could not be loaded.')
             }
 
-            pushEvent(workflowChanged(created.data))
+            publishEvent('workflow.changed', {
+                workflow: toWorkflowSummary(created.data),
+            })
 
             return status(201, workflow)
         },
@@ -88,7 +90,7 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
     )
     .put(
         '/:workflowId',
-        async ({ body, databaseClient, params, pushEvent, status }) => {
+        async ({ body, databaseClient, params, publishEvent, status }) => {
             const result = await workflowService.update(
                 databaseClient.database,
                 toUUID(params.workflowId, 'workflowId'),
@@ -121,7 +123,9 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
                 throw new Error('Updated workflow could not be loaded.')
             }
 
-            pushEvent(workflowChanged(result.data))
+            publishEvent('workflow.changed', {
+                workflow: toWorkflowSummary(result.data),
+            })
 
             return workflow
         },
@@ -140,7 +144,7 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
 
     .delete(
         '/:workflowId',
-        async ({ databaseClient, params, pushEvent, status }) => {
+        async ({ databaseClient, params, publishEvent, status }) => {
             const result = await workflowService.remove(
                 databaseClient.database,
                 toUUID(params.workflowId, 'workflowId'),
@@ -160,23 +164,20 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
             /*
              * 封存的那筆還在，只是換了狀態——發 removed 會讓其他 client 把
              * detail 快取整個丟掉。真刪才是 removed。
-             */
+            */
             if (disposition === 'archived') {
-                pushEvent(workflowChanged(workflow))
+                publishEvent('workflow.changed', {
+                    workflow: toWorkflowSummary(workflow),
+                })
 
                 return {
                     id: workflow.id,
                     disposition,
-                    workflow: {
-                        id: workflow.id,
-                        name: workflow.name,
-                        revision: workflow.revision,
-                        archivedAt: workflow.archivedAt?.toISOString() ?? null,
-                    },
+                    workflow: toWorkflowSummary(workflow),
                 }
             }
 
-            pushEvent(workflowRemoved(workflow.id))
+            publishEvent('workflow.removed', { workflowId: workflow.id })
 
             return {
                 id: workflow.id,

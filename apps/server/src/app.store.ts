@@ -1,19 +1,19 @@
 import { createDatabaseClient } from '@silent-pix/db'
-import { createEventChannel } from '@silent-pix/event/server'
+import { createEventServer } from '@silent-pix/event/server'
 import { event } from '@silent-pix/shared'
 
 import { ComfyClient } from '#/lib/comfy/comfy.client'
 
-import type { EventChannel } from '@silent-pix/event/server'
+import type { EventServer } from '@silent-pix/event/server'
 import type { Event } from '@silent-pix/shared'
 
-export type PushEvent = (value: Event.ServerEvent) => void
+export type PublishEvent = EventServer<string, Event.ServerEvent>['publish']
 
 type Store = {
     databaseClient: Awaited<ReturnType<typeof createDatabaseClient>>
     comfyClient: ComfyClient
-    eventChannel: EventChannel<Event.ServerEvent>
-    pushEvent: PushEvent
+    eventServer: EventServer<string, Event.ServerEvent>
+    publishEvent: PublishEvent
 }
 
 let initialized = false
@@ -27,17 +27,18 @@ export const serverStore = {
 
         const databaseClient = await createDatabaseClient()
         const comfyClient = new ComfyClient()
-        const eventChannel = createEventChannel<Event.ServerEvent>()
-        const pushEvent: PushEvent = value => {
-            const parsed = event.serverEvent.parse(value)
-            eventChannel.broadcast(parsed)
+        const eventServer = createEventServer<string, Event.ServerEvent>({
+            parseEvent: value => event.serverEvent.parse(value),
+        })
+        const publishEvent: PublishEvent = (type, payload) => {
+            eventServer.publish(type, payload)
         }
 
         store = {
             databaseClient,
             comfyClient,
-            eventChannel,
-            pushEvent,
+            eventServer,
+            publishEvent,
         }
 
         initialized = true
