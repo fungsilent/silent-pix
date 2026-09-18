@@ -30,8 +30,8 @@ export const serverStore = {
         const eventServer = createEventServer<string, Event.ServerEvent>({
             parseEvent: value => event.serverEvent.parse(value),
         })
-        const publishEvent: PublishEvent = (type, payload) => {
-            eventServer.publish(type, payload)
+        const publishEvent: PublishEvent = (type, payload, options) => {
+            eventServer.publish(type, payload, options)
         }
 
         store = {

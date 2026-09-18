@@ -20,6 +20,10 @@ type EventServerOptions<TEvent extends { type: string }> = {
     parseEvent: (value: unknown) => TEvent
 }
 
+type PublishEventOptions<TClientId> = {
+    excludeClientId?: TClientId
+}
+
 export type EventServer<
     TClientId,
     TEvent extends { type: string },
@@ -56,10 +60,15 @@ export function createEventServer<
     const publish = <TType extends EventType<TEvent>>(
         type: TType,
         payload: EventPayload<TEvent, TType>,
+        options?: PublishEventOptions<TClientId>,
     ): void => {
         const event = parseEvent({ ...payload, type })
 
-        for (const { socket } of connections.values()) {
+        for (const { clientId, socket } of connections.values()) {
+            if (options?.excludeClientId !== undefined && Object.is(clientId, options.excludeClientId)) {
+                continue
+            }
+
             sendEvent(socket, event)
         }
     }

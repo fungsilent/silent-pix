@@ -39,7 +39,7 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
     )
     .post(
         '/',
-        async ({ body, databaseClient, comfyClient, publishEvent, status }) => {
+        async ({ body, databaseClient, comfyClient, headers, publishEvent, status }) => {
             const creation = await taskService.create(databaseClient.database, body)
 
             if (!creation.ok) {
@@ -70,7 +70,9 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
 
             const taskSnapshot = await taskService.snapshot(databaseClient.database, task.id)
             if (taskSnapshot) {
-                publishEvent('task.created', { task: taskSnapshot })
+                publishEvent('task.created', { task: taskSnapshot }, {
+                    excludeClientId: headers['client-id'],
+                })
             }
 
             void taskExecution.generate(databaseClient.database, comfyClient, task.id, workflow, publishEvent)

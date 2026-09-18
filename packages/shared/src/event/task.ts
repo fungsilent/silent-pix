@@ -5,11 +5,6 @@ import { taskListItem } from '#shared/contract/task'
 
 /* MARK: event */
 
-/*
- * NOTE:
- * 目前廣播給所有 client，包含建立者自己。建立者的 cache 已由 POST 回應填好，
- * client id 做好之後才在這裡排除建立者。
- */
 export const snapshot = taskListItem
     .omit({ thumbnail: true })
     .extend({

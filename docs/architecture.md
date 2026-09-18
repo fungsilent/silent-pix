@@ -150,7 +150,7 @@ Realtime ownership is split by boundary:
 
 ```txt
 packages/event/src/server.ts
-    generic EventServer: key/clientId/socket records, parser injection, validated broadcast/send
+    generic EventServer: key/clientId/socket records, parser injection, validated publish/send with optional clientId exclusion
 apps/server/src/module/event/event.route.ts
     Functional Elysia /api/event route plugin; parent app supplies @elysiajs/node node(), Origin/Host handshake, query validation, open/close hooks
 apps/server/src/module/workflow/workflow.model.ts
@@ -161,8 +161,10 @@ apps/server/src/module/app/app.health.ts
     health snapshot payload and timer/initial-send composition
 ```
 
-PHASE 1 keeps publication broadcast to every connected socket. Client-aware
-exclusion is a later phase and is not part of the current runtime behavior.
+The `task.created` POST route pilot excludes every connected socket whose
+`clientId` matches the request metadata. Other synchronous Task/Workflow
+actions remain broadcast; async lifecycle and health events still reach every
+connected socket.
 
 Elysia database context follows the same boundary:
 
@@ -279,8 +281,9 @@ Allowed:
 `createEventServer()` is generic over client identity and the aggregate event
 union. The caller injects `parseEvent`; the package does not import Zod, Shared,
 or Elysia. `connect()` records `{ key, clientId, socket }`, while `publish()`
-and `send()` derive the payload from the event type, validate the assembled
-envelope, then serialize it. PHASE 1 does not filter recipients.
+and `send()` derive the payload from the event type and validate the assembled
+envelope once before serializing it. `publish()` may exclude every matching
+`clientId` record; `send()` remains point-to-point and ignores routing options.
 
 Forbidden:
 
@@ -541,7 +544,7 @@ WebSocket foundation:
 - the shared Web API client fetcher sends the exported `clientId` as the `client-id` header; the task-create route validates it
 - a Cloudflare Tunnel must leave `httpHostHeader` unset so the external host remains available for same-origin validation
 - authentication is not implemented
-- client identity is transport metadata only; `task.created` still broadcasts to every connection and creator exclusion is not implemented
+- client identity is transport metadata only; the `task.created` POST route pilot excludes every matching `clientId` record, while other synchronous actions remain broadcast
 - server events only
 - current events: `task.created`, `task.changed`, `task.removed`,
   `workflow.changed`, `workflow.removed`, and `health.snapshot`

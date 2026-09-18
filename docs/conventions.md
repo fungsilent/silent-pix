@@ -401,7 +401,7 @@ Rules:
 - the WebSocket handshake query contract (`clientId`) lives in `packages/shared/src/api/app.ts`; event envelopes remain under `packages/shared/src/event`
 - the Web API client module (`apps/web/src/api/api.client.ts`) exports one per-page UUID `clientId`; its shared fetcher supplies it as `client-id`, while App uses it for the WebSocket `clientId` query, and identity is transport metadata only
 - WebSocket handshakes require `Origin` and `Host`; Server safely parses `Origin` and strictly compares parsed `Origin.host` (including port) with `Host` before upgrade
-- the connection registry remains keyed by `ws.raw`; creator exclusion is not implemented
+- the connection registry remains keyed by `ws.raw`; the `task.created` POST route pilot excludes every record matching the request `clientId`, while other synchronous actions remain broadcast
 - Cloudflare Tunnel configuration must leave `httpHostHeader` unset so the external host remains available for same-origin validation
 - browser connection helpers live in `packages/event/src/client.ts`
 - Node WebSocket server helpers live in `packages/event/src/server.ts`; the functional Elysia `/api/event` route plugin in `apps/server/src/module/event/event.route.ts` uses the parent app's `@elysiajs/node` `node()` adapter, and the reused Workflow projection lives in `apps/server/src/module/workflow/workflow.model.ts`
