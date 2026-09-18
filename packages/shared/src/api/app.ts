@@ -6,6 +6,12 @@ const eventQuery = z.object({
     clientId: z.uuid(),
 })
 
+/* MARK: request */
+
+const clientHeaders = z.object({
+    'client-id': z.uuid(),
+})
+
 /* MARK: response */
 
 const getHealthResponse = z.object({
@@ -23,6 +29,7 @@ const errorResponse = z.object({
 /* MARK: catalog */
 
 export const appApi = {
+    clientHeaders,
     errorResponse,
     eventQuery,
     getHealthResponse,

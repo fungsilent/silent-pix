@@ -5,10 +5,6 @@ import { taskConfig, taskLora, taskPrompt } from '#shared/contract/task'
 
 /* MARK: request */
 
-export const createTaskHeaders = z.object({
-    'client-id': z.uuid(),
-})
-
 /*
  * TRANSPORT:
  * 非檔案欄位全部包在 payload。Eden 把 body 轉成 FormData 時，空陣列會逐個

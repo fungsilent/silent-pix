@@ -43,11 +43,11 @@ export const workflowApi = {
     },
 
     create(request: WorkflowApi.CreateWorkflowRequest): Promise<WorkflowApi.CreateWorkflowResponse> {
-        return unwrap(apiClient.api.workflow.post(request), mapWorkflowMutationError)
+        return unwrap(apiClient.api.workflow.post(request, {}), mapWorkflowMutationError)
     },
 
     remove(request: WorkflowApi.GetWorkflowRequest): Promise<WorkflowApi.DeleteWorkflowResponse> {
-        return unwrap(apiClient.api.workflow({ workflowId: request.workflowId }).delete())
+        return unwrap(apiClient.api.workflow({ workflowId: request.workflowId }).delete(undefined, {}))
     },
 
     update(request: WorkflowApi.UpdateWorkflowParams & WorkflowApi.UpdateWorkflowRequest): Promise<WorkflowApi.UpdateWorkflowResponse> {
@@ -56,6 +56,6 @@ export const workflowApi = {
             name: request.name,
             graph: request.graph,
             configSchema: request.configSchema,
-        }), mapWorkflowMutationError)
+        }, {}), mapWorkflowMutationError)
     },
 }

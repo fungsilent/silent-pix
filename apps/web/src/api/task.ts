@@ -24,13 +24,13 @@ export const taskApi = {
     ): Promise<TaskApi.RenameTaskResponse> {
         return unwrap(apiClient.api.task({ taskId: request.taskId }).name.patch({
             name: request.name,
-        }))
+        }, {}))
     },
 
     setFlags(
         request: TaskApi.UpdateTaskFlagsRequest,
     ): Promise<TaskApi.UpdateTaskFlagsResponse> {
-        return unwrap(apiClient.api.task.flag.patch(request))
+        return unwrap(apiClient.api.task.flag.patch(request, {}))
     },
 
     removeTasks(
@@ -44,7 +44,7 @@ export const taskApi = {
     },
 
     removeTask(request: TaskApi.DeleteTaskRequest): Promise<TaskApi.DeleteTaskResponse> {
-        return unwrap(apiClient.api.task({ taskId: request.taskId }).delete())
+        return unwrap(apiClient.api.task({ taskId: request.taskId }).delete(undefined, {}))
     },
 
     listSamplers(): Promise<TaskApi.GetSamplersResponse> {

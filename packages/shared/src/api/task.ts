@@ -1,5 +1,4 @@
 import {
-    createTaskHeaders,
     createTaskRequest,
     createTaskResponse,
 } from '#shared/api/task/create'
@@ -35,7 +34,6 @@ import { taskGenerateConfig, taskPromptDocument } from '#shared/contract/task'
 /* MARK: catalog */
 
 export const taskApi = {
-    createTaskHeaders,
     createTaskRequest,
     createTaskResponse,
     deleteTaskRequest,

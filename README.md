@@ -52,7 +52,7 @@ Rules:
 - SQLite stores durable state and metadata.
 - Filesystem stores images, thumbnails, uploads, and workflow snapshots.
 - Validated WebSocket task snapshots update frontend query caches in realtime; REST restores state after refresh or reconnection.
-- `apps/server/src/module/event` owns only the `/api/event` Elysia route; the Workflow domain owns the canonical summary projection, and REST/task execution call sites own Task snapshot publication. `packages/event` owns generic connection records and type-keyed validated publication. The Web event feature owns URL/client identity, parsing, reconnect recovery, and aggregate dispatch while domain features own cache handlers.
+- `apps/server/src/module/event` owns only the `/api/event` Elysia route; the Workflow domain owns the canonical summary projection, and REST/task execution call sites own Task snapshot publication. All synchronous Task/Workflow mutation routes require `appApi.clientHeaders` and exclude matching sockets from their event publication; async task lifecycle and health events remain broadcasts. `packages/event` owns generic connection records and type-keyed validated publication. The Web event feature owns URL/client identity, parsing, reconnect recovery, and aggregate dispatch while domain features own cache handlers.
 
 ---
 

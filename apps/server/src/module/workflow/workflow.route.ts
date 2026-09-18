@@ -56,7 +56,7 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
     )
     .post(
         '/',
-        async ({ body, databaseClient, publishEvent, status }) => {
+        async ({ body, databaseClient, headers, publishEvent, status }) => {
             const created = await workflowService.create(databaseClient.database, {
                 name: body.name,
                 graph: body.graph,
@@ -75,12 +75,15 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
 
             publishEvent('workflow.changed', {
                 workflow: toWorkflowSummary(created.data),
+            }, {
+                excludeClientId: headers['client-id'],
             })
 
             return status(201, workflow)
         },
         {
             body: workflowApi.createWorkflowRequest,
+            headers: appApi.clientHeaders,
             response: {
                 201: workflowApi.createWorkflowResponse,
                 422: workflowApi.workflowMutationErrorResponse,
@@ -90,7 +93,7 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
     )
     .put(
         '/:workflowId',
-        async ({ body, databaseClient, params, publishEvent, status }) => {
+        async ({ body, databaseClient, headers, params, publishEvent, status }) => {
             const result = await workflowService.update(
                 databaseClient.database,
                 toUUID(params.workflowId, 'workflowId'),
@@ -125,6 +128,8 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
 
             publishEvent('workflow.changed', {
                 workflow: toWorkflowSummary(result.data),
+            }, {
+                excludeClientId: headers['client-id'],
             })
 
             return workflow
@@ -132,6 +137,7 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
         {
             params: workflowApi.updateWorkflowParams,
             body: workflowApi.updateWorkflowRequest,
+            headers: appApi.clientHeaders,
             response: {
                 200: workflowApi.updateWorkflowResponse,
                 404: appApi.errorResponse,
@@ -144,7 +150,7 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
 
     .delete(
         '/:workflowId',
-        async ({ databaseClient, params, publishEvent, status }) => {
+        async ({ databaseClient, headers, params, publishEvent, status }) => {
             const result = await workflowService.remove(
                 databaseClient.database,
                 toUUID(params.workflowId, 'workflowId'),
@@ -168,6 +174,8 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
             if (disposition === 'archived') {
                 publishEvent('workflow.changed', {
                     workflow: toWorkflowSummary(workflow),
+                }, {
+                    excludeClientId: headers['client-id'],
                 })
 
                 return {
@@ -177,7 +185,9 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
                 }
             }
 
-            publishEvent('workflow.removed', { workflowId: workflow.id })
+            publishEvent('workflow.removed', { workflowId: workflow.id }, {
+                excludeClientId: headers['client-id'],
+            })
 
             return {
                 id: workflow.id,
@@ -187,6 +197,7 @@ export const workflowRoutes = new Elysia({ name: 'workflow-routes', prefix: '/wo
         },
         {
             params: workflowApi.getWorkflowRequest,
+            headers: appApi.clientHeaders,
             response: {
                 200: workflowApi.deleteWorkflowResponse,
                 404: appApi.errorResponse,

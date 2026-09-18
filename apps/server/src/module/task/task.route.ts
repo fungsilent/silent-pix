@@ -81,7 +81,7 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
         },
         {
             body: taskApi.createTaskRequest,
-            headers: taskApi.createTaskHeaders,
+            headers: appApi.clientHeaders,
             response: {
                 201: taskApi.createTaskResponse,
                 404: appApi.errorResponse,
@@ -95,7 +95,7 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
     )
     .patch(
         '/:taskId/name',
-        async ({ body, databaseClient, params, publishEvent, status }) => {
+        async ({ body, databaseClient, headers, params, publishEvent, status }) => {
             const taskId = toUUID(params.taskId, 'taskId')
             const renamed = await taskService.updateTask(databaseClient.database, {
                 id: taskId,
@@ -118,7 +118,9 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
 
             const taskSnapshot = await taskService.snapshot(databaseClient.database, taskId)
             if (taskSnapshot) {
-                publishEvent('task.changed', { task: taskSnapshot })
+                publishEvent('task.changed', { task: taskSnapshot }, {
+                    excludeClientId: headers['client-id'],
+                })
             }
 
             return task
@@ -126,6 +128,7 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
         {
             params: taskApi.renameTaskParams,
             body: taskApi.renameTaskRequest,
+            headers: appApi.clientHeaders,
             response: {
                 200: taskApi.renameTaskResponse,
                 404: appApi.errorResponse,
@@ -136,7 +139,7 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
     )
     .patch(
         '/flag',
-        async ({ body, databaseClient, publishEvent, status }) => {
+        async ({ body, databaseClient, headers, publishEvent, status }) => {
             const result = await taskService.setFlags(databaseClient.database, body)
 
             if (!result.ok) {
@@ -153,13 +156,16 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
                 result.data.tasks.map(task => task.id),
             )
             for (const task of taskSnapshots) {
-                publishEvent('task.changed', { task })
+                publishEvent('task.changed', { task }, {
+                    excludeClientId: headers['client-id'],
+                })
             }
 
             return result.data
         },
         {
             body: taskApi.updateTaskFlagsRequest,
+            headers: appApi.clientHeaders,
             response: {
                 200: taskApi.updateTaskFlagsResponse,
                 404: appApi.errorResponse,
@@ -198,7 +204,7 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
     )
     .delete(
         '/',
-        async ({ body, databaseClient, publishEvent, status }) => {
+        async ({ body, databaseClient, headers, publishEvent, status }) => {
             const result = await taskService.removeTasks(databaseClient.database, body)
 
             if (!result.ok) {
@@ -220,13 +226,16 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
             }
 
             if (result.data.ids.length > 0) {
-                publishEvent('task.removed', { taskIds: result.data.ids })
+                publishEvent('task.removed', { taskIds: result.data.ids }, {
+                    excludeClientId: headers['client-id'],
+                })
             }
 
             return result.data
         },
         {
             body: taskApi.deleteTasksRequest,
+            headers: appApi.clientHeaders,
             response: {
                 200: taskApi.deleteTasksResponse,
                 404: appApi.errorResponse,
@@ -239,7 +248,7 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
     )
     .delete(
         '/:taskId',
-        async ({ databaseClient, params, publishEvent, status }) => {
+        async ({ databaseClient, headers, params, publishEvent, status }) => {
             const result = await taskService.removeTask(
                 databaseClient.database,
                 toUUID(params.taskId, 'taskId'),
@@ -254,12 +263,15 @@ export const taskRoutes = new Elysia({ name: 'task-routes', prefix: '/task' })
                 })
             }
 
-            publishEvent('task.removed', { taskIds: [result.data.id] })
+            publishEvent('task.removed', { taskIds: [result.data.id] }, {
+                excludeClientId: headers['client-id'],
+            })
 
             return result.data
         },
         {
             params: taskApi.deleteTaskRequest,
+            headers: appApi.clientHeaders,
             response: {
                 200: taskApi.deleteTaskResponse,
                 404: appApi.errorResponse,

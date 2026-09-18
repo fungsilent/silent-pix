@@ -161,10 +161,21 @@ apps/server/src/module/app/app.health.ts
     health snapshot payload and timer/initial-send composition
 ```
 
-The `task.created` POST route pilot excludes every connected socket whose
-`clientId` matches the request metadata. Other synchronous Task/Workflow
-actions remain broadcast; async lifecycle and health events still reach every
-connected socket.
+Synchronous REST mutations use one shared header contract and route-owned
+publication metadata:
+
+| Mutation | Header schema | Event | Recipients |
+|---|---|---|---|
+| Task create | `appApi.clientHeaders` | `task.created` | all except matching `clientId` |
+| Task rename / flags | `appApi.clientHeaders` | `task.changed` per snapshot | all except matching `clientId` |
+| Task batch / single delete | `appApi.clientHeaders` | one `task.removed` | all except matching `clientId` |
+| Workflow create / update / archive | `appApi.clientHeaders` | `workflow.changed` | all except matching `clientId` |
+| Workflow true delete | `appApi.clientHeaders` | `workflow.removed` | all except matching `clientId` |
+
+The actor applies the REST response and remote clients apply the event. Missing
+or invalid headers fail before the mutation handler and cannot publish. Empty
+batch deletion publishes nothing. Async task lifecycle and health events do
+not pass routing options and still reach every connected socket.
 
 Elysia database context follows the same boundary:
 
@@ -541,10 +552,10 @@ WebSocket foundation:
 - same-origin Web client; development proxy can target a configured remote server
 - The Web API client module (`apps/web/src/api/api.client.ts`) exports one module-load UUID `clientId` per page; App puts it in the `clientId` query
 - server validates `clientId`, requires `Origin` and `Host`, and strictly compares parsed `Origin.host` (including port) with `Host` before upgrade; `ws.data.query.clientId` is passed to the generic EventServer, while `ws.raw` remains the connection key
-- the shared Web API client fetcher sends the exported `clientId` as the `client-id` header; the task-create route validates it
+- the shared Web API client fetcher sends the exported `clientId` as the `client-id` header; every event-producing synchronous Task/Workflow route validates `appApi.clientHeaders`
 - a Cloudflare Tunnel must leave `httpHostHeader` unset so the external host remains available for same-origin validation
 - authentication is not implemented
-- client identity is transport metadata only; the `task.created` POST route pilot excludes every matching `clientId` record, while other synchronous actions remain broadcast
+- client identity is transport metadata only; synchronous Task/Workflow route publications exclude every matching `clientId` record, while async task lifecycle and health publications remain broadcasts
 - server events only
 - current events: `task.created`, `task.changed`, `task.removed`,
   `workflow.changed`, `workflow.removed`, and `health.snapshot`
