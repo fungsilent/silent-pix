@@ -1,7 +1,6 @@
 import { existsSync } from 'node:fs'
 
 import { loadConfig } from '#/config'
-import { ComfyError } from '#/lib/comfy/comfy.client'
 import { removeComfyImage } from '#/lib/comfy/comfy.output'
 import { buildComfyPrompt, txt2imgRuntime } from '#/lib/comfy/comfy.prompt'
 import { absolutePath } from '#/lib/image/image.store'
@@ -26,15 +25,13 @@ export const taskExecution = {
         workflow: WorkflowModel,
         publishEvent: PublishEvent,
     ): Promise<void> {
-        const item = await taskService.findTask(database, taskId, {
-            includeImage: true,
-        })
-
-        if (!item) {
-            return
-        }
-
         try {
+            const item = await taskService.findTask(database, taskId, {
+                includeImage: true,
+            })
+
+            if (!item) return
+
             const input = item.images.find(relation => relation.type === 'input')
             let runtime = txt2imgRuntime
 
@@ -62,141 +59,164 @@ export const taskExecution = {
                 item.task.config,
                 runtime,
             )
-            const result = await client.execute(prompt, {
-                async onPromptCreated(promptId) {
-                    await taskService.updateTask(database, {
-                        id: taskId,
-                        comfyPromptId: promptId,
-                    })
-                },
-                async onRunning() {
-                    await taskService.updateTask(
-                        database,
-                        {
-                            id: taskId,
-                            status: 'running',
-                        },
-                        {
-                            matchStatuses: ['queued']
-                        })
-                    const task = await taskService.snapshot(database, taskId)
-                    if (task) {
-                        publishEvent('task.changed', { task })
+
+            client.execute(prompt, {
+                async onAccepted(promptId) {
+                    try {
+                        await taskService.updateTask(
+                            database,
+                            {
+                                id: taskId,
+                                comfyPromptId: promptId,
+                            },
+                        )
+                    }
+                    catch (error) {
+                        logCallbackError(taskId, 'onAccepted', error)
                     }
                 },
-            })
-            const outputImages = Object.values(result.outputs)
-                .flatMap(output => output.images ?? [])
+                async onRunning() {
+                    try {
+                        const updated = await taskService.updateTask(
+                            database,
+                            {
+                                id: taskId,
+                                status: 'running',
+                            },
+                            { matchStatuses: ['queued'] },
+                        )
+                        if (!updated) return
 
-            if (!outputImages.length) {
-                await failTask(
-                    database,
-                    taskId,
-                    'COMFY_OUTPUT_MISSING',
-                    'ComfyUI did not return any output images.',
-                    publishEvent,
-                )
-                return
-            }
+                        const task = await taskService.snapshot(database, taskId)
+                        if (task) {
+                            publishEvent('task.changed', { task })
+                        }
+                    }
+                    catch (error) {
+                        logCallbackError(taskId, 'onRunning', error)
+                    }
+                },
+                async onCompleted(result) {
+                    try {
+                        const outputImages = Object.values(result.outputs)
+                            .flatMap(output => output.images ?? [])
 
-            const outputs: { imageId: UUID, sortIndex: number }[] = []
-
-            const downloaded = await Promise.all(
-                outputImages.map(async (image, index) => ({
-                    image,
-                    index,
-                    bytes: await client.downloadImage(image),
-                })),
-            )
-
-            let storageError: string | undefined
-            let completed = false
-
-            await withImageMutation(async () => {
-                const ingestedImageIds: UUID[] = []
-                const cleanupIngestedImages = async () => {
-                    if (ingestedImageIds.length === 0) return
-
-                    const imageIds = ingestedImageIds.splice(0)
-                    await imageCleanup.removeUnreferenced(database, imageIds)
-                }
-
-                try {
-                    for (const { index, bytes } of downloaded) {
-                        const ingested = await imageService.ingest(database, bytes)
-
-                        if (!ingested.ok) {
-                            storageError = ingested.error
-                            await cleanupIngestedImages()
+                        if (!outputImages.length) {
+                            await failTask(
+                                database,
+                                taskId,
+                                'COMFY_OUTPUT_MISSING',
+                                'ComfyUI did not return any output images.',
+                                publishEvent,
+                            )
                             return
                         }
 
-                        outputs.push({ imageId: ingested.data.image.id, sortIndex: index })
-                        if (ingested.data.created) {
-                            ingestedImageIds.push(ingested.data.image.id)
+                        const downloaded = await Promise.all(
+                            outputImages.map(async (image, index) => ({
+                                image,
+                                index,
+                                bytes: await client.downloadImage(image),
+                            })),
+                        )
+                        const outputs: { imageId: UUID, sortIndex: number }[] = []
+                        let storageError: string | undefined
+                        let completion: CompletionResult = 'inactive'
+
+                        await withImageMutation(async () => {
+                            const ingestedImageIds: UUID[] = []
+                            const cleanupIngestedImages = async () => {
+                                if (ingestedImageIds.length === 0) return
+
+                                const imageIds = ingestedImageIds.splice(0)
+                                await imageCleanup.removeUnreferenced(database, imageIds)
+                            }
+
+                            try {
+                                for (const { index, bytes } of downloaded) {
+                                    const ingested = await imageService.ingest(database, bytes)
+
+                                    if (!ingested.ok) {
+                                        storageError = ingested.error
+                                        await cleanupIngestedImages()
+                                        return
+                                    }
+
+                                    outputs.push({
+                                        imageId: ingested.data.image.id,
+                                        sortIndex: index,
+                                    })
+                                    if (ingested.data.created) {
+                                        ingestedImageIds.push(ingested.data.image.id)
+                                    }
+                                }
+
+                                completion = await completeTaskMutation(database, taskId, outputs)
+                                if (completion !== 'completed') {
+                                    await cleanupIngestedImages()
+                                }
+                            }
+                            catch (error) {
+                                await cleanupIngestedImages()
+                                throw error
+                            }
+                        })
+
+                        if (storageError) {
+                            await failTask(
+                                database,
+                                taskId,
+                                storageError,
+                                'ComfyUI output could not be stored.',
+                                publishEvent,
+                            )
+                            return
                         }
-                    }
 
-                    completed = await completeTaskMutation(database, taskId, outputs)
-                    if (!completed) {
-                        await cleanupIngestedImages()
+                        if (completion === 'inactive') return
+
+                        if (completion === 'completed') {
+                            const task = await taskService.snapshot(database, taskId)
+                            if (task) {
+                                publishEvent('task.changed', { task })
+                            }
+
+                            /* Comfy output cleanup does not hold the image lock. */
+                            for (const { image } of downloaded) {
+                                await removeComfyImage(image)
+                            }
+                        }
+
+                        /* A disappeared task has no durable history owner either. */
+                        await deleteComfyHistory(client, result.promptId, taskId)
                     }
-                }
-                catch (error) {
-                    await cleanupIngestedImages()
-                    throw error
-                }
+                    catch (error) {
+                        await collapseGenerationError(database, taskId, error, publishEvent)
+                    }
+                },
+                async onFailed(error) {
+                    try {
+                        await failTask(
+                            database,
+                            taskId,
+                            error.code,
+                            error.message,
+                            publishEvent,
+                        )
+                    }
+                    catch (failureError) {
+                        console.error(`Failed to mark task ${taskId} failed.`, failureError)
+                    }
+                },
             })
-
-            if (storageError) {
-                await failTask(
-                    database,
-                    taskId,
-                    storageError,
-                    'ComfyUI output could not be stored.',
-                    publishEvent,
-                )
-                return
-            }
-
-            if (completed) {
-                const task = await taskService.snapshot(database, taskId)
-                if (task) {
-                    publishEvent('task.changed', { task })
-                }
-
-                /* Comfy output cleanup and history deletion do not hold the image lock. */
-                for (const { image } of downloaded) {
-                    await removeComfyImage(image)
-                }
-            }
-
-            try {
-                await client.deleteHistory(result.promptId)
-            }
-            catch (error) {
-                console.error(`Failed to remove Comfy history for task ${taskId}.`, error)
-            }
         }
         catch (error) {
-            console.error(`Task ${taskId} generation failed.`, error)
-
-            /*
-             * ingest/complete 失敗時，剛由本次操作建立的孤兒已在同一把 lock 內清理。
-             * 這裡不再碰 image rows；內容定址下既有檔案可能被別的 task 引用，孤兒交給
-             * server-owned image GC（`pnpm image:gc`）。
-             */
-            const code = error instanceof ComfyError
-                ? error.code
-                : 'TASK_GENERATE_ERROR'
-            const message = error instanceof Error
-                ? error.message
-                : 'An unexpected task generation error occurred.'
-
-            await failTask(database, taskId, code, message, publishEvent)
+            await collapseGenerationError(database, taskId, error, publishEvent)
         }
     },
 }
+
+type CompletionResult = 'completed' | 'missing' | 'inactive'
 
 async function failTask(
     database: Database,
@@ -205,7 +225,7 @@ async function failTask(
     errorMessage: string,
     publishEvent: PublishEvent,
 ): Promise<void> {
-    await taskService.updateTask(
+    const updated = await taskService.updateTask(
         database,
         {
             id: taskId,
@@ -213,12 +233,55 @@ async function failTask(
             errorCode,
             errorMessage,
         },
-        {
-            matchStatuses: ['queued', 'running'],
-        })
+        { matchStatuses: ['queued', 'running'] },
+    )
+    if (!updated) return
+
     const task = await taskService.snapshot(database, taskId)
     if (task) {
         publishEvent('task.changed', { task })
+    }
+}
+
+async function collapseGenerationError(
+    database: Database,
+    taskId: UUID,
+    error: unknown,
+    publishEvent: PublishEvent,
+): Promise<void> {
+    const message = error instanceof Error
+        ? error.message
+        : 'An unexpected task generation error occurred.'
+
+    console.error(`Task ${taskId} generation callback failed.`, error)
+    try {
+        await failTask(
+            database,
+            taskId,
+            'TASK_GENERATE_ERROR',
+            message,
+            publishEvent,
+        )
+    }
+    catch (failureError) {
+        console.error(`Failed to mark task ${taskId} generation error.`, failureError)
+    }
+}
+
+function logCallbackError(taskId: UUID, callback: string, error: unknown): void {
+    console.error(`Task ${taskId} ${callback} callback failed.`, error)
+}
+
+async function deleteComfyHistory(
+    client: ComfyClient,
+    promptId: string,
+    taskId: UUID,
+): Promise<void> {
+    try {
+        await client.deleteHistory(promptId)
+    }
+    catch (error) {
+        console.error(`Failed to remove Comfy history for task ${taskId}.`, error)
     }
 }
 
@@ -239,13 +302,22 @@ async function completeTaskMutation(
     database: Database,
     taskId: UUID,
     outputs: { imageId: UUID, sortIndex: number }[],
-): Promise<boolean> {
-    const item = await taskService.findTask(database, taskId)
-    if (!item) {
-        return false
-    }
+): Promise<CompletionResult> {
+    let completed = false
 
     await database.transaction(async tx => {
+        const updated = await taskService.updateTask(
+            tx,
+            {
+                id: taskId,
+                status: 'done',
+                errorCode: null,
+                errorMessage: null,
+            },
+            { matchStatuses: ['queued', 'running'] },
+        )
+        if (!updated) return
+
         await taskImageService.addReferences(
             tx,
             outputs.map(output => ({
@@ -255,14 +327,9 @@ async function completeTaskMutation(
                 sortIndex: output.sortIndex,
             })),
         )
-
-        await taskService.updateTask(tx, {
-            id: taskId,
-            status: 'done',
-            errorCode: null,
-            errorMessage: null,
-        })
+        completed = true
     })
 
-    return true
+    if (completed) return 'completed'
+    return await taskService.findTask(database, taskId) ? 'inactive' : 'missing'
 }

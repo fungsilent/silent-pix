@@ -52,6 +52,12 @@ ComfyUI WebSocket events. REST `history/:promptId` is queried only to recover a
 pending prompt whose socket disconnected; prompt submission, image download,
 and history deletion remain REST. This protocol stays inside the backend
 Comfy adapter and is not a `packages/event` or shared event contract.
+`ComfyClient.execute()` requires `onCompleted` and `onFailed` terminal callbacks
+and returns `void`: callbacks are invoked in lifecycle order without awaiting
+one another. Callback errors are logged without changing lifecycle state or
+recursively dispatching `onFailed`; explicit REST rejection fails, while an
+ambiguous submission transport failure continues when matching WebSocket
+evidence exists.
 
 ---
 
@@ -264,24 +270,27 @@ re-read the current Workflow. This protects the task's recorded revision from a
 Workflow update between create and execution. The model is process-local, so
 legacy `workflowRevision = 0` rows remain unknown rather than being backfilled.
 
-`taskExecution.generate()` owns task generation's ComfyUI orchestration and
-its generation-only completion transaction. It may call `taskService` for task
-reads and writes, then loads a canonical snapshot and publishes its lifecycle
-event directly at the call site. Keep the dependency one-way:
+`taskExecution.generate()` owns task generation's ComfyUI orchestration,
+callback wiring, output ingest and rollback, Task status/error mapping, its
+generation-only completion transaction, and lifecycle publication. It loads a
+canonical snapshot and publishes its lifecycle event directly at the call site.
+Keep the dependency one-way:
 `task.service.ts` owns resource queries, business operations, startup recovery,
 snapshots, and public options and must not import the execution module.
-The route launches generation as a detached, untracked Promise; tracking,
-cancellation, and shutdown draining are not part of this boundary.
+The route launches generation as a detached, untracked Promise. Its
+`ComfyClient.execute(): void` call installs lifecycle callbacks, and their
+output finalization is likewise detached, untracked, and not drained by
+shutdown; tracking and cancellation are not part of this boundary.
 
 At startup, `createApp()` awaits `taskService.failInterruptedTasks()` after
 `serverStore.init()` opens SQLite and before the first `ComfyClient.start()`.
 The single guarded update changes persisted `queued` and `running` tasks to
 `failed` with `errorCode = SERVER_RESTARTED` and an explanatory message. It does
 not resume tasks or publish recovery events; clients obtain the durable result
-through subsequent REST initial/recovery synchronization. Generation remains a
-detached, untracked background Promise, so graceful shutdown does not drain it
-and late finalization against a closed DB remains a known unsupported lifecycle
-case.
+through subsequent REST initial/recovery synchronization. The route-launched
+generation Promise and the callbacks started by `execute(): void` remain
+untracked, so graceful shutdown does not drain them and late finalization
+against a closed DB remains a known unsupported lifecycle case.
 
 An optional model module can own:
 
@@ -700,6 +709,7 @@ Rules:
 - callers own the complete lock boundary; image mutation helpers do not acquire it again
 - `imageCleanup.removeUnreferenced()` owns deduplication, 500-ID chunks, guarded `DELETE ... NOT EXISTS(task_images) RETURNING id/path`, and per-item unlink outcomes; task cleanup and GC reuse its result
 - ComfyUI execution/downloads stay outside the image lock
+- task output completion holds the image lock only through ingest/reference commit/orphan rollback; controller snapshot/event publication precedes successful Comfy output unlink
 - online GC is owned by the server image domain and runs through `withImageMutation`; `pnpm image:gc` only triggers `POST /api/image/garbage-collection`
 - the supported deployment has one server writer for each database/storage pair; sharing either with another writer is unsupported
 - `pnpm image:gc:offline -- --confirm-server-stopped` is explicit stopped-server recovery; normal GC never falls back to direct cleanup

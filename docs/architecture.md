@@ -389,10 +389,13 @@ Do not introduce:
 
 Routes must stay thin. Domain logic belongs in services.
 
-Current task generation starts as an untracked background Promise from the
-create route. Shutdown does not await all task finalization before closing the
-DB; this detached-generation lifecycle gap remains unsupported. On startup,
-after the DB is opened and before the first ComfyUI start, `createApp()` awaits
+Current task generation starts when the create route launches
+`taskExecution.generate()` as a detached, untracked Promise. Its preflight
+installs callbacks through `ComfyClient.execute(): void`; Comfy lifecycle and
+output finalization continue as detached, untracked callbacks. Shutdown does
+not await this work before closing the DB; this detached-generation lifecycle
+gap remains unsupported. On startup, after the DB is opened and before the
+first ComfyUI start, `createApp()` awaits
 `taskService.failInterruptedTasks()`, which changes persisted `queued` and
 `running` tasks to `failed` with `errorCode = SERVER_RESTARTED`. Recovery does
 not resume generation or publish events before clients connect; clients obtain
@@ -408,14 +411,15 @@ update to the Workflow after creation cannot change the prompt for that task.
 This model remains in process memory only; legacy tasks with
 `workflowRevision = 0` remain an unknown revision and are not backfilled.
 
-`taskExecution.generate()` owns detached ComfyUI flow, including prompt
-construction, output ingestion and its completion transaction, failure mutation,
-and ComfyUI cleanup. It may call `taskService` for task reads and writes, then
-loads a canonical snapshot and publishes `task.changed` directly at each
-lifecycle call site; `task.service.ts` does not import the execution module.
-Resource queries, startup recovery, snapshots, and public option methods remain
-owned by `task.service.ts`. No execution tracking, cancellation, or shutdown
-draining is provided.
+`taskExecution.generate()` owns the ComfyUI flow it starts, including prompt
+construction, callback installation, output ingestion and its completion
+transaction, failure mutation, canonical snapshots, event publication, and
+ComfyUI cleanup. `ComfyClient.execute(): void` leaves the lifecycle callbacks
+and output finalization untracked; the route and client do not provide
+execution tracking, cancellation, or shutdown draining. It may call
+`taskService` for task reads and writes; `task.service.ts` does not import the
+execution module. Resource queries, startup recovery, snapshots, and public
+option methods remain owned by `task.service.ts`.
 
 ---
 
@@ -504,6 +508,11 @@ with `mask` / `control` reserved) and the batch position:
   `withImageMutation` mutex serializes lookup/ingest through reference commit
   and orphan deletion through unlink. ComfyUI execution/downloads stay outside
   this lock; read-only requests do not acquire it.
+- Task output completion keeps image download outside the lock and holds the
+  lock only for ingest, output-reference commit, and orphan rollback. The
+  committed completion snapshot/event is published before successful Comfy
+  output unlink; skipped tasks leave those Comfy outputs for the existing
+  history/cleanup semantics.
 - Online image garbage collection runs in the server image domain under the
   same mutex and applies its grace period to orphan rows, recognized stray
   files, and recognized temporary writes. The normal `pnpm image:gc` command is
@@ -619,7 +628,14 @@ node IDs, and mappings through Silent Pix APIs.
 
 Backend translates Silent Pix tasks into ComfyUI execution.
 
-`ComfyClient` uses the ComfyUI WebSocket as the normal execution source:
+`ComfyClient` uses the ComfyUI WebSocket as the normal execution source and
+dispatches terminal lifecycle through required `onCompleted`/`onFailed`
+callbacks. Its `execute()` returns `void`: callbacks are invoked in lifecycle
+order without awaiting one another, while callback throws/rejections are
+logged and never reclassified as another Comfy failure. REST prompt submission
+is the acceptance boundary; an ambiguous submission transport failure is
+accepted only when the matching WebSocket has already supplied execution
+evidence.
 
 ```txt
 POST /prompt (REST)
