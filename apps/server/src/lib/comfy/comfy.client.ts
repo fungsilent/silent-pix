@@ -158,6 +158,8 @@ export class ComfyClient {
     private statusListener: ((connected: boolean) => void) | undefined
     private lastNotifiedStatus: boolean | undefined
 
+    /* MARK: public API */
+
     constructor() {
         const { comfyuiBaseUrl } = loadConfig()
         this.baseUrl = new URL(comfyuiBaseUrl.endsWith('/') ? comfyuiBaseUrl : `${comfyuiBaseUrl}/`)
@@ -166,15 +168,6 @@ export class ComfyClient {
     /* socket 狀態一翻就通知，這是 health 能即時反應的來源 */
     onStatusChange(listener: (connected: boolean) => void): void {
         this.statusListener = listener
-    }
-
-    private notifyStatus(connected: boolean): void {
-        if (this.lastNotifiedStatus === connected) {
-            return
-        }
-
-        this.lastNotifiedStatus = connected
-        this.statusListener?.(connected)
     }
 
     start(): void {
@@ -186,15 +179,6 @@ export class ComfyClient {
 
     isConnected(): boolean {
         return this.socket?.readyState === WebSocket.OPEN
-    }
-
-    private assertConnected(): void {
-        if (!this.isConnected()) {
-            throw new ComfyError(
-                'ComfyUI is unavailable.',
-                'COMFY_UNAVAILABLE',
-            )
-        }
     }
 
     execute(
@@ -209,44 +193,6 @@ export class ComfyClient {
                 'onFailed',
             )
         })
-    }
-
-    private async startExecution(
-        prompt: ComfyPrompt,
-        callbacks: ExecuteCallbacks,
-    ): Promise<void> {
-        try {
-            await this.waitForConnection()
-        }
-        catch (error) {
-            this.dispatchCallback(
-                callbacks.onFailed,
-                [toComfyError(error)],
-                'onFailed',
-            )
-            return
-        }
-
-        const promptId = randomUUID()
-        const execution = this.createExecution(promptId, callbacks)
-
-        try {
-            await this.submitPrompt(promptId, prompt)
-        }
-        catch (error) {
-            const promptError = toComfyError(error)
-            const acceptedByWebSocket = (
-                promptError.code === 'COMFY_PROMPT_TRANSPORT'
-                && hasWebSocketEvidence(execution)
-            )
-
-            if (!acceptedByWebSocket) {
-                this.claimFailure(execution, promptError)
-                return
-            }
-        }
-
-        this.acceptExecution(execution)
     }
 
     async downloadImage(image: ComfyImage): Promise<Uint8Array> {
@@ -411,6 +357,26 @@ export class ComfyClient {
         socket?.close()
     }
 
+    /* MARK: connection */
+
+    private notifyStatus(connected: boolean): void {
+        if (this.lastNotifiedStatus === connected) {
+            return
+        }
+
+        this.lastNotifiedStatus = connected
+        this.statusListener?.(connected)
+    }
+
+    private assertConnected(): void {
+        if (!this.isConnected()) {
+            throw new ComfyError(
+                'ComfyUI is unavailable.',
+                'COMFY_UNAVAILABLE',
+            )
+        }
+    }
+
     private openSocket(): void {
         if (!this.started || this.connecting || this.isConnected()) return
 
@@ -502,6 +468,46 @@ export class ComfyClient {
         this.connectionWaiters.clear()
     }
 
+    /* MARK: execution */
+
+    private async startExecution(
+        prompt: ComfyPrompt,
+        callbacks: ExecuteCallbacks,
+    ): Promise<void> {
+        try {
+            await this.waitForConnection()
+        }
+        catch (error) {
+            this.dispatchCallback(
+                callbacks.onFailed,
+                [toComfyError(error)],
+                'onFailed',
+            )
+            return
+        }
+
+        const promptId = randomUUID()
+        const execution = this.createExecution(promptId, callbacks)
+
+        try {
+            await this.submitPrompt(promptId, prompt)
+        }
+        catch (error) {
+            const promptError = toComfyError(error)
+            const acceptedByWebSocket = (
+                promptError.code === 'COMFY_PROMPT_TRANSPORT'
+                && hasWebSocketEvidence(execution)
+            )
+
+            if (!acceptedByWebSocket) {
+                this.claimFailure(execution, promptError)
+                return
+            }
+        }
+
+        this.acceptExecution(execution)
+    }
+
     private createExecution(
         promptId: string,
         callbacks: ExecuteCallbacks,
@@ -528,108 +534,57 @@ export class ComfyClient {
         return execution
     }
 
-    private markExecutionsForRecovery(): void {
-        for (const execution of this.pendingExecutions.values()) {
-            execution.needsHistoryRecovery = true
-            if (execution.terminalEvent?.type === 'completed') {
-                this.startHistoryRecovery(execution, true)
-            }
-        }
-    }
-
-    private acceptExecution(execution: PendingExecution): void {
-        if (this.pendingExecutions.get(execution.promptId) !== execution) return
-        if (execution.promptAccepted) return
-
-        execution.promptAccepted = true
-        this.dispatchCallback(
-            execution.callbacks.onAccepted,
-            [execution.promptId],
-            'onAccepted',
-        )
-
-        if (execution.runningSeen) {
-            this.dispatchCallback(
-                execution.callbacks.onRunning,
-                [execution.promptId],
-                'onRunning',
-            )
-        }
-
-        if (execution.terminalEvent?.type === 'completed' && execution.needsHistoryRecovery) {
-            this.startHistoryRecovery(execution, true)
-            return
-        }
-
-        this.dispatchTerminal(execution)
-    }
-
-    private dispatchTerminal(execution: PendingExecution): void {
-        const terminal = execution.terminalEvent
-        if (
-            !terminal
-            || (terminal.type === 'completed' && !execution.promptAccepted)
-            || (
-                terminal.type === 'completed'
-                && execution.needsHistoryRecovery
-            )
-            || this.pendingExecutions.get(execution.promptId) !== execution
-        ) {
-            return
-        }
-
-        clearTimeout(execution.timeout)
-        this.pendingExecutions.delete(execution.promptId)
-
-        if (terminal.type === 'completed') {
-            this.dispatchCallback(
-                execution.callbacks.onCompleted,
-                [terminal.result],
-                'onCompleted',
-            )
-        }
-        else {
-            this.dispatchCallback(
-                execution.callbacks.onFailed,
-                [terminal.error],
-                'onFailed',
-            )
-        }
-    }
-
-    private claimFailure(execution: PendingExecution, error: ComfyError): void {
-        if (this.pendingExecutions.get(execution.promptId) !== execution) return
-        if (execution.terminalEvent?.type === 'failed') return
-
-        /* A REST rejection or recovery error may replace an undelivered success. */
-        execution.terminalEvent = { type: 'failed', error }
-        execution.needsHistoryRecovery = false
-        execution.recoveryRunning = false
-        this.dispatchTerminal(execution)
-    }
-
-    private dispatchCallback<Args extends unknown[]>(
-        callback: ((...args: Args) => void | Promise<void>) | undefined,
-        args: Args,
-        name: string,
-    ): void {
-        if (!callback) return
+    private async submitPrompt(promptId: string, prompt: ComfyPrompt): Promise<void> {
+        let response: Response
 
         try {
-            const result = callback(...args)
-            if (isThenable(result)) {
-                void Promise.resolve(result).catch(error => {
-                    this.reportCallbackError(name, error)
-                })
-            }
+            response = await fetch(new URL('prompt', this.baseUrl), {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({
+                    prompt_id: promptId,
+                    client_id: this.clientId,
+                    prompt,
+                }),
+            })
         }
-        catch (error) {
-            this.reportCallbackError(name, error)
+        catch {
+            throw new ComfyError(
+                'Comfy prompt submission could not be confirmed.',
+                'COMFY_PROMPT_TRANSPORT',
+            )
         }
-    }
 
-    private reportCallbackError(name: string, error: unknown): void {
-        console.error(`Comfy ${name} callback failed.`, error)
+        const parsed = comfyPromptResponse.safeParse(await readJson(response))
+        if (!parsed.success) {
+            throw new ComfyError(
+                'Comfy prompt returned an invalid response shape.',
+                'COMFY_INVALID_RESPONSE',
+            )
+        }
+
+        const body = parsed.data
+
+        if (!response.ok || body.error) {
+            throw new ComfyError(
+                formatComfyError(body.error ?? body.node_errors ?? `Comfy prompt returned HTTP ${response.status}.`),
+                'COMFY_PROMPT_ERROR',
+            )
+        }
+
+        if (!body.prompt_id) {
+            throw new ComfyError(
+                'Comfy prompt response does not contain a prompt ID.',
+                'COMFY_INVALID_RESPONSE',
+            )
+        }
+
+        if (body.prompt_id !== promptId) {
+            throw new ComfyError(
+                'Comfy returned an unexpected prompt ID.',
+                'COMFY_PROMPT_ID_ERROR',
+            )
+        }
     }
 
     private handleMessage(value: string): void {
@@ -710,6 +665,138 @@ export class ComfyClient {
         }
 
         this.dispatchTerminal(execution)
+    }
+
+    private acceptExecution(execution: PendingExecution): void {
+        if (this.pendingExecutions.get(execution.promptId) !== execution) return
+        if (execution.promptAccepted) return
+
+        execution.promptAccepted = true
+        this.dispatchCallback(
+            execution.callbacks.onAccepted,
+            [execution.promptId],
+            'onAccepted',
+        )
+
+        if (execution.runningSeen) {
+            this.dispatchCallback(
+                execution.callbacks.onRunning,
+                [execution.promptId],
+                'onRunning',
+            )
+        }
+
+        if (execution.terminalEvent?.type === 'completed' && execution.needsHistoryRecovery) {
+            this.startHistoryRecovery(execution, true)
+            return
+        }
+
+        this.dispatchTerminal(execution)
+    }
+
+    private acceptExecutionFromEvidence(execution: PendingExecution): void {
+        if (execution.promptAccepted) return
+
+        execution.promptAccepted = true
+        this.dispatchCallback(
+            execution.callbacks.onAccepted,
+            [execution.promptId],
+            'onAccepted',
+        )
+        if (execution.runningSeen) {
+            this.dispatchCallback(
+                execution.callbacks.onRunning,
+                [execution.promptId],
+                'onRunning',
+            )
+        }
+    }
+
+    private dispatchTerminal(execution: PendingExecution): void {
+        const terminal = execution.terminalEvent
+        if (
+            !terminal
+            || (terminal.type === 'completed' && !execution.promptAccepted)
+            || (
+                terminal.type === 'completed'
+                && execution.needsHistoryRecovery
+            )
+            || this.pendingExecutions.get(execution.promptId) !== execution
+        ) {
+            return
+        }
+
+        clearTimeout(execution.timeout)
+        this.pendingExecutions.delete(execution.promptId)
+
+        if (terminal.type === 'completed') {
+            this.dispatchCallback(
+                execution.callbacks.onCompleted,
+                [terminal.result],
+                'onCompleted',
+            )
+        }
+        else {
+            this.dispatchCallback(
+                execution.callbacks.onFailed,
+                [terminal.error],
+                'onFailed',
+            )
+        }
+    }
+
+    private claimFailure(execution: PendingExecution, error: ComfyError): void {
+        if (this.pendingExecutions.get(execution.promptId) !== execution) return
+        if (execution.terminalEvent?.type === 'failed') return
+
+        /* A REST rejection or recovery error may replace an undelivered success. */
+        execution.terminalEvent = { type: 'failed', error }
+        execution.needsHistoryRecovery = false
+        execution.recoveryRunning = false
+        this.dispatchTerminal(execution)
+    }
+
+    private dispatchCallback<Args extends unknown[]>(
+        callback: ((...args: Args) => void | Promise<void>) | undefined,
+        args: Args,
+        name: string,
+    ): void {
+        if (!callback) return
+
+        try {
+            const result = callback(...args)
+            if (isThenable(result)) {
+                void Promise.resolve(result).catch(error => {
+                    this.reportCallbackError(name, error)
+                })
+            }
+        }
+        catch (error) {
+            this.reportCallbackError(name, error)
+        }
+    }
+
+    private reportCallbackError(name: string, error: unknown): void {
+        console.error(`Comfy ${name} callback failed.`, error)
+    }
+
+    /* MARK: history recovery */
+
+    private markExecutionsForRecovery(): void {
+        for (const execution of this.pendingExecutions.values()) {
+            execution.needsHistoryRecovery = true
+            if (execution.terminalEvent?.type === 'completed') {
+                this.startHistoryRecovery(execution, true)
+            }
+        }
+    }
+
+    private reconcileExecutions(): void {
+        for (const execution of this.pendingExecutions.values()) {
+            if (execution.needsHistoryRecovery) {
+                this.startHistoryRecovery(execution, false)
+            }
+        }
     }
 
     private startHistoryRecovery(
@@ -802,85 +889,6 @@ export class ComfyClient {
                 'Comfy history does not contain this prompt.',
                 'COMFY_HISTORY_MISSING',
             ))
-        }
-    }
-
-    private acceptExecutionFromEvidence(execution: PendingExecution): void {
-        if (execution.promptAccepted) return
-
-        execution.promptAccepted = true
-        this.dispatchCallback(
-            execution.callbacks.onAccepted,
-            [execution.promptId],
-            'onAccepted',
-        )
-        if (execution.runningSeen) {
-            this.dispatchCallback(
-                execution.callbacks.onRunning,
-                [execution.promptId],
-                'onRunning',
-            )
-        }
-    }
-
-    private reconcileExecutions(): void {
-        for (const execution of this.pendingExecutions.values()) {
-            if (execution.needsHistoryRecovery) {
-                this.startHistoryRecovery(execution, false)
-            }
-        }
-    }
-
-    private async submitPrompt(promptId: string, prompt: ComfyPrompt): Promise<void> {
-        let response: Response
-
-        try {
-            response = await fetch(new URL('prompt', this.baseUrl), {
-                method: 'POST',
-                headers: { 'content-type': 'application/json' },
-                body: JSON.stringify({
-                    prompt_id: promptId,
-                    client_id: this.clientId,
-                    prompt,
-                }),
-            })
-        }
-        catch {
-            throw new ComfyError(
-                'Comfy prompt submission could not be confirmed.',
-                'COMFY_PROMPT_TRANSPORT',
-            )
-        }
-
-        const parsed = comfyPromptResponse.safeParse(await readJson(response))
-        if (!parsed.success) {
-            throw new ComfyError(
-                'Comfy prompt returned an invalid response shape.',
-                'COMFY_INVALID_RESPONSE',
-            )
-        }
-
-        const body = parsed.data
-
-        if (!response.ok || body.error) {
-            throw new ComfyError(
-                formatComfyError(body.error ?? body.node_errors ?? `Comfy prompt returned HTTP ${response.status}.`),
-                'COMFY_PROMPT_ERROR',
-            )
-        }
-
-        if (!body.prompt_id) {
-            throw new ComfyError(
-                'Comfy prompt response does not contain a prompt ID.',
-                'COMFY_INVALID_RESPONSE',
-            )
-        }
-
-        if (body.prompt_id !== promptId) {
-            throw new ComfyError(
-                'Comfy returned an unexpected prompt ID.',
-                'COMFY_PROMPT_ID_ERROR',
-            )
         }
     }
 
