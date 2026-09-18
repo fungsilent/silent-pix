@@ -228,7 +228,7 @@ export class ComfyClient {
         }
 
         const promptId = randomUUID()
-        const pending = this.createPendingExecution(promptId, callbacks)
+        const execution = this.createExecution(promptId, callbacks)
 
         try {
             await this.submitPrompt(promptId, prompt)
@@ -237,16 +237,16 @@ export class ComfyClient {
             const promptError = toComfyError(error)
             const acceptedByWebSocket = (
                 promptError.code === 'COMFY_PROMPT_TRANSPORT'
-                && hasWebSocketEvidence(pending)
+                && hasWebSocketEvidence(execution)
             )
 
             if (!acceptedByWebSocket) {
-                this.claimFailure(pending, promptError)
+                this.claimFailure(execution, promptError)
                 return
             }
         }
 
-        this.acceptPending(pending)
+        this.acceptExecution(execution)
     }
 
     async downloadImage(image: ComfyImage): Promise<Uint8Array> {
@@ -402,8 +402,8 @@ export class ComfyClient {
         }
         this.connectionWaiters.clear()
 
-        for (const pending of this.pendingExecutions.values()) {
-            this.claimFailure(pending, error)
+        for (const execution of this.pendingExecutions.values()) {
+            this.claimFailure(execution, error)
         }
 
         const socket = this.socket
@@ -430,7 +430,7 @@ export class ComfyClient {
             this.reconnectAttempt = 0
             this.notifyStatus(true)
             this.resolveConnectionWaiters()
-            this.reconcilePendingExecutions()
+            this.reconcileExecutions()
         })
 
         socket.addEventListener('message', event => {
@@ -452,7 +452,7 @@ export class ComfyClient {
 
             this.socket = undefined
             this.connecting = false
-            this.markPendingExecutionsForRecovery()
+            this.markExecutionsForRecovery()
             this.notifyStatus(false)
             this.scheduleReconnect()
         })
@@ -502,11 +502,11 @@ export class ComfyClient {
         this.connectionWaiters.clear()
     }
 
-    private createPendingExecution(
+    private createExecution(
         promptId: string,
         callbacks: ExecuteCallbacks,
     ): PendingExecution {
-        const pending: PendingExecution = {
+        const execution: PendingExecution = {
             promptId,
             callbacks,
             outputs: {},
@@ -517,95 +517,95 @@ export class ComfyClient {
             recoveryRunning: false,
             recoveryRetryUntilAvailable: false,
             timeout: setTimeout(() => {
-                this.claimFailure(pending, new ComfyError(
+                this.claimFailure(execution, new ComfyError(
                     'Timed out while waiting for Comfy.',
                     'COMFY_TIMEOUT',
                 ))
             }, executionTimeoutMs),
         }
 
-        this.pendingExecutions.set(promptId, pending)
-        return pending
+        this.pendingExecutions.set(promptId, execution)
+        return execution
     }
 
-    private markPendingExecutionsForRecovery(): void {
-        for (const pending of this.pendingExecutions.values()) {
-            pending.needsHistoryRecovery = true
-            if (pending.terminalEvent?.type === 'completed') {
-                this.startHistoryRecovery(pending, true)
+    private markExecutionsForRecovery(): void {
+        for (const execution of this.pendingExecutions.values()) {
+            execution.needsHistoryRecovery = true
+            if (execution.terminalEvent?.type === 'completed') {
+                this.startHistoryRecovery(execution, true)
             }
         }
     }
 
-    private acceptPending(pending: PendingExecution): void {
-        if (this.pendingExecutions.get(pending.promptId) !== pending) return
-        if (pending.promptAccepted) return
+    private acceptExecution(execution: PendingExecution): void {
+        if (this.pendingExecutions.get(execution.promptId) !== execution) return
+        if (execution.promptAccepted) return
 
-        pending.promptAccepted = true
+        execution.promptAccepted = true
         this.dispatchCallback(
-            pending.callbacks.onAccepted,
-            [pending.promptId],
+            execution.callbacks.onAccepted,
+            [execution.promptId],
             'onAccepted',
         )
 
-        if (pending.runningSeen) {
+        if (execution.runningSeen) {
             this.dispatchCallback(
-                pending.callbacks.onRunning,
-                [pending.promptId],
+                execution.callbacks.onRunning,
+                [execution.promptId],
                 'onRunning',
             )
         }
 
-        if (pending.terminalEvent?.type === 'completed' && pending.needsHistoryRecovery) {
-            this.startHistoryRecovery(pending, true)
+        if (execution.terminalEvent?.type === 'completed' && execution.needsHistoryRecovery) {
+            this.startHistoryRecovery(execution, true)
             return
         }
 
-        this.dispatchTerminal(pending)
+        this.dispatchTerminal(execution)
     }
 
-    private dispatchTerminal(pending: PendingExecution): void {
-        const terminal = pending.terminalEvent
+    private dispatchTerminal(execution: PendingExecution): void {
+        const terminal = execution.terminalEvent
         if (
             !terminal
-            || (terminal.type === 'completed' && !pending.promptAccepted)
+            || (terminal.type === 'completed' && !execution.promptAccepted)
             || (
                 terminal.type === 'completed'
-                && pending.needsHistoryRecovery
+                && execution.needsHistoryRecovery
             )
-            || this.pendingExecutions.get(pending.promptId) !== pending
+            || this.pendingExecutions.get(execution.promptId) !== execution
         ) {
             return
         }
 
-        clearTimeout(pending.timeout)
-        this.pendingExecutions.delete(pending.promptId)
+        clearTimeout(execution.timeout)
+        this.pendingExecutions.delete(execution.promptId)
 
         if (terminal.type === 'completed') {
             this.dispatchCallback(
-                pending.callbacks.onCompleted,
+                execution.callbacks.onCompleted,
                 [terminal.result],
                 'onCompleted',
             )
         }
         else {
             this.dispatchCallback(
-                pending.callbacks.onFailed,
+                execution.callbacks.onFailed,
                 [terminal.error],
                 'onFailed',
             )
         }
     }
 
-    private claimFailure(pending: PendingExecution, error: ComfyError): void {
-        if (this.pendingExecutions.get(pending.promptId) !== pending) return
-        if (pending.terminalEvent?.type === 'failed') return
+    private claimFailure(execution: PendingExecution, error: ComfyError): void {
+        if (this.pendingExecutions.get(execution.promptId) !== execution) return
+        if (execution.terminalEvent?.type === 'failed') return
 
         /* A REST rejection or recovery error may replace an undelivered success. */
-        pending.terminalEvent = { type: 'failed', error }
-        pending.needsHistoryRecovery = false
-        pending.recoveryRunning = false
-        this.dispatchTerminal(pending)
+        execution.terminalEvent = { type: 'failed', error }
+        execution.needsHistoryRecovery = false
+        execution.recoveryRunning = false
+        this.dispatchTerminal(execution)
     }
 
     private dispatchCallback<Args extends unknown[]>(
@@ -639,33 +639,33 @@ export class ComfyClient {
         const message = parsed.data
         const promptId = message.data.prompt_id
 
-        const pending = this.pendingExecutions.get(promptId)
-        if (!pending) return
-        if (pending.terminalEvent) return
+        const execution = this.pendingExecutions.get(promptId)
+        if (!execution) return
+        if (execution.terminalEvent) return
 
         switch (message.type) {
             case 'execution_start':
-                if (pending.runningSeen) return
-                pending.runningSeen = true
-                if (pending.promptAccepted) {
+                if (execution.runningSeen) return
+                execution.runningSeen = true
+                if (execution.promptAccepted) {
                     this.dispatchCallback(
-                        pending.callbacks.onRunning,
+                        execution.callbacks.onRunning,
                         [promptId],
                         'onRunning',
                     )
                 }
                 return
             case 'executed':
-                pending.outputs[message.data.node] = message.data.output
+                execution.outputs[message.data.node] = message.data.output
                 return
             case 'execution_error':
-                this.claimWebSocketFailure(pending, new ComfyError(
+                this.claimWebSocketFailure(execution, new ComfyError(
                     message.data.exception_message ?? 'Comfy execution failed.',
                     'COMFY_EXECUTION_ERROR',
                 ))
                 return
             case 'execution_interrupted':
-                this.claimWebSocketFailure(pending, new ComfyError(
+                this.claimWebSocketFailure(execution, new ComfyError(
                     'Comfy execution was interrupted.',
                     'COMFY_EXECUTION_INTERRUPTED',
                 ))
@@ -677,117 +677,117 @@ export class ComfyClient {
     }
 
     private markExecutionTerminal(promptId: string): void {
-        const pending = this.pendingExecutions.get(promptId)
-        if (!pending || pending.terminalEvent) return
+        const execution = this.pendingExecutions.get(promptId)
+        if (!execution || execution.terminalEvent) return
 
-        pending.terminalEvent = {
+        execution.terminalEvent = {
             type: 'completed',
             result: {
                 promptId,
-                outputs: pending.outputs,
+                outputs: execution.outputs,
             },
         }
 
-        if (pending.needsHistoryRecovery) {
-            this.startHistoryRecovery(pending, true)
+        if (execution.needsHistoryRecovery) {
+            this.startHistoryRecovery(execution, true)
             return
         }
 
-        this.dispatchTerminal(pending)
+        this.dispatchTerminal(execution)
     }
 
-    private claimWebSocketFailure(pending: PendingExecution, error: ComfyError): void {
-        if (this.pendingExecutions.get(pending.promptId) !== pending) return
-        if (pending.terminalEvent) return
+    private claimWebSocketFailure(execution: PendingExecution, error: ComfyError): void {
+        if (this.pendingExecutions.get(execution.promptId) !== execution) return
+        if (execution.terminalEvent) return
 
-        pending.terminalEvent = { type: 'failed', error }
-        pending.needsHistoryRecovery = false
+        execution.terminalEvent = { type: 'failed', error }
+        execution.needsHistoryRecovery = false
 
         /* WS execution failure proves acceptance even when REST has not replied. */
-        if (!pending.promptAccepted) {
-            this.acceptPending(pending)
+        if (!execution.promptAccepted) {
+            this.acceptExecution(execution)
             return
         }
 
-        this.dispatchTerminal(pending)
+        this.dispatchTerminal(execution)
     }
 
     private startHistoryRecovery(
-        pending: PendingExecution,
+        execution: PendingExecution,
         retryUntilAvailable: boolean,
     ): void {
         if (
-            this.pendingExecutions.get(pending.promptId) !== pending
-            || !pending.needsHistoryRecovery
+            this.pendingExecutions.get(execution.promptId) !== execution
+            || !execution.needsHistoryRecovery
         ) {
             return
         }
 
         if (retryUntilAvailable) {
-            pending.recoveryRetryUntilAvailable = true
+            execution.recoveryRetryUntilAvailable = true
         }
-        if (pending.recoveryRunning) return
+        if (execution.recoveryRunning) return
 
-        pending.recoveryRunning = true
-        void this.completeFromHistory(pending).catch(error => {
-            pending.recoveryRunning = false
-            this.claimFailure(pending, toComfyError(error))
+        execution.recoveryRunning = true
+        void this.completeFromHistory(execution).catch(error => {
+            execution.recoveryRunning = false
+            this.claimFailure(execution, toComfyError(error))
         })
     }
 
-    private async completeFromHistory(pending: PendingExecution): Promise<void> {
-        let attempts = pending.recoveryRetryUntilAvailable ? 20 : 1
+    private async completeFromHistory(execution: PendingExecution): Promise<void> {
+        let attempts = execution.recoveryRetryUntilAvailable ? 20 : 1
 
         for (let attempt = 0; attempt < attempts; attempt += 1) {
-            if (this.pendingExecutions.get(pending.promptId) !== pending) {
-                pending.recoveryRunning = false
+            if (this.pendingExecutions.get(execution.promptId) !== execution) {
+                execution.recoveryRunning = false
                 return
             }
 
             try {
-                const history = await this.findHistory(pending.promptId)
-                if (this.pendingExecutions.get(pending.promptId) !== pending) {
-                    pending.recoveryRunning = false
+                const history = await this.findHistory(execution.promptId)
+                if (this.pendingExecutions.get(execution.promptId) !== execution) {
+                    execution.recoveryRunning = false
                     return
                 }
 
                 if (history) {
-                    pending.recoveryRunning = false
-                    pending.needsHistoryRecovery = false
+                    execution.recoveryRunning = false
+                    execution.needsHistoryRecovery = false
 
-                    if (pending.terminalEvent?.type === 'failed') return
+                    if (execution.terminalEvent?.type === 'failed') return
 
-                    pending.terminalEvent = {
+                    execution.terminalEvent = {
                         type: 'completed',
                         result: {
-                            promptId: pending.promptId,
+                            promptId: execution.promptId,
                             outputs: history.outputs ?? {},
                         },
                     }
-                    this.acceptPendingFromEvidence(pending)
-                    this.dispatchTerminal(pending)
+                    this.acceptExecutionFromEvidence(execution)
+                    this.dispatchTerminal(execution)
                     return
                 }
             }
             catch (error) {
-                if (this.pendingExecutions.get(pending.promptId) !== pending) {
-                    pending.recoveryRunning = false
+                if (this.pendingExecutions.get(execution.promptId) !== execution) {
+                    execution.recoveryRunning = false
                     return
                 }
 
-                if (!pending.recoveryRetryUntilAvailable) {
-                    pending.recoveryRunning = false
+                if (!execution.recoveryRetryUntilAvailable) {
+                    execution.recoveryRunning = false
                     return
                 }
 
                 if (attempt === attempts - 1) {
-                    pending.recoveryRunning = false
-                    this.claimFailure(pending, toComfyError(error))
+                    execution.recoveryRunning = false
+                    this.claimFailure(execution, toComfyError(error))
                     return
                 }
             }
 
-            if (pending.recoveryRetryUntilAvailable && attempts === 1) {
+            if (execution.recoveryRetryUntilAvailable && attempts === 1) {
                 attempts = 20
             }
 
@@ -796,37 +796,37 @@ export class ComfyClient {
             }
         }
 
-        pending.recoveryRunning = false
-        if (pending.recoveryRetryUntilAvailable) {
-            this.claimFailure(pending, new ComfyError(
+        execution.recoveryRunning = false
+        if (execution.recoveryRetryUntilAvailable) {
+            this.claimFailure(execution, new ComfyError(
                 'Comfy history does not contain this prompt.',
                 'COMFY_HISTORY_MISSING',
             ))
         }
     }
 
-    private acceptPendingFromEvidence(pending: PendingExecution): void {
-        if (pending.promptAccepted) return
+    private acceptExecutionFromEvidence(execution: PendingExecution): void {
+        if (execution.promptAccepted) return
 
-        pending.promptAccepted = true
+        execution.promptAccepted = true
         this.dispatchCallback(
-            pending.callbacks.onAccepted,
-            [pending.promptId],
+            execution.callbacks.onAccepted,
+            [execution.promptId],
             'onAccepted',
         )
-        if (pending.runningSeen) {
+        if (execution.runningSeen) {
             this.dispatchCallback(
-                pending.callbacks.onRunning,
-                [pending.promptId],
+                execution.callbacks.onRunning,
+                [execution.promptId],
                 'onRunning',
             )
         }
     }
 
-    private reconcilePendingExecutions(): void {
-        for (const pending of this.pendingExecutions.values()) {
-            if (pending.needsHistoryRecovery) {
-                this.startHistoryRecovery(pending, false)
+    private reconcileExecutions(): void {
+        for (const execution of this.pendingExecutions.values()) {
+            if (execution.needsHistoryRecovery) {
+                this.startHistoryRecovery(execution, false)
             }
         }
     }
@@ -985,10 +985,10 @@ function toComfyError(error: unknown): ComfyError {
         )
 }
 
-function hasWebSocketEvidence(pending: PendingExecution): boolean {
-    return pending.runningSeen
-        || pending.terminalEvent !== undefined
-        || Object.keys(pending.outputs).length > 0
+function hasWebSocketEvidence(execution: PendingExecution): boolean {
+    return execution.runningSeen
+        || execution.terminalEvent !== undefined
+        || Object.keys(execution.outputs).length > 0
 }
 
 function isThenable(value: unknown): value is PromiseLike<unknown> {
