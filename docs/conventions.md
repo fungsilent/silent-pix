@@ -47,6 +47,11 @@ is for domain evidence such as the Workflow mapping `issues`; it does not copy
 or re-parse a route union. In `apps/server/src/lib/comfy/comfy.client.ts`,
 `readJson` and `parseJson` return `unknown`, and the adapter's local Zod schemas
 validate prompt/history HTTP values and WebSocket envelopes before use.
+Normal ComfyUI execution lifecycle and node outputs come from validated
+ComfyUI WebSocket events. REST `history/:promptId` is queried only to recover a
+pending prompt whose socket disconnected; prompt submission, image download,
+and history deletion remain REST. This protocol stays inside the backend
+Comfy adapter and is not a `packages/event` or shared event contract.
 
 ---
 

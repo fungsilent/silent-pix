@@ -85,7 +85,7 @@ export const taskExecution = {
                     }
                 },
             })
-            const outputImages = Object.values(result.history.outputs ?? {})
+            const outputImages = Object.values(result.outputs)
                 .flatMap(output => output.images ?? [])
 
             if (!outputImages.length) {

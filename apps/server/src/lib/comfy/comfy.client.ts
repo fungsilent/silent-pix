@@ -31,13 +31,74 @@ const comfyPromptResponse = z.object({
     value.prompt_id !== undefined || value.error !== undefined
 ))
 
-const comfySocketMessage = z.object({
-    type: z.string(),
-    data: z.record(z.string(), z.unknown()),
+const comfyPromptId = z.string().min(1)
+
+const comfyNodeOutput = z.object({
+    images: z.array(comfyImage).optional(),
 }).loose()
+
+const comfyExecutionStart = z.object({
+    type: z.literal('execution_start'),
+    data: z.object({
+        prompt_id: comfyPromptId,
+    }).loose(),
+}).loose()
+
+const comfyExecuted = z.object({
+    type: z.literal('executed'),
+    data: z.object({
+        node: z.string(),
+        output: comfyNodeOutput,
+        prompt_id: comfyPromptId,
+    }).loose(),
+}).loose()
+
+const comfyExecutionSuccess = z.object({
+    type: z.literal('execution_success'),
+    data: z.object({
+        prompt_id: comfyPromptId,
+    }).loose(),
+}).loose()
+
+const comfyExecuting = z.object({
+    type: z.literal('executing'),
+    data: z.object({
+        node: z.string().nullable(),
+        prompt_id: comfyPromptId,
+    }).loose(),
+}).loose()
+
+const comfyExecutionError = z.object({
+    type: z.literal('execution_error'),
+    data: z.object({
+        exception_message: z.string().optional(),
+        prompt_id: comfyPromptId,
+    }).loose(),
+}).loose()
+
+const comfyExecutionInterrupted = z.object({
+    type: z.literal('execution_interrupted'),
+    data: z.object({
+        prompt_id: comfyPromptId,
+    }).loose(),
+}).loose()
+
+const comfyExecutionMessage = z.discriminatedUnion('type', [
+    comfyExecutionStart,
+    comfyExecuted,
+    comfyExecutionSuccess,
+    comfyExecuting,
+    comfyExecutionError,
+    comfyExecutionInterrupted,
+])
 
 export type ComfyImage = z.output<typeof comfyImage>
 export type ComfyHistory = z.output<typeof comfyHistory>
+export type ComfyNodeOutput = z.output<typeof comfyNodeOutput>
+export type ComfyExecutionResult = {
+    promptId: string
+    outputs: Record<string, ComfyNodeOutput>
+}
 
 type ExecuteCallbacks = {
     onPromptCreated?: (promptId: string) => Promise<void>
@@ -46,7 +107,14 @@ type ExecuteCallbacks = {
 
 type PendingExecution = {
     callbacks: ExecuteCallbacks
-    resolve: (history: ComfyHistory) => void
+    outputs: Record<string, ComfyNodeOutput>
+    requiresHistoryRecovery: boolean
+    terminalReceived: boolean
+    historyRecovery: {
+        retryUntilAvailable: boolean
+        promise: Promise<void>
+    } | undefined
+    resolve: (result: ComfyExecutionResult) => void
     reject: (error: ComfyError) => void
     timeout: ReturnType<typeof setTimeout>
 }
@@ -136,7 +204,7 @@ export class ComfyClient {
     async execute(
         prompt: ComfyPrompt,
         callbacks: ExecuteCallbacks = {},
-    ): Promise<{ promptId: string, history: ComfyHistory }> {
+    ): Promise<ComfyExecutionResult> {
         await this.waitForConnection()
 
         const promptId = randomUUID()
@@ -146,9 +214,9 @@ export class ComfyClient {
         try {
             await this.submitPrompt(promptId, prompt)
             await callbacks.onPromptCreated?.(promptId)
-            const history = await completion
+            const result = await completion
 
-            return { promptId, history }
+            return { promptId, outputs: result.outputs }
         }
         catch (error) {
             this.rejectExecution(promptId, toComfyError(error))
@@ -354,6 +422,7 @@ export class ComfyClient {
 
             this.socket = undefined
             this.connecting = false
+            this.markPendingExecutionsForRecovery()
             this.notifyStatus(false)
             this.scheduleReconnect()
         })
@@ -406,10 +475,14 @@ export class ComfyClient {
     private createPendingExecution(
         promptId: string,
         callbacks: ExecuteCallbacks,
-    ): Promise<ComfyHistory> {
+    ): Promise<ComfyExecutionResult> {
         return new Promise((resolve, reject) => {
             const pending: PendingExecution = {
                 callbacks,
+                outputs: {},
+                requiresHistoryRecovery: !this.isConnected(),
+                terminalReceived: false,
+                historyRecovery: undefined,
                 resolve,
                 reject,
                 timeout: setTimeout(() => {
@@ -424,13 +497,19 @@ export class ComfyClient {
         })
     }
 
-    private resolveExecution(promptId: string, history: ComfyHistory): void {
+    private markPendingExecutionsForRecovery(): void {
+        for (const pending of this.pendingExecutions.values()) {
+            pending.requiresHistoryRecovery = true
+        }
+    }
+
+    private resolveExecution(promptId: string, outputs: Record<string, ComfyNodeOutput>): void {
         const pending = this.pendingExecutions.get(promptId)
         if (!pending) return
 
         clearTimeout(pending.timeout)
         this.pendingExecutions.delete(promptId)
-        pending.resolve(history)
+        pending.resolve({ promptId, outputs })
     }
 
     private rejectExecution(promptId: string, error: ComfyError): void {
@@ -443,51 +522,93 @@ export class ComfyClient {
     }
 
     private async handleMessage(value: string): Promise<void> {
-        const parsed = comfySocketMessage.safeParse(parseJson(value))
+        const parsed = comfyExecutionMessage.safeParse(parseJson(value))
         if (!parsed.success) return
 
         const message = parsed.data
-
-        const promptId = typeof message.data.prompt_id === 'string'
-            ? message.data.prompt_id
-            : undefined
-        if (!promptId) return
+        const promptId = message.data.prompt_id
 
         const pending = this.pendingExecutions.get(promptId)
         if (!pending) return
 
-        if (message.type === 'execution_start') {
-            await pending.callbacks.onRunning?.(promptId)
+        switch (message.type) {
+            case 'execution_start':
+                await pending.callbacks.onRunning?.(promptId)
+                return
+            case 'executed':
+                pending.outputs[message.data.node] = message.data.output
+                return
+            case 'execution_error':
+                this.rejectExecution(promptId, new ComfyError(
+                    message.data.exception_message ?? 'Comfy execution failed.',
+                    'COMFY_EXECUTION_ERROR',
+                ))
+                return
+            case 'execution_interrupted':
+                this.rejectExecution(promptId, new ComfyError(
+                    'Comfy execution was interrupted.',
+                    'COMFY_EXECUTION_INTERRUPTED',
+                ))
+                return
+            case 'execution_success':
+                this.markExecutionTerminal(promptId)
+                return
+            case 'executing':
+                if (message.data.node === null) {
+                    this.markExecutionTerminal(promptId)
+                }
+                return
+        }
+    }
+
+    private markExecutionTerminal(promptId: string): void {
+        const pending = this.pendingExecutions.get(promptId)
+        if (!pending || pending.terminalReceived) return
+
+        pending.terminalReceived = true
+
+        if (pending.requiresHistoryRecovery) {
+            void this.startHistoryRecovery(promptId, true)
             return
         }
 
-        if (message.type === 'execution_error') {
-            this.rejectExecution(promptId, new ComfyError(
-                typeof message.data.exception_message === 'string'
-                    ? message.data.exception_message
-                    : 'Comfy execution failed.',
-                'COMFY_EXECUTION_ERROR',
-            ))
-            return
+        this.resolveExecution(promptId, pending.outputs)
+    }
+
+    private startHistoryRecovery(
+        promptId: string,
+        retryUntilAvailable: boolean,
+    ): Promise<void> {
+        const pending = this.pendingExecutions.get(promptId)
+        if (!pending || !pending.requiresHistoryRecovery) {
+            return Promise.resolve()
         }
 
-        if (message.type === 'execution_interrupted') {
-            this.rejectExecution(promptId, new ComfyError(
-                'Comfy execution was interrupted.',
-                'COMFY_EXECUTION_INTERRUPTED',
-            ))
-            return
+        const activeRecovery = pending.historyRecovery
+        if (activeRecovery) {
+            if (retryUntilAvailable) {
+                activeRecovery.retryUntilAvailable = true
+            }
+            return activeRecovery.promise
         }
 
-        if (message.type === 'executing' && message.data.node === null) {
-            void this.completeFromHistory(promptId, true)
+        const recovery = {
+            retryUntilAvailable,
+            promise: Promise.resolve(),
         }
+        pending.historyRecovery = recovery
+        recovery.promise = this.completeFromHistory(promptId, recovery)
+        return recovery.promise
     }
 
     private async completeFromHistory(
         promptId: string,
-        retryUntilAvailable = false,
+        recovery: {
+            retryUntilAvailable: boolean
+            promise: Promise<void>
+        },
     ): Promise<void> {
+        const retryUntilAvailable = recovery.retryUntilAvailable
         const attempts = retryUntilAvailable ? 20 : 1
 
         for (let attempt = 0; attempt < attempts; attempt += 1) {
@@ -495,12 +616,12 @@ export class ComfyClient {
                 const history = await this.findHistory(promptId)
 
                 if (history) {
-                    this.resolveExecution(promptId, history)
+                    this.resolveExecution(promptId, history.outputs ?? {})
                     return
                 }
             }
             catch (error) {
-                if (!retryUntilAvailable) return
+                if (!retryUntilAvailable) break
 
                 if (attempt === attempts - 1) {
                     this.rejectExecution(promptId, toComfyError(error))
@@ -519,13 +640,21 @@ export class ComfyClient {
                 'COMFY_HISTORY_MISSING',
             ))
         }
+
+        const pending = this.pendingExecutions.get(promptId)
+        if (!pending || pending.historyRecovery !== recovery) return
+
+        pending.historyRecovery = undefined
+        if (pending.terminalReceived) {
+            void this.startHistoryRecovery(promptId, true)
+        }
     }
 
     private async reconcilePendingExecutions(): Promise<void> {
         await Promise.allSettled(
-            [...this.pendingExecutions.keys()].map(promptId => (
-                this.completeFromHistory(promptId)
-            )),
+            [...this.pendingExecutions.entries()]
+                .filter(([, pending]) => pending.requiresHistoryRecovery)
+                .map(([promptId]) => this.startHistoryRecovery(promptId, false)),
         )
     }
 

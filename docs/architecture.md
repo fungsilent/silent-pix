@@ -619,6 +619,25 @@ node IDs, and mappings through Silent Pix APIs.
 
 Backend translates Silent Pix tasks into ComfyUI execution.
 
+`ComfyClient` uses the ComfyUI WebSocket as the normal execution source:
+
+```txt
+POST /prompt (REST)
+    -> execution_start / executed / execution_success (ComfyUI WebSocket)
+    -> task lifecycle and output result
+    -> GET /view (REST) for image bytes
+    -> POST /history (REST) for history cleanup
+
+pending prompt's socket disconnects
+    -> reconnect
+    -> GET /history/:promptId (REST) for authoritative recovery outputs
+```
+
+Only a pending prompt whose socket disconnected uses history recovery. The
+recovery result replaces any partial WebSocket outputs; normal completion does
+not query history. This is an internal backend integration boundary, not a
+`packages/event` or shared server-to-web event contract.
+
 Reference images are handed over as an absolute path, not as bytes. ComfyUI
 opens the file directly out of Silent Pix storage. Silent Pix does not upload
 reference bytes or create a separate reference copy for ComfyUI.
