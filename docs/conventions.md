@@ -615,6 +615,7 @@ Rules:
 - `apps/web/vite.config.ts` explicitly loads the repository-root `.env` with `loadEnv()`; external process env values override it
 - `apps/desktop/script/dev.ts` runs from the local Desktop cwd, resolves the linked `tauri.conf.json` realpath to load the source repository root `.env`, validates `WEB_HOST`/`WEB_PORT`, and merges their combined endpoint into Tauri at runtime; process env overrides dotenv, `--external-frontend` only removes the normal `beforeDevCommand`, and linked WSL does not require duplicate Windows endpoint variables
 - package scripts, `tauri.conf.json`, and `dev-wsl.bat` must not duplicate development host/port literals or promise simultaneous independent Vite instances
+- the Desktop webview disables Tauri's native drag/drop handler so shared HTML5 file drop remains available, including on Windows WebView2
 - `SERVER_URL` is an optional process-environment override for the Vite `/api` proxy and is not required in `.env.example`
 - packaged Desktop remote connectivity and authentication are not implemented; Windows native runtime behavior is not verified from this Linux workspace
 ```

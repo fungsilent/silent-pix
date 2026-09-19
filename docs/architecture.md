@@ -215,6 +215,8 @@ Owns desktop shell only.
 
 Current implementation is a Tauri window hosting the Web UI. Development uses
 the Vite API/WS proxy; the shell does not start the backend or ComfyUI.
+Tauri's native drag/drop handler is disabled so the shared Web UI receives
+HTML5 file-drop events, including reference-image drops on Windows WebView2.
 
 The repository-root `.env` is the shared development endpoint source:
 `WEB_HOST` and `WEB_PORT` configure Browser Vite, Desktop Vite desktop mode,
