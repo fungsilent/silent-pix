@@ -1,9 +1,15 @@
 import { existsSync } from 'node:fs'
 
 import { loadConfig } from '#/config'
+import {
+    type ComfyClient,
+    ComfyError,
+    type ExecuteCallbacks,
+} from '#/lib/comfy/comfy.client'
 import { removeComfyImage } from '#/lib/comfy/comfy.output'
 import { buildComfyPrompt, txt2imgRuntime } from '#/lib/comfy/comfy.prompt'
 import { absolutePath } from '#/lib/image/image.store'
+import { done, fail } from '#/lib/service-result'
 import { imageCleanup } from '#/module/image/image.cleanup'
 import { withImageMutation } from '#/module/image/image.mutation'
 import { imageService } from '#/module/image/image.service'
@@ -12,10 +18,12 @@ import { taskService } from '#/module/task/task.service'
 
 import type { Database, UUID } from '@silent-pix/db'
 import type { PublishEvent } from '#/app.store'
-import type { ComfyClient } from '#/lib/comfy/comfy.client'
+import type { TaskImageModel, TaskModel } from '#/module/task/task.model'
 import type { WorkflowModel } from '#/module/workflow/workflow.model'
 
 const config = loadConfig()
+
+type CompletionResult = 'completed' | 'missing' | 'inactive'
 
 export const taskExecution = {
     async generate(
@@ -25,264 +33,269 @@ export const taskExecution = {
         workflow: WorkflowModel,
         publishEvent: PublishEvent,
     ): Promise<void> {
-        try {
-            const item = await taskService.findTask(database, taskId, {
-                includeImage: true,
-            })
+        const publishChanged = async (changed: boolean): Promise<void> => {
+            if (!changed) return
 
-            if (!item) return
+            const task = await taskService.snapshot(database, taskId)
+            if (task) {
+                publishEvent('task.changed', { task })
+            }
+        }
 
-            const input = item.images.find(relation => relation.type === 'input')
-            let runtime = txt2imgRuntime
+        const item = await taskService.findTask(database, taskId, {
+            includeImage: true,
+        })
 
-            if (input) {
-                /* 使用 image path 才為圖片輸入，先確認檔案是否存在 */
-                if (!existsSync(absolutePath(input.image.path))) {
-                    await failTask(
-                        database,
-                        taskId,
-                        'REFERENCE_IMAGE_FILE_MISSING',
-                        'Reference image file is missing from storage.',
-                        publishEvent,
-                    )
-                    return
-                }
+        if (!item) return
 
-                runtime = {
-                    initImagePath: comfyImagePath(input.image.path),
-                }
+        const prompt = taskExecution.buildPrompt(item.task, item.images, workflow)
+        if (!prompt.ok) {
+            await taskExecution.onFailed(database, taskId, prompt.error)
+            return
+        }
+
+        const callbacks: ExecuteCallbacks = {
+            onAccepted: promptId => taskExecution.onAccepted(database, taskId, promptId),
+            onRunning: async () => await publishChanged(
+                await taskExecution.onRunning(database, taskId),
+            ),
+            onCompleted: async result => await publishChanged(
+                await taskExecution.onCompleted(database, client, taskId, result),
+            ),
+            onFailed: async error => await publishChanged(
+                await taskExecution.onFailed(database, taskId, error),
+            ),
+        }
+
+        client.execute(prompt.data, callbacks)
+    },
+
+    buildPrompt(
+        task: TaskModel,
+        taskImages: TaskImageModel[],
+        workflow: WorkflowModel,
+    ) {
+        let runtime = txt2imgRuntime
+        const input = taskImages.find(relation => relation.type === 'input')
+        if (input) {
+            if (!existsSync(absolutePath(input.image.path))) {
+                return fail('REFERENCE_IMAGE_FILE_MISSING')
             }
 
-            const prompt = buildComfyPrompt(
-                workflow.graph,
-                workflow.configSchema,
-                item.task.config,
-                runtime,
+            runtime = {
+                initImagePath: comfyImagePath(input.image.path),
+            }
+        }
+
+        return done(buildComfyPrompt(
+            workflow.graph,
+            workflow.configSchema,
+            task.config,
+            runtime,
+        ))
+    },
+
+    async onAccepted(
+        database: Database,
+        taskId: UUID,
+        promptId: Parameters<NonNullable<ExecuteCallbacks['onAccepted']>>[0],
+    ): Promise<void> {
+        await taskService.updateTask(
+            database,
+            {
+                id: taskId,
+                comfyPromptId: promptId,
+            },
+        )
+    },
+
+    async onRunning(
+        database: Database,
+        taskId: UUID,
+    ): Promise<boolean> {
+        const updated = await taskService.updateTask(
+            database,
+            {
+                id: taskId,
+                status: 'running',
+            },
+            { matchStatuses: ['queued'] },
+        )
+        return !!updated
+    },
+
+    async onCompleted(
+        database: Database,
+        client: ComfyClient,
+        taskId: UUID,
+        result: Parameters<ExecuteCallbacks['onCompleted']>[0],
+    ): Promise<boolean> {
+        try {
+            const outputImages = Object.values(result.outputs)
+                .flatMap(output => output.images ?? [])
+
+            if (!outputImages.length) {
+                return await taskExecution.onFailed(database, taskId, 'COMFY_OUTPUT_MISSING')
+            }
+
+            const downloaded = await Promise.all(
+                outputImages.map(async (image, index) => ({
+                    index,
+                    bytes: await client.downloadImage(image),
+                })),
             )
 
-            client.execute(prompt, {
-                async onAccepted(promptId) {
-                    try {
-                        await taskService.updateTask(
-                            database,
-                            {
-                                id: taskId,
-                                comfyPromptId: promptId,
-                            },
-                        )
+            const stored = await withImageMutation(async () => {
+                const outputs: { imageId: UUID, sortIndex: number }[] = []
+                const ingestedImageIds: UUID[] = []
+                let referencesCommitted = false
+
+                try {
+                    for (const { index, bytes } of downloaded) {
+                        const ingested = await imageService.ingest(database, bytes)
+
+                        if (!ingested.ok) {
+                            return fail(ingested.error)
+                        }
+
+                        outputs.push({
+                            imageId: ingested.data.image.id,
+                            sortIndex: index,
+                        })
+                        if (ingested.data.created) {
+                            ingestedImageIds.push(ingested.data.image.id)
+                        }
                     }
-                    catch (error) {
-                        logCallbackError(taskId, 'onAccepted', error)
-                    }
-                },
-                async onRunning() {
-                    try {
+
+                    await database.transaction(async tx => {
                         const updated = await taskService.updateTask(
-                            database,
+                            tx,
                             {
                                 id: taskId,
-                                status: 'running',
+                                status: 'done',
+                                errorCode: null,
+                                errorMessage: null,
                             },
-                            { matchStatuses: ['queued'] },
+                            { matchStatuses: ['queued', 'running'] },
                         )
                         if (!updated) return
 
-                        const task = await taskService.snapshot(database, taskId)
-                        if (task) {
-                            publishEvent('task.changed', { task })
-                        }
-                    }
-                    catch (error) {
-                        logCallbackError(taskId, 'onRunning', error)
-                    }
-                },
-                async onCompleted(result) {
-                    try {
-                        const outputImages = Object.values(result.outputs)
-                            .flatMap(output => output.images ?? [])
-
-                        if (!outputImages.length) {
-                            await failTask(
-                                database,
+                        await taskImageService.addReferences(
+                            tx,
+                            outputs.map(output => ({
                                 taskId,
-                                'COMFY_OUTPUT_MISSING',
-                                'ComfyUI did not return any output images.',
-                                publishEvent,
-                            )
-                            return
-                        }
-
-                        const downloaded = await Promise.all(
-                            outputImages.map(async (image, index) => ({
-                                image,
-                                index,
-                                bytes: await client.downloadImage(image),
+                                imageId: output.imageId,
+                                type: 'output',
+                                sortIndex: output.sortIndex,
                             })),
                         )
-                        const outputs: { imageId: UUID, sortIndex: number }[] = []
-                        let storageError: string | undefined
-                        let completion: CompletionResult = 'inactive'
+                        referencesCommitted = true
+                    })
 
-                        await withImageMutation(async () => {
-                            const ingestedImageIds: UUID[] = []
-                            const cleanupIngestedImages = async () => {
-                                if (ingestedImageIds.length === 0) return
-
-                                const imageIds = ingestedImageIds.splice(0)
-                                await imageCleanup.removeUnreferenced(database, imageIds)
-                            }
-
-                            try {
-                                for (const { index, bytes } of downloaded) {
-                                    const ingested = await imageService.ingest(database, bytes)
-
-                                    if (!ingested.ok) {
-                                        storageError = ingested.error
-                                        await cleanupIngestedImages()
-                                        return
-                                    }
-
-                                    outputs.push({
-                                        imageId: ingested.data.image.id,
-                                        sortIndex: index,
-                                    })
-                                    if (ingested.data.created) {
-                                        ingestedImageIds.push(ingested.data.image.id)
-                                    }
-                                }
-
-                                completion = await completeTaskMutation(database, taskId, outputs)
-                                if (completion !== 'completed') {
-                                    await cleanupIngestedImages()
-                                }
-                            }
-                            catch (error) {
-                                await cleanupIngestedImages()
-                                throw error
-                            }
-                        })
-
-                        if (storageError) {
-                            await failTask(
-                                database,
-                                taskId,
-                                storageError,
-                                'ComfyUI output could not be stored.',
-                                publishEvent,
-                            )
-                            return
-                        }
-
-                        if (completion === 'inactive') return
-
-                        if (completion === 'completed') {
-                            const task = await taskService.snapshot(database, taskId)
-                            if (task) {
-                                publishEvent('task.changed', { task })
-                            }
-
-                            /* Comfy output cleanup does not hold the image lock. */
-                            for (const { image } of downloaded) {
-                                await removeComfyImage(image)
-                            }
-                        }
-
-                        /* A disappeared task has no durable history owner either. */
-                        await deleteComfyHistory(client, result.promptId, taskId)
+                    if (referencesCommitted) {
+                        return done<CompletionResult>('completed')
                     }
-                    catch (error) {
-                        await collapseGenerationError(database, taskId, error, publishEvent)
+
+                    const taskExists = !!(await taskService.findTask(database, taskId))
+                    return done<CompletionResult>(taskExists ? 'inactive' : 'missing')
+                }
+                finally {
+                    if (!referencesCommitted && ingestedImageIds.length > 0) {
+                        await imageCleanup.removeUnreferenced(database, ingestedImageIds)
                     }
-                },
-                async onFailed(error) {
-                    try {
-                        await failTask(
-                            database,
-                            taskId,
-                            error.code,
-                            error.message,
-                            publishEvent,
-                        )
-                    }
-                    catch (failureError) {
-                        console.error(`Failed to mark task ${taskId} failed.`, failureError)
-                    }
-                },
+                }
             })
+
+            if (!stored.ok) {
+                return await taskExecution.onFailed(database, taskId, stored.error)
+            }
+
+            switch (stored.data) {
+                case 'inactive':
+                    return false
+                case 'missing':
+                    /* A disappeared task has no durable history owner either. */
+                    await client.deleteHistory(result.promptId)
+                    return false
+                case 'completed':
+                    /* Comfy output cleanup does not hold the image lock. */
+                    for (const image of outputImages) {
+                        await removeComfyImage(image)
+                    }
+
+                    await client.deleteHistory(result.promptId)
+                    return true
+            }
         }
         catch (error) {
-            await collapseGenerationError(database, taskId, error, publishEvent)
+            return await taskExecution.onFailed(database, taskId, error)
+        }
+    },
+
+    async onFailed(
+        database: Database,
+        taskId: UUID,
+        error: unknown,
+    ): Promise<boolean> {
+        console.error(`Task ${taskId} generation failed.`, error)
+
+        const parsedError = taskExecution.parseExecutionError(error)
+        const updated = await taskService.updateTask(
+            database,
+            {
+                id: taskId,
+                status: 'failed',
+                errorCode: parsedError.code,
+                errorMessage: parsedError.message,
+            },
+            { matchStatuses: ['queued', 'running'] },
+        )
+        return !!updated
+    },
+
+    parseExecutionError(error: unknown) {
+        if (error instanceof ComfyError) {
+            return {
+                code: error.code,
+                message: error.message,
+            }
+        }
+
+        if (error instanceof Error) {
+            return {
+                code: 'TASK_GENERATE_ERROR',
+                message: error.message,
+            }
+        }
+
+        if (
+            error
+            && typeof error === 'string'
+            && isFailureKey(error)
+        ) {
+            return {
+                code: error,
+                message: executionFailures[error].message,
+            }
+        }
+
+        return {
+            code: 'TASK_GENERATE_ERROR',
+            message: 'An unexpected task generation error occurred.',
         }
     },
 }
 
-type CompletionResult = 'completed' | 'missing' | 'inactive'
+const executionFailures = {
+    REFERENCE_IMAGE_FILE_MISSING: { message: 'Reference image file is missing from storage.' },
+    COMFY_OUTPUT_MISSING: { message: 'ComfyUI did not return any output images.' },
+    IMAGE_EMPTY: { message: 'ComfyUI output could not be stored.' },
+    IMAGE_UNSUPPORTED_TYPE: { message: 'ComfyUI output could not be stored.' },
+    IMAGE_STORE_FAILED: { message: 'ComfyUI output could not be stored.' },
+} satisfies Record<string, { message: string }>
 
-async function failTask(
-    database: Database,
-    taskId: UUID,
-    errorCode: string,
-    errorMessage: string,
-    publishEvent: PublishEvent,
-): Promise<void> {
-    const updated = await taskService.updateTask(
-        database,
-        {
-            id: taskId,
-            status: 'failed',
-            errorCode,
-            errorMessage,
-        },
-        { matchStatuses: ['queued', 'running'] },
-    )
-    if (!updated) return
-
-    const task = await taskService.snapshot(database, taskId)
-    if (task) {
-        publishEvent('task.changed', { task })
-    }
-}
-
-async function collapseGenerationError(
-    database: Database,
-    taskId: UUID,
-    error: unknown,
-    publishEvent: PublishEvent,
-): Promise<void> {
-    const message = error instanceof Error
-        ? error.message
-        : 'An unexpected task generation error occurred.'
-
-    console.error(`Task ${taskId} generation callback failed.`, error)
-    try {
-        await failTask(
-            database,
-            taskId,
-            'TASK_GENERATE_ERROR',
-            message,
-            publishEvent,
-        )
-    }
-    catch (failureError) {
-        console.error(`Failed to mark task ${taskId} generation error.`, failureError)
-    }
-}
-
-function logCallbackError(taskId: UUID, callback: string, error: unknown): void {
-    console.error(`Task ${taskId} ${callback} callback failed.`, error)
-}
-
-async function deleteComfyHistory(
-    client: ComfyClient,
-    promptId: string,
-    taskId: UUID,
-): Promise<void> {
-    try {
-        await client.deleteHistory(promptId)
-    }
-    catch (error) {
-        console.error(`Failed to remove Comfy history for task ${taskId}.`, error)
-    }
+function isFailureKey(key: string): key is keyof typeof executionFailures {
+    return key in executionFailures
 }
 
 /*
@@ -295,41 +308,4 @@ function comfyImagePath(relativePath: string): string {
     const trimmed = prefix.replace(/[\\/]+$/, '')
 
     return `${trimmed}${separator}${relativePath.split('/').join(separator)}`
-}
-
-/* Caller owns the image mutation lock; event publication belongs outside it. */
-async function completeTaskMutation(
-    database: Database,
-    taskId: UUID,
-    outputs: { imageId: UUID, sortIndex: number }[],
-): Promise<CompletionResult> {
-    let completed = false
-
-    await database.transaction(async tx => {
-        const updated = await taskService.updateTask(
-            tx,
-            {
-                id: taskId,
-                status: 'done',
-                errorCode: null,
-                errorMessage: null,
-            },
-            { matchStatuses: ['queued', 'running'] },
-        )
-        if (!updated) return
-
-        await taskImageService.addReferences(
-            tx,
-            outputs.map(output => ({
-                taskId,
-                imageId: output.imageId,
-                type: 'output',
-                sortIndex: output.sortIndex,
-            })),
-        )
-        completed = true
-    })
-
-    if (completed) return 'completed'
-    return await taskService.findTask(database, taskId) ? 'inactive' : 'missing'
 }
