@@ -62,7 +62,7 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
                         </Button>
                         <Button
                             type='button'
-                            variant='accent'
+                            tone='accent'
                             classes={{ root: 'min-w-20 text-sm' }}
                             onClick={props.onApply}
                         >

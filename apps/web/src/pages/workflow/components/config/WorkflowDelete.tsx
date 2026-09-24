@@ -61,7 +61,7 @@ export function WorkflowDelete() {
     return (
         <>
             <Button
-                variant='danger'
+                tone='danger'
                 disabled={mutation.isPending}
                 classes={{ root: 'w-full disabled:cursor-not-allowed disabled:opacity-60' }}
                 onClick={openDialog}
@@ -95,7 +95,7 @@ export function WorkflowDelete() {
                                 Cancel
                             </Button>
                             <Button
-                                variant='danger'
+                                tone='danger'
                                 classes={{ root: 'min-w-20 text-sm' }}
                                 disabled={mutation.isPending}
                                 onClick={() => void confirm()}

@@ -17,13 +17,13 @@ type IssueChipProps = {
 
 /* 染色容器沿用 TaskStatus badge 與 Header 服務狀態既有的語彙 */
 const chipToneClass: Record<IssueTone, string> = {
-    error: 'border-red-500/25 bg-red-500/12 text-red-300 hover:bg-red-500/[0.18]',
-    warning: 'border-amber-500/25 bg-amber-500/12 text-amber-300 hover:bg-amber-500/[0.18]',
+    error: 'border-danger/25 bg-danger/12 text-danger-fg hover:bg-danger/[0.18]',
+    warning: 'border-warning/25 bg-warning/12 text-warning-fg hover:bg-warning/[0.18]',
 }
 
 const iconToneClass: Record<IssueTone, string> = {
-    error: 'text-red-300',
-    warning: 'text-amber-300',
+    error: 'text-danger-fg',
+    warning: 'text-warning-fg',
 }
 
 export function IssueChip(props: IssueChipProps) {
@@ -70,7 +70,7 @@ export function IssueChip(props: IssueChipProps) {
                 {/* 宿主面板多半是 overflow-hidden，浮層必須 portal 出去才不會被裁掉 */}
                 <Portal>
                     <Popover.Positioner class='z-50'>
-                        <Popover.Content class='issue-popover w-80 max-w-[calc(100vw-2rem)] rounded-lg border border-white/[0.09] bg-surface/95 p-1 shadow-[0_12px_32px_rgba(0,0,0,0.55)] outline-none backdrop-blur-[8px]'>
+                        <Popover.Content class='issue-popover w-80 max-w-[calc(100vw-2rem)] rounded-lg border border-line bg-surface/95 p-1 shadow-popover outline-none backdrop-blur-[8px]'>
                             <For each={issues()}>
                                 {issue => (
                                     <div class='flex items-start gap-2 px-2.5 py-2 [&+&]:border-t [&+&]:border-line-subtle'>

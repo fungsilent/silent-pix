@@ -155,7 +155,7 @@ export function TaskConfig(props: TaskConfigProps) {
                     label='Workflow Template'
                     value={values().workflowId}
                     options={props.data.workflowOptions()}
-                    badgeTone='amber'
+                    badgeTone='warning'
                     disabled={!isCreate() || workflowLoading() || workflowError() || props.data.workflowOptions().length === 0}
                     onChange={onWorkflowChange}
                 />

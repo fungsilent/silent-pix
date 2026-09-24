@@ -89,7 +89,8 @@ export function PromptPanel() {
                     <Button
                         size='bar'
                         type='submit'
-                        variant='primary'
+                        variant='solid'
+                        tone='accent'
                         disabled={isSubmitting() || isLoading()}
                         classes={{
                             root: 'shrink-0 font-semibold disabled:cursor-not-allowed disabled:opacity-60'
@@ -150,7 +151,7 @@ function PromptToggle(props: PromptToggleProps) {
     return (
         <Button
             size='bar'
-            variant={props.visible ? 'accent' : 'default'}
+            tone={props.visible ? 'accent' : 'neutral'}
             classes={{
                 root: cn(
                     'gap-1.5 leading-none outline outline-1 outline-offset-0',

@@ -15,19 +15,19 @@ type Item = {
 const statusMap: Record<TaskApi.TaskStatus, Item> = {
     queued: {
         label: 'Queued',
-        tone: 'amber',
+        tone: 'warning',
     },
     running: {
         label: 'Running',
-        tone: 'sky',
+        tone: 'info',
     },
     done: {
         label: 'Done',
-        tone: 'emerald',
+        tone: 'success',
     },
     failed: {
         label: 'Failed',
-        tone: 'rose',
+        tone: 'danger',
     },
 }
 

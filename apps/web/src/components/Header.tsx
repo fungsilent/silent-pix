@@ -1,10 +1,11 @@
-import { Columns2, LoaderCircle, Menu, Sparkles, Workflow } from 'lucide-solid'
+import { Columns2, LoaderCircle, Menu, Moon, Sparkles, Sun, Workflow } from 'lucide-solid'
 
 import { Button } from '#/components/base/Button'
 import { useHealthQuery } from '#/features/app/app.query'
 import { cn } from '#/lib/cn'
 import { appStore, serviceHealth } from '#/store/app'
 import { loadingStore } from '#/store/loading'
+import { themeStore } from '#/store/theme'
 
 import type { JSX } from 'solid-js'
 
@@ -79,8 +80,36 @@ export function Header() {
 
             <div class='flex-1' />
 
+            <ThemeToggle />
             <ServiceStatus />
         </header>
+    )
+}
+
+function ThemeToggle() {
+    const dark = () => themeStore.state.theme === 'dark'
+
+    return (
+        <Button
+            variant='ghost'
+            title={dark() ? 'Switch to light theme' : 'Switch to dark theme'}
+            classes={{ root: 'size-[30px] shrink-0 p-0 text-fg-secondary' }}
+            onClick={() => themeStore.toggleTheme()}
+        >
+            {dark()
+                ? (
+                    <Sun
+                        size={16}
+                        strokeWidth={1.7}
+                    />
+                )
+                : (
+                    <Moon
+                        size={16}
+                        strokeWidth={1.7}
+                    />
+                )}
+        </Button>
     )
 }
 

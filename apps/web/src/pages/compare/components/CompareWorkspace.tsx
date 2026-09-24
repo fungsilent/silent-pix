@@ -158,7 +158,8 @@ export function CompareWorkspace() {
                     </Show>
                     <Button
                         size='bar'
-                        variant='primary'
+                        variant='solid'
+                        tone='accent'
                         classes={{ root: 'shrink-0 font-semibold' }}
                         onClick={() => setPickerOpen(true)}
                     >
@@ -271,7 +272,8 @@ function EmptyCompareState(props: EmptyCompareStateProps) {
                     </p>
                 </div>
                 <Button
-                    variant='primary'
+                    variant='solid'
+                    tone='accent'
                     classes={{ root: 'mt-1 h-8 px-3 text-xs' }}
                     onClick={props.onAdd}
                 >
@@ -296,7 +298,8 @@ function AllHiddenState(props: AllHiddenStateProps) {
             <div class='flex flex-col items-center gap-3 text-center'>
                 <p class='m-0 text-sm font-medium text-fg'>All images hidden</p>
                 <Button
-                    variant='primary'
+                    variant='solid'
+                    tone='accent'
                     classes={{ root: 'h-8 px-3 text-xs' }}
                     onClick={props.onShowAll}
                 >

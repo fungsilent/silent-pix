@@ -155,7 +155,7 @@ export function TaskInfo(props: TaskInfoProps) {
                             </Show>
                         )}
                     >
-                        <Badge tone='slate'>Draft</Badge>
+                        <Badge tone='neutral'>Draft</Badge>
                     </Show>
                 </Loading.Mask>
             </DetailRow>
@@ -182,7 +182,7 @@ export function TaskInfo(props: TaskInfoProps) {
             <Show when={hasDelete()}>
                 <Loading.Mask loading={props.loading}>
                     <Button
-                        variant='danger'
+                        tone='danger'
                         classes={{ root: 'w-full' }}
                         onClick={openDelete}
                     >
@@ -218,7 +218,7 @@ export function TaskInfo(props: TaskInfoProps) {
                                     Cancel
                                 </Button>
                                 <Button
-                                    variant='danger'
+                                    tone='danger'
                                     classes={{ root: 'min-w-20 text-sm' }}
                                     disabled={deletePending()}
                                     onClick={() => void confirmDelete()}

@@ -80,7 +80,7 @@ export function FilterChips<Value extends string>(props: FilterChipsProps<Value>
                     root: cn(
                         'h-7 gap-1.5 rounded-md px-2 text-[11px] font-medium',
                         props.values === undefined
-                            ? 'bg-active text-fg shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]'
+                            ? 'bg-active text-fg shadow-inset'
                             : 'text-fg-muted',
                     ),
                 }}
@@ -96,7 +96,7 @@ export function FilterChips<Value extends string>(props: FilterChipsProps<Value>
                         root: cn(
                             'h-7 gap-1.5 rounded-md px-2 text-[11px] font-medium',
                             active(option.value)
-                                ? 'bg-active text-fg shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]'
+                                ? 'bg-active text-fg shadow-inset'
                                 : 'text-fg-muted',
                         ),
                     }}

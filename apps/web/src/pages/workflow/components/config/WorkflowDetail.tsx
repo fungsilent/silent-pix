@@ -113,7 +113,8 @@ export function WorkflowDetail() {
                         >
                             <Button
                                 size='bar'
-                                variant='primary'
+                                variant='solid'
+                                tone='accent'
                                 type='submit'
                                 disabled={!canSave()}
                                 classes={{ root: 'shrink-0 font-semibold disabled:cursor-not-allowed disabled:opacity-60' }}
@@ -147,7 +148,8 @@ export function WorkflowDetail() {
                                 </p>
                             </div>
                             <Button
-                                variant='primary'
+                                variant='solid'
+                                tone='accent'
                                 classes={{ root: 'mt-1 h-8 px-3 text-xs' }}
                                 onClick={() => store.startCreate()}
                             >

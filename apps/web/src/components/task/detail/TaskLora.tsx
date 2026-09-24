@@ -182,7 +182,7 @@ export function TaskLora(props: TaskLoraProps) {
                 <Loading.Mask loading={props.loading}>
                     <Button
                         type='button'
-                        variant='accent'
+                        tone='accent'
                         classes={{ root: 'w-full' }}
                         onClick={() => onPickerOpenChange(true)}
                     >

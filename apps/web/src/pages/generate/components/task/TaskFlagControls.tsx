@@ -1,4 +1,4 @@
-import { Pin, Trash2 } from 'lucide-solid'
+import { FlagTriangleRight, HeartX } from 'lucide-solid'
 
 import { Button } from '#/components/base/Button'
 import { cn } from '#/lib/cn'
@@ -36,7 +36,7 @@ export function TaskFlagControls(props: TaskFlagControlsProps) {
                 }}
                 onClick={() => props.onChange(props.pin ? null : 'pin')}
             >
-                <Pin
+                <FlagTriangleRight
                     size={14}
                     strokeWidth={1.8}
                 />
@@ -53,7 +53,7 @@ export function TaskFlagControls(props: TaskFlagControlsProps) {
                 }}
                 onClick={() => props.onChange(props.discard ? null : 'discard')}
             >
-                <Trash2
+                <HeartX
                     size={14}
                     strokeWidth={1.8}
                 />

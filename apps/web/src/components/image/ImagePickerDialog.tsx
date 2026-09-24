@@ -188,7 +188,8 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                             Cancel
                         </Button>
                         <Button
-                            variant='primary'
+                            variant='solid'
+                            tone='accent'
                             disabled={!hasSelection()}
                             classes={{ root: 'min-w-20 text-sm' }}
                             onClick={apply}

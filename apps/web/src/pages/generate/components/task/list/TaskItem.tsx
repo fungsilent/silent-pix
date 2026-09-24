@@ -1,10 +1,11 @@
-import { Pin, Trash2 } from 'lucide-solid'
+import { FlagTriangleRight, HeartX } from 'lucide-solid'
 
 import { Button } from '#/components/base/Button'
 import { Loading } from '#/components/base/Loading'
 import { TaskStatus } from '#/components/task/TaskStatus'
 import { cn } from '#/lib/cn'
 import { formatDateTime } from '#/lib/format'
+import { taskFlagTheme } from '#/lib/theme'
 import { TaskFlagControls } from '#/pages/generate/components/task/TaskFlagControls'
 import { TaskThumbnail } from '#/pages/generate/components/task/TaskThumbnail'
 
@@ -53,18 +54,18 @@ export function TaskItem(props: TaskItemProps) {
                         <span
                             class={cn(
                                 'absolute left-1 top-1 flex size-5 items-center justify-center rounded bg-black/75',
-                                props.task.pin ? 'text-amber-300' : 'text-rose-300',
+                                props.task.pin ? 'text-pin-fg' : 'text-discard-fg',
                             )}
                         >
                             {props.task.pin
                                 ? (
-                                    <Pin
+                                    <FlagTriangleRight
                                         size={12}
                                         strokeWidth={2}
                                     />
                                 )
                                 : (
-                                    <Trash2
+                                    <HeartX
                                         size={12}
                                         strokeWidth={2}
                                     />
@@ -99,10 +100,10 @@ export function TaskItem(props: TaskItemProps) {
                     onChange={props.onFlagChange}
                     classes={{
                         root: 'right-2 top-2 gap-0.5',
-                        pinActive: 'bg-amber-500/90 text-amber-950 hover:bg-amber-400',
-                        pinInactive: 'bg-black/55 text-white/70 hover:bg-black/75 hover:text-white',
-                        discardActive: 'bg-rose-500/90 text-rose-950 hover:bg-rose-400',
-                        discardInactive: 'bg-black/55 text-white/70 hover:bg-black/75 hover:text-white',
+                        pinActive: taskFlagTheme.pin.overlayActive,
+                        pinInactive: taskFlagTheme.pin.overlayInactive.item,
+                        discardActive: taskFlagTheme.discard.overlayActive,
+                        discardInactive: taskFlagTheme.discard.overlayInactive.item,
                     }}
                 />
             )}

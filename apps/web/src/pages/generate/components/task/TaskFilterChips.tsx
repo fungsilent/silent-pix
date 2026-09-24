@@ -1,4 +1,4 @@
-import { FlagOff, ListFilter, Pin, Trash2 } from 'lucide-solid'
+import { FlagOff, FlagTriangleRight, HeartX, ListFilter } from 'lucide-solid'
 
 import { FilterChips } from '#/components/base/FilterChips'
 import { cn } from '#/lib/cn'
@@ -26,8 +26,8 @@ const allOption = { label: 'All', Icon: ListFilter }
 
 const filterOptions: FilterOption[] = [
     { value: 'unflag', label: 'Unflag', Icon: FlagOff },
-    { value: 'pin', label: 'Pin', Icon: Pin },
-    { value: 'discard', label: 'Discard', Icon: Trash2 },
+    { value: 'pin', label: 'Pin', Icon: FlagTriangleRight },
+    { value: 'discard', label: 'Discard', Icon: HeartX },
 ]
 
 export function TaskFilterChips(props: TaskFilterChipsProps) {

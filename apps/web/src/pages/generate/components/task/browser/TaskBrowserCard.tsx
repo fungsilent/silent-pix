@@ -5,6 +5,7 @@ import { CenteredText } from '#/components/base/CenteredText'
 import { TaskStatus } from '#/components/task/TaskStatus'
 import { cn } from '#/lib/cn'
 import { formatDateTime } from '#/lib/format'
+import { taskFlagTheme } from '#/lib/theme'
 import { TaskFlagControls } from '#/pages/generate/components/task/TaskFlagControls'
 import { TaskThumbnail } from '#/pages/generate/components/task/TaskThumbnail'
 
@@ -96,10 +97,10 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
                 onChange={props.onFlagChange}
                 classes={{
                     root: 'left-2.5 top-2.5 gap-1',
-                    pinActive: 'bg-amber-500/90 text-amber-950 hover:bg-amber-400',
-                    pinInactive: 'bg-black/60 text-white/75 hover:bg-black/80 hover:text-white',
-                    discardActive: 'bg-rose-500/90 text-rose-950 hover:bg-rose-400',
-                    discardInactive: 'bg-black/60 text-white/75 hover:bg-black/80 hover:text-white',
+                    pinActive: taskFlagTheme.pin.overlayActive,
+                    pinInactive: taskFlagTheme.pin.overlayInactive.card,
+                    discardActive: taskFlagTheme.discard.overlayActive,
+                    discardInactive: taskFlagTheme.discard.overlayInactive.card,
                 }}
             />
 

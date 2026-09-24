@@ -52,7 +52,7 @@ export function WorkflowInfo() {
                         </span>
 
                         <Show when={store.draftLabel()}>
-                            {value => <Badge tone='slate'>{value()}</Badge>}
+                            {value => <Badge tone='neutral'>{value()}</Badge>}
                         </Show>
                     </div>
                 </Loading.Mask>

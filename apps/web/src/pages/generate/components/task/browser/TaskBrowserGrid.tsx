@@ -63,7 +63,7 @@ export function TaskBrowserGrid(props: TaskBrowserGridProps) {
         <div
             ref={setSelectionContainerElement}
             class={cn(
-                'relative min-h-0 flex-1 overflow-y-auto bg-surface',
+                'scrollbar-thin relative min-h-0 flex-1 overflow-y-auto bg-surface',
                 dragSelection.tracking() && 'select-none',
             )}
             onPointerDown={dragSelection.onPointerDown}

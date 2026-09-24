@@ -61,7 +61,7 @@ export function TaskBatchDeleteDialog(props: TaskBatchDeleteDialogProps) {
                             Cancel
                         </Button>
                         <Button
-                            variant='danger'
+                            tone='danger'
                             disabled={props.pending}
                             classes={{ root: 'min-w-20 text-sm' }}
                             onClick={() => void confirm()}

@@ -1,10 +1,19 @@
-import { Minimize2, Pin, Search, Trash2 } from 'lucide-solid'
+import {
+    FlagOff,
+    FlagTriangleRight,
+    HeartX,
+    Minimize2,
+    Search,
+    Trash2,
+} from 'lucide-solid'
 import { Show } from 'solid-js'
 
 import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
 import { IssueChip } from '#/components/base/IssueChip'
 import { Text } from '#/components/field/Text'
+import { cn } from '#/lib/cn'
+import { taskFlagTheme } from '#/lib/theme'
 import { TaskFilterChips } from '#/pages/generate/components/task/TaskFilterChips'
 
 import type { TaskApi } from '@silent-pix/shared'
@@ -63,27 +72,16 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                     </Button>
                 </Bar.Actions>
             </Bar.Root>
-            <div class='flex min-w-0 flex-wrap items-center gap-2'>
+            <div class='flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 px-2 pb-1'>
                 <TaskFilterChips
                     values={props.taskFlags}
                     onChange={props.onTaskFlagsChange}
+                    classes={{ root: 'px-0 pb-0' }}
                 />
-                <Show when={props.showPermanentDelete}>
-                    <div class='flex shrink-0 items-center pb-1'>
-                        <Button
-                            variant='danger'
-                            disabled={props.deletePending}
-                            classes={{ root: 'h-7 px-2 text-[11px]' }}
-                            onClick={props.onDeleteAll}
-                        >
-                            Delete all
-                        </Button>
-                    </div>
-                </Show>
-                <Show when={props.selectedCount > 0 || props.issues.length > 0}>
-                    <div class='ml-auto flex shrink-0 items-center gap-2 pr-2 pb-1'>
+                <Show when={props.selectedCount > 0 || props.issues.length > 0 || props.showPermanentDelete}>
+                    <div class='ml-auto flex min-w-0 flex-wrap items-center justify-end gap-1'>
                         <Show when={props.selectedCount > 0}>
-                            <span class='text-xs text-fg-muted tabular-nums'>
+                            <span class='mr-1 text-xs text-fg-muted tabular-nums'>
                                 {props.selectedCount} selected
                             </span>
                             <Button
@@ -100,48 +98,71 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                                 classes={{ root: 'h-7 px-2 text-[11px]' }}
                                 onClick={() => props.onSetFlags(null)}
                             >
+                                <FlagOff
+                                    size={13}
+                                    strokeWidth={1.8}
+                                />
                                 Unflag
                             </Button>
                             <Button
-                                variant='accent'
+                                variant='soft'
                                 disabled={props.flagPending}
-                                classes={{ root: 'h-7 px-2 text-[11px]' }}
+                                classes={{ root: cn('h-7 px-2 text-[11px]', taskFlagTheme.pin.soft) }}
                                 onClick={() => props.onSetFlags('pin')}
                             >
-                                <Pin
+                                <FlagTriangleRight
                                     size={13}
                                     strokeWidth={1.8}
                                 />
                                 Pin
                             </Button>
                             <Button
-                                variant='danger'
+                                variant='soft'
                                 disabled={props.flagPending}
-                                classes={{ root: 'h-7 px-2 text-[11px]' }}
+                                classes={{ root: cn('h-7 px-2 text-[11px]', taskFlagTheme.discard.soft) }}
                                 onClick={() => props.onSetFlags('discard')}
                             >
-                                <Trash2
+                                <HeartX
                                     size={13}
                                     strokeWidth={1.8}
                                 />
                                 Discard
                             </Button>
-                            <Show when={props.showPermanentDelete}>
-                                <Button
-                                    variant='danger'
-                                    disabled={props.deletePending}
-                                    classes={{ root: 'h-7 px-2 text-[11px]' }}
-                                    onClick={props.onDeleteSelected}
-                                >
-                                    Delete {props.selectedCount} tasks...
-                                </Button>
-                            </Show>
+                            <Button
+                                tone='danger'
+                                disabled={props.deletePending}
+                                classes={{ root: 'h-7 px-2 text-[11px]' }}
+                                onClick={props.onDeleteSelected}
+                            >
+                                <Trash2
+                                    size={13}
+                                    strokeWidth={1.8}
+                                />
+                                Delete {props.selectedCount} tasks...
+                            </Button>
                         </Show>
                         <IssueChip
                             issues={props.issues}
                             open={props.issuesOpen}
                             onOpenChange={props.onIssuesOpenChange}
                         />
+                        <Show when={props.showPermanentDelete}>
+                            <Show when={props.selectedCount > 0 || props.issues.length > 0}>
+                                <div class='mx-1 h-5 w-px bg-line-subtle' />
+                            </Show>
+                            <Button
+                                tone='danger'
+                                disabled={props.deletePending}
+                                classes={{ root: 'h-7 px-2 text-[11px]' }}
+                                onClick={props.onDeleteAll}
+                            >
+                                <Trash2
+                                    size={13}
+                                    strokeWidth={1.8}
+                                />
+                                Delete discarded...
+                            </Button>
+                        </Show>
                     </div>
                 </Show>
             </div>

@@ -1,8 +1,29 @@
 @import "tailwindcss";
 
-/* MARK: theme — dark */
+/* MARK: palette → semantic tokens — dark */
 :root,
 [data-theme='dark'] {
+    color-scheme: dark;
+
+    --sp-blue-base: #2563eb;
+    --sp-blue-hover: #3b82f6;
+    --sp-blue-fg: #7ea6ff;
+    --sp-amber-base: #f59e0b;
+    --sp-amber-hover: #fbbf24;
+    --sp-amber-fg: #fcd34d;
+    --sp-pink-base: #ec4899;
+    --sp-pink-hover: #f472b6;
+    --sp-pink-fg: #f9a8d4;
+    --sp-red-base: #dc2626;
+    --sp-red-hover: #ef4444;
+    --sp-red-fg: #fca5a5;
+    --sp-green-base: #22c55e;
+    --sp-green-hover: #4ade80;
+    --sp-green-fg: #86efac;
+    --sp-sky-base: #0ea5e9;
+    --sp-sky-hover: #38bdf8;
+    --sp-sky-fg: #7dd3fc;
+
     --sp-canvas: #0a0a0a;
     --sp-surface: #171717;
     --sp-elevated: #262626;
@@ -18,45 +39,144 @@
     --sp-fg-secondary: #a3a3a3;
     --sp-fg-muted: #737373;
 
-    --sp-accent: #2563eb;
-    --sp-accent-hover: #3b82f6;
-    --sp-accent-fg: #7ea6ff;
+    --sp-accent: var(--sp-blue-base);
+    --sp-accent-hover: var(--sp-blue-hover);
+    --sp-accent-fg: var(--sp-blue-fg);
+
+    --sp-pin: var(--sp-amber-base);
+    --sp-pin-hover: var(--sp-amber-hover);
+    --sp-pin-fg: var(--sp-amber-fg);
+    --sp-pin-contrast: #451a03;
+
+    --sp-discard: var(--sp-pink-base);
+    --sp-discard-hover: var(--sp-pink-hover);
+    --sp-discard-fg: var(--sp-pink-fg);
+    --sp-discard-contrast: #500724;
+
+    --sp-info: var(--sp-sky-base);
+    --sp-info-hover: var(--sp-sky-hover);
+    --sp-info-fg: var(--sp-sky-fg);
+    --sp-success: var(--sp-green-base);
+    --sp-success-hover: var(--sp-green-hover);
+    --sp-success-fg: var(--sp-green-fg);
+    --sp-warning: var(--sp-amber-base);
+    --sp-warning-hover: var(--sp-amber-hover);
+    --sp-warning-fg: var(--sp-amber-fg);
+    --sp-danger: var(--sp-red-base);
+    --sp-danger-hover: var(--sp-red-hover);
+    --sp-danger-fg: var(--sp-red-fg);
+
+    --sp-inset-highlight: rgb(255 255 255 / 6%);
+    --sp-disabled: rgb(255 255 255 / 2%);
+    --sp-scroll-thumb: rgb(255 255 255 / 22%);
+    --sp-scroll-hover: rgb(255 255 255 / 34%);
+    --sp-shadow: rgb(0 0 0 / 55%);
+
+    --sp-stage-control: rgb(0 0 0 / 60%);
+    --sp-stage-control-muted: rgb(0 0 0 / 55%);
+    --sp-stage-control-hover: rgb(0 0 0 / 80%);
+    --sp-on-stage: #ffffff;
+    --sp-viewer-overlay: rgb(5 5 5 / 72%);
+
+    --sp-code-string: #86efac;
+    --sp-code-number: #fcd34d;
+    --sp-code-literal: #c4b5fd;
+    --sp-workflow-bound-soft: color-mix(in srgb, var(--sp-green-base) 10%, transparent);
+    --sp-workflow-broken-soft: color-mix(in srgb, var(--sp-red-hover) 12%, transparent);
+    --sp-prompt-hatch-low: rgb(255 255 255 / 1.5%);
+    --sp-prompt-hatch-high: rgb(255 255 255 / 6.5%);
 
     --sp-skeleton: #252525;
     --sp-skeleton-highlight: #303030;
-
-    --sp-danger: #dc2626;
-    --sp-danger-hover: #ef4444;
-    --sp-danger-fg: #fca5a5;
 }
 
-/* MARK: theme — light（尚未驗收，只定義 token，不接切換 UI） */
+/* MARK: palette → semantic tokens — light */
 [data-theme='light'] {
-    --sp-canvas: #f5f5f5;
-    --sp-surface: #ffffff;
-    --sp-elevated: #ededed;
-    --sp-active: #e4e4e4;
-    --sp-hover: #dcdcdc;
-    --sp-stage: #1a1a1a;
+    color-scheme: light;
 
-    --sp-line-subtle: rgb(0 0 0 / 6%);
-    --sp-line: rgb(0 0 0 / 12%);
+    --sp-blue-base: #2563eb;
+    --sp-blue-hover: #1d4ed8;
+    --sp-blue-fg: #1e40af;
+    --sp-amber-base: #d97706;
+    --sp-amber-hover: #b45309;
+    --sp-amber-fg: #92400e;
+    --sp-pink-base: #db2777;
+    --sp-pink-hover: #be185d;
+    --sp-pink-fg: #9d174d;
+    --sp-red-base: #dc2626;
+    --sp-red-hover: #b91c1c;
+    --sp-red-fg: #991b1b;
+    --sp-green-base: #16a34a;
+    --sp-green-hover: #15803d;
+    --sp-green-fg: #166534;
+    --sp-sky-base: #0284c7;
+    --sp-sky-hover: #0369a1;
+    --sp-sky-fg: #075985;
+
+    --sp-canvas: #f4f4f5;
+    --sp-surface: #ffffff;
+    --sp-elevated: #e4e4e7;
+    --sp-active: #d4d4d8;
+    --sp-hover: #e4e4e7;
+    --sp-stage: #050505;
+
+    --sp-line-subtle: rgb(0 0 0 / 10%);
+    --sp-line: rgb(0 0 0 / 18%);
 
     --sp-fg: #171717;
     --sp-fg-title: #262626;
     --sp-fg-secondary: #525252;
-    --sp-fg-muted: #737373;
+    --sp-fg-muted: #525252;
 
-    --sp-accent: #2563eb;
-    --sp-accent-hover: #1d4ed8;
-    --sp-accent-fg: #1e40af;
+    --sp-accent: var(--sp-blue-base);
+    --sp-accent-hover: var(--sp-blue-hover);
+    --sp-accent-fg: var(--sp-blue-fg);
+
+    --sp-pin: var(--sp-amber-base);
+    --sp-pin-hover: var(--sp-amber-hover);
+    --sp-pin-fg: var(--sp-amber-fg);
+    --sp-pin-contrast: #451a03;
+
+    --sp-discard: var(--sp-pink-base);
+    --sp-discard-hover: var(--sp-pink-hover);
+    --sp-discard-fg: var(--sp-pink-fg);
+    --sp-discard-contrast: #500724;
+
+    --sp-info: var(--sp-sky-base);
+    --sp-info-hover: var(--sp-sky-hover);
+    --sp-info-fg: var(--sp-sky-fg);
+    --sp-success: var(--sp-green-base);
+    --sp-success-hover: var(--sp-green-hover);
+    --sp-success-fg: var(--sp-green-fg);
+    --sp-warning: var(--sp-amber-base);
+    --sp-warning-hover: var(--sp-amber-hover);
+    --sp-warning-fg: var(--sp-amber-fg);
+    --sp-danger: var(--sp-red-base);
+    --sp-danger-hover: var(--sp-red-hover);
+    --sp-danger-fg: var(--sp-red-fg);
+
+    --sp-inset-highlight: rgb(0 0 0 / 6%);
+    --sp-disabled: rgb(0 0 0 / 5%);
+    --sp-scroll-thumb: rgb(0 0 0 / 30%);
+    --sp-scroll-hover: rgb(0 0 0 / 45%);
+    --sp-shadow: rgb(0 0 0 / 18%);
+
+    --sp-stage-control: rgb(0 0 0 / 60%);
+    --sp-stage-control-muted: rgb(0 0 0 / 55%);
+    --sp-stage-control-hover: rgb(0 0 0 / 80%);
+    --sp-on-stage: #ffffff;
+    --sp-viewer-overlay: rgb(244 244 245 / 88%);
+
+    --sp-code-string: #166534;
+    --sp-code-number: #92400e;
+    --sp-code-literal: #6d28d9;
+    --sp-workflow-bound-soft: color-mix(in srgb, var(--sp-green-base) 18%, transparent);
+    --sp-workflow-broken-soft: color-mix(in srgb, var(--sp-red-base) 18%, transparent);
+    --sp-prompt-hatch-low: rgb(0 0 0 / 1.5%);
+    --sp-prompt-hatch-high: rgb(0 0 0 / 6.5%);
 
     --sp-skeleton: #e8e8e8;
     --sp-skeleton-highlight: #f1f1f1;
-
-    --sp-danger: #dc2626;
-    --sp-danger-hover: #b91c1c;
-    --sp-danger-fg: #991b1b;
 }
 
 @theme inline {
@@ -79,9 +199,49 @@
     --color-accent-hover: var(--sp-accent-hover);
     --color-accent-fg: var(--sp-accent-fg);
 
+    --color-pin: var(--sp-pin);
+    --color-pin-hover: var(--sp-pin-hover);
+    --color-pin-fg: var(--sp-pin-fg);
+    --color-pin-contrast: var(--sp-pin-contrast);
+
+    --color-discard: var(--sp-discard);
+    --color-discard-hover: var(--sp-discard-hover);
+    --color-discard-fg: var(--sp-discard-fg);
+    --color-discard-contrast: var(--sp-discard-contrast);
+
+    --color-info: var(--sp-info);
+    --color-info-hover: var(--sp-info-hover);
+    --color-info-fg: var(--sp-info-fg);
+    --color-success: var(--sp-success);
+    --color-success-hover: var(--sp-success-hover);
+    --color-success-fg: var(--sp-success-fg);
+    --color-warning: var(--sp-warning);
+    --color-warning-hover: var(--sp-warning-hover);
+    --color-warning-fg: var(--sp-warning-fg);
+
     --color-danger: var(--sp-danger);
     --color-danger-hover: var(--sp-danger-hover);
     --color-danger-fg: var(--sp-danger-fg);
+
+    --color-disabled: var(--sp-disabled);
+    --color-inset-highlight: var(--sp-inset-highlight);
+    --color-scroll-thumb: var(--sp-scroll-thumb);
+    --color-scroll-hover: var(--sp-scroll-hover);
+    --color-stage-control: var(--sp-stage-control);
+    --color-stage-control-muted: var(--sp-stage-control-muted);
+    --color-stage-control-hover: var(--sp-stage-control-hover);
+    --color-on-stage: var(--sp-on-stage);
+    --color-viewer-overlay: var(--sp-viewer-overlay);
+    --color-code-string: var(--sp-code-string);
+    --color-code-number: var(--sp-code-number);
+    --color-code-literal: var(--sp-code-literal);
+    --color-workflow-bound-soft: var(--sp-workflow-bound-soft);
+    --color-workflow-broken-soft: var(--sp-workflow-broken-soft);
+    --color-prompt-hatch-low: var(--sp-prompt-hatch-low);
+    --color-prompt-hatch-high: var(--sp-prompt-hatch-high);
+
+    --shadow-inset: inset 0 0 0 1px var(--sp-inset-highlight);
+    --shadow-popover: 0 12px 32px var(--sp-shadow);
 }
 
 :root {
@@ -124,10 +284,10 @@ body {
     display: none;
 }
 
-/* thumb 比 plan 的 white/10 重，因為它多半疊在 bg-active 上，10% 幾乎看不見 */
+/* thumb 比 line 重，因為它多半疊在 bg-active 上，10% 幾乎看不見 */
 .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: rgb(255 255 255 / 22%) transparent;
+    scrollbar-color: var(--sp-scroll-thumb) transparent;
 }
 
 .scrollbar-thin::-webkit-scrollbar {
@@ -142,7 +302,7 @@ body {
 .scrollbar-thin::-webkit-scrollbar-thumb {
     border: 2px solid transparent;
     border-radius: 4px;
-    background: rgb(255 255 255 / 22%);
+    background: var(--sp-scroll-thumb);
     background-clip: content-box;
 }
 
@@ -152,7 +312,7 @@ body {
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: rgb(255 255 255 / 34%);
+    background: var(--sp-scroll-hover);
     background-clip: content-box;
 }
 

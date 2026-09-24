@@ -4,6 +4,24 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Silent Pix</title>
+        <script>
+            (() => {
+                let theme = 'dark'
+
+                try {
+                    const stored = localStorage.getItem('silent-pix.theme')
+
+                    if (stored === 'light' || stored === 'dark') {
+                        theme = stored
+                    }
+                }
+                catch {
+                    /* An unavailable storage must not delay first paint. */
+                }
+
+                document.documentElement.dataset.theme = theme
+            })()
+        </script>
     </head>
     <body>
         <div id="root"></div>
