@@ -1,10 +1,10 @@
 import { invertedEffects } from '@codemirror/commands'
 import { EditorState, StateEffect, StateField } from '@codemirror/state'
 
-import { groupEnd, parseTokens, promptDocumentToMeta } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
+import { groupEnd, parseTokens } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
 
 import type { ChangeDesc, EditorState as EditorStateType, Extension, Text } from '@codemirror/state'
-import type { PromptDocument, PromptEditorGroup, PromptEditorMeta } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
+import type { PromptEditorGroup, PromptEditorMeta } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
 
 /* MARK: effect */
 
@@ -30,10 +30,6 @@ const promptStateField = StateField.define<PromptEditorMeta>({
 
 export function promptMeta(state: EditorStateType): PromptEditorMeta {
     return state.field(promptStateField)
-}
-
-export function initialPromptMeta(document: PromptDocument, text: Text): PromptEditorMeta {
-    return promptDocumentToMeta(document, text)
 }
 
 /* MARK: reconciliation */

@@ -3,9 +3,9 @@ import { Compartment, EditorState } from '@codemirror/state'
 import { EditorView, keymap } from '@codemirror/view'
 import { createEffect, on, onCleanup } from 'solid-js'
 
-import { serializePromptDocument } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
+import { promptDocumentToMeta, serializePromptDocument } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
 import { promptGutters } from '#/pages/generate/components/workspace/generate/prompt/prompt.gutter'
-import { initialPromptMeta, promptMeta, promptMetaEffect, promptStateExtensions } from '#/pages/generate/components/workspace/generate/prompt/prompt.state'
+import { promptMeta, promptMetaEffect, promptStateExtensions } from '#/pages/generate/components/workspace/generate/prompt/prompt.state'
 import { createPromptTheme } from '#/pages/generate/components/workspace/generate/prompt/prompt.theme'
 import { promptTokens } from '#/pages/generate/components/workspace/generate/prompt/prompt.token'
 import { themeStore } from '#/store/theme'
@@ -43,10 +43,10 @@ export function PromptEditor(props: PromptEditorProps) {
             if (!host) return
 
             const text = EditorState.create({ doc: props.initialDocument.text }).doc
-            const meta = initialPromptMeta(props.initialDocument, text)
+            const meta = promptDocumentToMeta(props.initialDocument, text)
 
             const state = EditorState.create({
-                doc: props.initialDocument.text,
+                doc: text,
                 extensions: [
                     promptGutters(),
                     promptTokens(),
