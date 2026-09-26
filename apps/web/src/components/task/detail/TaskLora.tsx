@@ -115,7 +115,7 @@ export function TaskLora(props: TaskLoraProps) {
                                 class='rounded-lg'
                                 loading={props.loading}
                             >
-                                <div class='flex flex-col gap-2 rounded-lg bg-elevated px-2.5 py-2'>
+                                <div class='flex flex-col gap-2 rounded-lg border border-line bg-surface px-2.5 py-2'>
                                     <div class='flex h-6 items-center gap-1.5'>
                                         <span
                                             class={cn(

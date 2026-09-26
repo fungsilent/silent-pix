@@ -8,6 +8,7 @@ import { Line } from '#/components/base/Line'
 import { Loading } from '#/components/base/Loading'
 import { DetailTitle } from '#/components/detail'
 import { cn } from '#/lib/cn'
+import { theme } from '#/lib/theme'
 import { useWorkflowStore } from '#/pages/workflow/store'
 
 const listSkeletonRows = [0, 1, 2, 3, 4, 5, 6, 7]
@@ -116,7 +117,7 @@ function Row(props: RowProps) {
             class={cn(
                 'flex h-[34px] shrink-0 cursor-pointer items-center gap-2 rounded-md px-2.5',
                 selected()
-                    ? 'bg-active text-fg shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]'
+                    ? theme.selected
                     : 'text-fg-secondary hover:bg-elevated',
                 props.archived && !selected() && 'text-fg-muted',
             )}

@@ -43,7 +43,7 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
             title='Select LoRA'
             onOpenChange={props.onOpenChange}
             classes={{
-                backdrop: 'bg-black/55 backdrop-blur-[2px]',
+                backdrop: 'bg-backdrop-muted backdrop-blur-[2px]',
                 body: 'flex min-h-0 flex-col overflow-hidden',
                 content: 'w-[600px] max-w-full rounded-[10px] max-h-[70vh]',
             }}
@@ -99,7 +99,7 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
                 >
                     <Show when={props.error}>
                         <div class='flex flex-col items-center gap-3 py-8 text-center'>
-                            <p class='m-0 text-sm text-red-300'>Failed to load LoRAs.</p>
+                            <p class='m-0 text-sm text-danger-fg'>Failed to load LoRAs.</p>
                             <Button
                                 type='button'
                                 classes={{ root: 'text-sm' }}
@@ -135,7 +135,7 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
                                                 root: cn(
                                                     'h-12 w-full justify-between gap-3 rounded-none border-b border-line-subtle text-left text-sm',
                                                     isSelected(option.value)
-                                                        ? 'bg-accent/15 text-fg shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--sp-accent)_45%,transparent)]'
+                                                        ? 'bg-accent/15 text-fg shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--sp-accent)_45%,transparent)] hover:bg-accent/25'
                                                         : 'hover:bg-elevated',
                                                 ),
                                             }}

@@ -2,7 +2,6 @@ import { Minus, Plus } from 'lucide-solid'
 import { createSignal, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
-import { cn } from '#/lib/cn'
 
 import type { createImageZoom } from '#/lib/imageZoom'
 
@@ -16,11 +15,11 @@ export function ZoomControls(props: ZoomControlsProps) {
     const [editingZoom, setEditingZoom] = createSignal(false)
 
     return (
-        <div class='absolute bottom-6 left-6 z-10 flex h-9 items-center gap-1 rounded-md border border-white/[0.09] bg-surface/75 px-1 backdrop-blur-[8px]'>
+        <div class='absolute bottom-6 left-6 z-10 flex h-9 items-center gap-1 rounded-md border border-stage-line bg-stage-control px-1 text-on-stage backdrop-blur-[8px]'>
             <Button
                 variant='ghost'
                 disabled={!props.zoom.canZoomOut()}
-                classes={{ root: 'size-7 rounded p-0 disabled:opacity-30' }}
+                classes={{ root: 'size-7 rounded p-0 text-on-stage hover:bg-stage-control-hover disabled:opacity-30' }}
                 onClick={props.zoom.zoomOut}
             >
                 <Minus
@@ -35,10 +34,7 @@ export function ZoomControls(props: ZoomControlsProps) {
                     <Button
                         variant='ghost'
                         classes={{
-                            root: cn(
-                                'w-[54px] rounded p-0 tabular-nums',
-                                !props.zoom.isFit() && 'text-fg',
-                            ),
+                            root: 'w-[54px] rounded p-0 text-on-stage tabular-nums hover:bg-stage-control-hover',
                         }}
                         onClick={() => setEditingZoom(true)}
                     >
@@ -47,7 +43,7 @@ export function ZoomControls(props: ZoomControlsProps) {
                 )}
             >
                 <input
-                    class='h-7 w-[54px] rounded bg-active text-center text-xs tabular-nums text-fg outline-none'
+                    class='h-7 w-[54px] rounded bg-stage-control-hover text-center text-xs tabular-nums text-on-stage outline-none'
                     type='text'
                     autofocus
                     value={Math.round(props.zoom.percent())}
@@ -68,7 +64,7 @@ export function ZoomControls(props: ZoomControlsProps) {
             <Button
                 variant='ghost'
                 disabled={!props.zoom.canZoomIn()}
-                classes={{ root: 'size-7 rounded p-0 disabled:opacity-30' }}
+                classes={{ root: 'size-7 rounded p-0 text-on-stage hover:bg-stage-control-hover disabled:opacity-30' }}
                 onClick={props.zoom.zoomIn}
             >
                 <Plus
@@ -78,12 +74,12 @@ export function ZoomControls(props: ZoomControlsProps) {
             </Button>
 
             <span
-                class='mx-1 h-[18px] w-px bg-white/10'
+                class='mx-1 h-[18px] w-px bg-stage-ring'
             />
 
             <Button
                 variant='ghost'
-                classes={{ root: 'rounded px-2' }}
+                classes={{ root: 'rounded px-2 text-on-stage hover:bg-stage-control-hover' }}
                 onClick={props.zoom.toggleActualSize}
             >
                 1:1

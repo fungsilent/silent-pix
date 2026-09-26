@@ -11,8 +11,9 @@ import {
     lineMarkField,
     setLineMarks,
 } from '#/pages/workflow/components/graph/graph.mark'
-import { workflowEditorTheme } from '#/pages/workflow/components/graph/graph.theme'
+import { createWorkflowEditorTheme } from '#/pages/workflow/components/graph/graph.theme'
 import { workflowTokens } from '#/pages/workflow/components/graph/graph.token'
+import { themeStore } from '#/store/theme'
 
 import type { LineMark } from '#/pages/workflow/components/graph/graph.document'
 
@@ -35,6 +36,7 @@ export function GraphEditor(props: GraphEditorProps) {
     let host: HTMLDivElement | undefined
     let view: EditorView | undefined
     const readOnlyCompartment = new Compartment()
+    const themeCompartment = new Compartment()
 
     onMount(() => {
         if (!host) return
@@ -50,7 +52,7 @@ export function GraphEditor(props: GraphEditorProps) {
                 history(),
                 keymap.of([...defaultKeymap, ...historyKeymap]),
                 placeholder('Paste the ComfyUI API JSON here.'),
-                workflowEditorTheme,
+                themeCompartment.of(createWorkflowEditorTheme(themeStore.state.theme)),
                 readOnlyCompartment.of(EditorState.readOnly.of(props.readOnly)),
                 EditorView.updateListener.of(update => {
                     if (!update.docChanged) return
@@ -118,6 +120,14 @@ export function GraphEditor(props: GraphEditorProps) {
 
         view?.dispatch({
             effects: readOnlyCompartment.reconfigure(EditorState.readOnly.of(readOnly)),
+        })
+    })
+
+    createEffect(() => {
+        const theme = themeStore.state.theme
+
+        view?.dispatch({
+            effects: themeCompartment.reconfigure(createWorkflowEditorTheme(theme)),
         })
     })
 

@@ -197,7 +197,7 @@ export function CompareWorkspace() {
                         </Show>
                         <Button
                             variant='ghost'
-                            classes={{ root: 'absolute right-3 top-3 z-10 size-8 rounded-md border border-white/[0.09] bg-surface/75 p-0 text-fg-muted backdrop-blur-[8px] hover:text-fg' }}
+                            classes={{ root: 'absolute right-3 top-3 z-10 size-8 rounded-md border border-stage-line bg-stage-control p-0 text-on-stage hover:bg-stage-control-hover backdrop-blur-[8px] hover:text-on-stage' }}
                             onClick={() => setExpanded(true)}
                         >
                             <Expand
@@ -257,7 +257,7 @@ type EmptyCompareStateProps = {
 
 function EmptyCompareState(props: EmptyCompareStateProps) {
     return (
-        <div class='relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-stage'>
+        <div class='relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-stage-empty'>
             <div class='flex max-w-[280px] flex-col items-center gap-3 text-center'>
                 <div class='grid size-12 place-items-center rounded-xl border border-line-subtle bg-elevated text-fg-muted'>
                     <ImagePlus
@@ -294,7 +294,7 @@ type AllHiddenStateProps = {
 
 function AllHiddenState(props: AllHiddenStateProps) {
     return (
-        <div class='relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-stage'>
+        <div class='relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-stage-empty'>
             <div class='flex flex-col items-center gap-3 text-center'>
                 <p class='m-0 text-sm font-medium text-fg'>All images hidden</p>
                 <Button
@@ -322,7 +322,7 @@ type CompareThumbnailStripProps = {
 
 function CompareThumbnailStrip(props: CompareThumbnailStripProps) {
     return (
-        <div class='flex h-20 shrink-0 items-center justify-center gap-2 overflow-x-auto border-t border-white/[0.07] bg-[#101010] px-3 py-2'>
+        <div class='flex h-20 shrink-0 items-center justify-center gap-2 overflow-x-auto border-t border-stage-line-subtle bg-stage-strip px-3 py-2'>
             <For each={props.entries}>
                 {(entry, index) => {
                     const selected = () => entry.image.id === props.selectedId
@@ -349,13 +349,13 @@ function CompareThumbnailStrip(props: CompareThumbnailStripProps) {
                                     onError={() => props.onImageError(entry.image.id)}
                                 />
                                 <Show when={failed()}>
-                                    <span class='absolute inset-0 grid place-items-center bg-black/60 px-2 text-center text-[10px] text-white/80'>
+                                    <span class='absolute inset-0 grid place-items-center bg-stage-control px-2 text-center text-[10px] text-stage-overlay-text'>
                                         Unavailable
                                     </span>
                                 </Show>
                                 <span
                                     class={cn(
-                                        'absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/90 to-transparent px-2 pb-1 pt-4 text-left text-[10px] text-white',
+                                        'absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-stage-gradient to-transparent px-2 pb-1 pt-4 text-left text-[10px] text-on-stage',
                                         entry.hidden && 'line-through',
                                     )}
                                 >
@@ -363,7 +363,7 @@ function CompareThumbnailStrip(props: CompareThumbnailStripProps) {
                                 </span>
                                 <CenteredText
                                     classes={{
-                                        root: 'absolute left-1.5 top-1.5 rounded-md bg-black/75 px-2 py-1 text-[10px] font-semibold text-white/90 shadow-sm ring-1 ring-white/10 tabular-nums backdrop-blur-[3px]',
+                                        root: 'absolute left-1.5 top-1.5 rounded-md bg-stage-overlay px-2 py-1 text-[10px] font-semibold text-stage-overlay-label shadow-sm ring-1 ring-stage-ring tabular-nums backdrop-blur-[3px]',
                                     }}
                                 >
                                     {entry.hidden ? '—' : index() + 1}
@@ -373,7 +373,7 @@ function CompareThumbnailStrip(props: CompareThumbnailStripProps) {
                                 variant='ghost'
                                 classes={{
                                     root: cn(
-                                        'absolute left-1 top-1 z-10 size-6 rounded-md border-0 bg-black/70 p-0 text-white backdrop-blur-[3px]',
+                                        'absolute left-1 top-1 z-10 size-6 rounded-md border-0 bg-stage-control-hover p-0 text-on-stage hover:bg-stage-control-hover backdrop-blur-[3px]',
                                         entry.hidden ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-visible:opacity-100',
                                     ),
                                 }}
@@ -395,7 +395,7 @@ function CompareThumbnailStrip(props: CompareThumbnailStripProps) {
                             </Button>
                             <Button
                                 variant='ghost'
-                                classes={{ root: 'absolute right-1 top-1 z-10 size-6 rounded-md border-0 bg-black/70 p-0 text-white opacity-0 backdrop-blur-[3px] group-hover:opacity-100 focus-visible:opacity-100 hover:text-red-300' }}
+                                classes={{ root: 'absolute right-1 top-1 z-10 size-6 rounded-md border-0 bg-stage-control-hover p-0 text-on-stage opacity-0 backdrop-blur-[3px] group-hover:opacity-100 focus-visible:opacity-100 hover:bg-stage-control-hover hover:text-stage-danger' }}
                                 onClick={() => props.onRemove(entry.image.id)}
                             >
                                 <X
@@ -418,16 +418,16 @@ type CurrentCompareImageProps = {
 
 function CurrentCompareImage(props: CurrentCompareImageProps) {
     return (
-        <div class='absolute left-3 top-3 z-10 flex max-w-[calc(100%-24px)] items-center gap-2 rounded-md border border-white/[0.09] bg-surface/75 px-2.5 py-1 text-xs text-fg-secondary backdrop-blur-[8px]'>
+        <div class='absolute left-3 top-3 z-10 flex max-w-[calc(100%-24px)] items-center gap-2 rounded-md border border-stage-line bg-stage-control px-2.5 py-1 text-xs text-on-stage backdrop-blur-[8px]'>
             <CenteredText
                 classes={{
-                    root: 'h-4 min-w-4 shrink-0 rounded bg-accent px-1 text-[10px] font-bold text-white',
+                    root: 'h-4 min-w-4 shrink-0 rounded bg-accent px-1 text-[10px] font-bold text-on-stage',
                 }}
             >
                 {props.index + 1}
             </CenteredText>
             <span class='truncate'>{originLabel(props.entry.origin) ?? props.entry.image.id.slice(0, 8)}</span>
-            <span class='shrink-0 text-fg-muted tabular-nums'>
+            <span class='shrink-0 text-on-stage/75 tabular-nums'>
                 · {props.entry.image.width} × {props.entry.image.height}
             </span>
         </div>

@@ -1,5 +1,6 @@
 import { Button } from '#/components/base/Button'
 import { cn } from '#/lib/cn'
+import { theme } from '#/lib/theme'
 
 import type { LucideProps } from 'lucide-solid'
 import type { Component } from 'solid-js'
@@ -80,7 +81,7 @@ export function FilterChips<Value extends string>(props: FilterChipsProps<Value>
                     root: cn(
                         'h-7 gap-1.5 rounded-md px-2 text-[11px] font-medium',
                         props.values === undefined
-                            ? 'bg-active text-fg shadow-inset'
+                            ? theme.selected
                             : 'text-fg-muted',
                     ),
                 }}
@@ -96,7 +97,7 @@ export function FilterChips<Value extends string>(props: FilterChipsProps<Value>
                         root: cn(
                             'h-7 gap-1.5 rounded-md px-2 text-[11px] font-medium',
                             active(option.value)
-                                ? 'bg-active text-fg shadow-inset'
+                                ? theme.selected
                                 : 'text-fg-muted',
                         ),
                     }}

@@ -55,7 +55,7 @@ export function Dialog(props: DialogProps) {
             <Portal>
                 <ArkDialog.Backdrop
                     class={cn(
-                        'fixed inset-0 z-40 bg-black/70',
+                        'fixed inset-0 z-40 bg-backdrop',
                         props.classes?.backdrop,
                     )}
                 />
@@ -88,7 +88,7 @@ export function Dialog(props: DialogProps) {
                                 )}
                             </div>
                             <ArkDialog.CloseTrigger
-                                class='flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md border border-transparent bg-elevated text-fg-secondary outline-none hover:bg-hover focus-visible:border-accent focus-visible:ring-3 focus-visible:ring-accent/40'
+                                class='flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md border border-transparent bg-elevated text-fg-secondary outline-none hover:bg-elevated-hover focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40'
                             >
                                 <X
                                     size={15}

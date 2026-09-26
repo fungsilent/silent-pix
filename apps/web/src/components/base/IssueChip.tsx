@@ -44,7 +44,7 @@ export function IssueChip(props: IssueChipProps) {
             >
                 <Popover.Trigger
                     class={cn(
-                        'issue-chip group flex h-[30px] min-w-0 cursor-pointer items-center gap-1.5 rounded-md border pl-[9px] pr-2 text-xs leading-none outline-none transition-colors duration-[140ms] ease-out focus-visible:ring-3 focus-visible:ring-accent/40',
+                        'issue-chip group flex h-[30px] min-w-0 cursor-pointer items-center gap-1.5 rounded-md border pl-[9px] pr-2 text-xs leading-none outline-none transition-colors duration-[140ms] ease-out focus-visible:ring-2 focus-visible:ring-accent/40',
                         chipToneClass[tone()],
                     )}
                 >

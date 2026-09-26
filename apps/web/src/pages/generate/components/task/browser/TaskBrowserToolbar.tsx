@@ -13,7 +13,7 @@ import { Button } from '#/components/base/Button'
 import { IssueChip } from '#/components/base/IssueChip'
 import { Text } from '#/components/field/Text'
 import { cn } from '#/lib/cn'
-import { taskFlagTheme } from '#/lib/theme'
+import { theme } from '#/lib/theme'
 import { TaskFilterChips } from '#/pages/generate/components/task/TaskFilterChips'
 
 import type { TaskApi } from '@silent-pix/shared'
@@ -107,7 +107,7 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                             <Button
                                 variant='soft'
                                 disabled={props.flagPending}
-                                classes={{ root: cn('h-7 px-2 text-[11px]', taskFlagTheme.pin.soft) }}
+                                classes={{ root: cn('h-7 px-2 text-[11px]', theme.taskFlag.pin.soft) }}
                                 onClick={() => props.onSetFlags('pin')}
                             >
                                 <FlagTriangleRight
@@ -119,7 +119,7 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                             <Button
                                 variant='soft'
                                 disabled={props.flagPending}
-                                classes={{ root: cn('h-7 px-2 text-[11px]', taskFlagTheme.discard.soft) }}
+                                classes={{ root: cn('h-7 px-2 text-[11px]', theme.taskFlag.discard.soft) }}
                                 onClick={() => props.onSetFlags('discard')}
                             >
                                 <HeartX

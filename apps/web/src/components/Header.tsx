@@ -3,6 +3,7 @@ import { Columns2, LoaderCircle, Menu, Moon, Sparkles, Sun, Workflow } from 'luc
 import { Button } from '#/components/base/Button'
 import { useHealthQuery } from '#/features/app/app.query'
 import { cn } from '#/lib/cn'
+import { theme } from '#/lib/theme'
 import { appStore, serviceHealth } from '#/store/app'
 import { loadingStore } from '#/store/loading'
 import { themeStore } from '#/store/theme'
@@ -65,7 +66,7 @@ export function Header() {
                     classes={{
                         root: cn(
                             'h-7 shrink-0 gap-1.5 px-2.5 text-xs',
-                            loadingStore.state.preview && 'bg-active text-fg',
+                            loadingStore.state.preview && theme.selected,
                         ),
                     }}
                     onClick={loadingStore.togglePreview}
@@ -128,7 +129,7 @@ function ModeButton(props: ModeButtonProps) {
                 root: cn(
                     'h-6 gap-1.5 rounded px-2.5 py-0 text-xs font-medium',
                     props.active
-                        ? 'bg-active text-fg shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]'
+                        ? theme.selected
                         : 'text-fg-muted',
                 ),
             }}
@@ -218,15 +219,15 @@ function ServiceSegment(props: ServiceSegmentProps) {
             class={cn(
                 'flex h-5 items-center gap-1.5 rounded px-2 text-[11.5px] leading-none',
                 props.state === 'down'
-                    ? 'bg-red-500/12 text-red-300'
+                    ? 'bg-danger/12 text-danger-fg'
                     : 'text-fg-secondary',
             )}
         >
             <span
                 class={cn(
                     'size-1.5 shrink-0 rounded-full',
-                    props.state === 'up' && 'bg-green-500 shadow-[0_0_0_3px_rgba(34,197,94,0.14)]',
-                    props.state === 'down' && 'bg-red-500 shadow-[0_0_0_3px_rgba(239,68,68,0.14)]',
+                    props.state === 'up' && 'bg-success shadow-health-up',
+                    props.state === 'down' && 'bg-danger shadow-health-down',
                     props.state === 'unknown' && 'bg-fg-muted',
                 )}
             />

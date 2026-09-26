@@ -43,7 +43,7 @@ export function FileDrop(props: FileDropProps) {
             <FileUpload.Dropzone
                 class={cn(
                     'flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-md border border-dashed border-line px-3 py-6 text-center text-fg-muted',
-                    'hover:border-white/20 hover:bg-white/[0.015]',
+                    'hover:border-line hover:bg-hover',
                     'data-[dragging]:border-accent data-[dragging]:bg-accent/10 data-[dragging]:text-accent-fg',
                     'data-[disabled]:cursor-default data-[disabled]:opacity-50',
                     props.classes?.dropzone,

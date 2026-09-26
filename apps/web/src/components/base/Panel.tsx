@@ -133,7 +133,7 @@ export function PanelContent(props: PanelContentProps) {
                 orientation='vertical'
                 class='absolute bottom-1 right-1 top-1 w-1.5 rounded-full bg-transparent'
             >
-                <ScrollArea.Thumb class='rounded-full bg-white/10' />
+                <ScrollArea.Thumb class='rounded-full bg-scroll-thumb' />
             </ScrollArea.Scrollbar>
         </ScrollArea.Root>
     )

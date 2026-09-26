@@ -1,12 +1,10 @@
-import { FlagTriangleRight, HeartX } from 'lucide-solid'
-
 import { Button } from '#/components/base/Button'
 import { Loading } from '#/components/base/Loading'
 import { TaskStatus } from '#/components/task/TaskStatus'
 import { cn } from '#/lib/cn'
 import { formatDateTime } from '#/lib/format'
-import { taskFlagTheme } from '#/lib/theme'
-import { TaskFlagControls } from '#/pages/generate/components/task/TaskFlagControls'
+import { theme } from '#/lib/theme'
+import { TaskFlagControls, TaskFlagOverlay } from '#/pages/generate/components/task/TaskFlag'
 import { TaskThumbnail } from '#/pages/generate/components/task/TaskThumbnail'
 
 import type { TaskApi } from '@silent-pix/shared'
@@ -27,16 +25,15 @@ export function TaskItem(props: TaskItemProps) {
     const shortId = () => props.task.id.slice(0, 8)
 
     return (
-        <div class='relative w-full'>
+        <div class='group relative w-full'>
             <Button
                 variant='ghost'
                 classes={{
                     root: cn(
                         taskItemRootBaseClasses,
                         props.selected
-                            ? 'border-accent/60 bg-active shadow-[0_0_0_1px_rgba(37,99,235,0.14),0_1px_12px_rgba(37,99,235,0.12)]'
+                            ? theme.selected
                             : 'hover:bg-elevated',
-                        props.task.discard && !props.selected && 'opacity-60 grayscale-[.15]',
                     ),
                 }}
                 onClick={props.onSelect}
@@ -50,28 +47,12 @@ export function TaskItem(props: TaskItemProps) {
                         image: 'h-full w-full object-cover',
                     }}
                 >
-                    {props.thumbnailOnly && (props.task.pin || props.task.discard) && (
-                        <span
-                            class={cn(
-                                'absolute left-1 top-1 flex size-5 items-center justify-center rounded bg-black/75',
-                                props.task.pin ? 'text-pin-fg' : 'text-discard-fg',
-                            )}
-                        >
-                            {props.task.pin
-                                ? (
-                                    <FlagTriangleRight
-                                        size={12}
-                                        strokeWidth={2}
-                                    />
-                                )
-                                : (
-                                    <HeartX
-                                        size={12}
-                                        strokeWidth={2}
-                                    />
-                                )}
-                        </span>
-                    )}
+                    <TaskFlagOverlay
+                        pin={props.task.pin}
+                        discard={props.task.discard}
+                        hasImage={Boolean(props.task.thumbnail)}
+                        carrier='item'
+                    />
                 </TaskThumbnail>
 
                 {!props.thumbnailOnly && (
@@ -92,19 +73,14 @@ export function TaskItem(props: TaskItemProps) {
                 )}
             </Button>
 
+            {/* 三行要對 72px 縮圖垂直置中，操作鈕塞進 name 行會撐高那一行，所以讓它浮在右上角 */}
             {!props.thumbnailOnly && (
                 <TaskFlagControls
                     pin={props.task.pin}
                     discard={props.task.discard}
                     pending={props.flagPending}
                     onChange={props.onFlagChange}
-                    classes={{
-                        root: 'right-2 top-2 gap-0.5',
-                        pinActive: taskFlagTheme.pin.overlayActive,
-                        pinInactive: taskFlagTheme.pin.overlayInactive.item,
-                        discardActive: taskFlagTheme.discard.overlayActive,
-                        discardInactive: taskFlagTheme.discard.overlayInactive.item,
-                    }}
+                    class='right-2 top-2 gap-0.5'
                 />
             )}
         </div>

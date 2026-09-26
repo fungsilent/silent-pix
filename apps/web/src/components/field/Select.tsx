@@ -4,7 +4,7 @@ import { createMemo, For, Show } from 'solid-js'
 
 import { Badge } from '#/components/base/Badge'
 import { cn } from '#/lib/cn'
-import { fieldTheme } from '#/lib/theme'
+import { theme } from '#/lib/theme'
 
 import type { BadgeTone } from '#/components/base/Badge'
 
@@ -55,8 +55,8 @@ export function Select(props: SelectProps) {
             <ArkSelect.Control>
                 <ArkSelect.Trigger
                     class={cn(
-                        'flex h-8 w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-transparent bg-active px-3 text-left text-xs leading-none text-fg outline-none focus:border-accent focus:ring-3 focus:ring-accent/40',
-                        fieldTheme.disabled,
+                        'flex h-8 w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-field-border bg-field px-3 text-left text-xs leading-none text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent/40',
+                        theme.field.disabled,
                         props.classes?.trigger,
                     )}
                 >

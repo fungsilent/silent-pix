@@ -37,7 +37,7 @@ export function Slider(props: SliderProps) {
             class={cn('min-w-0 touch-none data-[disabled]:cursor-default data-[disabled]:opacity-60', props.classes?.root)}
         >
             <ArkSlider.Control class={cn('relative flex h-5 w-full min-w-0 items-center', props.classes?.control)}>
-                <ArkSlider.Track class={cn('h-2 w-full rounded-full border border-line bg-elevated', props.classes?.track)}>
+                <ArkSlider.Track class={cn('h-2 w-full rounded-full bg-track', props.classes?.track)}>
                     <ArkSlider.Range class={cn('h-full rounded-full bg-accent', props.classes?.range)} />
                 </ArkSlider.Track>
                 <ArkSlider.Thumb

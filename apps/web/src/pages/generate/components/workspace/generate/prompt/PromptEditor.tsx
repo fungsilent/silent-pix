@@ -1,13 +1,14 @@
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
-import { EditorState } from '@codemirror/state'
+import { Compartment, EditorState } from '@codemirror/state'
 import { EditorView, keymap } from '@codemirror/view'
 import { createEffect, on, onCleanup } from 'solid-js'
 
 import { serializePromptDocument } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
 import { promptGutters } from '#/pages/generate/components/workspace/generate/prompt/prompt.gutter'
 import { initialPromptMeta, promptMeta, promptMetaEffect, promptStateExtensions } from '#/pages/generate/components/workspace/generate/prompt/prompt.state'
-import { promptTheme } from '#/pages/generate/components/workspace/generate/prompt/prompt.theme'
+import { createPromptTheme } from '#/pages/generate/components/workspace/generate/prompt/prompt.theme'
 import { promptTokens } from '#/pages/generate/components/workspace/generate/prompt/prompt.token'
+import { themeStore } from '#/store/theme'
 
 import type { PromptDocument } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
 import type { JSX } from 'solid-js'
@@ -28,6 +29,7 @@ type PromptEditorProps = {
 export function PromptEditor(props: PromptEditorProps) {
     let host: HTMLDivElement | undefined
     let view: EditorView | undefined
+    const themeCompartment = new Compartment()
 
     const destroy = () => {
         view?.destroy()
@@ -51,7 +53,7 @@ export function PromptEditor(props: PromptEditorProps) {
                     EditorView.lineWrapping,
                     history(),
                     keymap.of([...defaultKeymap, ...historyKeymap]),
-                    promptTheme,
+                    themeCompartment.of(createPromptTheme(themeStore.state.theme)),
                     promptStateExtensions(meta),
                     EditorView.updateListener.of(update => {
                         /* selection-only 的更新不必回寫 store */
@@ -72,6 +74,14 @@ export function PromptEditor(props: PromptEditorProps) {
             view.scrollDOM.classList.add('scrollbar-thin')
         },
     ))
+
+    createEffect(() => {
+        const theme = themeStore.state.theme
+
+        view?.dispatch({
+            effects: themeCompartment.reconfigure(createPromptTheme(theme)),
+        })
+    })
 
     onCleanup(destroy)
 

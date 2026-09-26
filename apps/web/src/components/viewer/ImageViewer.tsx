@@ -24,7 +24,7 @@ type ImageViewerProps = {
     thumbnailLabel?: (image: ViewerImage, index: number) => string | null
 }
 
-const glass = 'border-white/[0.09] bg-surface/75 backdrop-blur-[8px]'
+const glass = 'border-stage-line bg-stage-control text-on-stage hover:bg-stage-control-hover backdrop-blur-[8px]'
 
 export function ImageViewer(props: ImageViewerProps) {
     const zoom = createImageZoom()
@@ -93,7 +93,7 @@ export function ImageViewer(props: ImageViewerProps) {
     return (
         <Portal>
             <div
-                class='viewer-overlay fixed inset-0 z-50 flex select-none flex-col items-center justify-center bg-[rgb(5_5_5/0.72)] backdrop-blur-[6px]'
+                class='backdrop fixed inset-0 z-50 flex select-none flex-col items-center justify-center bg-backdrop backdrop-blur-[6px]'
                 onClick={closeOnBackdrop}
             >
                 <Show
@@ -128,7 +128,7 @@ export function ImageViewer(props: ImageViewerProps) {
                                 </Button>
                                 <Button
                                     variant='ghost'
-                                    classes={{ root: cn('size-9 rounded-md border p-0 hover:text-red-400', glass) }}
+                                    classes={{ root: cn('size-9 rounded-md border p-0 hover:text-stage-danger', glass) }}
                                 >
                                     <Trash2
                                         size={16}
@@ -190,7 +190,7 @@ export function ImageViewer(props: ImageViewerProps) {
                                         root: cn(
                                             'relative h-full w-auto shrink-0 overflow-hidden rounded-md p-0',
                                             index() === props.selectedIndex
-                                                ? 'opacity-100 ring-2 ring-accent'
+                                                ? 'opacity-100 ring-2 ring-on-stage'
                                                 : 'opacity-60 hover:opacity-100',
                                         ),
                                     }}
@@ -205,7 +205,7 @@ export function ImageViewer(props: ImageViewerProps) {
                                         {getLabel => (
                                             <Show when={getLabel()(thumbnail, index())}>
                                                 {label => (
-                                                    <span class='absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/90 to-transparent px-2 pb-1 pt-4 text-left text-[10px] text-white'>
+                                                    <span class='absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-stage-gradient to-transparent px-2 pb-1 pt-4 text-left text-[10px] text-stage-overlay-label'>
                                                         {label()}
                                                     </span>
                                                 )}

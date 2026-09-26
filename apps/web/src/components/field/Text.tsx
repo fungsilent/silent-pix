@@ -1,7 +1,7 @@
 import { Field } from '@ark-ui/solid'
 
 import { cn } from '#/lib/cn'
-import { fieldTheme } from '#/lib/theme'
+import { theme } from '#/lib/theme'
 
 import type { JSX } from 'solid-js'
 
@@ -45,8 +45,8 @@ export function Text(props: TextProps) {
                         disabled={props.disabled}
                         placeholder={props.placeholder}
                         class={cn(
-                            'h-8 w-full min-w-0 rounded-md border border-transparent bg-active px-3 text-xs leading-none text-fg outline-none placeholder:text-fg-muted focus:border-accent focus:ring-3 focus:ring-accent/40',
-                            fieldTheme.disabled,
+                            'h-8 w-full min-w-0 rounded-md border border-field-border bg-field px-3 text-xs leading-none text-fg outline-none placeholder:text-fg-muted focus:border-accent focus:ring-2 focus:ring-accent/40',
+                            theme.field.disabled,
                             props.icon && 'pl-9',
                             props.classes?.input,
                         )}

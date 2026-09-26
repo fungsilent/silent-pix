@@ -461,6 +461,10 @@ Rules:
 - shared form/control primitives go in `apps/web/src/components/field`
 - shared detail-panel primitives go in `apps/web/src/components/detail`
 - shared class recipes live in `apps/web/src/lib/theme.ts` beside `cn.ts`; tokens stay in `styles.css`
+- theme runtime is owned by `apps/web/src/store/theme.ts`; the startup bootstrap sets `data-theme` before first paint
+- `Button` variants describe visual weight (`ghost`, `soft`, `solid`); tones describe semantic color (`neutral`, `accent`, `danger`)
+- inline image stages follow the theme; the full-screen viewer backdrop and glass controls stay fixed in both themes, and content drawn directly on a stage uses `stage-fg`
+- Prompt and Graph editor themes come from factories and per-view Compartments; theme changes must not rebuild views or lose history
 - app-level chrome such as `Header` lives in `apps/web/src/components` and is used from `App.tsx`
 - page-specific components go in `apps/web/src/pages/<page>/components`
 - component-specific non-component logic may live beside its component, including editor documents, commands, and decorations
@@ -519,7 +523,7 @@ Current component roles:
 
 ```txt
 components/Header.tsx
-    App-level header.
+    App-level header with an icon-only theme toggle beside service status.
 
 components/base/Button.tsx
     Base button primitive.

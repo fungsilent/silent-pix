@@ -147,7 +147,7 @@ function Minimap(props: MinimapProps) {
 
     return (
         <div
-            class='absolute bottom-4 right-4 overflow-hidden rounded-md border border-white/[0.09] bg-black/40 backdrop-blur-[8px]'
+            class='absolute bottom-4 right-4 overflow-hidden rounded-md border border-stage-line bg-stage-overlay-muted backdrop-blur-[8px]'
             style={{ height: `${box().height}px`, width: `${box().width}px` }}
         >
             <div
@@ -172,7 +172,7 @@ function Minimap(props: MinimapProps) {
                     draggable={false}
                 />
                 <div
-                    class='pointer-events-none absolute border border-white/80 bg-white/10'
+                    class='pointer-events-none absolute border border-on-stage/80 bg-on-stage/10'
                     style={{
                         height: `${frame().height}px`,
                         left: `${frame().left}px`,

@@ -1,25 +1,30 @@
-export const fieldTheme = {
-    /* 原生控制項（input / button）用 :disabled */
-    disabled: 'disabled:cursor-default disabled:border-line-subtle disabled:bg-disabled disabled:text-fg-muted',
-    /* Ark 的非原生部位（Editable 的 Preview 之類）只給 data-disabled */
-    disabledData: 'data-[disabled]:cursor-default data-[disabled]:border-line-subtle data-[disabled]:bg-disabled data-[disabled]:text-fg-muted',
-} as const
 
-export const taskFlagTheme = {
-    pin: {
-        soft: 'border-pin/20 bg-pin/20 text-pin-fg hover:bg-pin/30',
-        overlayActive: 'bg-pin text-pin-contrast hover:bg-pin-hover',
-        overlayInactive: {
-            card: 'bg-stage-control text-on-stage/75 hover:bg-pin hover:text-pin-contrast',
-            item: 'bg-stage-control-muted text-on-stage/70 hover:bg-pin hover:text-pin-contrast',
-        },
+export const theme = {
+    field: {
+        disabled: 'disabled:cursor-default disabled:border-line-subtle disabled:bg-disabled disabled:text-fg-muted',
+        disabledData: 'data-[disabled]:cursor-default data-[disabled]:border-line-subtle data-[disabled]:bg-disabled data-[disabled]:text-fg-muted',
     },
-    discard: {
-        soft: 'border-discard/25 bg-discard/25 text-discard-fg hover:bg-discard/40',
-        overlayActive: 'bg-discard text-discard-contrast hover:bg-discard-hover',
-        overlayInactive: {
-            card: 'bg-stage-control text-on-stage/75 hover:bg-discard hover:text-discard-contrast',
-            item: 'bg-stage-control-muted text-on-stage/70 hover:bg-discard hover:text-discard-contrast',
+    selected: 'bg-active text-fg shadow-inset hover:bg-active',
+    /*
+     * Flag 分兩件事：縮圖左上的角摺是「狀態」，常駐且不可點；
+     * 行右端的兩顆是「操作」，只在 hover 整張卡／整列時出現。
+     *
+     * fold 疊在照片上，所以吃 base（兩個 theme 同值）；active 是實心色塊，icon 才吃 ink。
+     * discard 另外壓一層黑幕把照片壓暗——亮照片會吃掉霧藍角摺，壓暗同時解決辨識與語意。
+     * soft 疊在 chrome 上，只有它需要隨 theme 走的 -fg。
+     * inactive 一律中性 ghost，顏色只在 active 出現。
+     */
+    taskFlag: {
+        pin: {
+            fold: 'border-t-pin',
+            active: 'bg-pin text-pin-ink hover:bg-pin-hover',
+            soft: 'border-pin/22 bg-pin/22 text-pin-fg hover:bg-pin/32',
         },
+        discard: {
+            fold: 'border-t-discard',
+            active: 'bg-discard text-discard-ink hover:bg-discard-hover',
+            soft: 'border-discard/22 bg-discard/22 text-discard-fg hover:bg-discard/32',
+        },
+        inactive: 'bg-transparent text-fg-muted hover:bg-hover',
     },
 } as const

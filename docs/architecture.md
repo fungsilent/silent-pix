@@ -100,6 +100,19 @@ Web state:
 - stores must preserve Solid fine-grained reactivity and native `set` path syntax
 ```
 
+Theme runtime:
+
+```txt
+- Theme is `light | dark`; missing or invalid values default to dark
+- `apps/web/index.html` synchronously reads `silent-pix.theme` before first paint and sets `data-theme`
+- `apps/web/src/store/theme.ts` owns runtime theme state, DOM updates, and best-effort localStorage persistence
+- Header exposes an icon-only toggle beside service status
+- `styles.css` owns token values and mappings; `lib/theme.ts` owns reusable class recipes
+- inline ImageStage follows theme (near-black in dark, near-white in light; the empty state moves one step toward canvas)
+- the full-screen viewer backdrop and every glass control stay fixed transparent black with white icons in both themes; content drawn directly on a stage uses `stage-fg`
+- Prompt and Graph editors use theme factories with per-view Compartments; reconfiguration does not rebuild views or lose history
+```
+
 Workflow list ordering is a precise exception to the general backend-owned
 database semantics rule. Server and Web use the same `name` then opaque `id`
 keys: the Server query declares SQLite ordering, while the Web realtime cache

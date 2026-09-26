@@ -33,15 +33,15 @@ const placeholderMap: Record<TaskApi.TaskStatus, TaskPlaceholderMeta> = {
         label: 'No thumbnail',
     },
     queued: {
-        class: 'border-amber-500/30 bg-amber-500/10 text-amber-300',
+        class: 'border-warning/30 bg-warning/10 text-warning-fg',
         label: 'Queued task thumbnail pending',
     },
     running: {
-        class: 'border-sky-500/30 bg-sky-500/10 text-sky-300',
+        class: 'border-info/30 bg-info/10 text-info-fg',
         label: 'Running task thumbnail pending',
     },
     failed: {
-        class: 'border-rose-500/30 bg-rose-500/10 text-rose-300',
+        class: 'border-danger/30 bg-danger/10 text-danger-fg',
         label: 'Task failed',
     },
 }

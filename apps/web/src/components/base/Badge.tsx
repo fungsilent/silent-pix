@@ -14,11 +14,11 @@ type BadgeProps = {
 }
 
 const toneClass: Record<BadgeTone, string> = {
-    danger: 'bg-danger/15 text-danger-fg',
-    info: 'bg-info/15 text-info-fg',
+    danger: 'bg-danger-soft text-danger-fg',
+    info: 'bg-info-soft text-info-fg',
     neutral: 'bg-line text-fg-secondary',
-    success: 'bg-success/15 text-success-fg',
-    warning: 'bg-warning/15 text-warning-fg',
+    success: 'bg-success-soft text-success-fg',
+    warning: 'bg-warning-soft text-warning-fg',
 }
 
 export function Badge(props: BadgeProps) {

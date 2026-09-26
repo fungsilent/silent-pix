@@ -245,7 +245,7 @@ function ReferenceSlot(props: ReferenceSlotProps) {
                 <Show when={props.mode === 'create'}>
                     <Button
                         variant='ghost'
-                        classes={{ root: 'absolute right-1.5 top-1.5 size-6 rounded-md border-0 bg-black/60 p-0 text-fg-secondary backdrop-blur-[3px] hover:bg-danger/35 hover:text-white' }}
+                        classes={{ root: 'absolute right-1.5 top-1.5 size-6 rounded-md border-0 bg-stage-control p-0 text-on-stage backdrop-blur-[3px] hover:bg-danger/35 hover:text-on-stage' }}
                         onClick={onRemove}
                     >
                         <X

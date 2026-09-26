@@ -18,7 +18,7 @@ type ImageStageProps = {
     onUseAsReference: (image: ImageApi.ImageResource) => void
 }
 
-const glass = 'border-white/[0.09] bg-surface/75 backdrop-blur-[8px]'
+const glass = 'border-stage-line bg-stage-control text-on-stage hover:bg-stage-control-hover backdrop-blur-[8px]'
 
 export function ImageStage(props: ImageStageProps) {
     const selectedImage = () => props.images[props.selectedIndex] ?? props.images[0]
@@ -77,7 +77,10 @@ export function ImageStage(props: ImageStageProps) {
 
     return (
         <section
-            class='relative flex min-h-[240px] flex-1 flex-col overflow-hidden bg-stage'
+            class={cn(
+                'relative flex min-h-[240px] flex-1 flex-col overflow-hidden',
+                selectedImage() ? 'bg-stage' : 'bg-stage-empty',
+            )}
             inert={props.loading}
         >
             <div class='relative flex min-h-0 flex-1 items-center justify-center overflow-hidden'>
@@ -152,7 +155,7 @@ export function ImageStage(props: ImageStageProps) {
                     </Button>
                     <Button
                         variant='ghost'
-                        classes={{ root: cn('size-8 rounded-md border p-0 hover:text-red-400', glass) }}
+                        classes={{ root: cn('size-8 rounded-md border p-0 hover:text-stage-danger', glass) }}
                     >
                         <Trash2
                             size={15}
@@ -186,7 +189,7 @@ export function ImageStage(props: ImageStageProps) {
             </div>
 
             <Show when={hasMany()}>
-                <div class='relative flex h-20 shrink-0 items-center justify-center gap-2 border-t border-white/[0.07] bg-[#101010] py-2'>
+                <div class='relative flex h-20 shrink-0 items-center justify-center gap-2 border-t border-stage-line-subtle bg-stage-strip py-2'>
                     <For each={props.images}>
                         {(image, index) => (
                             <Button
@@ -195,7 +198,7 @@ export function ImageStage(props: ImageStageProps) {
                                     root: cn(
                                         'h-full w-auto shrink-0 overflow-hidden rounded-md p-0',
                                         index() === props.selectedIndex
-                                            ? 'opacity-100 ring-2 ring-accent'
+                                            ? 'opacity-100 ring-2 ring-stage-fg'
                                             : 'opacity-60 hover:opacity-100',
                                     ),
                                 }}
@@ -209,7 +212,7 @@ export function ImageStage(props: ImageStageProps) {
                             </Button>
                         )}
                     </For>
-                    <span class='absolute right-[18px] top-1/2 -translate-y-1/2 text-xs text-fg-muted tabular-nums'>
+                    <span class='absolute right-[18px] top-1/2 -translate-y-1/2 text-xs text-stage-fg/75 tabular-nums'>
                         {props.selectedIndex + 1} / {props.images.length}
                     </span>
                 </div>

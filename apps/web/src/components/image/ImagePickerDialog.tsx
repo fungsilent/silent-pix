@@ -266,7 +266,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                 >
                     <Show when={hasLoadError()}>
                         <div class='flex flex-col items-center gap-3 py-8 text-center'>
-                            <p class='m-0 text-sm text-red-300'>Failed to load images.</p>
+                            <p class='m-0 text-sm text-danger-fg'>Failed to load images.</p>
                             <Button
                                 type='button'
                                 classes={{ root: 'text-sm' }}
@@ -302,10 +302,10 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                                                 disabled={disabled()}
                                                 classes={{
                                                     root: cn(
-                                                        'group relative aspect-square overflow-hidden rounded-md border bg-active p-0',
+                                                        'group relative aspect-square overflow-hidden rounded-md border bg-active p-0 hover:bg-active',
                                                         selected()
                                                             ? 'border-accent ring-2 ring-accent/40'
-                                                            : 'border-transparent hover:border-white/20',
+                                                            : 'border-transparent hover:border-line',
                                                         disabled() && 'cursor-not-allowed opacity-40 grayscale',
                                                     ),
                                                 }}
@@ -322,12 +322,12 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                                                         <>
                                                             <CenteredText
                                                                 classes={{
-                                                                    root: 'absolute left-1.5 top-1.5 rounded-md bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/90 shadow-sm ring-1 ring-white/10 backdrop-blur-[3px]',
+                                                                    root: 'absolute left-1.5 top-1.5 rounded-md bg-stage-overlay px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-stage-overlay-label shadow-sm ring-1 ring-stage-ring backdrop-blur-[3px]',
                                                                 }}
                                                             >
                                                                 {origin().type}
                                                             </CenteredText>
-                                                            <span class='absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/85 to-transparent px-2 pb-1.5 pt-4 text-left text-[11px] text-white'>
+                                                            <span class='absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-stage-gradient-soft to-transparent px-2 pb-1.5 pt-4 text-left text-[11px] text-on-stage'>
                                                                 {originLabel(origin())}
                                                             </span>
                                                         </>
@@ -336,18 +336,18 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                                                 <Show when={props.mode === 'multiple' && selected()}>
                                                     <CenteredText
                                                         classes={{
-                                                            root: 'absolute right-1.5 top-1.5 h-5 min-w-5 rounded-full bg-accent px-1 text-[10px] font-bold text-white shadow-sm',
+                                                            root: 'absolute right-1.5 top-1.5 h-5 min-w-5 rounded-full bg-accent px-1 text-[10px] font-bold text-on-stage shadow-sm',
                                                         }}
                                                     >
                                                         {selectionNumber(item)}
                                                     </CenteredText>
                                                 </Show>
                                                 <Show when={props.mode === 'multiple' && disabled()}>
-                                                    <span class='absolute inset-0 grid place-items-center bg-black/25'>
+                                                    <span class='absolute inset-0 grid place-items-center bg-stage-overlay-soft'>
                                                         <Check
                                                             size={22}
                                                             strokeWidth={2.5}
-                                                            class='text-white/80'
+                                                            class='text-stage-overlay-text'
                                                         />
                                                     </span>
                                                 </Show>
