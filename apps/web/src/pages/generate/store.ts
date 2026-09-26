@@ -74,7 +74,7 @@ export function createGenerateStore(
         }
 
         releaseLocalPreview(form.getFieldValue('referenceImage'))
-        form.reset(cloneGenerateValues(toGenerateValues(task)))
+        form.reset(toGenerateValues(task))
         uiStore.set('taskId', task.id)
     }
 
