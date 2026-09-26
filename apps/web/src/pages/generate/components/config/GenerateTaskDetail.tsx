@@ -154,10 +154,6 @@ export function GenerateTaskDetail() {
         probe.src = previewUrl
     }
 
-    const onReferenceReject = (message: string) => {
-        setReferenceError(message)
-    }
-
     const onReferenceAsset = (item: ImageApi.ImageListItem) => {
         releasePendingProbe()
         setReferenceError()
@@ -171,10 +167,6 @@ export function GenerateTaskDetail() {
     const onRemoveReference = () => {
         releasePendingProbe()
         store.clearReferenceImage()
-    }
-
-    const onDenoiseChange = (value: number) => {
-        form.setFieldValue('denoise', value)
     }
 
     const onNameChange = (value: string) => {
@@ -216,44 +208,12 @@ export function GenerateTaskDetail() {
         await deleteMutation.mutateAsync({ taskId: current.id })
     }
 
-    const onWorkflowChange = (value: string) => {
-        form.setFieldValue('workflowId', value)
-    }
-
-    const onSeedChange = (value: string) => {
-        form.setFieldValue('seed', value)
-    }
-
     const onRestoreSeed = () => {
         const restored = detail.task()?.config.seed
 
         if (restored) {
             form.setFieldValue('seed', restored)
         }
-    }
-
-    const onStepsChange = (value: number) => {
-        form.setFieldValue('steps', value)
-    }
-
-    const onCfgChange = (value: number) => {
-        form.setFieldValue('cfg', value)
-    }
-
-    const onWidthChange = (value: number) => {
-        form.setFieldValue('width', value)
-    }
-
-    const onHeightChange = (value: number) => {
-        form.setFieldValue('height', value)
-    }
-
-    const onBatchChange = (value: number) => {
-        form.setFieldValue('batch', value)
-    }
-
-    const onSamplerChange = (value: string) => {
-        form.setFieldValue('sampler', value)
     }
 
     const onLoraWeightChange = (index: number, value: number) => {
@@ -266,14 +226,6 @@ export function GenerateTaskDetail() {
     const onRemoveLora = (index: number) => {
         const current = form.getFieldValue('lora')
         form.setFieldValue('lora', current.filter((_, itemIndex) => itemIndex !== index))
-    }
-
-    const onLoraSelection = (names: string[]) => {
-        store.applyLoraSelection(names)
-    }
-
-    const onRetryLora = () => {
-        void loraQuery.refetch()
     }
 
     const configValues = (): TaskConfigValues => ({
@@ -338,28 +290,28 @@ export function GenerateTaskDetail() {
     }
     const imageActions: TaskImageActions = {
         onReferenceFile,
-        onReferenceReject,
+        onReferenceReject: setReferenceError,
         onReferenceAsset,
         onRemoveReference,
-        onDenoiseChange,
+        onDenoiseChange: value => form.setFieldValue('denoise', value),
         setImagePickerOpen,
     }
     const configActions: TaskConfigActions = {
-        onWorkflowChange,
-        onSeedChange,
+        onWorkflowChange: value => form.setFieldValue('workflowId', value),
+        onSeedChange: value => form.setFieldValue('seed', value),
         onRestoreSeed,
-        onStepsChange,
-        onCfgChange,
-        onWidthChange,
-        onHeightChange,
-        onBatchChange,
-        onSamplerChange,
+        onStepsChange: value => form.setFieldValue('steps', value),
+        onCfgChange: value => form.setFieldValue('cfg', value),
+        onWidthChange: value => form.setFieldValue('width', value),
+        onHeightChange: value => form.setFieldValue('height', value),
+        onBatchChange: value => form.setFieldValue('batch', value),
+        onSamplerChange: value => form.setFieldValue('sampler', value),
     }
     const loraActions: TaskLoraActions = {
         onWeightChange: onLoraWeightChange,
         onRemove: onRemoveLora,
-        onSelection: onLoraSelection,
-        onRetry: onRetryLora,
+        onSelection: store.applyLoraSelection,
+        onRetry: () => { void loraQuery.refetch() },
         setPickerOpen: setLoraPickerOpen,
     }
     const actions: TaskDetailCreateActions = {
