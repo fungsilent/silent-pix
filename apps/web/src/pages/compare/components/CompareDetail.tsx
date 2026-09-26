@@ -1,7 +1,5 @@
 import { createMemo, Show } from 'solid-js'
 
-import { Bar } from '#/components/base/Bar'
-import { CollapseButton, CollapsedBar, Panel, PanelContent } from '#/components/base/Panel'
 import { TaskDetail } from '#/components/task/detail/TaskDetail'
 import { useTaskDetailQuery } from '#/features/task/task.query'
 import { ReferenceImageDetail } from '#/pages/compare/components/ReferenceImageDetail'
@@ -91,7 +89,7 @@ export function CompareDetail() {
     return (
         <Show
             when={selected()}
-            fallback={<DetailStatus />}
+            fallback={<ReferenceImageDetail />}
         >
             {entry => (
                 <Show
@@ -107,48 +105,5 @@ export function CompareDetail() {
                 </Show>
             )}
         </Show>
-    )
-}
-
-type DetailStatusProps = {
-    message?: string | undefined
-}
-
-function DetailStatus(props: DetailStatusProps) {
-    return (
-        <Panel
-            classes={{
-                root: 'border-l border-line bg-surface max-[980px]:hidden',
-                open: 'w-[350px]',
-                close: 'w-10',
-            }}
-        >
-            {panel => (
-                panel.isCollapsed() ? (
-                    <CollapsedBar onClick={panel.toggle} />
-                ) : (
-                    <div class='flex h-full min-h-0 flex-col'>
-                        <Bar.Root classes={{ root: 'px-2' }}>
-                            <Bar.Group>
-                                <Bar.Title>Detail</Bar.Title>
-                            </Bar.Group>
-                            <Bar.Actions>
-                                <CollapseButton
-                                    collapsed={panel.isCollapsed()}
-                                    onClick={panel.toggle}
-                                />
-                            </Bar.Actions>
-                        </Bar.Root>
-                        <PanelContent>
-                            {props.message && (
-                                <p class='m-0 py-4 text-center text-xs text-fg-muted'>
-                                    {props.message}
-                                </p>
-                            )}
-                        </PanelContent>
-                    </div>
-                )
-            )}
-        </Panel>
     )
 }
