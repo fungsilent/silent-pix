@@ -6,13 +6,8 @@ export type GraphParse =
     | { status: 'empty' }
     | { status: 'invalid-json', message: string }
     | { status: 'invalid-graph', reason: Comfy.ParseApiGraphFailure }
-    | { status: 'ok', graph: Comfy.Graph, text: string }
+    | { status: 'ok', graph: Comfy.Graph }
 
-/*
- * 貼上之後一律用 JSON.stringify(_, null, 2) 重新排版。原始排版對機器產生的 JSON
- * 沒有價值，但固定排版讓 gutter 能精確算出「哪個 input 在第幾行」——
- * 否則遇到壓縮過的 JSON 就整個對不上。
- */
 export function parseGraphText(text: string): GraphParse {
     if (text.trim().length === 0) {
         return { status: 'empty' }
@@ -39,12 +34,11 @@ export function parseGraphText(text: string): GraphParse {
     return {
         status: 'ok',
         graph: result.graph,
-        text: JSON.stringify(result.graph, null, 2),
     }
 }
 
 /*
- * 只在上面那個正規化過的排版上成立：node id 縮排 2、inputs 縮排 4、input key 縮排 6。
+ * 只在載入或貼上時正規化過的排版上成立：node id 縮排 2、inputs 縮排 4、input key 縮排 6。
  * 這是我們自己產生的字串，所以可以這樣讀。
  */
 const nodeLinePattern = /^ {2}"((?:[^"\\]|\\.)*)": \{$/

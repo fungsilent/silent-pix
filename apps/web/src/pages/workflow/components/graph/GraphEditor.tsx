@@ -72,13 +72,17 @@ export function GraphEditor(props: GraphEditorProps) {
                     if (update.transactions.some(transaction => transaction.isUserEvent('input.paste'))) {
                         const parse = parseGraphText(text)
 
-                        if (parse.status === 'ok' && parse.text !== text) {
-                            queueMicrotask(() => {
-                                view?.dispatch({
-                                    changes: { from: 0, to: view.state.doc.length, insert: parse.text },
+                        if (parse.status === 'ok') {
+                            const formatted = JSON.stringify(parse.graph, null, 2)
+
+                            if (formatted !== text) {
+                                queueMicrotask(() => {
+                                    view?.dispatch({
+                                        changes: { from: 0, to: view.state.doc.length, insert: formatted },
+                                    })
                                 })
-                            })
-                            return
+                                return
+                            }
                         }
                     }
 
