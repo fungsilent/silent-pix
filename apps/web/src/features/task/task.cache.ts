@@ -48,7 +48,6 @@ export function cacheTaskRenamed(
             current,
             scope,
             toTaskListItem(toTaskSnapshot(task)),
-            true,
         ))
 }
 
@@ -63,7 +62,7 @@ export function cacheTaskCreated(
 
     writeTaskFeeds(queryClient, (current, scope) => scope.search
         ? { data: current, invalidate: true }
-        : updateTaskFeed(current, scope, toTaskListItem(task), true))
+        : updateTaskFeed(current, scope, toTaskListItem(task)))
 }
 
 export function cacheTaskChanged(
@@ -77,7 +76,7 @@ export function cacheTaskChanged(
 
     writeTaskFeeds(queryClient, (current, scope) => scope.search
         ? { data: current, invalidate: true }
-        : updateTaskFeed(current, scope, toTaskListItem(task), true))
+        : updateTaskFeed(current, scope, toTaskListItem(task)))
     queryClient.setQueryData<TaskApi.GetTaskResponse>(
         taskKeys.detail({ taskId: task.id }),
         current => current ? applySnapshot(current, task) : current,
@@ -153,7 +152,7 @@ export function cacheTaskFlagsPatched(
             if (source) {
                 result = mergeFeedWriteResult(
                     result,
-                    updateTaskFeed(result.data, scope, source, true),
+                    updateTaskFeed(result.data, scope, source),
                 )
             }
             else if (current && matchesTaskFeedFlags(task, scope)) {
@@ -236,7 +235,6 @@ function updateTaskFeed(
     current: TaskFeedData | undefined,
     scope: TaskFeedScope,
     task: TaskApi.TaskListItem,
-    insertIfMissing: boolean,
 ): FeedWriteResult {
     if (!current) {
         return { data: current, invalidate: false }
@@ -249,7 +247,7 @@ function updateTaskFeed(
     if (current.pages.length === 0) {
         return {
             data: current,
-            invalidate: insertIfMissing && matchesTaskFeedFlags(task, scope),
+            invalidate: matchesTaskFeedFlags(task, scope),
         }
     }
 
@@ -282,7 +280,7 @@ function updateTaskFeed(
             : page
     })
 
-    if (found || !insertIfMissing || !matchesTaskFeedFlags(task, scope)) {
+    if (found || !matchesTaskFeedFlags(task, scope)) {
         return {
             data: changed ? { ...current, pages } : current,
             invalidate: false,
