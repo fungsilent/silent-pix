@@ -528,9 +528,6 @@ components/Header.tsx
 components/base/Button.tsx
     Base button primitive.
 
-components/base/Label.tsx
-    Compact display label/pill.
-
 components/base/Line.tsx
     Shared line/separator primitive.
 
