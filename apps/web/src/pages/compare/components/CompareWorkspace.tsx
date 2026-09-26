@@ -11,6 +11,7 @@ import { ZoomStage } from '#/components/viewer/ZoomStage'
 import { originLabel } from '#/features/image/image.label'
 import { cn } from '#/lib/cn'
 import { createImageZoom } from '#/lib/imageZoom'
+import { isEditableTarget } from '#/lib/keyboard'
 import { compareStore } from '#/store/compare'
 import { overlayStore } from '#/store/overlay'
 
@@ -72,17 +73,6 @@ export function CompareWorkspace() {
         if (entry) {
             compareStore.selectCompare(entry.image.id)
         }
-    }
-
-    const isEditableTarget = (target: EventTarget | null) => {
-        if (!(target instanceof HTMLElement)) {
-            return false
-        }
-
-        return target.isContentEditable
-            || target.tagName === 'INPUT'
-            || target.tagName === 'TEXTAREA'
-            || target.tagName === 'SELECT'
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {

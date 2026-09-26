@@ -4,6 +4,7 @@ import { For, onCleanup, onMount, Show } from 'solid-js'
 import { Button } from '#/components/base/Button'
 import { Loading } from '#/components/base/Loading'
 import { cn } from '#/lib/cn'
+import { isEditableTarget } from '#/lib/keyboard'
 
 import type { ImageApi } from '@silent-pix/shared'
 
@@ -37,17 +38,6 @@ export function ImageStage(props: ImageStageProps) {
         }
 
         props.onSelect((props.selectedIndex + 1) % props.images.length)
-    }
-
-    const isEditableTarget = (target: EventTarget | null) => {
-        if (!(target instanceof HTMLElement)) {
-            return false
-        }
-
-        return target.isContentEditable
-            || target.tagName === 'INPUT'
-            || target.tagName === 'TEXTAREA'
-            || target.tagName === 'SELECT'
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
