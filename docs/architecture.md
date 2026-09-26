@@ -95,7 +95,7 @@ Web state:
 
 ```txt
 - apps/web uses Solid native stores through `apps/web/src/lib/store.ts`
-- the local store wrapper exposes `state`, `set`, `reconcile`, `produce`, and optional flattened actions
+- the local store wrapper exposes native `state` and `set` with flattened domain actions
 - domain actions live on returned store objects, not inside reactive state
 - stores must preserve Solid fine-grained reactivity and native `set` path syntax
 ```
