@@ -34,7 +34,7 @@ const referenceImageSchema = z.discriminatedUnion('type', [
     }),
 ])
 
-export const generateSchema = z.object({
+const generateSchema = z.object({
     name: z.string().trim().max(120),
     workflowId: z.uuid(),
     cfg: z.number().finite().min(0).max(100),
@@ -111,16 +111,6 @@ export function referenceSize(reference: ReferenceImage) {
 
 export function referencePreviewUrl(reference: ReferenceImage): string {
     return reference.type === 'local' ? reference.previewUrl : reference.image.url
-}
-
-export function toViewerImage(reference: ReferenceImage) {
-    const size = referenceSize(reference)
-
-    return {
-        url: referencePreviewUrl(reference),
-        width: size.width,
-        height: size.height,
-    }
 }
 
 export const toGenerateValues = (task: TaskApi.GetTaskResponse): GenerateValues => ({
@@ -242,5 +232,3 @@ export function createGenerateForm(
         },
     }))
 }
-
-export type GenerateForm = ReturnType<typeof createGenerateForm>

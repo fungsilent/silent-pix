@@ -5,7 +5,7 @@ import { z } from 'zod'
 import type { WorkflowApi } from '@silent-pix/shared'
 import type { ZodIssue } from '#/lib/error'
 
-export const workflowFormSchema = z.object({
+const workflowFormSchema = z.object({
     name: workflowApi.workflowName,
     graphText: z.string(),
     configSchema: config.configSchema,
@@ -64,5 +64,3 @@ export function createWorkflowForm(
         },
     }))
 }
-
-export type WorkflowForm = ReturnType<typeof createWorkflowForm>
