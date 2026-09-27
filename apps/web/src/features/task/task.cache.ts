@@ -130,37 +130,53 @@ export function cacheTaskFlagsPatched(
         }
     }
 
+    const flagsById = new Map(tasks.map(task => [task.id, task]))
+
     writeTaskFeeds(queryClient, (current, scope) => {
         if (scope.search) {
             return { data: current, invalidate: true }
         }
 
-        let result: FeedWriteResult = {
-            data: current,
-            invalidate: false,
+        if (!current || flagsById.size === 0) {
+            return { data: current, invalidate: false }
         }
 
-        for (const task of tasks) {
-            const currentUpdate = updateTaskFeedFlags(result.data, scope, task)
-            result = mergeFeedWriteResult(result, currentUpdate)
+        const missingIds = new Set(flagsById.keys())
+        let data = patchTaskFeedItems(current, item => {
+            const flags = flagsById.get(item.id)
 
-            if (currentUpdate.found) {
+            if (!flags) {
+                return item
+            }
+
+            missingIds.delete(item.id)
+            const updated = { ...item, pin: flags.pin, discard: flags.discard }
+
+            return matchesTaskFeedFlags(updated, scope) ? updated : undefined
+        })
+        let invalidate = false
+
+        for (const id of missingIds) {
+            const flags = flagsById.get(id)!
+
+            if (!matchesTaskFeedFlags(flags, scope)) {
                 continue
             }
 
-            const source = insertionItems.get(task.id)
-            if (source) {
-                result = mergeFeedWriteResult(
-                    result,
-                    updateTaskFeed(result.data, scope, source),
-                )
+            const source = insertionItems.get(id)
+            if (!source) {
+                invalidate = true
+                continue
             }
-            else if (current && matchesTaskFeedFlags(task, scope)) {
-                result.invalidate = true
+
+            const insertion = insertTask(data.pages, source)
+            if (insertion.pages) {
+                data = { ...data, pages: insertion.pages }
             }
+            invalidate ||= insertion.invalidate
         }
 
-        return result
+        return { data, invalidate }
     })
 }
 
@@ -176,7 +192,9 @@ export function cacheTasksRemoved(
     })
 
     writeTaskFeeds(queryClient, current => ({
-        data: removeFromTaskFeed(current, removedIds),
+        data: current
+            ? patchTaskFeedItems(current, item => removedIds.has(item.id) ? undefined : item)
+            : current,
         invalidate: false,
     }))
 }
@@ -208,27 +226,40 @@ function writeTaskFeeds(
     }
 }
 
-function removeFromTaskFeed(
-    current: TaskFeedData | undefined,
-    taskIds: ReadonlySet<string>,
-): TaskFeedData | undefined {
-    if (!current) {
-        return current
-    }
-
-    let found = false
+/* 同一套遍歷保留未變動的 item/page 引用；回傳 undefined 表示移除項目。 */
+function patchTaskFeedItems(
+    current: TaskFeedData,
+    patch: (item: TaskApi.TaskListItem) => TaskApi.TaskListItem | undefined,
+): TaskFeedData {
+    let changed = false
     const pages = current.pages.map(page => {
-        const items = page.items.filter(item => !taskIds.has(item.id))
+        let pageChanged = false
+        const items: TaskApi.TaskListItem[] = []
 
-        if (items.length === page.items.length) {
+        for (const item of page.items) {
+            const updated = patch(item)
+
+            if (!updated) {
+                pageChanged = true
+            }
+            else if (updated === item || sameTaskListItem(item, updated)) {
+                items.push(item)
+            }
+            else {
+                pageChanged = true
+                items.push(updated)
+            }
+        }
+
+        if (!pageChanged) {
             return page
         }
 
-        found = true
+        changed = true
         return { ...page, items }
     })
 
-    return found ? { ...current, pages } : current
+    return changed ? { ...current, pages } : current
 }
 
 function updateTaskFeed(
@@ -252,109 +283,24 @@ function updateTaskFeed(
     }
 
     let found = false
-    let changed = false
-    const pages = current.pages.map(page => {
-        const items = page.items.flatMap(currentTask => {
-            if (currentTask.id !== task.id) {
-                return [currentTask]
-            }
+    const data = patchTaskFeedItems(current, item => {
+        if (item.id !== task.id) {
+            return item
+        }
 
-            found = true
-
-            if (!matchesTaskFeedFlags(task, scope)) {
-                changed = true
-                return []
-            }
-
-            if (!sameTaskListItem(currentTask, task)) {
-                changed = true
-                return [task]
-            }
-
-            return [currentTask]
-        })
-
-        return items.length !== page.items.length
-            || items.some((item, index) => item !== page.items[index])
-            ? { ...page, items }
-            : page
+        found = true
+        return matchesTaskFeedFlags(task, scope) ? task : undefined
     })
 
     if (found || !matchesTaskFeedFlags(task, scope)) {
-        return {
-            data: changed ? { ...current, pages } : current,
-            invalidate: false,
-        }
+        return { data, invalidate: false }
     }
 
-    const insertion = insertTask(pages, task)
+    const insertion = insertTask(data.pages, task)
 
     return {
-        data: insertion.pages ? { ...current, pages: insertion.pages } : current,
+        data: insertion.pages ? { ...data, pages: insertion.pages } : data,
         invalidate: insertion.invalidate,
-    }
-}
-
-type TaskFeedFlagWriteResult = FeedWriteResult & { found: boolean }
-
-function updateTaskFeedFlags(
-    current: TaskFeedData | undefined,
-    scope: TaskFeedScope,
-    task: TaskApi.TaskFlagState,
-): TaskFeedFlagWriteResult {
-    if (!current) {
-        return { data: current, invalidate: false, found: false }
-    }
-
-    let found = false
-    let changed = false
-    const pages = current.pages.map(page => {
-        const items = page.items.flatMap(currentTask => {
-            if (currentTask.id !== task.id) {
-                return [currentTask]
-            }
-
-            found = true
-
-            const updatedTask = {
-                ...currentTask,
-                pin: task.pin,
-                discard: task.discard,
-            }
-
-            if (!matchesTaskFeedFlags(updatedTask, scope)) {
-                changed = true
-                return []
-            }
-
-            if (currentTask.pin !== task.pin || currentTask.discard !== task.discard) {
-                changed = true
-                return [updatedTask]
-            }
-
-            return [currentTask]
-        })
-
-        return items.length !== page.items.length
-            || items.some((item, index) => item !== page.items[index])
-            ? { ...page, items }
-            : page
-    })
-
-    return {
-        data: changed ? { ...current, pages } : current,
-        invalidate: false,
-        found,
-    }
-}
-
-function mergeFeedWriteResult(
-    previous: FeedWriteResult,
-    next: FeedWriteResult,
-): FeedWriteResult {
-    return {
-        data: next.data,
-        invalidate: previous.invalidate || next.invalidate,
     }
 }
 

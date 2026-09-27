@@ -620,6 +620,13 @@ the next open. WebSocket reconnect uses `invalidateImageLists()` to invalidate
 events. The server recomputes image search membership, task-flag filtering,
 origin metadata, and earliest use.
 
+Task feed updates share a module-local item patcher that preserves unchanged
+item/page references. Batch flag responses build an ID lookup and patch loaded
+items in one pass per feed. Missing tasks are inserted only when a cached
+snapshot/detail supplies the complete list item; otherwise matching feeds are
+invalidated. Search membership and incomplete-page insertion still recover
+through REST.
+
 Task detail snapshots project `name`, `status`, `pin`, `discard`, and `images`
 with referential equality when all projected values are unchanged. Generate
 coordinates the Query-owned task detail with its page-scoped TanStack Form:
