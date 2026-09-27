@@ -8,6 +8,7 @@ import { Loading } from '#/components/base/Loading'
 import { CollapseButton, Panel, PanelContent } from '#/components/base/Panel'
 import { useTaskFeedQuery, useTaskFlagMutation } from '#/features/task/task.query'
 import { toErrorMessage } from '#/lib/error'
+import { createLoadOnScroll } from '#/lib/loadOnScroll'
 import { TaskItem, TaskItemSkeleton } from '#/pages/generate/components/task/list/TaskItem'
 import { TaskFilterChips } from '#/pages/generate/components/task/TaskFilterChips'
 import { taskStore } from '#/store/task'
@@ -19,6 +20,12 @@ const taskSkeletonRows = [0, 1, 2, 3, 4, 5]
 export function TaskList() {
     const taskFeedQuery = useTaskFeedQuery()
     const flagMutation = useTaskFlagMutation()
+    const loadOnScroll = createLoadOnScroll({
+        canLoad: () => taskFeedQuery.hasNextPage
+            && !taskFeedQuery.isFetching
+            && !taskFeedQuery.isError,
+        load: () => void taskFeedQuery.fetchNextPage(),
+    })
     const tasks = createMemo(() => taskFeedQuery.data?.pages.flatMap(page => page.items) ?? [])
     const taskById = createMemo(() => new Map(tasks().map(task => [task.id, task])))
     const taskIds = createMemo(() => tasks().map(task => task.id))
@@ -75,6 +82,7 @@ export function TaskList() {
                         </Show>
                     </Show>
                     <PanelContent
+                        viewportRef={loadOnScroll.setViewport}
                         classes={{
                             content: 'gap-1',
                         }}
@@ -127,17 +135,13 @@ export function TaskList() {
                                 </Show>
                             </Show>
 
-                            <Show when={taskFeedQuery.hasNextPage}>
-                                <Button
-                                    variant='ghost'
-                                    classes={{
-                                        root: 'mt-1 w-full',
-                                    }}
-                                    disabled={taskFeedQuery.isFetchingNextPage}
-                                    onClick={() => void taskFeedQuery.fetchNextPage()}
+                            <Show when={taskFeedQuery.hasNextPage && !taskFeedQuery.isError}>
+                                <div
+                                    ref={loadOnScroll.setTrigger}
+                                    class='py-2 text-center text-xs text-fg-muted'
                                 >
-                                    {taskFeedQuery.isFetchingNextPage ? 'Loading...' : 'Load more'}
-                                </Button>
+                                    {taskFeedQuery.isFetchingNextPage ? 'Loading...' : ''}
+                                </div>
                             </Show>
                         </Loading.Swap>
                     </PanelContent>

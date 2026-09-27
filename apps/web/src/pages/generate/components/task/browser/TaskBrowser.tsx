@@ -206,6 +206,7 @@ export function TaskBrowser() {
                 error={taskFeedQuery.isError}
                 hasNextPage={taskFeedQuery.hasNextPage}
                 fetchingNextPage={taskFeedQuery.isFetchingNextPage}
+                fetching={taskFeedQuery.isFetching}
                 flagPending={flagMutation.isPending}
                 onRetry={() => void taskFeedQuery.refetch()}
                 onFetchNextPage={() => void taskFeedQuery.fetchNextPage()}

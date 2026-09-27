@@ -21,6 +21,7 @@ import { TaskFlagOverlay } from '#/components/task/TaskFlagOverlay'
 import { originLabel } from '#/features/image/image.label'
 import { useImageListQuery } from '#/features/image/image.query'
 import { cn } from '#/lib/cn'
+import { createLoadOnScroll } from '#/lib/loadOnScroll'
 
 import type { ImageApi, TaskApi } from '@silent-pix/shared'
 import type { LucideProps } from 'lucide-solid'
@@ -82,6 +83,10 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
         () => imageType()?.[0],
     )
     const hasLoadError = () => query.isError && query.data === undefined
+    const loadOnScroll = createLoadOnScroll({
+        canLoad: () => props.open && query.hasNextPage && !query.isFetching && !query.isError,
+        load: () => void query.fetchNextPage(),
+    })
 
     const resetSelection = () => {
         setKeyword('')
@@ -251,6 +256,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
             </div>
 
             <PanelContent
+                viewportRef={loadOnScroll.setViewport}
                 classes={{
                     root: '-mx-4 mt-3 flex-auto',
                     content: 'gap-3 p-4 pt-0',
@@ -384,14 +390,21 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                                 </For>
                             </div>
 
-                            <Show when={query.hasNextPage}>
-                                <Button
-                                    classes={{ root: 'w-full' }}
-                                    disabled={query.isFetchingNextPage}
-                                    onClick={() => void query.fetchNextPage()}
+                            <Show when={query.isError}>
+                                <div class='flex flex-col items-center gap-2 py-4'>
+                                    <p class='m-0 text-xs text-danger-fg'>Failed to load more images.</p>
+                                    <Button onClick={() => void query.fetchNextPage()}>
+                                        Retry
+                                    </Button>
+                                </div>
+                            </Show>
+                            <Show when={query.hasNextPage && !query.isError}>
+                                <div
+                                    ref={loadOnScroll.setTrigger}
+                                    class='py-2 text-center text-xs text-fg-muted'
                                 >
-                                    {query.isFetchingNextPage ? 'Loading...' : 'Load more'}
-                                </Button>
+                                    {query.isFetchingNextPage ? 'Loading...' : ''}
+                                </div>
                             </Show>
                         </Show>
                     </Show>

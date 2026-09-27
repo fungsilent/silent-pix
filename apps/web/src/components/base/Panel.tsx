@@ -114,6 +114,7 @@ export function CollapseButton(props: CollapseButtonProps) {
 /* MARK: PanelContent */
 type PanelContentProps = {
     children: JSX.Element
+    viewportRef?: (element: HTMLDivElement) => void
     classes?: {
         root?: string
         viewport?: string
@@ -124,7 +125,10 @@ type PanelContentProps = {
 export function PanelContent(props: PanelContentProps) {
     return (
         <ScrollArea.Root class={cn('relative min-h-0 flex-1 overflow-hidden', props.classes?.root)}>
-            <ScrollArea.Viewport class={cn('scrollbar-hidden h-full w-full', props.classes?.viewport)}>
+            <ScrollArea.Viewport
+                ref={props.viewportRef}
+                class={cn('scrollbar-hidden h-full w-full', props.classes?.viewport)}
+            >
                 <ScrollArea.Content class={cn('flex !min-w-0 flex-col gap-2 p-2 pr-3', props.classes?.content)}>
                     {props.children}
                 </ScrollArea.Content>

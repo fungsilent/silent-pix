@@ -5,6 +5,7 @@ import { Button } from '#/components/base/Button'
 import { Loading } from '#/components/base/Loading'
 import { cn } from '#/lib/cn'
 import { createDragSelection } from '#/lib/dragSelection'
+import { createLoadOnScroll } from '#/lib/loadOnScroll'
 import { TaskBrowserCard } from '#/pages/generate/components/task/browser/TaskBrowserCard'
 
 import type { TaskApi } from '@silent-pix/shared'
@@ -22,6 +23,7 @@ type TaskBrowserGridProps = {
     error: boolean
     hasNextPage: boolean
     fetchingNextPage: boolean
+    fetching: boolean
     flagPending: boolean
     onRetry: () => void
     onFetchNextPage: () => void
@@ -34,6 +36,10 @@ type TaskBrowserGridProps = {
 
 export function TaskBrowserGrid(props: TaskBrowserGridProps) {
     const [selectionContainerElement, setSelectionContainerElement] = createSignal<HTMLDivElement>()
+    const loadOnScroll = createLoadOnScroll({
+        canLoad: () => props.hasNextPage && !props.fetching && !props.error,
+        load: props.onFetchNextPage,
+    })
     const dragSelection = createDragSelection({
         container: selectionContainerElement,
         selectedIds: props.selectedTaskIds,
@@ -61,7 +67,10 @@ export function TaskBrowserGrid(props: TaskBrowserGridProps) {
 
     return (
         <div
-            ref={setSelectionContainerElement}
+            ref={element => {
+                setSelectionContainerElement(element)
+                loadOnScroll.setViewport(element)
+            }}
             class={cn(
                 'scrollbar-thin relative min-h-0 flex-1 overflow-y-auto bg-surface',
                 dragSelection.tracking() && 'select-none',
@@ -120,16 +129,13 @@ export function TaskBrowserGrid(props: TaskBrowserGridProps) {
                                 </div>
                             </Show>
                         </Show>
-                        <Show when={props.hasNextPage}>
-                            <Button
-                                variant='ghost'
-                                data-marquee-control='true'
-                                classes={{ root: 'col-span-8 mt-1 w-full' }}
-                                disabled={props.fetchingNextPage}
-                                onClick={props.onFetchNextPage}
+                        <Show when={props.hasNextPage && !props.error}>
+                            <div
+                                ref={loadOnScroll.setTrigger}
+                                class='col-span-8 py-2 text-center text-xs text-fg-muted'
                             >
-                                {props.fetchingNextPage ? 'Loading...' : 'Load more'}
-                            </Button>
+                                {props.fetchingNextPage ? 'Loading...' : ''}
+                            </div>
                         </Show>
                     </div>
                 </Show>
