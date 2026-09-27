@@ -4,7 +4,7 @@ import type { ImageApi } from '@silent-pix/shared'
 
 export type CompareEntry = {
     image: ImageApi.ImageResource
-    origin: ImageApi.ImageUsage | null
+    usage: ImageApi.ImageUsage | null
     hidden: boolean
 }
 
@@ -34,16 +34,16 @@ export const compareStore = createStore(initialState, store => ({
         store.set('compare', current => {
             let changed = false
             const updated = current.map(entry => {
-                const origin = entry.origin
+                const usage = entry.usage
 
-                if (!origin || origin.taskId !== taskId || origin.taskName === name) {
+                if (!usage || usage.taskId !== taskId || usage.taskName === name) {
                     return entry
                 }
 
                 changed = true
                 return {
                     ...entry,
-                    origin: { ...origin, taskName: name },
+                    usage: { ...usage, taskName: name },
                 }
             })
 

@@ -1,5 +1,4 @@
 import { FlagTriangleRight, HeartX } from 'lucide-solid'
-import { Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { cn } from '#/lib/cn'
@@ -7,48 +6,6 @@ import { theme } from '#/lib/theme'
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { JSX } from 'solid-js'
-
-/* MARK: TaskFlagOverlay */
-
-type TaskFlagOverlayProps = {
-    pin: boolean
-    discard: boolean
-    /* 沒有縮圖時底下是 queued／running／failed 的狀態圖示，不能被黑幕蓋掉 */
-    hasImage: boolean
-    /* 角摺的邊長跟著縮圖走：列表是固定 72px 的小圖，卡片的圖大得多 */
-    carrier: 'card' | 'item'
-}
-
-const foldSizeClasses = {
-    card: 'border-r-[26px] border-t-[26px]',
-    item: 'border-r-[22px] border-t-[22px]',
-} as const
-
-/*
- * 縮圖上的狀態層，常駐、不可點，未標記時完全不存在。
- * discard 先壓一層黑幕再畫角摺：亮照片會把霧藍角摺吃掉，壓暗同時解決辨識與語意。
- * 壓的只有照片——卡片與列的文字、狀態、時間都不動；沒有縮圖時也不壓，
- * 那塊位置放的是 queued／running／failed 的狀態圖示，蓋掉就讀不出任務出了什麼事。
- * 收合成只剩縮圖時角摺自動成為唯一訊號，所以不另做疊在圖上的 badge。
- */
-export function TaskFlagOverlay(props: TaskFlagOverlayProps) {
-    return (
-        <>
-            <Show when={props.discard && props.hasImage}>
-                <span class='pointer-events-none absolute inset-0 bg-discard-dim' />
-            </Show>
-            <Show when={props.pin || props.discard}>
-                <span
-                    class={cn(
-                        'pointer-events-none absolute left-0 top-0 border-r-transparent',
-                        foldSizeClasses[props.carrier],
-                        props.pin ? theme.taskFlag.pin.fold : theme.taskFlag.discard.fold,
-                    )}
-                />
-            </Show>
-        </>
-    )
-}
 
 /* MARK: TaskFlagControls */
 

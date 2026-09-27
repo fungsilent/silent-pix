@@ -105,7 +105,7 @@ export function CompareWorkspace() {
     const applyPickerSelection = (images: ImageApi.ImageListItem[]) => {
         compareStore.addCompare(images.map(item => ({
             image: item.image,
-            origin: item.origin,
+            usage: item.matchedUsage,
             hidden: false,
         })))
         setPickerOpen(false)
@@ -223,7 +223,7 @@ export function CompareWorkspace() {
                     )}
                     thumbnailLabel={(_, index) => {
                         const entry = entries()[index]
-                        return entry ? originLabel(entry.origin) : null
+                        return entry ? originLabel(entry.usage) : null
                     }}
                     onClose={() => setExpanded(false)}
                     onSelect={selectViewerImage}
@@ -317,7 +317,7 @@ function CompareThumbnailStrip(props: CompareThumbnailStripProps) {
                 {(entry, index) => {
                     const selected = () => entry.image.id === props.selectedId
                     const failed = () => props.failedImageIds.has(entry.image.id)
-                    const label = () => originLabel(entry.origin) ?? entry.image.id.slice(0, 8)
+                    const label = () => originLabel(entry.usage) ?? entry.image.id.slice(0, 8)
 
                     return (
                         <div class='group relative flex h-full w-auto shrink-0'>
@@ -416,7 +416,7 @@ function CurrentCompareImage(props: CurrentCompareImageProps) {
             >
                 {props.index + 1}
             </CenteredText>
-            <span class='truncate'>{originLabel(props.entry.origin) ?? props.entry.image.id.slice(0, 8)}</span>
+            <span class='truncate'>{originLabel(props.entry.usage) ?? props.entry.image.id.slice(0, 8)}</span>
             <span class='shrink-0 text-on-stage/75 tabular-nums'>
                 · {props.entry.image.width} × {props.entry.image.height}
             </span>

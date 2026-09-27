@@ -14,8 +14,8 @@ import type { TaskLoraData } from '#/components/task/detail/TaskLora'
 export function CompareDetail() {
     const selected = createMemo(() => compareStore.selectedCompare())
     const taskId = createMemo(() => {
-        const origin = selected()?.origin
-        return origin?.type === 'output' ? origin.taskId : undefined
+        const usage = selected()?.usage
+        return usage?.type === 'output' ? usage.taskId : undefined
     })
     const taskDetailQuery = useTaskDetailQuery(taskId)
     const task = createMemo(() => {
@@ -93,7 +93,7 @@ export function CompareDetail() {
         >
             {entry => (
                 <Show
-                    when={entry().origin?.type === 'output'}
+                    when={entry().usage?.type === 'output'}
                     fallback={<ReferenceImageDetail image={entry().image} />}
                 >
                     <TaskDetail

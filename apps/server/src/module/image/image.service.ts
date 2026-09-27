@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 
 import { images, isUUID, taskImages, tasks } from '@silent-pix/db'
-import { and, asc, desc, eq, exists, gt, inArray, like, lt, ne, or } from 'drizzle-orm'
+import { and, asc, desc, eq, gt, inArray, like, lt, ne, or } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/sqlite-core'
 
 import { readImageMeta } from '#/lib/image/image.meta'
@@ -101,6 +101,8 @@ export const imageService = {
 
         const search = query.search?.trim()
         const earliest = alias(taskImages, 'earliest')
+        const candidateUsage = alias(taskImages, 'candidateUsage')
+        const candidateTask = alias(tasks, 'candidateTask')
         const matchingUsage = alias(taskImages, 'matchingUsage')
         const matchingTask = alias(tasks, 'matchingTask')
 
@@ -110,6 +112,12 @@ export const imageService = {
                 taskName: tasks.name,
                 type: taskImages.type,
                 sortIndex: taskImages.sortIndex,
+                matchTaskId: matchingUsage.taskId,
+                matchTaskName: matchingTask.name,
+                matchType: matchingUsage.type,
+                matchSortIndex: matchingUsage.sortIndex,
+                matchPin: matchingTask.pin,
+                matchDiscard: matchingTask.discard,
                 usedAt: taskImages.createdAt,
                 referenceId: taskImages.id,
                 image: images,
@@ -117,6 +125,36 @@ export const imageService = {
             .from(taskImages)
             .innerJoin(images, eq(images.id, taskImages.imageId))
             .innerJoin(tasks, eq(tasks.id, taskImages.taskId))
+            /* 一張圖只取最早的符合引用，讓搜尋、type 與旗標對應同一個 task。 */
+            .innerJoin(matchingUsage, eq(matchingUsage.id, database
+                .select({ id: candidateUsage.id })
+                .from(candidateUsage)
+                .innerJoin(candidateTask, eq(candidateTask.id, candidateUsage.taskId))
+                .where(and(
+                    eq(candidateUsage.imageId, taskImages.imageId),
+                    query.type
+                        ? eq(candidateUsage.type, query.type)
+                        : inArray(candidateUsage.type, displayTypes),
+                    query.taskFlags ? eq(candidateUsage.type, 'output') : undefined,
+                    query.taskFlags
+                        ? or(
+                            query.taskFlags.includes('unflag')
+                                ? and(eq(candidateTask.pin, false), eq(candidateTask.discard, false))
+                                : undefined,
+                            query.taskFlags.includes('pin') ? eq(candidateTask.pin, true) : undefined,
+                            query.taskFlags.includes('discard') ? eq(candidateTask.discard, true) : undefined,
+                        )
+                        : undefined,
+                    search
+                        ? or(
+                            like(candidateTask.name, `%${search}%`),
+                            like(candidateTask.id, `%${search}%`),
+                        )
+                        : undefined,
+                ))
+                .orderBy(asc(candidateUsage.createdAt), asc(candidateUsage.id))
+                .limit(1)))
+            .innerJoin(matchingTask, eq(matchingTask.id, matchingUsage.taskId))
             .where(and(
                 inArray(taskImages.type, displayTypes),
                 /* 只留每張圖最早的那一次引用，這就是「一格一張圖」的實作 */
@@ -147,46 +185,6 @@ export const imageService = {
                         ),
                     )
                     : undefined,
-                /*
-                 * 圖片本身沒有名字，所以搜尋是搜「用過它的 task」；type、task flag、
-                 * search conditions 都必須在同一個 matching usage/task 上成立。
-                 */
-                search || query.taskFlags || query.type
-                    ? exists(
-                        database
-                            .select({ id: matchingUsage.id })
-                            .from(matchingUsage)
-                            .innerJoin(matchingTask, eq(matchingTask.id, matchingUsage.taskId))
-                            .where(and(
-                                eq(matchingUsage.imageId, taskImages.imageId),
-                                query.type
-                                    ? eq(matchingUsage.type, query.type)
-                                    : inArray(matchingUsage.type, displayTypes),
-                                query.taskFlags
-                                    ? or(
-                                        query.taskFlags.includes('unflag')
-                                            ? and(
-                                                eq(matchingTask.pin, false),
-                                                eq(matchingTask.discard, false),
-                                            )
-                                            : undefined,
-                                        query.taskFlags.includes('pin')
-                                            ? eq(matchingTask.pin, true)
-                                            : undefined,
-                                        query.taskFlags.includes('discard')
-                                            ? eq(matchingTask.discard, true)
-                                            : undefined,
-                                    )
-                                    : undefined,
-                                search
-                                    ? or(
-                                        like(matchingTask.name, `%${search}%`),
-                                        like(matchingTask.id, `%${search}%`),
-                                    )
-                                    : undefined,
-                            )),
-                    )
-                    : undefined,
             ))
             .orderBy(desc(taskImages.createdAt), asc(taskImages.sortIndex), desc(taskImages.id))
             /* 多撈一筆就知道還有沒有下一頁，不必另外 count */
@@ -199,16 +197,27 @@ export const imageService = {
 
         return done({
             items: page.flatMap(row => {
-                const type = toImageUsageType(row.type)
+                const originType = toImageUsageType(row.type)
+                const matchType = toImageUsageType(row.matchType)
+                const flag: ImageApi.ImageListItem['matchedUsage']['flag'] = matchType === 'output'
+                    ? row.matchPin ? 'pin' : row.matchDiscard ? 'discard' : null
+                    : null
 
-                return type
+                return originType && matchType
                     ? [{
                         image: toImageResource(row.image),
                         origin: {
                             taskId: row.taskId,
                             taskName: row.taskName,
-                            type,
+                            type: originType,
                             sortIndex: row.sortIndex,
+                        },
+                        matchedUsage: {
+                            taskId: row.matchTaskId,
+                            taskName: row.matchTaskName,
+                            type: matchType,
+                            sortIndex: row.matchSortIndex,
+                            flag,
                         },
                     }]
                     : []

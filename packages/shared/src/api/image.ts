@@ -23,7 +23,6 @@ export const imageApi = {
 /* MARK: inferred types */
 
 export type {
-    ImageListItem,
     ImageMime,
     ImageResource,
     ImageUsage,
@@ -32,4 +31,5 @@ export type { ImageGarbageCollectionResponse } from '#shared/api/image/garbage-c
 export type {
     GetImagesQuery,
     GetImagesResponse,
+    ImageListItem,
 } from '#shared/api/image/list'

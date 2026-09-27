@@ -41,7 +41,7 @@ export function GenerateWorkspace() {
 
                     compareStore.addCompare([{
                         image,
-                        origin: {
+                        usage: {
                             taskId: task.id,
                             taskName: task.name,
                             type: 'output',

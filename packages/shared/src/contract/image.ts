@@ -25,14 +25,8 @@ export const imageUsage = z.object({
     sortIndex: z.number().int().nonnegative(),
 })
 
-export const imageListItem = z.object({
-    image: imageResource,
-    origin: imageUsage.nullable(),
-})
-
 /* MARK: inferred types */
 
 export type ImageMime = z.output<typeof imageMime>
 export type ImageResource = z.output<typeof imageResource>
 export type ImageUsage = z.output<typeof imageUsage>
-export type ImageListItem = z.output<typeof imageListItem>

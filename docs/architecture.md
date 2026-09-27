@@ -628,8 +628,10 @@ events and successful local task create/rename/flag/delete mutations invalidate
 `imageKeys.lists()`; active lists refetch and inactive lists become stale for
 the next open. WebSocket reconnect uses `invalidateImageLists()` to invalidate
 `imageKeys.lists()`, alongside the task and workflow roots, to recover missed
-events. The server recomputes image search membership, task-flag filtering,
-origin metadata, and earliest use.
+events. The server keeps one item per image, ordered by its earliest use. It
+returns that earliest `origin` and the earliest `matchedUsage` satisfying
+search, type, and task-flag filters together. Task flags match Output usages
+only; Input usages have no displayed flag.
 
 Task feed updates share a module-local item patcher that preserves unchanged
 item/page references. Batch flag responses build an ID lookup and patch loaded
@@ -646,10 +648,12 @@ updates the form `name` when it still equals the previous server name (`null`
 maps to the form boundary value `''`). Local Name, prompt, and config edits are
 preserved.
 
-Compare selections are frontend-owned UI state: local rename responses and
-remote `task.changed` events patch `origin.taskName` for matching selected
-origins. Replaying the same name returns the existing Compare array and entry
-references. This narrow UI-state patch is separate from Image list invalidation.
+Compare selections are frontend-owned UI state: a picker selection keeps its
+`matchedUsage` as the selected `usage`, so its label and detail refer to the
+same task shown by the picker. Local rename responses and remote `task.changed`
+events patch `usage.taskName` for matching selections. Replaying the same name
+returns the existing Compare array and entry references. This narrow UI-state
+patch is separate from Image list invalidation.
 
 ## ComfyUI Boundary
 

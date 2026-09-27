@@ -1,4 +1,3 @@
-import { task } from '@silent-pix/shared'
 import {
     Check,
     FlagOff,
@@ -13,12 +12,12 @@ import {
 import { createEffect, createSignal, For, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
-import { CenteredText } from '#/components/base/CenteredText'
 import { Dialog } from '#/components/base/Dialog'
 import { FilterChips } from '#/components/base/FilterChips'
 import { Loading } from '#/components/base/Loading'
 import { PanelContent } from '#/components/base/Panel'
 import { Text } from '#/components/field'
+import { TaskFlagOverlay } from '#/components/task/TaskFlagOverlay'
 import { originLabel } from '#/features/image/image.label'
 import { useImageListQuery } from '#/features/image/image.query'
 import { cn } from '#/lib/cn'
@@ -48,7 +47,6 @@ const imageSkeletonCells = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 type ImageType = ImageApi.ImageUsage['type']
 type ImageTaskFlag = TaskApi.TaskFilterFlag
-const taskFlagOrder = task.filterFlags
 
 type ImageFilterOption<Value extends string> = {
     value: Value
@@ -73,9 +71,7 @@ const imageTypeOptions: ImageFilterOption<ImageType>[] = [
 
 export function ImagePickerDialog(props: ImagePickerDialogProps) {
     const [keyword, setKeyword] = createSignal('')
-    const [taskFlags, setTaskFlags] = createSignal<ImageTaskFlag[] | undefined>(
-        taskFlagOrder.slice(0, 2),
-    )
+    const [taskFlags, setTaskFlags] = createSignal<ImageTaskFlag[] | undefined>()
     const [imageType, setImageType] = createSignal<ImageType[] | undefined>()
     const [selectedSingle, setSelectedSingle] = createSignal<ImageApi.ImageListItem>()
     const [selectedMultiple, setSelectedMultiple] = createSignal<ImageApi.ImageListItem[]>([])
@@ -89,10 +85,17 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
 
     const resetSelection = () => {
         setKeyword('')
-        setTaskFlags(taskFlagOrder.slice(0, 2))
+        setTaskFlags(undefined)
         setImageType(undefined)
         setSelectedSingle(undefined)
         setSelectedMultiple([])
+    }
+
+    const changeImageType = (values: ImageType[] | undefined) => {
+        setImageType(values)
+        if (values?.[0] === 'input') {
+            setTaskFlags(undefined)
+        }
     }
 
     let wasOpen = false
@@ -218,7 +221,10 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                 </div>
 
                 <div class='flex flex-wrap items-center gap-6'>
-                    <div class='flex items-center gap-3'>
+                    <fieldset
+                        disabled={imageType()?.[0] === 'input'}
+                        class='m-0 flex min-w-0 items-center gap-3 border-0 p-0 disabled:opacity-40'
+                    >
                         <span class='text-[10px] font-medium uppercase tracking-wide text-fg-title'>
                             Task
                         </span>
@@ -228,7 +234,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                             values={taskFlags()}
                             onChange={setTaskFlags}
                         />
-                    </div>
+                    </fieldset>
                     <div class='flex items-center gap-3'>
                         <span class='text-[10px] font-medium uppercase tracking-wide text-fg-title'>
                             Type
@@ -237,7 +243,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                             allOption={allImageTypeOption}
                             options={imageTypeOptions}
                             values={imageType()}
-                            onChange={setImageType}
+                            onChange={changeImageType}
                             selection='single'
                         />
                     </div>
@@ -300,55 +306,78 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                                                 disabled={disabled()}
                                                 classes={{
                                                     root: cn(
-                                                        'group relative aspect-square overflow-hidden rounded-md border bg-active p-0 hover:bg-active',
-                                                        selected()
-                                                            ? 'border-accent ring-2 ring-accent/40'
-                                                            : 'border-transparent hover:border-line',
-                                                        disabled() && 'cursor-not-allowed opacity-40 grayscale',
+                                                        'group block w-full min-w-0 rounded-lg border border-transparent p-1.5 text-left hover:bg-hover',
+                                                        selected() && 'border-accent bg-accent/20 ring-2 ring-accent/40 hover:bg-accent/20',
+                                                        disabled() && 'cursor-not-allowed hover:bg-transparent',
                                                     ),
                                                 }}
                                                 onClick={() => toggle(item)}
                                             >
-                                                <img
-                                                    class='absolute inset-0 size-full object-cover'
-                                                    src={item.image.url}
-                                                    alt=''
-                                                    loading='lazy'
-                                                />
-                                                <Show when={item.origin}>
-                                                    {origin => (
-                                                        <>
-                                                            <CenteredText
-                                                                classes={{
-                                                                    root: 'absolute left-1.5 top-1.5 rounded-md bg-stage-overlay px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-stage-overlay-label shadow-sm ring-1 ring-stage-ring backdrop-blur-[3px]',
-                                                                }}
+                                                <div class='relative aspect-square overflow-hidden rounded-md border border-line-subtle bg-active'>
+                                                    <img
+                                                        class='absolute inset-0 size-full object-cover'
+                                                        src={item.image.url}
+                                                        alt=''
+                                                        loading='lazy'
+                                                    />
+                                                    <Show when={item.matchedUsage.flag}>
+                                                        {flag => (
+                                                            <TaskFlagOverlay
+                                                                pin={flag() === 'pin'}
+                                                                discard={flag() === 'discard'}
+                                                                dim={!disabled()}
+                                                                carrier='card'
+                                                            />
+                                                        )}
+                                                    </Show>
+                                                    <Show when={!disabled()}>
+                                                        <span
+                                                            class={cn(
+                                                                'absolute right-1 top-1 grid size-7 place-items-center rounded-md',
+                                                                selected()
+                                                                    ? 'bg-accent text-[10px] font-bold text-on-stage'
+                                                                    : 'bg-stage-control text-on-stage/75 opacity-0 backdrop-blur-[3px] group-hover:opacity-100 group-focus-within:opacity-100',
+                                                            )}
+                                                        >
+                                                            <Show
+                                                                when={props.mode === 'multiple' && selected()}
+                                                                fallback={(
+                                                                    <Check
+                                                                        size={14}
+                                                                        strokeWidth={2}
+                                                                    />
+                                                                )}
                                                             >
-                                                                {origin().type}
-                                                            </CenteredText>
-                                                            <span class='absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-stage-gradient-soft to-transparent px-2 pb-1.5 pt-4 text-left text-[11px] text-on-stage'>
-                                                                {originLabel(origin())}
-                                                            </span>
-                                                        </>
-                                                    )}
-                                                </Show>
-                                                <Show when={props.mode === 'multiple' && selected()}>
-                                                    <CenteredText
-                                                        classes={{
-                                                            root: 'absolute right-1.5 top-1.5 h-5 min-w-5 rounded-full bg-accent px-1 text-[10px] font-bold text-on-stage shadow-sm',
-                                                        }}
-                                                    >
-                                                        {selectionNumber(item)}
-                                                    </CenteredText>
-                                                </Show>
-                                                <Show when={props.mode === 'multiple' && disabled()}>
-                                                    <span class='absolute inset-0 grid place-items-center bg-stage-overlay-soft'>
-                                                        <Check
-                                                            size={22}
-                                                            strokeWidth={2.5}
-                                                            class='text-stage-overlay-text'
-                                                        />
+                                                                {selectionNumber(item)}
+                                                            </Show>
+                                                        </span>
+                                                    </Show>
+                                                    <Show when={disabled()}>
+                                                        <span class='absolute inset-0 grid place-items-center bg-stage-overlay-muted'>
+                                                            <Check
+                                                                size={22}
+                                                                strokeWidth={2.5}
+                                                                class='text-stage-overlay-text'
+                                                            />
+                                                        </span>
+                                                    </Show>
+                                                </div>
+
+                                                <div class='flex min-w-0 items-center gap-1.5 pt-1.5'>
+                                                    <span class='min-w-0 flex-1 truncate font-mono text-[11px] text-fg'>
+                                                        {originLabel(item.matchedUsage) ?? item.image.id.slice(0, 8)}
                                                     </span>
-                                                </Show>
+                                                    <span
+                                                        class={cn(
+                                                            'shrink-0 rounded px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide',
+                                                            item.matchedUsage.type === 'input'
+                                                                ? 'bg-info/18 text-info-fg'
+                                                                : 'bg-elevated text-fg-muted',
+                                                        )}
+                                                    >
+                                                        {item.matchedUsage.type === 'input' ? 'in' : 'out'}
+                                                    </span>
+                                                </div>
                                             </Button>
                                         )
                                     }}

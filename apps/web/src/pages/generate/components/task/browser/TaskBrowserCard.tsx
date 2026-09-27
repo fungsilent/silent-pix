@@ -2,10 +2,11 @@ import { Check } from 'lucide-solid'
 
 import { Button } from '#/components/base/Button'
 import { CenteredText } from '#/components/base/CenteredText'
+import { TaskFlagOverlay } from '#/components/task/TaskFlagOverlay'
 import { TaskStatus } from '#/components/task/TaskStatus'
 import { cn } from '#/lib/cn'
 import { formatDateTime } from '#/lib/format'
-import { TaskFlagControls, TaskFlagOverlay } from '#/pages/generate/components/task/TaskFlag'
+import { TaskFlagControls } from '#/pages/generate/components/task/TaskFlag'
 import { TaskThumbnail } from '#/pages/generate/components/task/TaskThumbnail'
 
 import type { TaskApi } from '@silent-pix/shared'
@@ -56,7 +57,7 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
                     <TaskFlagOverlay
                         pin={props.task.pin}
                         discard={props.task.discard}
-                        hasImage={Boolean(props.task.thumbnail)}
+                        dim={Boolean(props.task.thumbnail)}
                         carrier='card'
                     />
                     <CenteredText
