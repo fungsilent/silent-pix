@@ -91,6 +91,11 @@ Generate uses real Task APIs, TanStack Query for server data, and page-scoped
 TanStack Form for editable values. The default draft supplies initial form
 values; it is not a backend task. Task lifecycle authority stays in the server.
 
+The LoRA picker dialog owns its search text and temporary selection, resetting
+both when opened and returning selected names only on Apply. Generate retains
+the committed form values, open state, and options query; closing without Apply
+does not change the form.
+
 Web state:
 
 ```txt

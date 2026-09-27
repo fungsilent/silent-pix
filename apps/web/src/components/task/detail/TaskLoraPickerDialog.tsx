@@ -1,5 +1,5 @@
 import { Check, Plus, RefreshCw, Search } from 'lucide-solid'
-import { For, Show } from 'solid-js'
+import { createEffect, createSignal, For, on, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { Dialog } from '#/components/base/Dialog'
@@ -14,11 +14,8 @@ type TaskLoraPickerDialogProps = {
     options: SelectOption[]
     loading: boolean
     error: boolean
-    selected: string[]
-    keyword: string
-    onKeywordChange: (value: string) => void
-    onToggle: (name: string) => void
-    onApply: () => void
+    selectedNames: string[]
+    onApply: (names: string[]) => void
     onRetry: () => void
     onOpenChange: (open: boolean) => void
 }
@@ -26,8 +23,19 @@ type TaskLoraPickerDialogProps = {
 const loraSkeletonRows = [0, 1, 2, 3, 4]
 
 export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
+    const [keyword, setKeyword] = createSignal('')
+    const [selected, setSelected] = createSignal<string[]>([])
+
+    /* 每次開啟才建立暫存選取，開啟期間的外部更新不覆蓋使用者的勾選。 */
+    createEffect(on(() => props.open, open => {
+        if (open) {
+            setSelected(props.selectedNames)
+            setKeyword('')
+        }
+    }))
+
     const visibleOptions = () => {
-        const text = props.keyword.trim().toLowerCase()
+        const text = keyword().trim().toLowerCase()
 
         if (!text) {
             return props.options
@@ -35,7 +43,7 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
 
         return props.options.filter(option => option.label.toLowerCase().includes(text))
     }
-    const isSelected = (name: string) => props.selected.includes(name)
+    const isSelected = (name: string) => selected().includes(name)
 
     return (
         <Dialog
@@ -50,7 +58,7 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
             footer={(
                 <div class='flex w-full items-center justify-between gap-3'>
                     <span class='text-xs text-fg-muted tabular-nums'>
-                        {props.selected.length} selected
+                        {selected().length} selected
                     </span>
                     <div class='flex gap-2'>
                         <Button
@@ -64,7 +72,7 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
                             type='button'
                             tone='accent'
                             classes={{ root: 'min-w-20 text-sm' }}
-                            onClick={props.onApply}
+                            onClick={() => props.onApply(selected())}
                         >
                             Apply
                         </Button>
@@ -74,7 +82,7 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
         >
             <Text
                 label='Search LoRA'
-                value={props.keyword}
+                value={keyword()}
                 placeholder='Search LoRA...'
                 icon={(
                     <Search
@@ -83,7 +91,7 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
                     />
                 )}
                 classes={{ root: 'shrink-0', label: 'hidden' }}
-                onInput={props.onKeywordChange}
+                onInput={setKeyword}
             />
 
             <div class='scrollbar-thin -mx-4 mt-3 min-h-0 flex-1 overflow-y-auto px-4'>
@@ -139,7 +147,9 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
                                                         : 'hover:bg-elevated',
                                                 ),
                                             }}
-                                            onClick={() => props.onToggle(option.value)}
+                                            onClick={() => setSelected(current => current.includes(option.value)
+                                                ? current.filter(name => name !== option.value)
+                                                : [...current, option.value])}
                                         >
                                             <span class='min-w-0 truncate'>{option.label}</span>
                                             <span

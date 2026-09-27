@@ -1,5 +1,5 @@
 import { Plus, X } from 'lucide-solid'
-import { createEffect, createSignal, Index, Show } from 'solid-js'
+import { Index, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { FieldHint } from '#/components/base/FieldHint'
@@ -49,26 +49,12 @@ type TaskLoraProps = {
 }
 
 export function TaskLora(props: TaskLoraProps) {
-    const [wasOpen, setWasOpen] = createSignal(false)
-    const [keyword, setKeyword] = createSignal('')
-    const [selected, setSelected] = createSignal<string[]>([])
     const isCreate = () => props.mode === 'create'
     const loras = () => props.data.loras()
     const pickerOpen = () => props.mode === 'create' ? props.data.pickerOpen() : false
     const options = () => props.mode === 'create' ? props.data.options() : []
     const pickerLoading = () => props.mode === 'create' ? props.data.loading() : false
     const pickerError = () => props.mode === 'create' ? props.data.error() : false
-
-    createEffect(() => {
-        const open = pickerOpen()
-
-        if (open && !wasOpen()) {
-            setSelected(loras().map(lora => lora.name))
-            setKeyword('')
-        }
-
-        setWasOpen(open)
-    })
 
     const onWeightChange = (index: number, value: number) => {
         if (props.mode === 'create') {
@@ -94,9 +80,9 @@ export function TaskLora(props: TaskLoraProps) {
         }
     }
 
-    const apply = () => {
+    const apply = (names: string[]) => {
         if (props.mode === 'create') {
-            props.actions.onSelection(selected())
+            props.actions.onSelection(names)
             props.actions.setPickerOpen(false)
         }
     }
@@ -198,12 +184,7 @@ export function TaskLora(props: TaskLoraProps) {
                     options={options()}
                     loading={pickerLoading()}
                     error={pickerError()}
-                    selected={selected()}
-                    keyword={keyword()}
-                    onKeywordChange={setKeyword}
-                    onToggle={name => setSelected(current => current.includes(name)
-                        ? current.filter(item => item !== name)
-                        : [...current, name])}
+                    selectedNames={loras().map(lora => lora.name)}
                     onApply={apply}
                     onRetry={onRetry}
                     onOpenChange={onPickerOpenChange}
