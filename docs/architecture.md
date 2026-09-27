@@ -113,6 +113,12 @@ Theme runtime:
 - Prompt and Graph editors use theme factories with per-view Compartments; reconfiguration does not rebuild views or lose history
 ```
 
+Workflow editor graph derivations read field-specific TanStack Form selectors.
+Parsing and node options depend only on graph text; mapping diagnostics and
+line marks also depend on the mapping schema. The combined selection remains
+a UI projection: name and selection metadata changes do not trigger graph
+work, and mapping edits reuse the parsed graph and node options.
+
 Workflow list ordering is a precise exception to the general backend-owned
 database semantics rule. Server and Web use the same `name` then opaque `id`
 keys: the Server query declares SQLite ordering, while the Web realtime cache

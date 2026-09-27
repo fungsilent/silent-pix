@@ -81,6 +81,8 @@ export function createWorkflowStore() {
         onSubmit: saveWorkflow,
     })
     const formValues = form.useSelector(state => state.values)
+    const graphText = form.useSelector(state => state.values.graphText)
+    const configSchema = form.useSelector(state => state.values.configSchema)
     const isDefaultValue = form.useSelector(state => state.isDefaultValue)
     const isSubmitting = form.useSelector(state => state.isSubmitting)
 
@@ -105,9 +107,15 @@ export function createWorkflowStore() {
         }
     })
 
+    /* Graph 派生值只追蹤相關欄位；name/revision 變動不重算，mapping 變動不重解析。 */
+    const graphParse = createMemo(() => parseWorkflowGraphText(graphText()))
+    const nodeOptions = createMemo(() => {
+        const parse = graphParse()
+
+        return parse.status === 'ok' ? toNodeOptions(parse.graph) : []
+    })
     const graphState = createMemo((): WorkflowGraphState => {
-        const { graphText, configSchema } = selection()
-        const parse = parseWorkflowGraphText(graphText)
+        const parse = graphParse()
 
         if (parse.status !== 'ok') {
             return {
@@ -119,14 +127,15 @@ export function createWorkflowStore() {
             }
         }
 
-        const mappingIssues = comfy.validateMapping(parse.graph, configSchema)
+        const schema = configSchema()
+        const mappingIssues = comfy.validateMapping(parse.graph, schema)
 
         return {
             parse,
             graph: parse.graph,
-            nodeOptions: toNodeOptions(parse.graph),
+            nodeOptions: nodeOptions(),
             mappingIssues,
-            lineMarks: createLineMarks(graphText, configSchema, mappingIssues),
+            lineMarks: createLineMarks(graphText(), schema, mappingIssues),
         }
     })
 
