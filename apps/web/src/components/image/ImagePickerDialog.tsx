@@ -82,8 +82,8 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
     const query = useImageListQuery(
         () => props.open,
         keyword,
-        () => props.mode === 'multiple' ? taskFlags() : undefined,
-        () => props.mode === 'multiple' ? imageType()?.[0] : undefined,
+        taskFlags,
+        () => imageType()?.[0],
     )
     const hasLoadError = () => query.isError && query.data === undefined
 
@@ -217,33 +217,31 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                     />
                 </div>
 
-                <Show when={props.mode === 'multiple'}>
-                    <div class='flex flex-wrap items-center gap-6'>
-                        <div class='flex items-center gap-3'>
-                            <span class='text-[10px] font-medium uppercase tracking-wide text-fg-title'>
-                                Task
-                            </span>
-                            <FilterChips
-                                allOption={allTaskFlagOption}
-                                options={imageTaskFlagOptions}
-                                values={taskFlags()}
-                                onChange={setTaskFlags}
-                            />
-                        </div>
-                        <div class='flex items-center gap-3'>
-                            <span class='text-[10px] font-medium uppercase tracking-wide text-fg-title'>
-                                Type
-                            </span>
-                            <FilterChips
-                                allOption={allImageTypeOption}
-                                options={imageTypeOptions}
-                                values={imageType()}
-                                onChange={setImageType}
-                                selection='single'
-                            />
-                        </div>
+                <div class='flex flex-wrap items-center gap-6'>
+                    <div class='flex items-center gap-3'>
+                        <span class='text-[10px] font-medium uppercase tracking-wide text-fg-title'>
+                            Task
+                        </span>
+                        <FilterChips
+                            allOption={allTaskFlagOption}
+                            options={imageTaskFlagOptions}
+                            values={taskFlags()}
+                            onChange={setTaskFlags}
+                        />
                     </div>
-                </Show>
+                    <div class='flex items-center gap-3'>
+                        <span class='text-[10px] font-medium uppercase tracking-wide text-fg-title'>
+                            Type
+                        </span>
+                        <FilterChips
+                            allOption={allImageTypeOption}
+                            options={imageTypeOptions}
+                            values={imageType()}
+                            onChange={setImageType}
+                            selection='single'
+                        />
+                    </div>
+                </div>
             </div>
 
             <PanelContent
