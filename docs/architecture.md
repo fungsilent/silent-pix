@@ -73,6 +73,7 @@ apps/web/src/
     pages/generate/         generation form, task list/browser, page adapters
     pages/workflow/         graph/mapping editor and Workflow management
     pages/compare/          image comparison workspace
+    pages/settings/         shared Settings and runtime Dev Settings
     store/                  shared UI choices and connection state
     lib/                    shared browser utilities
 ```
@@ -103,6 +104,10 @@ Web state:
 - the local store wrapper exposes native `state` and `set` with flattened domain actions
 - domain actions live on returned store objects, not inside reactive state
 - stores must preserve Solid fine-grained reactivity and native `set` path syntax
+- `apps/web/src/store/dev.ts` owns the in-memory runtime `normal | dev` mode and loading preview; reload starts at `normal` with preview off
+- `SettingsPage` reads the Dev store and passes accessors and callbacks to its local Dev Settings component
+- `appStore.page` includes Settings; the Header Menu opens it and the business-page tabs remain available to leave it
+- the shared Header exposes Settings in Browser and Desktop UI; loading preview stays scoped to existing business-page loading consumers
 ```
 
 Theme runtime:

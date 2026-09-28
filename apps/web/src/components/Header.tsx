@@ -1,11 +1,11 @@
-import { Columns2, LoaderCircle, Menu, Moon, Sparkles, Sun, Workflow } from 'lucide-solid'
+import { Columns2, Menu as MenuIcon, Moon, Settings, Sparkles, Sun, Workflow } from 'lucide-solid'
 
 import { Button } from '#/components/base/Button'
+import { Menu, MenuItem } from '#/components/base/Menu'
 import { useHealthQuery } from '#/features/app/app.query'
 import { cn } from '#/lib/cn'
 import { theme } from '#/lib/theme'
 import { appStore, serviceHealth } from '#/store/app'
-import { loadingStore } from '#/store/loading'
 import { themeStore } from '#/store/theme'
 
 import type { JSX } from 'solid-js'
@@ -14,15 +14,7 @@ import type { JSX } from 'solid-js'
 export function Header() {
     return (
         <header class='flex h-12 shrink-0 items-center gap-3 border-b border-line-subtle bg-surface pl-2.5 pr-3'>
-            <Button
-                variant='ghost'
-                classes={{ root: 'size-8 shrink-0 p-0 text-fg-secondary' }}
-            >
-                <Menu
-                    size={16}
-                    strokeWidth={1.6}
-                />
-            </Button>
+            <AppMenu />
             <span class='text-[13px] font-semibold tracking-[0.02em] text-fg'>Silent Pix</span>
 
             <div
@@ -60,30 +52,42 @@ export function Header() {
                 </ModeButton>
             </div>
 
-            {import.meta.env.DEV && (
-                <Button
-                    variant='ghost'
-                    classes={{
-                        root: cn(
-                            'h-7 shrink-0 gap-1.5 px-2.5 text-xs',
-                            loadingStore.state.preview && theme.selected,
-                        ),
-                    }}
-                    onClick={loadingStore.togglePreview}
-                >
-                    <LoaderCircle
-                        size={13}
-                        strokeWidth={1.8}
-                    />
-                    Loading
-                </Button>
-            )}
-
             <div class='flex-1' />
 
             <ThemeToggle />
             <ServiceStatus />
         </header>
+    )
+}
+
+/*
+ * Settings 不是第四個工作區，所以不進 mode group。漢堡鈕本來就在 header 上
+ * 且沒有任何行為，選單同時給了它存在的理由，也給之後的項目留了位置。
+ */
+function AppMenu() {
+    return (
+        <Menu
+            classes={{ trigger: 'size-8 shrink-0 text-fg-secondary' }}
+            trigger={(
+                <MenuIcon
+                    size={16}
+                    strokeWidth={1.6}
+                />
+            )}
+        >
+            <MenuItem
+                value='settings'
+                label='Settings'
+                current={appStore.state.page === 'settings'}
+                icon={(
+                    <Settings
+                        size={14}
+                        strokeWidth={1.7}
+                    />
+                )}
+                onSelect={() => appStore.setPage('settings')}
+            />
+        </Menu>
     )
 }
 

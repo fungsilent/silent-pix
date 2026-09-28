@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'solid-js'
 
-import { isPreviewing } from '#/store/loading'
+import { isPreviewing } from '#/store/dev'
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { Accessor, JSX } from 'solid-js'
@@ -26,7 +26,7 @@ export type GenerateDetail = {
 export type GenerateDetailSource = GenerateDetail
 
 /*
- * 唯一套用 Header 預覽規則的地方。三條規則必須放在一起，preview 畫面才會
+ * 唯一套用 Dev Settings 預覽規則的地方。三條規則必須放在一起，preview 畫面才會
  * 跟真實 cold load 逐格相同——少了 task 那條，遮罩底下就會留著真實資料，
  * 而 ImageStage 這種不鋪灰罩的區塊會直接露出圖片與縮圖列。
  *

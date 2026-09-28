@@ -5,6 +5,7 @@ import { Header } from '#/components/Header'
 import { startServerEvents } from '#/features/event/event.client'
 import { ComparePage } from '#/pages/compare/ComparePage'
 import { GeneratePage } from '#/pages/generate/GeneratePage'
+import { SettingsPage } from '#/pages/settings/SettingsPage'
 import { WorkflowPage } from '#/pages/workflow/WorkflowPage'
 import { appStore } from '#/store/app'
 
@@ -27,6 +28,9 @@ export function App() {
                 </Match>
                 <Match when={appStore.state.page === 'workflow'}>
                     <WorkflowPage />
+                </Match>
+                <Match when={appStore.state.page === 'settings'}>
+                    <SettingsPage />
                 </Match>
             </Switch>
         </main>

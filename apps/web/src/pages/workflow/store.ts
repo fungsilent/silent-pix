@@ -17,7 +17,7 @@ import {
 } from '#/pages/workflow/form'
 import { toValidationIssues } from '#/pages/workflow/issue'
 import { toNodeOptions } from '#/pages/workflow/node-option'
-import { isColdLoading } from '#/store/loading'
+import { isColdLoading } from '#/store/dev'
 
 import type { Comfy, ConfigSchema, GeneratorField, Mapping, WorkflowApi } from '@silent-pix/shared'
 import type { AppIssue } from '#/lib/issue'

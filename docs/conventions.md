@@ -477,6 +477,8 @@ Rules:
 - mock UI data must not become backend state or task lifecycle authority
 - web state uses Solid native stores through `apps/web/src/lib/store.ts`
 - store consumers read native Solid store proxies directly from `store.state`
+- `apps/web/src/store/dev.ts` is the single owner of runtime `normal | dev` mode and Loading preview; selecting Normal clears preview in the same state update, and reload starts at Normal/Off
+- `SettingsPage` owns Dev store access and passes narrow accessors and callbacks to its local Dev Settings component; the Header reads app page state and does not own preview state
 - domain actions may be flattened onto returned stores but must not live inside reactive state
 - Generate and Workflow page editor state uses page-scoped TanStack Form through context
 - Form validators are pure submit-boundary Zod checks; invalid issues flow through the page's existing issue pipeline

@@ -1,7 +1,7 @@
 import { Show } from 'solid-js'
 
 import { cn } from '#/lib/cn'
-import { isColdLoading } from '#/store/loading'
+import { isColdLoading } from '#/store/dev'
 
 import type { Accessor, JSX } from 'solid-js'
 
