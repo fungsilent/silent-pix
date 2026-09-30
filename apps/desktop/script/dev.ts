@@ -75,37 +75,44 @@ function formatHost(host: string): string {
     return host
 }
 
-const webHost = formatHost(requireEnv('WEB_HOST'))
-const webPort = parsePort('WEB_PORT', requireEnv('WEB_PORT'))
-const tauriDevUrl = `http://${webHost}:${webPort}`
+function resolveTauriDevUrl(): string {
+    const webHost = formatHost(requireEnv('WEB_HOST'))
+    const webPort = parsePort('WEB_PORT', requireEnv('WEB_PORT'))
+    const devUrl = `http://${webHost}:${webPort}`
 
-try {
-    const parsedTauriDevUrl = new URL(tauriDevUrl)
+    try {
+        const parsed = new URL(devUrl)
 
-    if (
-        parsedTauriDevUrl.protocol !== 'http:'
-        || parsedTauriDevUrl.username
-        || parsedTauriDevUrl.password
-        || parsedTauriDevUrl.pathname !== '/'
-        || parsedTauriDevUrl.search
-        || parsedTauriDevUrl.hash
-    ) {
-        throw new Error()
+        if (
+            parsed.protocol !== 'http:'
+            || parsed.username
+            || parsed.password
+            || parsed.pathname !== '/'
+            || parsed.search
+            || parsed.hash
+        ) {
+            throw new Error()
+        }
     }
-}
-catch {
-    process.stderr.write('WEB_HOST and WEB_PORT must combine into a valid HTTP origin\n')
-    process.exit(1)
+    catch {
+        process.stderr.write('WEB_HOST and WEB_PORT must combine into a valid HTTP origin\n')
+        process.exit(1)
+    }
+
+    return devUrl
 }
 
 const externalFrontend = process.argv.includes('--external-frontend')
-const forwardedArgs = process.argv.slice(2).filter(argument => argument !== '--external-frontend')
+const wrapperFlags = ['--', '--external-frontend']
+const forwardedArgs = process.argv.slice(2).filter(argument => !wrapperFlags.includes(argument))
+
 const configOverride = {
     build: {
-        devUrl: tauriDevUrl,
+        devUrl: resolveTauriDevUrl(),
         ...(externalFrontend ? { beforeDevCommand: '' } : {}),
     },
 }
+
 const tauriCliPath = resolve(desktopRoot, 'node_modules', '@tauri-apps', 'cli', 'tauri.js')
 
 if (!existsSync(tauriCliPath)) {

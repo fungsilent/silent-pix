@@ -38,5 +38,6 @@ export const appApi = {
 /* MARK: inferred types */
 
 export type ErrorResponse = z.output<typeof errorResponse>
+export type ClientHeaders = z.output<typeof clientHeaders>
 export type EventQuery = z.output<typeof eventQuery>
 export type GetHealthResponse = z.output<typeof getHealthResponse>

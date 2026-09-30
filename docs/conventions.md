@@ -146,7 +146,7 @@ Rules:
 
 ```txt
 apps/web
-    UI and browser client only.
+    Shared UI, typed backend API client, and a narrow Desktop startup bridge that invokes only native settings commands.
     App-level chrome lives in `apps/web/src/components`.
     Shared low-level UI primitives live in `apps/web/src/components/base`.
     Shared form/control primitives live in `apps/web/src/components/field`.
@@ -156,7 +156,7 @@ apps/server
     Elysia app, middleware, domain routes/services, server env, lifecycle.
 
 apps/desktop
-    desktop shell and startup model; `script/dev.ts` owns the Tauri dev URL merge from shared Web endpoint env.
+    desktop shell, startup model, and validated native local-Server settings; `script/dev.ts` owns the Tauri dev URL merge from shared Web endpoint env.
 
 packages/shared
     Canonical domain values/validation under `contract/`; REST under `api/`; events under `event/`.
@@ -414,7 +414,8 @@ Rules:
 - server validates every outbound event before broadcast
 - the WebSocket handshake query contract (`clientId`) lives in `packages/shared/src/api/app.ts`; event envelopes remain under `packages/shared/src/event`
 - the Web API client module (`apps/web/src/api/api.client.ts`) exports one per-page UUID `clientId`; its shared fetcher supplies it as `client-id`, while App uses it for the WebSocket `clientId` query, and identity is transport metadata only
-- WebSocket handshakes require `Origin` and `Host`; Server safely parses `Origin` and strictly compares parsed `Origin.host` (including port) with `Host` before upgrade
+- WebSocket handshakes require `Origin` and `Host`; in `NODE_ENV=development`, accept any canonical HTTP(S) Origin without requiring its host to match `Host`; outside development, safely parse `Origin` and strictly compare parsed `Origin.host` (including port) with `Host`, with exact `http://tauri.localhost` and `tauri://localhost` exceptions for canonical `Host: 127.0.0.1:<port>` (1–65535 except default port 80)
+- REST CORS echoes any canonical HTTP(S) Origin in development; outside development it applies only to `/api/` requests with one of those exact packaged origins and a loopback Host; allow only `GET, POST, PUT, PATCH, DELETE` and `client-id, content-type`, with no wildcard origin or credentials; send `Vary` on every `/api/` response
 - the connection registry remains keyed by `ws.raw`; every synchronous Task/Workflow mutation publication excludes all records matching its validated request `clientId`, while async task lifecycle and health publications remain broadcast
 - Cloudflare Tunnel configuration must leave `httpHostHeader` unset so the external host remains available for same-origin validation
 - browser connection helpers live in `packages/event/src/client.ts`
@@ -616,11 +617,12 @@ Rules:
 - isolated validation sets env before importing the owning module
 - the repository-root `.env` is the sole development endpoint source for Browser Vite and Desktop Tauri
 - `apps/web/vite.config.ts` explicitly loads the repository-root `.env` with `loadEnv()`; external process env values override it
-- `apps/desktop/script/dev.ts` runs from the local Desktop cwd, resolves the linked `tauri.conf.json` realpath to load the source repository root `.env`, validates `WEB_HOST`/`WEB_PORT`, and merges their combined endpoint into Tauri at runtime; process env overrides dotenv, `--external-frontend` only removes the normal `beforeDevCommand`, and linked WSL does not require duplicate Windows endpoint variables
+- `apps/desktop/script/dev.ts` runs from the local Desktop cwd, resolves the linked `tauri.conf.json` realpath to load the source repository root `.env`, validates `WEB_HOST`/`WEB_PORT`, and always merges their Vite endpoint into Tauri at runtime; process env overrides dotenv, `--external-frontend` only removes the normal `beforeDevCommand`, and linked WSL does not require duplicate Windows endpoint variables
+- every Tauri webview uses the Desktop platform identity and native saved Server URL while Vite supplies development UI assets and HMR; `dev-wsl.bat` passes `--external-frontend` and forwards Tauri arguments; packaged-origin validation uses a formal Desktop build
 - package scripts, `tauri.conf.json`, and `dev-wsl.bat` must not duplicate development host/port literals or promise simultaneous independent Vite instances
 - the Desktop webview disables Tauri's native drag/drop handler so shared HTML5 file drop remains available, including on Windows WebView2
-- `SERVER_URL` is an optional process-environment override for the Vite `/api` proxy and is not required in `.env.example`
-- packaged Desktop remote connectivity and authentication are not implemented; Windows native runtime behavior is not verified from this Linux workspace
+- `SERVER_URL` is an optional process-environment override for the Browser Vite `/api` proxy and is not required in `.env.example`; Tauri uses its native saved Server URL instead
+- packaged Desktop supports one locally configured Server URL through native settings; remote connectivity and authentication are not implemented, and Windows native runtime behavior is not verified from this Linux workspace
 ```
 
 Ownership mapping:

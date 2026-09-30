@@ -1,5 +1,6 @@
 import { CircleX, Hourglass, Image as ImageIcon, LoaderCircle } from 'lucide-solid'
 
+import { resolveImageUrl } from '#/api/image'
 import { cn } from '#/lib/cn'
 
 import type { TaskApi } from '@silent-pix/shared'
@@ -63,7 +64,7 @@ export function TaskThumbnail(props: TaskThumbnailProps) {
                 ? (
                     <img
                         class={cn('size-full object-cover', props.classes?.image)}
-                        src={props.thumbnail}
+                        src={resolveImageUrl(props.thumbnail)}
                         alt={props.alt}
                         draggable={false}
                     />

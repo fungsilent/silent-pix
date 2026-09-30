@@ -17,7 +17,7 @@ if errorlevel 1 goto dependency_install_failed
 
 :dependencies_ready
 
-call pnpm.cmd run dev -- --external-frontend
+call pnpm.cmd run dev -- --external-frontend %*
 set "desktop_exit_code=%errorlevel%"
 if not "%desktop_exit_code%"=="0" pause
 exit /b %desktop_exit_code%

@@ -1,7 +1,7 @@
-import { createEventClient, createSameOriginEventsUrl } from '@silent-pix/event/client'
+import { createEventClient } from '@silent-pix/event/client'
 import { event } from '@silent-pix/shared'
 
-import { clientId } from '#/api/api.client'
+import { clientId, getApiEndpoint } from '#/api/api.client'
 import { handleHealthSnapshot } from '#/features/app/app.event'
 import { invalidateImageLists } from '#/features/image/image.cache'
 import { handleTaskChanged, handleTaskCreated, handleTaskRemoved } from '#/features/task/task.event'
@@ -15,7 +15,8 @@ import type { QueryClient } from '@tanstack/solid-query'
 
 export function startServerEvents(queryClient: QueryClient): () => void {
     let hasConnected = false
-    const eventsUrl = new URL(createSameOriginEventsUrl())
+    const eventsUrl = new URL('/api/event', getApiEndpoint())
+    eventsUrl.protocol = eventsUrl.protocol === 'https:' ? 'wss:' : 'ws:'
     eventsUrl.searchParams.set('clientId', clientId)
     const eventClient = createEventClient<Event.ServerEvent>({
         url: eventsUrl.toString(),

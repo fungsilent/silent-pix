@@ -33,7 +33,9 @@ Rules:
 
 ### `apps/web`
 
-Owns UI only.
+Owns the shared UI, typed backend API client, and the narrow Desktop startup bridge.
+The bridge selects the active Server endpoint and invokes only the native settings
+commands; native persistence and input validation remain in `apps/desktop`.
 
 Allowed:
 
@@ -240,10 +242,11 @@ use raw SQLite/Drizzle `sql` outside the database client.
 
 ### `apps/desktop`
 
-Owns desktop shell only.
+Owns the desktop shell, startup configuration, and native local-Server settings.
 
 Current implementation is a Tauri window hosting the Web UI. Development uses
-the Vite API/WS proxy; the shell does not start the backend or ComfyUI.
+Vite for UI assets and HMR while REST, WebSocket, and image traffic goes directly
+to the native saved Server URL; the shell does not start the backend or ComfyUI.
 Tauri's native drag/drop handler is disabled so the shared Web UI receives
 HTML5 file-drop events, including reference-image drops on Windows WebView2.
 
@@ -258,8 +261,18 @@ cwd but resolves the linked `tauri.conf.json` realpath to find the WSL source
 repository `.env`; duplicate Windows endpoint variables are not required. This
 setup does not promise simultaneous independent Vite instances.
 
-OS app-data resolution, backend startup/selection, and packaged remote
-connectivity/authentication remain future work. See `../apps/desktop/README.md`.
+Every Tauri window reads and writes one validated local Server URL through
+native commands and stores it under the OS app config directory. The Settings
+UI can optionally probe the candidate; Save validates and persists the URL,
+then reloads after a successful save. The backend remains a separate process.
+
+Development still loads the UI from the Vite `devUrl`, but `isTauri()` selects
+the same Desktop platform identity and native settings used by a packaged app.
+Vite therefore supplies UI assets and HMR only; REST, WebSocket, and image
+traffic goes directly to the saved Server URL. A formal Desktop build against a
+non-development Server validates the packaged origin, CORS/WebSocket boundary,
+bundling, installer, and release profile. Remote connectivity/authentication and
+automatic Desktop production path overrides remain future work. See `../apps/desktop/README.md`.
 
 Forbidden:
 
@@ -589,9 +602,10 @@ WebSocket foundation:
 
 ```txt
 - endpoint: GET /api/event
-- same-origin Web client; development proxy can target a configured remote server
+- Browser uses the same-origin development proxy; Desktop development connects directly to its native saved Server URL
 - The Web API client module (`apps/web/src/api/api.client.ts`) exports one module-load UUID `clientId` per page; App puts it in the `clientId` query
-- server validates `clientId`, requires `Origin` and `Host`, and strictly compares parsed `Origin.host` (including port) with `Host` before upgrade; `ws.data.query.clientId` is passed to the generic EventServer, while `ws.raw` remains the connection key
+- server validates `clientId` and requires `Origin` and `Host`; in `NODE_ENV=development`, any canonical HTTP(S) Origin is accepted without comparing its host to `Host`; outside development, parsed `Origin.host` (including port) must match `Host`, with exact `http://tauri.localhost` and `tauri://localhost` exceptions for canonical `Host: 127.0.0.1:<port>` (1–65535 except default port 80); `ws.data.query.clientId` is passed to the generic EventServer, while `ws.raw` remains the connection key
+- REST CORS echoes any canonical HTTP(S) development Origin; outside development it is limited to `/api/` requests with one of the exact packaged Origins and a loopback Host; it allows only required methods and `client-id, content-type` headers, with no wildcard origin or credentials; every `/api/` response sends `Vary` whether or not it matched
 - the shared Web API client fetcher sends the exported `clientId` as the `client-id` header; every event-producing synchronous Task/Workflow route validates `appApi.clientHeaders`
 - a Cloudflare Tunnel must leave `httpHostHeader` unset so the external host remains available for same-origin validation
 - authentication is not implemented

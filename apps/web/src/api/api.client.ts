@@ -6,28 +6,57 @@ import type { AppApi } from '@silent-pix/shared'
 
 const requestTimeoutMs = 10_000
 
+export type ApiClient = Treaty.Create<Api, AppApi.ClientHeaders>
+
 export const clientId = crypto.randomUUID()
 
-export const apiClient: Treaty.Create<Api, { 'client-id': string }> = treaty<Api, { 'client-id': string }>(window.location.origin, {
-    parseDate: false,
-    throwHttpError: false,
-    fetcher: (input, init) => {
-        const headers = new Headers()
+let activeEndpoint: string | undefined
+let activeClient: ApiClient | undefined
 
-        if (init?.headers) {
-            new Headers(init.headers).forEach((value, key) => {
-                headers.set(key, value)
+export function initializeApiClient(endpoint: string): void {
+    const url = new URL(endpoint)
+    activeEndpoint = url.origin
+    activeClient = createApiClient(activeEndpoint)
+}
+
+export function createApiClient(endpoint: string): ApiClient {
+    return treaty<Api, AppApi.ClientHeaders>(endpoint, {
+        parseDate: false,
+        throwHttpError: false,
+        fetcher: (input, init) => {
+            const headers = new Headers()
+
+            if (init?.headers) {
+                new Headers(init.headers).forEach((value, key) => {
+                    headers.set(key, value)
+                })
+            }
+            headers.set('client-id', clientId)
+
+            return fetch(input, {
+                ...init,
+                headers,
+                signal: init?.signal ?? AbortSignal.timeout(requestTimeoutMs),
             })
-        }
-        headers.set('client-id', clientId)
+        },
+    })
+}
 
-        return fetch(input, {
-            ...init,
-            headers,
-            signal: init?.signal ?? AbortSignal.timeout(requestTimeoutMs),
-        })
-    },
-})
+export function getApiClient(): ApiClient {
+    if (!activeClient) {
+        throw new Error('API client must be initialized before making requests.')
+    }
+
+    return activeClient
+}
+
+export function getApiEndpoint(): string {
+    if (!activeEndpoint) {
+        throw new Error('API endpoint must be initialized before resolving resources.')
+    }
+
+    return activeEndpoint
+}
 
 export class ApiError extends Error {
     readonly code: string

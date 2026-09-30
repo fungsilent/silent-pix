@@ -11,6 +11,7 @@ import {
 } from 'lucide-solid'
 import { createEffect, createSignal, For, Show } from 'solid-js'
 
+import { resolveImageUrl } from '#/api/image'
 import { Button } from '#/components/base/Button'
 import { Dialog } from '#/components/base/Dialog'
 import { FilterChips } from '#/components/base/FilterChips'
@@ -322,7 +323,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                                                 <div class='relative aspect-square overflow-hidden rounded-md border border-line-subtle bg-active'>
                                                     <img
                                                         class='absolute inset-0 size-full object-cover'
-                                                        src={item.image.url}
+                                                        src={resolveImageUrl(item.image.url)}
                                                         alt=''
                                                         loading='lazy'
                                                     />

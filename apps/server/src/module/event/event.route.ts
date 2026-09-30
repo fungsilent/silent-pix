@@ -1,5 +1,7 @@
 import { appApi } from '@silent-pix/shared'
 
+import { isWebSocketOriginAllowed } from '#/lib/http-origin'
+
 import type { EventServer, EventSocket } from '@silent-pix/event/server'
 import type { Event } from '@silent-pix/shared'
 import type { Elysia } from 'elysia'
@@ -18,18 +20,8 @@ export function createEventRoutes(options: EventWebSocketOptions) {
             beforeHandle: ({ request, status }) => {
                 const origin = request.headers.get('origin')
                 const host = request.headers.get('host')
-                let originHost: string | undefined
 
-                if (origin) {
-                    try {
-                        originHost = new URL(origin).host
-                    }
-                    catch {
-                        originHost = undefined
-                    }
-                }
-
-                if (!host || originHost !== host) {
+                if (!isWebSocketOriginAllowed(origin, host)) {
                     return status(403, {
                         error: {
                             code: 'ORIGIN_NOT_ALLOWED',

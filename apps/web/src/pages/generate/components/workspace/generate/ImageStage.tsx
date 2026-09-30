@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight, Columns2, Expand, ImagePlus, Star, Trash2 } from 'lucide-solid'
 import { For, onCleanup, onMount, Show } from 'solid-js'
 
+import { resolveImageUrl } from '#/api/image'
 import { Button } from '#/components/base/Button'
 import { Loading } from '#/components/base/Loading'
 import { cn } from '#/lib/cn'
@@ -82,7 +83,7 @@ export function ImageStage(props: ImageStageProps) {
                     {image => (
                         <img
                             class='h-full w-full object-contain'
-                            src={image().url}
+                            src={resolveImageUrl(image().url)}
                             alt='Selected generated preview'
                             onClick={props.onExpand}
                         />
@@ -196,7 +197,7 @@ export function ImageStage(props: ImageStageProps) {
                             >
                                 <img
                                     class='h-full w-auto object-contain'
-                                    src={image.url}
+                                    src={resolveImageUrl(image.url)}
                                     alt=''
                                 />
                             </Button>

@@ -2,6 +2,7 @@ import { image } from '@silent-pix/shared'
 import { ImagePlus, RotateCcw, Search, X } from 'lucide-solid'
 import { createSignal, Show } from 'solid-js'
 
+import { resolveImageUrl } from '#/api/image'
 import { Button } from '#/components/base/Button'
 import { FieldHint } from '#/components/base/FieldHint'
 import { Loading } from '#/components/base/Loading'
@@ -238,7 +239,7 @@ function ReferenceSlot(props: ReferenceSlotProps) {
             <div class='relative h-40 overflow-hidden rounded-md bg-active'>
                 <img
                     class='absolute inset-0 size-full object-contain'
-                    src={props.reference.url}
+                    src={resolveImageUrl(props.reference.url)}
                     alt='Reference image'
                     onClick={() => setExpanded(true)}
                 />

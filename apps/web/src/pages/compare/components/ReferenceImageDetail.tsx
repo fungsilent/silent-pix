@@ -1,3 +1,4 @@
+import { resolveImageUrl } from '#/api/image'
 import { Bar } from '#/components/base/Bar'
 import { Line } from '#/components/base/Line'
 import { CollapseButton, CollapsedBar, Panel, PanelContent } from '#/components/base/Panel'
@@ -76,7 +77,7 @@ function ReferenceImageContent(props: ReferenceImageContentProps) {
                 <div class='flex h-40 items-center justify-center overflow-hidden rounded-md bg-active'>
                     <img
                         class='max-h-full max-w-full object-contain'
-                        src={props.image.url}
+                        src={resolveImageUrl(props.image.url)}
                         alt='Selected reference image'
                     />
                 </div>

@@ -1,6 +1,7 @@
 import { Expand, Eye, EyeOff, ImagePlus, X } from 'lucide-solid'
 import { createEffect, createMemo, createSignal, For, onCleanup, onMount, Show } from 'solid-js'
 
+import { resolveImageUrl } from '#/api/image'
 import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
 import { CenteredText } from '#/components/base/CenteredText'
@@ -334,7 +335,7 @@ function CompareThumbnailStrip(props: CompareThumbnailStripProps) {
                             >
                                 <img
                                     class='h-full w-auto object-contain'
-                                    src={entry.image.url}
+                                    src={resolveImageUrl(entry.image.url)}
                                     alt=''
                                     onError={() => props.onImageError(entry.image.id)}
                                 />

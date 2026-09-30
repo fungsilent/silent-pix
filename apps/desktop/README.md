@@ -40,28 +40,21 @@ pnpm dev:desktop
 ```
 
 This builds the web workspace dependencies, starts Vite using `WEB_HOST` and
-`WEB_PORT` from the repository-root `.env`, and launches Tauri with the same
-endpoint. An occupied port causes startup to fail instead of selecting another
-port. Browser and Desktop development use this one endpoint; this workflow does
-not promise simultaneous independent Vite instances.
+`WEB_PORT` from the repository-root `.env`, and launches Tauri with that dev
+URL. Vite supplies the UI and HMR, while the Tauri window always uses the
+Desktop platform path: it shows Connection settings, reads and writes the
+native Server URL, and sends REST, WebSocket, and image traffic directly to
+that Server. An occupied Vite port causes startup to fail instead of selecting
+another port.
 
-Start the backend separately. The development API and WebSocket proxy use
-`SERVER_HOST` and `SERVER_PORT` from the repository-root `.env`. To use another
-backend, set the optional `SERVER_URL` process override:
+Start the backend separately. On first launch, save its local URL in Settings;
+the default development Server is normally `http://127.0.0.1:3070`. The
+development Server permits canonical HTTP(S) cross-origin requests so the Vite
+webview can retain HMR while using the Desktop connection path.
 
-```sh
-SERVER_URL=http://192.168.1.10:3070 pnpm dev:desktop
-```
-
-In Windows PowerShell:
-
-```powershell
-$env:SERVER_URL = 'http://192.168.1.10:3070'
-pnpm.cmd dev:desktop
-```
-
-`SERVER_URL` configures the Vite development proxy only. HTTPS domains are
-supported, but Cloudflare Access authentication is not integrated yet.
+`SERVER_URL` configures the Vite `/api` proxy for Browser development only. It
+does not select the Server used by a Tauri window; use Desktop Settings for
+that.
 
 ## WSL frontend with a native Windows desktop
 
@@ -92,12 +85,12 @@ pnpm exec turbo run build '--filter=@silent-pix/web^...'
 pnpm --filter @silent-pix/web dev:desktop
 ```
 
-Set `SERVER_URL` on the Vite command when using a remote backend. The WSL Vite
-process reads `WEB_HOST` and `WEB_PORT` from the WSL repository-root `.env`.
-The linked Desktop wrapper resolves that same WSL root `.env` through the
-realpath of the linked `tauri.conf.json`, so duplicate Windows endpoint
-variables are not required. A Windows browser should open that configured
-endpoint.
+The WSL Vite process reads `WEB_HOST` and `WEB_PORT` from the WSL
+repository-root `.env`. The linked Desktop wrapper resolves that same WSL root
+`.env` through the realpath of the linked `tauri.conf.json`, so duplicate
+Windows endpoint variables are not required. A Windows browser should open that
+configured endpoint. Vite serves the UI and HMR only; select the backend through
+the Desktop Connection settings.
 
 In the same Windows PowerShell session:
 
@@ -112,14 +105,18 @@ wrapper with `--external-frontend`, resolves the WSL repository-root `.env` from
 the linked Tauri config, disables the frontend startup hook through its runtime
 config merge, and connects to the Vite server already running in WSL. It does
 not require duplicate Windows endpoint variables or a global `tsx` installation,
-and does not generate a second Tauri configuration file. When the linked
+and does not generate a second Tauri configuration file. Arguments are
+forwarded, so `.\script\dev-wsl.bat -v` reaches Tauri. When the linked
 `package.json` adds a required launcher dependency, the batch launcher refreshes
 the Windows-local dependencies before startup. On failure, it keeps the console
 open.
 
-Keep both development processes running. UI changes in WSL update through Vite. Rust changes are visible through the links. File watcher notifications across WSL may not trigger reliably; restart the desktop command if a Rust change does not rebuild. Closing the desktop does not stop the backend.
-
+Keep both development processes running. UI changes in WSL update through Vite.
+Rust changes are visible through the links. File watcher notifications across
+WSL may not trigger reliably; restart the desktop command if a Rust change does
+not rebuild. Closing the desktop does not stop the backend.
 The standalone Windows linked directory supports this development workflow only; the production build hooks require the complete monorepo.
+
 
 ## Validation and packaging
 
@@ -135,13 +132,15 @@ pnpm build:desktop
 - `check` and `build` validate the TypeScript workspace and Web UI. `check:native` checks Rust separately.
 - `build:desktop` builds the shared UI and packages Tauri for the host operating system.
 - Native outputs are in `apps/desktop/target/release/`; installers are under `bundle/`.
-- With a backend available, check Generate, Workflow, Compare, image loading, and WebSocket reconnection.
-- With the backend unavailable, check that the window opens and displays the existing connection or query error state.
+- Use the normal WSL/Desktop development flow to check Connection settings with HMR; use a packaged build against a non-development Server to confirm the packaged Origin, CORS/WebSocket boundary, bundling, installers, and the release profile.
+- In a packaged build, open Settings and optionally select **Test connection** to check the Server health endpoint. Save remains available after entering a valid local Server URL without testing; verify the app reloads into that Server.
+- With a backend available, check Generate, Workflow, Compare, image loading, and WebSocket reconnection after configuring the packaged Server.
+- With no saved URL, packaged Desktop opens directly to Settings without starting health or event requests. With a saved but unavailable Server, verify the app shows its connection/query errors and Settings remains accessible.
 
 ## Current limitations
 
-- Packaged builds currently provide the UI shell only. REST, image URLs, and WebSocket connections still use the current origin; packaged remote connectivity and authentication are not wired yet.
-- Server selection, authentication, native file access, tray integration, and automatic updates are not implemented.
+- Desktop stores one validated local Server URL in the OS app config directory in both development and packaged builds. REST, image, and WebSocket traffic use that URL; the backend must be reachable at `127.0.0.1` from the Desktop process.
+- Remote connectivity/authentication, multiple Server profiles, native file access, tray integration, and automatic updates are not implemented.
 - Icons use the Tauri scaffold defaults.
 - The first native build generates a local `Cargo.lock`; copy it back to the repository and include it in version control after platform validation.
 - The Windows symbolic-link workflow and native compilation need validation on Windows; they cannot be verified in the current Linux environment.

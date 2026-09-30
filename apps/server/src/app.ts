@@ -2,6 +2,7 @@ import { node } from '@elysiajs/node'
 import { Elysia } from 'elysia'
 
 import { serverStore } from '#/app.store'
+import { applyApiCors } from '#/lib/http-origin'
 import { errorCatchMiddleware } from '#/middleware/error-catch'
 import { createHealthBroadcaster } from '#/module/app/app.health'
 import { appRoutes } from '#/module/app/app.route'
@@ -41,6 +42,8 @@ export async function createApp() {
         .group(
             '/api',
             app => app
+                .onBeforeHandle(({ request, set }) => applyApiCors(request, set.headers))
+                .options('/*', () => new Response(null, { status: 204 }))
                 .use(appRoutes)
                 .use(imageRoutes)
                 .use(imageGarbageCollectionRoutes)

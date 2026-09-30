@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight, Star, Trash2, X } from 'lucide-solid'
 import { For, onCleanup, onMount, Show } from 'solid-js'
 import { Portal } from 'solid-js/web'
 
+import { resolveImageUrl } from '#/api/image'
 import { Button } from '#/components/base/Button'
 import { CenteredText } from '#/components/base/CenteredText'
 import { ZoomControls } from '#/components/viewer/ZoomControls'
@@ -198,7 +199,7 @@ export function ImageViewer(props: ImageViewerProps) {
                                 >
                                     <img
                                         class='h-full w-auto object-contain'
-                                        src={thumbnail.url}
+                                        src={resolveImageUrl(thumbnail.url)}
                                         alt=''
                                     />
                                     <Show when={props.thumbnailLabel}>

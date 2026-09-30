@@ -195,7 +195,3 @@ export function createEventClient<TEvent>(options: EventClientOptions<TEvent>): 
         close,
     }
 }
-
-export function createSameOriginEventsUrl(locationValue: Location = location): string {
-    return `${locationValue.protocol === 'https:' ? 'wss:' : 'ws:'}//${locationValue.host}/api/event`
-}

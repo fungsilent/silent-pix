@@ -1,5 +1,6 @@
 import { createEffect, createSignal, For, Show } from 'solid-js'
 
+import { resolveImageUrl } from '#/api/image'
 import { cn } from '#/lib/cn'
 
 import type { createImageZoom, Offset, Size } from '#/lib/imageZoom'
@@ -64,7 +65,7 @@ export function ZoomStage(props: ZoomStageProps) {
                             translate: `${props.zoom.offset().x}px ${props.zoom.offset().y}px`,
                             width: props.zoom.scaled().width ? `${props.zoom.scaled().width}px` : 'auto',
                         }}
-                        src={source.url}
+                        src={resolveImageUrl(source.url)}
                         alt={index() === props.selectedIndex ? 'Generated preview' : ''}
                         draggable={false}
                         onPointerCancel={props.zoom.endDrag}
@@ -86,7 +87,7 @@ export function ZoomStage(props: ZoomStageProps) {
                 <Minimap
                     offset={props.zoom.offset()}
                     scaled={props.zoom.scaled()}
-                    source={image()?.url ?? ''}
+                    source={resolveImageUrl(image()?.url ?? '')}
                     viewport={props.zoom.viewport()}
                     onMove={props.zoom.moveTo}
                 />

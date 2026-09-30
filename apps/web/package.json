@@ -24,6 +24,7 @@
         "@silent-pix/shared": "workspace:*",
         "@tanstack/solid-form": "^1.33.5",
         "@tanstack/solid-query": "^5.101.2",
+        "@tauri-apps/api": "^2.12.0",
         "clsx": "^2.1.1",
         "lucide-solid": "^1.23.0",
         "solid-js": "^1.9.14",

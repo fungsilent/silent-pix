@@ -1,6 +1,7 @@
-import { apiClient, ApiError, toApiError, unwrap } from '#/api/api.client'
+import { ApiError, getApiClient, toApiError, unwrap } from '#/api/api.client'
 
 import type { Comfy, WorkflowApi } from '@silent-pix/shared'
+import type { ApiClient } from '#/api/api.client'
 
 export class WorkflowMappingApiError extends ApiError {
     readonly issues: Comfy.MappingIssue[]
@@ -12,8 +13,8 @@ export class WorkflowMappingApiError extends ApiError {
     }
 }
 
-type CreateWorkflowError = NonNullable<Awaited<ReturnType<typeof apiClient.api.workflow.post>>['error']>
-type UpdateWorkflowError = NonNullable<Awaited<ReturnType<ReturnType<typeof apiClient.api.workflow>['put']>>['error']>
+type CreateWorkflowError = NonNullable<Awaited<ReturnType<ApiClient['api']['workflow']['post']>>['error']>
+type UpdateWorkflowError = NonNullable<Awaited<ReturnType<ReturnType<ApiClient['api']['workflow']>['put']>>['error']>
 
 function mapWorkflowMutationError(error: CreateWorkflowError): ApiError
 function mapWorkflowMutationError(error: UpdateWorkflowError): ApiError
@@ -35,23 +36,23 @@ function mapWorkflowMutationError(error: CreateWorkflowError | UpdateWorkflowErr
 
 export const workflowApi = {
     list(): Promise<WorkflowApi.GetWorkflowsResponse> {
-        return unwrap(apiClient.api.workflow.get())
+        return unwrap(getApiClient().api.workflow.get())
     },
 
     detail(request: WorkflowApi.GetWorkflowRequest): Promise<WorkflowApi.GetWorkflowResponse> {
-        return unwrap(apiClient.api.workflow({ workflowId: request.workflowId }).get())
+        return unwrap(getApiClient().api.workflow({ workflowId: request.workflowId }).get())
     },
 
     create(request: WorkflowApi.CreateWorkflowRequest): Promise<WorkflowApi.CreateWorkflowResponse> {
-        return unwrap(apiClient.api.workflow.post(request, {}), mapWorkflowMutationError)
+        return unwrap(getApiClient().api.workflow.post(request, {}), mapWorkflowMutationError)
     },
 
     remove(request: WorkflowApi.GetWorkflowRequest): Promise<WorkflowApi.DeleteWorkflowResponse> {
-        return unwrap(apiClient.api.workflow({ workflowId: request.workflowId }).delete(undefined, {}))
+        return unwrap(getApiClient().api.workflow({ workflowId: request.workflowId }).delete(undefined, {}))
     },
 
     update(request: WorkflowApi.UpdateWorkflowParams & WorkflowApi.UpdateWorkflowRequest): Promise<WorkflowApi.UpdateWorkflowResponse> {
-        return unwrap(apiClient.api.workflow({ workflowId: request.workflowId }).put({
+        return unwrap(getApiClient().api.workflow({ workflowId: request.workflowId }).put({
             revision: request.revision,
             name: request.name,
             graph: request.graph,
