@@ -210,6 +210,11 @@ members explicitly; do not spread or export-star runtime schemas. Keep schema
 and logic sections before inferred types, using the shared comment categories
 specified in AGENTS.md.
 
+Workspace packages expose `src` under the `development` export condition and
+`dist` by default. Source-running Node scripts enable `--conditions=development`;
+Vite development uses its built-in development condition. Database commands and
+`pnpm dev` do not require a prior build.
+
 Source aliases are `#/` except within shared, which uses `#shared/`. The distinct
 shared prefix avoids a known collision when tsx applies the entry package's
 paths to loaded shared files. Preserve it until an alternative is validated

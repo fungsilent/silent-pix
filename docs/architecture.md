@@ -29,6 +29,10 @@ Rules:
 
 ---
 
+Development runs workspace TypeScript sources through the `development` export
+condition; production package resolution uses built `dist` outputs. Database
+commands and Web/Server development do not require a prior build.
+
 ## App Boundaries
 
 ### `apps/web`
