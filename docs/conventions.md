@@ -630,8 +630,8 @@ Rules:
 - the repository-root `.env` is the sole development endpoint source for Browser Vite and Desktop Tauri
 - `apps/web/vite.config.ts` explicitly loads the repository-root `.env` with `loadEnv()`; external process env values override it
 - `apps/desktop/script/dev.ts` runs from the local Desktop cwd, resolves the linked `tauri.conf.json` realpath to load the source repository root `.env`, validates `WEB_HOST`/`WEB_PORT`, and always merges their Vite endpoint into Tauri at runtime; process env overrides dotenv, `--external-frontend` only removes the normal `beforeDevCommand`, and linked WSL does not require duplicate Windows endpoint variables
-- every Tauri webview uses the Desktop platform identity and native saved Server URL while Vite supplies development UI assets and HMR; `dev-wsl.bat` passes `--external-frontend` and forwards Tauri arguments; packaged-origin validation uses a formal Desktop build
-- package scripts, `tauri.conf.json`, and `dev-wsl.bat` must not duplicate development host/port literals or promise simultaneous independent Vite instances
+- every Tauri webview uses the Desktop platform identity and native saved Server URL while Vite supplies development UI assets and HMR; `dev-window.bat` passes `--external-frontend` and forwards Tauri arguments; packaged-origin validation uses a formal Desktop build
+- package scripts, `tauri.conf.json`, and `dev-window.bat` must not duplicate development host/port literals or promise simultaneous independent Vite instances
 - the Desktop webview disables Tauri's native drag/drop handler so shared HTML5 file drop remains available, including on Windows WebView2
 - `SERVER_URL` is an optional process-environment override for the Browser Vite `/api` proxy and is not required in `.env.example`; Tauri uses its native saved Server URL instead
 - packaged Desktop supports one locally configured Server URL through native settings; remote connectivity and authentication are not implemented, and Windows native runtime behavior is not verified from this Linux workspace

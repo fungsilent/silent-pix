@@ -42,7 +42,7 @@ try {
     }
 
     Write-Host "Linked desktop source into $destinationRoot"
-    Write-Host 'Run pnpm.cmd install there, start Vite in WSL, then run script\dev-wsl.bat.'
+    Write-Host 'Run pnpm.cmd install there, start Vite in WSL, then run script\dev-window.bat.'
 } catch {
     Write-Host $_.Exception.Message -ForegroundColor Red
     Write-Host 'Symbolic links require suitable Windows permissions. Try an elevated PowerShell terminal.'

@@ -16,9 +16,10 @@ apps/desktop/
   src/                 Rust source files only
   script/
     dev.ts
-    dev-wsl.bat
-    link-wsl.bat
-    link-wsl.ps1
+    check-window.bat
+    check-window.ps1
+    dev-window.bat
+    link-window.ps1
   target/              Local native build outputs
 ```
 
@@ -29,6 +30,22 @@ The Tauri project root is `apps/desktop`. Frontend build hooks run from the mono
 Install the [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/) on the operating system running the desktop app: Rust, the platform build tools, and WebView dependencies. Windows development requires the MSVC Rust toolchain, Microsoft C++ Build Tools, and WebView2.
 
 Install Node.js and pnpm `^12.16.1` on that operating system as well. Running Tauri inside WSL builds a Linux app; use Windows tooling for a native Windows app.
+
+On Windows, double-click `script/check-window.bat` to list prerequisite versions
+and missing dependencies before starting Desktop. It checks Node.js support for
+the launcher's env loader, the `pnpm.cmd` entry used by the launcher (version range
+from Desktop's `engines.pnpm`), Cargo, Rust's active MSVC host, rustup, C++ Build Tools, Windows SDK
+headers, and WebView2 Runtime registration. It installs nothing, requires no
+administrator privileges. The PowerShell script returns exit code 1 if a check
+fails. The batch entry reruns the checks when any key is pressed; close the
+window to exit. It bypasses execution policy only for its child
+PowerShell process. Tool detection does not verify a complete native build.
+
+Manual acceptance: run it on Windows before and after installing a missing
+prerequisite; confirm every dependency is listed, the missing item reports
+`Ready = False`, and a fully configured machine returns exit code 0. Temporarily
+remove Node.js from the current process PATH to check the missing-tool branch
+without uninstalling anything.
 
 ## Development on one operating system
 
@@ -60,25 +77,24 @@ that.
 
 Keep frontend development in WSL and compile the native shell in a local Windows directory. The setup links source files from WSL while keeping `node_modules`, `target`, and `gen` on Windows.
 
-Run the following in Windows PowerShell. Replace every placeholder with your own distribution name (`wsl -l -q`), WSL repository path, and Windows destination. Use a new or empty destination; the setup refuses to overwrite existing files.
+Run the following in an elevated Windows PowerShell terminal. Replace the
+example distribution name and paths as needed. Choose a new or empty destination;
+the setup refuses to overwrite existing files.
 
 ```powershell
-$desktopSource = '\\wsl.localhost\<distribution>\<path-to-repository>\apps\desktop'
+$desktopSource = '\\wsl.localhost\<distribution>\home\<user>\<repository-path>\apps\desktop'
 $desktopDestination = 'C:\<development-directory>\silent-pix-desktop'
-& "$desktopSource\script\link-wsl.bat" -Source $desktopSource -Destination $desktopDestination
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$desktopSource\script\link-window.ps1" -Source $desktopSource -Destination $desktopDestination
 ```
 
-Creating symbolic links requires Windows permissions. If denied, run setup from an elevated PowerShell terminal. The script does not change system settings. Keep your previous copied shell until the linked one works.
+`Bypass` applies only to this PowerShell process and does not permanently change
+the execution policy. Creating symbolic links requires suitable Windows permissions; WSL `sudo` does
+not grant Windows administrator rights. The script does not change system
+settings. Keep your previous copied shell until the linked one works.
 
 `src`, `script`, `capabilities`, `icons`, `Cargo.toml`, `build.rs`, `tauri.conf.json`, and `package.json` are linked. An existing `Cargo.lock` is copied, not linked; review and synchronize lockfile changes explicitly after dependency updates. Do not link the entire desktop directory or its build outputs.
 
-Start the backend in one WSL terminal if needed:
-
-```sh
-pnpm dev:server
-```
-
-Start Vite in another WSL terminal:
+Start Vite in a WSL terminal:
 
 ```sh
 pnpm exec turbo run build '--filter=@silent-pix/web^...'
@@ -92,26 +108,27 @@ Windows endpoint variables are not required. A Windows browser should open that
 configured endpoint. Vite serves the UI and HMR only; select the backend through
 the Desktop Connection settings.
 
-In the same Windows PowerShell session:
+In Windows PowerShell:
 
 ```powershell
-Set-Location -LiteralPath $desktopDestination
+Set-Location -LiteralPath 'C:\dev\silent-pix-desktop'
 pnpm.cmd install
-.\script\dev-wsl.bat
+.\script\dev-window.bat
 ```
 
-You can also double-click `script/dev-wsl.bat`. It invokes the same Desktop dev
+You can also double-click `script/dev-window.bat`. It invokes the same Desktop dev
 wrapper with `--external-frontend`, resolves the WSL repository-root `.env` from
 the linked Tauri config, disables the frontend startup hook through its runtime
 config merge, and connects to the Vite server already running in WSL. It does
 not require duplicate Windows endpoint variables or a global `tsx` installation,
 and does not generate a second Tauri configuration file. Arguments are
-forwarded, so `.\script\dev-wsl.bat -v` reaches Tauri. When the linked
+forwarded, so `.\script\dev-window.bat -v` reaches Tauri. When the linked
 `package.json` adds a required launcher dependency, the batch launcher refreshes
 the Windows-local dependencies before startup. On failure, it keeps the console
 open.
 
-Keep both development processes running. UI changes in WSL update through Vite.
+Keep Vite and Desktop running. The launcher only starts Desktop; manage the
+backend separately. UI changes in WSL update through Vite.
 Rust changes are visible through the links. File watcher notifications across
 WSL may not trigger reliably; restart the desktop command if a Rust change does
 not rebuild. Closing the desktop does not stop the backend.
