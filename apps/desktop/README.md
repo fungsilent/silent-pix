@@ -28,7 +28,7 @@ The Tauri project root is `apps/desktop`. Frontend build hooks run from the mono
 
 Install the [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/) on the operating system running the desktop app: Rust, the platform build tools, and WebView dependencies. Windows development requires the MSVC Rust toolchain, Microsoft C++ Build Tools, and WebView2.
 
-Install Node.js and pnpm `10.15.0` on that operating system as well. Running Tauri inside WSL builds a Linux app; use Windows tooling for a native Windows app.
+Install Node.js and pnpm `^12.16.1` on that operating system as well. Running Tauri inside WSL builds a Linux app; use Windows tooling for a native Windows app.
 
 ## Development on one operating system
 

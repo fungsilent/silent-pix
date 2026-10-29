@@ -3,7 +3,13 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "packageManager": "pnpm@10.15.0",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "^12.16.1",
+      "onFail": "error"
+    }
+  },
   "scripts": {
     "dev": "turbo run dev --parallel --filter=@silent-pix/server --filter=@silent-pix/web",
     "dev:web": "pnpm --filter @silent-pix/web dev",
@@ -27,13 +33,13 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
+    "@types/node": "^26.6.5",
     "@typescript/native": "npm:typescript@^7.0.2",
-    "@types/node": "^26.1.2",
-    "eslint": "^10.8.0",
-    "eslint-plugin-perfectionist": "^5.9.1",
-    "globals": "^17.8.0",
-    "turbo": "^2.10.8",
+    "eslint": "^10.13.0",
+    "eslint-plugin-perfectionist": "^5.13.0",
+    "globals": "^17.13.0",
+    "turbo": "^2.11.10",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
-    "typescript-eslint": "^8.65.0"
+    "typescript-eslint": "^8.72.1"
   }
 }

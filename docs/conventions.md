@@ -5,6 +5,13 @@ structure and known gaps; `../AGENTS.md` contains implementation constraints.
 Keep these documents aligned; label current exceptions rather than inventing
 parallel rules.
 
+The root `devEngines.packageManager` declares pnpm `^12.16.1`; Turbo 2.11+
+reads that version range. The standalone linked Desktop package declares the
+same range in `engines.pnpm`, which its Windows prerequisite checker reads.
+Use caret ranges for third-party dependencies and keep exact resolved versions
+in `pnpm-lock.yaml`. `pnpm-workspace.yaml` allows only esbuild's dependency build
+scripts.
+
 ---
 
 ## TypeScript

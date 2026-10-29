@@ -3,6 +3,9 @@
     "private": true,
     "version": "0.1.0",
     "type": "module",
+    "engines": {
+        "pnpm": "^12.16.1"
+    },
     "scripts": {
         "dev": "tsx script/dev.ts",
         "build:desktop": "tauri build",
@@ -11,8 +14,8 @@
         "tauri": "tauri"
     },
     "devDependencies": {
-        "@tauri-apps/cli": "^2.11.4",
-        "tsx": "^4.23.1",
+        "@tauri-apps/cli": "^2.12.4",
+        "tsx": "^4.23.15",
         "typescript": "^7.0.2"
     }
 }
