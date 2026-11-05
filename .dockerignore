@@ -1,0 +1,14 @@
+**/node_modules
+**/dist
+**/.env
+**/.env.*
+**/.data
+**/.local
+**/target
+**/.turbo
+**/.vite
+**/*.tsbuildinfo
+**/*.sqlite*
+**/*.db
+.git
+temp

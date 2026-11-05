@@ -1,0 +1,7 @@
+---
+silent_pix:
+  hosts:
+    localhost:
+      ansible_connection: local
+      ansible_python_interpreter: "{{ ansible_playbook_python }}"
+      silent_pix_root: "{{ playbook_dir | dirname | dirname }}"

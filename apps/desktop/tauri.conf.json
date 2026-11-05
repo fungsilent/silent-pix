@@ -10,7 +10,7 @@
       "cwd": "../.."
     },
     "beforeBuildCommand": {
-      "script": "pnpm exec turbo run build --filter=@silent-pix/web",
+      "script": "pnpm build:web",
       "cwd": "../.."
     }
   },

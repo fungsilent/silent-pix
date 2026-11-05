@@ -1,0 +1,12 @@
+http://:{$CADDY_PORT} {
+	@api path /api /api/*
+	handle @api {
+		reverse_proxy server:{$SERVER_PORT}
+	}
+
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}

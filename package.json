@@ -15,7 +15,11 @@
     "dev:web": "pnpm --filter @silent-pix/web dev",
     "dev:server": "pnpm --filter @silent-pix/server dev",
     "dev:desktop": "pnpm --filter @silent-pix/desktop dev",
-    "build": "turbo run build",
+    "build:web": "turbo run build --filter=@silent-pix/web",
+    "build:desktop": "pnpm --filter @silent-pix/desktop build:desktop",
+    "deploy:start": "bash deploy/script/start.sh",
+    "deploy:stop": "bash deploy/script/stop.sh",
+    "deploy:down": "bash deploy/script/down.sh",
     "typecheck": "turbo run typecheck",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -27,8 +31,7 @@
     "image:gc": "pnpm --filter @silent-pix/server image:gc",
     "image:gc:offline": "pnpm --filter @silent-pix/server image:gc:offline",
     "db:seed": "pnpm --filter @silent-pix/db db:seed",
-    "db:reset": "pnpm --filter @silent-pix/db db:reset",
-    "build:desktop": "pnpm --filter @silent-pix/desktop build:desktop"
+    "db:reset": "pnpm --filter @silent-pix/db db:reset"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

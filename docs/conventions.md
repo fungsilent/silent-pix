@@ -603,6 +603,7 @@ SERVER_HOST=127.0.0.1
 SERVER_PORT=3070
 WEB_HOST=127.0.0.1
 WEB_PORT=5173
+CADDY_PORT=8080
 
 COMFYUI_BASE_URL=http://127.0.0.1:8188
 COMFYUI_STORAGE_PREFIX=/absolute/path/as-seen-by-comfyui/storage
@@ -628,6 +629,11 @@ Rules:
 - project-owned APIs do not receive env-backed values as arguments or options
 - isolated validation sets env before importing the owning module
 - the repository-root `.env` is the sole development endpoint source for Browser Vite and Desktop Tauri
+- `CADDY_PORT` in root `.env` configures the Docker Compose Caddy listener and loopback host publication; deploy scripts never source `.env` as shell code
+- `deploy/script` delegates start/stop/down to the same Docker Compose project; start builds and recreates containers in the background, stop retains containers/network, and down removes containers/network. All retain bind-mounted data and images; migration remains explicit, and manually started writers must be stopped separately
+- Docker Compose fixes `NODE_ENV=production` and the container bind address `SERVER_HOST=0.0.0.0`; other runtime settings come from root `.env`. Persistent directory mounts use absolute host paths as container paths, and `DATABASE_PATH` must be inside the mounted `APP_DATA_DIR`
+- Ansible delegates deployment to the existing Compose scripts on a prepared target checkout; check mode performs read-only preflight, and root `.env` remains the only application configuration source
+- ComfyUI is independently deployed; deploy start runs one HTTP connectivity check from a temporary Server container before stopping existing services, with a five-second timeout. Failure prints a deployment warning and continues; no runtime warning is added. Deployment acceptance does not submit generation jobs; required env values and Docker mount paths must remain valid
 - `apps/web/vite.config.ts` explicitly loads the repository-root `.env` with `loadEnv()`; external process env values override it
 - `apps/desktop/script/dev.ts` runs from the local Desktop cwd, resolves the linked `tauri.conf.json` realpath to load the source repository root `.env`, validates `WEB_HOST`/`WEB_PORT`, and always merges their Vite endpoint into Tauri at runtime; process env overrides dotenv, `--external-frontend` only removes the normal `beforeDevCommand`, and linked WSL does not require duplicate Windows endpoint variables
 - every Tauri webview uses the Desktop platform identity and native saved Server URL while Vite supplies development UI assets and HMR; `dev-window.bat` passes `--external-frontend` and forwards Tauri arguments; packaged-origin validation uses a formal Desktop build
@@ -644,6 +650,7 @@ Ownership mapping:
 | `DATABASE_PATH` | `packages/db/src/client.ts` | `createDatabaseClient()` |
 | `SERVER_HOST`, `SERVER_PORT` | server/CLI entrypoint that binds or probes HTTP | no reusable server-address option |
 | `WEB_HOST`, `WEB_PORT` | `apps/web/vite.config.ts`, `apps/desktop/script/dev.ts` | Browser/Desktop Vite and Tauri `--config` merge use the same explicitly loaded root env |
+| `CADDY_PORT` | `deploy/compose.yaml`, `deploy/Caddyfile` | Root env configures the container listener and loopback host port |
 | `SERVER_URL`, `SERVER_HOST`, `SERVER_PORT` | `apps/web/vite.config.ts`, server/CLI entrypoint | optional proxy override or server bind/probe configuration |
 | `COMFYUI_BASE_URL` | `ComfyClient` | `new ComfyClient()` |
 | `APP_STORAGE_DIR` | image store; GC owns only its directory sweep | `readContent(path)`, `writeContent(path, bytes)`, `unlinkContent(path)` |

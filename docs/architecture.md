@@ -265,6 +265,37 @@ cwd but resolves the linked `tauri.conf.json` realpath to find the WSL source
 repository `.env`; duplicate Windows endpoint variables are not required. This
 setup does not promise simultaneous independent Vite instances.
 
+The single-host deployment uses `deploy/compose.yaml` and `deploy/Dockerfile`
+to build separate Server and Caddy/Web images. Caddy serves the bundled Web UI
+and proxies `/api` (including WebSocket upgrades) over the Compose network.
+Only Caddy publishes the root `.env`'s `CADDY_PORT` on host loopback. Compose
+fixes production mode and the Server's container bind address, and injects the
+remaining settings from root `.env`; the envfile is never baked into images.
+Absolute data/storage/ComfyUI output directories are mounted at identical host
+and container paths. The Docker Server entrypoint checks that SQLite lives
+inside the persistent `APP_DATA_DIR` mount. One Server writer per database/storage
+pair remains required.
+
+`deploy/script/start.sh` rebuilds and recreates the project in the background;
+`stop.sh` stops services while retaining containers and network; `down.sh` removes
+containers and network. All three retain bind-mounted data and images.
+Cloudflare Tunnel remains independently managed. Database
+migration is explicit and must run with writers stopped. Desktop remains a
+separate native build.
+
+ComfyUI is deployed independently. Before stopping the existing project,
+start runs one HTTP connectivity check from a temporary Server container
+with its configured env/mounts and a five-second timeout. Failure prints a
+deployment warning and continues; Server runtime is unchanged. Compose readiness
+depends only on database health. Deployment acceptance covers Backend/Frontend
+HTTP and WebSocket, without submitting generation jobs. Required env values and
+Docker mount paths remain validated.
+
+`deploy/ansible/deploy.yml` provides local/SSH preflight and calls those same
+Compose scripts against an existing target checkout. It neither generates a
+second service configuration nor installs Docker, transfers secrets, or migrates
+data. Check mode runs only the read-only preflight.
+
 Every Tauri window reads and writes one validated local Server URL through
 native commands and stores it under the OS app config directory. The Settings
 UI can optionally probe the candidate; Save validates and persists the URL,

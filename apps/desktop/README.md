@@ -141,12 +141,12 @@ From the complete repository:
 
 ```sh
 pnpm check
-pnpm build
+pnpm build:web
 pnpm --filter @silent-pix/desktop check:native
 pnpm build:desktop
 ```
 
-- `check` and `build` validate the TypeScript workspace and Web UI. `check:native` checks Rust separately.
+- `check` validates the TypeScript workspace and `build:web` builds its Web UI dependencies. `check:native` checks Rust separately.
 - `build:desktop` builds the shared UI and packages Tauri for the host operating system.
 - Native outputs are in `apps/desktop/target/release/`; installers are under `bundle/`.
 - Use the normal WSL/Desktop development flow to check Connection settings with HMR; use a packaged build against a non-development Server to confirm the packaged Origin, CORS/WebSocket boundary, bundling, installers, and the release profile.

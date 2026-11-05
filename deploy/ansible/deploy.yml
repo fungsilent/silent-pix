@@ -1,0 +1,79 @@
+---
+- name: Manage Silent Pix through Docker Compose
+  hosts: silent_pix
+  gather_facts: false
+  vars:
+    deployment_action: start
+
+  tasks:
+    - name: Validate deployment inputs
+      ansible.builtin.assert:
+        quiet: true
+        that:
+          - deployment_action in ['start', 'stop', 'down']
+          - silent_pix_root is defined
+          - silent_pix_root is string
+          - silent_pix_root.startswith('/')
+        fail_msg: Set an absolute silent_pix_root on the target and deployment_action=start, stop, or down.
+
+    - name: Check existing checkout and environment file
+      ansible.builtin.stat:
+        path: "{{ silent_pix_root }}/{{ item }}"
+        follow: true
+        get_checksum: false
+        get_mime: false
+      loop:
+        - .env
+        - deploy/compose.yaml
+        - "deploy/script/{{ deployment_action }}.sh"
+      register: deployment_files
+
+    - name: Require existing deployment files
+      ansible.builtin.assert:
+        quiet: true
+        that: item.stat.isreg | default(false)
+        fail_msg: "Missing deployment file: {{ item.item }}"
+      loop: "{{ deployment_files.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    - name: Check Docker Engine access
+      ansible.builtin.command:
+        argv: [docker, info]
+      changed_when: false
+      check_mode: false
+
+    - name: Check Docker Compose installation
+      ansible.builtin.command:
+        argv: [docker, compose, version]
+      changed_when: false
+      check_mode: false
+
+    - name: Validate Compose configuration without printing environment values
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - --project-directory
+          - "{{ silent_pix_root }}"
+          - --env-file
+          - "{{ silent_pix_root }}/.env"
+          - -f
+          - "{{ silent_pix_root }}/deploy/compose.yaml"
+          - config
+          - --quiet
+      changed_when: false
+      check_mode: false
+
+    - name: Apply deployment action through the shared script
+      ansible.builtin.command:
+        argv:
+          - /bin/bash
+          - "{{ silent_pix_root }}/deploy/script/{{ deployment_action }}.sh"
+      changed_when: true
+      register: deployment_result
+
+    - name: Show deployment warnings
+      ansible.builtin.debug:
+        msg: "{{ deployment_result.stderr_lines | select('match', '^WARNING:') | list }}"
+      when: deployment_result.stderr is defined and 'WARNING:' in deployment_result.stderr

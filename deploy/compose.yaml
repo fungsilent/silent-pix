@@ -1,0 +1,79 @@
+name: silent-pix
+
+x-build: &build
+  context: .
+  dockerfile: deploy/Dockerfile
+  args:
+    SERVER_HOST: ${SERVER_HOST:?Set SERVER_HOST in root .env}
+    SERVER_PORT: ${SERVER_PORT:?Set SERVER_PORT in root .env}
+    WEB_HOST: ${WEB_HOST:?Set WEB_HOST in root .env}
+    WEB_PORT: ${WEB_PORT:?Set WEB_PORT in root .env}
+
+services:
+  server:
+    build:
+      <<: *build
+      target: server
+    environment:
+      NODE_ENV: production
+      # Containers listen on their network; only Caddy publishes a host port.
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: ${SERVER_PORT:?Set SERVER_PORT in root .env}
+      APP_DATA_DIR: ${APP_DATA_DIR:?Use an absolute host directory}
+      DATABASE_PATH: ${DATABASE_PATH:?Use a path inside APP_DATA_DIR}
+      APP_STORAGE_DIR: ${APP_STORAGE_DIR:?Use an absolute host directory}
+      COMFYUI_BASE_URL: ${COMFYUI_BASE_URL:?Set the ComfyUI URL reachable from Docker}
+      COMFYUI_STORAGE_PREFIX: ${COMFYUI_STORAGE_PREFIX:?Set the storage path visible to ComfyUI}
+      COMFYUI_OUTPUT_DIR: ${COMFYUI_OUTPUT_DIR:?Use an absolute host directory}
+    volumes:
+      - type: bind
+        source: ${APP_DATA_DIR:?Use an absolute host directory}
+        target: ${APP_DATA_DIR:?Use an absolute host directory}
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${APP_STORAGE_DIR:?Use an absolute host directory}
+        target: ${APP_STORAGE_DIR:?Use an absolute host directory}
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${COMFYUI_OUTPUT_DIR:?Use an absolute host directory}
+        target: ${COMFYUI_OUTPUT_DIR:?Use an absolute host directory}
+        bind:
+          create_host_path: false
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:' + process.env.SERVER_PORT + '/api/health').then(async r => { if (!r.ok || !(await r.json()).database) process.exit(1) }).catch(() => process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    restart: unless-stopped
+    stop_grace_period: 1m
+
+  web:
+    build:
+      <<: *build
+      target: web
+    environment:
+      CADDY_PORT: ${CADDY_PORT:?Set CADDY_PORT in root .env}
+      SERVER_PORT: ${SERVER_PORT:?Set SERVER_PORT in root .env}
+    volumes:
+      - type: bind
+        source: ./deploy/Caddyfile
+        target: /etc/caddy/Caddyfile
+        read_only: true
+        bind:
+          create_host_path: false
+    ports:
+      - "127.0.0.1:${CADDY_PORT:?Set CADDY_PORT in root .env}:${CADDY_PORT:?Set CADDY_PORT in root .env}"
+    depends_on:
+      server:
+        condition: service_healthy
+    restart: unless-stopped
+    stop_grace_period: 1m

@@ -23,6 +23,12 @@ export default defineConfig(
     ...tseslint.configs.recommendedTypeChecked,
 
     {
+        files: ['deploy/script/*.mjs'],
+        extends: [tseslint.configs.disableTypeChecked],
+        languageOptions: { globals: globals.node },
+    },
+
+    {
         files: ['**/*.{ts,tsx}'],
         languageOptions: {
             globals: {
