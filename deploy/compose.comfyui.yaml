@@ -1,0 +1,12 @@
+services:
+  server:
+    environment:
+      COMFYUI_BASE_URL: ${COMFYUI_BASE_URL:?Set the ComfyUI URL reachable from Docker}
+      COMFYUI_STORAGE_PREFIX: ${COMFYUI_STORAGE_PREFIX:?Set the storage path visible to ComfyUI}
+      COMFYUI_OUTPUT_DIR: ${COMFYUI_OUTPUT_DIR:?Use an absolute host directory}
+    volumes:
+      - type: bind
+        source: ${COMFYUI_OUTPUT_DIR:?Use an absolute host directory}
+        target: ${COMFYUI_OUTPUT_DIR:?Use an absolute host directory}
+        bind:
+          create_host_path: false

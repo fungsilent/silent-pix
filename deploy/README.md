@@ -32,7 +32,7 @@ come from root `.env`. Only the four development endpoint values are passed as
 build arguments because the existing Vite config requires them during build.
 No ComfyUI or storage configuration is embedded in the Web image.
 
-For Docker, use existing **absolute Linux host directories**, mounted at the
+For Docker, use **absolute Linux host directories**, mounted at the
 same paths inside the container. `DATABASE_PATH` must be inside `APP_DATA_DIR`
 so SQLite and its journal survive container replacement. `APP_STORAGE_DIR`
 remains independently configurable. For example, adapt these paths to your host:
@@ -46,9 +46,18 @@ COMFYUI_STORAGE_PREFIX=\\wsl.localhost\Ubuntu\home\fung\project\silent-pix\.data
 COMFYUI_BASE_URL=http://host.docker.internal:8000
 ```
 
-Create the data/storage directories deliberately before starting; bind mounts
-have `create_host_path: false` so a typo cannot silently create a different
-empty storage directory. Existing data is reused, not copied or reset.
+Compose creates missing `APP_DATA_DIR` and `APP_STORAGE_DIR` directories before
+mounting them. Existing data is reused, not copied or reset. Check these paths
+carefully: a typo can create a different empty directory.
+
+ComfyUI is optional. Scripts load `compose.comfyui.yaml` only when all three
+`COMFYUI_*` values are nonempty and `COMFYUI_OUTPUT_DIR` is an existing absolute
+host directory. Otherwise deployment warns and skips the integration and output
+mount. No ComfyUI directory is created. The base configuration uses an unreachable
+container-loopback endpoint and unmounted container paths to keep the integration
+disconnected while Backend/Frontend remain available. After configuring ComfyUI,
+rerun `pnpm deploy:start` to apply the overlay. Direct Compose commands using only
+`compose.yaml` do not enable ComfyUI; the scripts select its overlay automatically.
 The current Server container runs as root; Linux bind-mount files it creates
 may therefore be root-owned. Account for ownership before switching back to
 native development; scripts do not recursively change permissions.
@@ -107,7 +116,7 @@ Docker allows one minute for graceful shutdown before forcing termination.
 
 Start waits for Server database health before starting Caddy; ComfyUI being
 offline does not block deployment or viewing stored tasks. Before stopping the
-existing project, start runs one HTTP connectivity check from a temporary
+existing project, start runs one HTTP connectivity check for configured ComfyUI from a temporary
 Server container with a five-second timeout. Failure prints a deployment warning
 and continues; no warning is added to Server runtime. This check uses the existing
 Server mounts, so their paths must already be valid. ComfyUI is deployed independently. Deployment

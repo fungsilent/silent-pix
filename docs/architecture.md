@@ -272,7 +272,13 @@ Only Caddy publishes the root `.env`'s `CADDY_PORT` on host loopback. Compose
 fixes production mode and the Server's container bind address, and injects the
 remaining settings from root `.env`; the envfile is never baked into images.
 Absolute data/storage/ComfyUI output directories are mounted at identical host
-and container paths. The Docker Server entrypoint checks that SQLite lives
+and container paths. Compose creates missing app data/storage directories only.
+Scripts add `compose.comfyui.yaml` only when all three ComfyUI settings are
+nonempty and its output directory is absolute and exists. Otherwise they warn
+and deploy without the integration or output mount, creating no ComfyUI directory.
+The base Compose configuration keeps ComfyUI disconnected using container-loopback
+port 1 and unmounted container paths; Server runtime is unchanged.
+The Docker Server entrypoint checks that SQLite lives
 inside the persistent `APP_DATA_DIR` mount. One Server writer per database/storage
 pair remains required.
 
@@ -284,7 +290,7 @@ migration is explicit and must run with writers stopped. Desktop remains a
 separate native build.
 
 ComfyUI is deployed independently. Before stopping the existing project,
-start runs one HTTP connectivity check from a temporary Server container
+start runs one HTTP connectivity check for configured ComfyUI from a temporary Server container
 with its configured env/mounts and a five-second timeout. Failure prints a
 deployment warning and continues; Server runtime is unchanged. Compose readiness
 depends only on database health. Deployment acceptance covers Backend/Frontend

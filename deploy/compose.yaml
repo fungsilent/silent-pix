@@ -22,25 +22,21 @@ services:
       APP_DATA_DIR: ${APP_DATA_DIR:?Use an absolute host directory}
       DATABASE_PATH: ${DATABASE_PATH:?Use a path inside APP_DATA_DIR}
       APP_STORAGE_DIR: ${APP_STORAGE_DIR:?Use an absolute host directory}
-      COMFYUI_BASE_URL: ${COMFYUI_BASE_URL:?Set the ComfyUI URL reachable from Docker}
-      COMFYUI_STORAGE_PREFIX: ${COMFYUI_STORAGE_PREFIX:?Set the storage path visible to ComfyUI}
-      COMFYUI_OUTPUT_DIR: ${COMFYUI_OUTPUT_DIR:?Use an absolute host directory}
+      # Keep the external integration disconnected unless its optional overlay is loaded.
+      COMFYUI_BASE_URL: http://127.0.0.1:1
+      COMFYUI_STORAGE_PREFIX: /comfyui-unconfigured
+      COMFYUI_OUTPUT_DIR: /comfyui-unconfigured
     volumes:
       - type: bind
         source: ${APP_DATA_DIR:?Use an absolute host directory}
         target: ${APP_DATA_DIR:?Use an absolute host directory}
         bind:
-          create_host_path: false
+          create_host_path: true
       - type: bind
         source: ${APP_STORAGE_DIR:?Use an absolute host directory}
         target: ${APP_STORAGE_DIR:?Use an absolute host directory}
         bind:
-          create_host_path: false
-      - type: bind
-        source: ${COMFYUI_OUTPUT_DIR:?Use an absolute host directory}
-        target: ${COMFYUI_OUTPUT_DIR:?Use an absolute host directory}
-        bind:
-          create_host_path: false
+          create_host_path: true
     extra_hosts:
       - host.docker.internal:host-gateway
     healthcheck:
