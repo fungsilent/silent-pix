@@ -109,7 +109,7 @@ SQLite records should prefer relative paths.
 Copy `.env.example` to `.env`.
 
 ```env
-NODE_ENV=development
+ENV=development
 
 SERVER_HOST=127.0.0.1
 SERVER_PORT=3070
@@ -118,7 +118,7 @@ WEB_PORT=5173
 CADDY_PORT=8080
 
 COMFYUI_BASE_URL=http://127.0.0.1:8188
-COMFYUI_STORAGE_PREFIX=/absolute/path/as-seen-by-comfyui/storage
+COMFYUI_REFERENCE_DIR=/absolute/path/as-seen-by-comfyui/storage
 COMFYUI_OUTPUT_DIR=/absolute/path/as-seen-by-server/comfyui/output
 
 APP_DATA_DIR=./.local/data
@@ -178,7 +178,8 @@ pnpm deploy:stop
 pnpm deploy:down
 ```
 
-See [`deploy/README.md`](deploy/README.md) for Docker Compose deployment of the Web UI, Caddy, and Server,
+Deploy start applies database migrations after stopping the old services.
+See [`deploy/README.md`](deploy/README.md) for Docker Compose deployment of optional ComfyUI, the Web UI, Caddy, and Server,
 with WSL/Docker Desktop testing, Ansible local/SSH orchestration, and a separately
 managed Cloudflare Tunnel.
 

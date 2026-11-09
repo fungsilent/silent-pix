@@ -268,34 +268,47 @@ setup does not promise simultaneous independent Vite instances.
 The single-host deployment uses `deploy/compose.yaml` and `deploy/Dockerfile`
 to build separate Server and Caddy/Web images. Caddy serves the bundled Web UI
 and proxies `/api` (including WebSocket upgrades) over the Compose network.
-Only Caddy publishes the root `.env`'s `CADDY_PORT` on host loopback. Compose
-fixes production mode and the Server's container bind address, and injects the
-remaining settings from root `.env`; the envfile is never baked into images.
-Absolute data/storage/ComfyUI output directories are mounted at identical host
-and container paths. Compose creates missing app data/storage directories only.
-Scripts add `compose.comfyui.yaml` only when all three ComfyUI settings are
-nonempty and its output directory is absolute and exists. Otherwise they warn
-and deploy without the integration or output mount, creating no ComfyUI directory.
-The base Compose configuration keeps ComfyUI disconnected using container-loopback
-port 1 and unmounted container paths; Server runtime is unchanged.
+Caddy publishes the root `.env`'s `CADDY_PORT` on host loopback; ComfyUI also
+publishes loopback port 8188. Server has no published port. The same Compose
+project optionally owns ComfyUI with NVIDIA GPU access when
+`COMPOSE_PROFILES=comfyui`, preserving its image, init process,
+and persisted models, user/custom nodes, Python packages, caches, and pre-start
+scripts under the fixed repository path `.data/comfyui`. `COMFYUI_OUTPUT_DIR` mounts the same output
+files into ComfyUI and Server. Existing standalone ComfyUI data must be moved there with both services stopped.
+
+Compose fixes production mode and Server's container bind address. ComfyUI URL, reference directory, storage root,
+and output path remain root `.env` settings in every mode.
+For the integrated service use `http://comfyui:8188`; ComfyUI receives a
+read-only bind of `APP_STORAGE_DIR` at the absolute container path selected by
+`COMFYUI_REFERENCE_DIR`. The envfile is never baked
+into images. Integrated services share the project default network. With an empty
+profile, only Server and Web start; a host-gateway mapping permits external host
+ComfyUI. Server has no startup dependency on the optional service; its output
+bind creates missing source directories and parents before mounting them, so a
+fresh deployment does not require a preexisting `.data` directory.
+Native `pnpm dev`/Desktop development does not start Compose services and can
+continue using ComfyUI Desktop's own URL and filesystem paths. Changing a profile
+does not stop an already-running integrated ComfyUI container; stop it explicitly.
 The Docker Server entrypoint checks that SQLite lives
 inside the persistent `APP_DATA_DIR` mount. One Server writer per database/storage
 pair remains required.
 
-`deploy/script/start.sh` rebuilds and recreates the project in the background;
+`deploy/script/start.sh` builds images, stops the project, runs database
+migrations in a temporary Server container, then recreates services;
 `stop.sh` stops services while retaining containers and network; `down.sh` removes
-containers and network. All three retain bind-mounted data and images.
+containers and its default network.
+All three retain bind-mounted data and images.
 Cloudflare Tunnel remains independently managed. Database
-migration is explicit and must run with writers stopped. Desktop remains a
-separate native build.
+migration runs during deploy start with project writers stopped; failure leaves
+services stopped. Native development still runs migrations explicitly. Desktop
+remains a separate native build.
 
-ComfyUI is deployed independently. Before stopping the existing project,
-start runs one HTTP connectivity check for configured ComfyUI from a temporary Server container
-with its configured env/mounts and a five-second timeout. Failure prints a
-deployment warning and continues; Server runtime is unchanged. Compose readiness
-depends only on database health. Deployment acceptance covers Backend/Frontend
-HTTP and WebSocket, without submitting generation jobs. Required env values and
-Docker mount paths remain validated.
+Caddy waits for Server database health. Startup waits up to 300 seconds for
+Server health and, when enabled, ComfyUI health using `/system_stats`.
+External ComfyUI health does not block Compose startup. Server can serve stored tasks while ComfyUI
+loads. Acceptance does not submit generation jobs. Migration from the standalone
+ComfyUI project requires stopping its container before starting the integrated
+service; two ComfyUI instances must not share the GPU/port/data concurrently.
 
 `deploy/ansible/deploy.yml` provides local/SSH preflight and calls those same
 Compose scripts against an existing target checkout. It neither generates a
@@ -645,7 +658,7 @@ WebSocket foundation:
 - endpoint: GET /api/event
 - Browser uses the same-origin development proxy; Desktop development connects directly to its native saved Server URL
 - The Web API client module (`apps/web/src/api/api.client.ts`) exports one module-load UUID `clientId` per page; App puts it in the `clientId` query
-- server validates `clientId` and requires `Origin` and `Host`; in `NODE_ENV=development`, any canonical HTTP(S) Origin is accepted without comparing its host to `Host`; outside development, parsed `Origin.host` (including port) must match `Host`, with exact `http://tauri.localhost` and `tauri://localhost` exceptions for canonical `Host: 127.0.0.1:<port>` (1–65535 except default port 80); `ws.data.query.clientId` is passed to the generic EventServer, while `ws.raw` remains the connection key
+- server validates `clientId` and requires `Origin` and `Host`; in `ENV=development`, any canonical HTTP(S) Origin is accepted without comparing its host to `Host`; outside development, parsed `Origin.host` (including port) must match `Host`, with exact `http://tauri.localhost` and `tauri://localhost` exceptions for canonical `Host: 127.0.0.1:<port>` (1–65535 except default port 80); `ws.data.query.clientId` is passed to the generic EventServer, while `ws.raw` remains the connection key
 - REST CORS echoes any canonical HTTP(S) development Origin; outside development it is limited to `/api/` requests with one of the exact packaged Origins and a loopback Host; it allows only required methods and `client-id, content-type` headers, with no wildcard origin or credentials; every `/api/` response sends `Vary` whether or not it matched
 - the shared Web API client fetcher sends the exported `clientId` as the `client-id` header; every event-producing synchronous Task/Workflow route validates `appApi.clientHeaders`
 - a Cloudflare Tunnel must leave `httpHostHeader` unset so the external host remains available for same-origin validation
@@ -755,15 +768,14 @@ Reference images are handed over as an absolute path, not as bytes. ComfyUI
 opens the file directly out of Silent Pix storage. Silent Pix does not upload
 reference bytes or create a separate reference copy for ComfyUI.
 
-```txt
-COMFYUI_STORAGE_PREFIX = the same directory as APP_STORAGE_DIR, spelled the way
-                         ComfyUI sees it
-```
-
-The two processes may run under different operating systems, so that second
-spelling cannot be derived with `node:path` and has to be configured. It must be
-absolute: a relative path could resolve against a different working directory.
-The resulting failure behavior depends on the ComfyUI loader.
+Server checks the local reference with the image store's `absolutePath()`,
+using canonical `APP_STORAGE_DIR`. It separately builds the workflow path from
+`COMFYUI_REFERENCE_DIR`, the absolute path to those same files as seen by ComfyUI.
+The two roots may differ: Docker mounts storage at the configured container path,
+and Windows Desktop can open a WSL storage directory through a Windows UNC path.
+The conversion preserves Windows separators even when Server runs on Linux.
+Missing local references are rejected before prompt submission; inaccessible
+ComfyUI-side paths fail in its loader. Neither path creates a separate copy.
 
 `ComfyClient` owns permissive Zod schemas for ComfyUI's prompt, history, and
 WebSocket envelopes. Its JSON readers return `unknown`; HTTP payloads are

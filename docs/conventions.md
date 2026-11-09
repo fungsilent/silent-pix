@@ -426,7 +426,7 @@ Rules:
 - server validates every outbound event before broadcast
 - the WebSocket handshake query contract (`clientId`) lives in `packages/shared/src/api/app.ts`; event envelopes remain under `packages/shared/src/event`
 - the Web API client module (`apps/web/src/api/api.client.ts`) exports one per-page UUID `clientId`; its shared fetcher supplies it as `client-id`, while App uses it for the WebSocket `clientId` query, and identity is transport metadata only
-- WebSocket handshakes require `Origin` and `Host`; in `NODE_ENV=development`, accept any canonical HTTP(S) Origin without requiring its host to match `Host`; outside development, safely parse `Origin` and strictly compare parsed `Origin.host` (including port) with `Host`, with exact `http://tauri.localhost` and `tauri://localhost` exceptions for canonical `Host: 127.0.0.1:<port>` (1–65535 except default port 80)
+- WebSocket handshakes require `Origin` and `Host`; in `ENV=development`, accept any canonical HTTP(S) Origin without requiring its host to match `Host`; outside development, safely parse `Origin` and strictly compare parsed `Origin.host` (including port) with `Host`, with exact `http://tauri.localhost` and `tauri://localhost` exceptions for canonical `Host: 127.0.0.1:<port>` (1–65535 except default port 80)
 - REST CORS echoes any canonical HTTP(S) Origin in development; outside development it applies only to `/api/` requests with one of those exact packaged origins and a loopback Host; allow only `GET, POST, PUT, PATCH, DELETE` and `client-id, content-type`, with no wildcard origin or credentials; send `Vary` on every `/api/` response
 - the connection registry remains keyed by `ws.raw`; every synchronous Task/Workflow mutation publication excludes all records matching its validated request `clientId`, while async task lifecycle and health publications remain broadcast
 - Cloudflare Tunnel configuration must leave `httpHostHeader` unset so the external host remains available for same-origin validation
@@ -597,7 +597,7 @@ components/task/TaskStatus.tsx
 Development configuration example (replace absolute path placeholders):
 
 ```env
-NODE_ENV=development
+ENV=development
 
 SERVER_HOST=127.0.0.1
 SERVER_PORT=3070
@@ -606,7 +606,7 @@ WEB_PORT=5173
 CADDY_PORT=8080
 
 COMFYUI_BASE_URL=http://127.0.0.1:8188
-COMFYUI_STORAGE_PREFIX=/absolute/path/as-seen-by-comfyui/storage
+COMFYUI_REFERENCE_DIR=/absolute/path/as-seen-by-comfyui/storage
 COMFYUI_OUTPUT_DIR=/absolute/path/as-seen-by-server/comfyui/output
 
 APP_DATA_DIR=./.local/data
@@ -619,7 +619,7 @@ Rules:
 ```txt
 - COMFYUI_BASE_URL is backend-only
 - frontend env must not expose ComfyUI connection/storage configuration
-- COMFYUI_STORAGE_PREFIX points to APP_STORAGE_DIR as seen by ComfyUI
+- COMFYUI_REFERENCE_DIR points to the same storage directory as APP_STORAGE_DIR, spelled as ComfyUI sees it; Server uses it to build workflow reference paths
 - COMFYUI_OUTPUT_DIR points to ComfyUI output as seen by the server
 - DATABASE_PATH and APP_STORAGE_DIR are configured independently; APP_DATA_DIR does not derive them
 - production must supply OS app-data paths; automatic Desktop production path overrides are not implemented
@@ -630,10 +630,11 @@ Rules:
 - isolated validation sets env before importing the owning module
 - the repository-root `.env` is the sole development endpoint source for Browser Vite and Desktop Tauri
 - `CADDY_PORT` in root `.env` configures the Docker Compose Caddy listener and loopback host publication; deploy scripts never source `.env` as shell code
-- `deploy/script` delegates start/stop/down to the same Docker Compose project; start builds and recreates containers in the background, stop retains containers/network, and down removes containers/network. All retain bind-mounted data and images; migration remains explicit, and manually started writers must be stopped separately
-- Docker Compose fixes `NODE_ENV=production` and the container bind address `SERVER_HOST=0.0.0.0`; runtime settings come from root `.env`. Persistent directory mounts use absolute host paths as container paths, and `DATABASE_PATH` must be inside the mounted `APP_DATA_DIR`. Compose creates missing `APP_DATA_DIR` and `APP_STORAGE_DIR` only. Scripts add `compose.comfyui.yaml` only when all three ComfyUI settings are nonempty and its absolute output directory exists; otherwise they warn and deploy without the integration or output mount. The base configuration keeps ComfyUI disconnected with container-loopback port 1 and unmounted container paths; no ComfyUI directory is created
+- `deploy/script` delegates start/stop/down to the same Docker Compose project; start builds, stops the project, runs pending database migrations, then recreates containers in the background, stop retains containers/network, and down removes containers/network. All retain bind-mounted data and images; migration failure leaves services stopped; reset/seed are never automatic, and manually started writers must be stopped separately
+- Docker Compose owns Server and Web/Caddy, plus optional ComfyUI under `COMPOSE_PROFILES=comfyui`. It fixes production mode and Server bind address; ComfyUI URL, reference directory, and output path always come from root `.env`. Integrated ComfyUI uses `http://comfyui:8188`, mounts `APP_STORAGE_DIR` read-only at `COMFYUI_REFERENCE_DIR`, persists data under the fixed repo path `./.data/comfyui`, and shares `COMFYUI_OUTPUT_DIR` with Server. Move existing standalone ComfyUI data there only with both services stopped; SQLite stays inside `APP_DATA_DIR`
 - Ansible delegates deployment to the existing Compose scripts on a prepared target checkout; check mode performs read-only preflight, and root `.env` remains the only application configuration source
-- ComfyUI is independently deployed; deploy start runs one HTTP connectivity check from a temporary Server container before stopping existing services, with a five-second timeout. Failure prints a deployment warning and continues; no runtime warning is added. Deployment acceptance does not submit generation jobs; required env values and Docker mount paths must remain valid
+- Enabled services share the project default network. Caddy and optional ComfyUI publish loopback ports; Server has no published port or startup dependency on ComfyUI. Its output bind creates missing source directories and parents, including `.data` on first deployment. Empty `COMPOSE_PROFILES` uses external ComfyUI; the host-gateway mapping supports a host service. Native development never starts Compose and supports ComfyUI Desktop through env. Stop an existing integrated ComfyUI explicitly before disabling its profile
+- Deploy start waits up to 300 seconds for Server database health and, if enabled, the ComfyUI `/system_stats` healthcheck. Server can serve stored tasks while ComfyUI loads or is offline. The optional container healthcheck replaces the external API preflight; external ComfyUI health is reported at runtime and does not block deployment. Acceptance does not submit generation jobs
 - `apps/web/vite.config.ts` explicitly loads the repository-root `.env` with `loadEnv()`; external process env values override it
 - `apps/desktop/script/dev.ts` runs from the local Desktop cwd, resolves the linked `tauri.conf.json` realpath to load the source repository root `.env`, validates `WEB_HOST`/`WEB_PORT`, and always merges their Vite endpoint into Tauri at runtime; process env overrides dotenv, `--external-frontend` only removes the normal `beforeDevCommand`, and linked WSL does not require duplicate Windows endpoint variables
 - every Tauri webview uses the Desktop platform identity and native saved Server URL while Vite supplies development UI assets and HMR; `dev-window.bat` passes `--external-frontend` and forwards Tauri arguments; packaged-origin validation uses a formal Desktop build
@@ -654,7 +655,7 @@ Ownership mapping:
 | `SERVER_URL`, `SERVER_HOST`, `SERVER_PORT` | `apps/web/vite.config.ts`, server/CLI entrypoint | optional proxy override or server bind/probe configuration |
 | `COMFYUI_BASE_URL` | `ComfyClient` | `new ComfyClient()` |
 | `APP_STORAGE_DIR` | image store; GC owns only its directory sweep | `readContent(path)`, `writeContent(path, bytes)`, `unlinkContent(path)` |
-| `COMFYUI_STORAGE_PREFIX` | reference-path conversion owner | conversion accepts only the relative image path |
+| `COMFYUI_REFERENCE_DIR` | reference-path conversion owner | conversion accepts only the relative image path |
 | `COMFYUI_OUTPUT_DIR` | Comfy output cleanup owner | cleanup accepts only the `ComfyImage` |
 
 ```ts

@@ -10,22 +10,61 @@ x-build: &build
     WEB_PORT: ${WEB_PORT:?Set WEB_PORT in root .env}
 
 services:
+  comfyui:
+    profiles:
+      - comfyui
+    image: yanwk/comfyui-boot:cu130-slim-v2
+    init: true
+    platform: linux/amd64
+    gpus:
+      - driver: nvidia
+        count: all
+    ports:
+      - "127.0.0.1:8188:8188"
+    volumes:
+      - type: bind
+        source: ${APP_STORAGE_DIR:?Use an absolute host directory}
+        target: ${COMFYUI_REFERENCE_DIR:?Set the absolute storage path visible to ComfyUI}
+        read_only: true
+        bind:
+          create_host_path: true
+      - ./.data/comfyui/models:/root/ComfyUI/models
+      - ./.data/comfyui/input:/root/ComfyUI/input
+      - ${COMFYUI_OUTPUT_DIR:?Use an absolute host directory}:/root/ComfyUI/output
+      - ./.data/comfyui/user:/root/ComfyUI/user
+      - ./.data/comfyui/custom_nodes:/root/ComfyUI/custom_nodes
+      - ./.data/comfyui/python-local:/root/.local
+      - ./.data/comfyui/cache:/root/.cache
+      - ./.data/comfyui/config:/root/.config
+      - ./.data/comfyui/user-scripts:/root/user-scripts
+    healthcheck:
+      test:
+        - CMD
+        - python3.13
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8188/system_stats', timeout=3).read()"
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 12
+    restart: unless-stopped
+    stop_grace_period: 1m
+
   server:
     build:
       <<: *build
       target: server
     environment:
+      ENV: production
       NODE_ENV: production
-      # Containers listen on their network; only Caddy publishes a host port.
       SERVER_HOST: 0.0.0.0
       SERVER_PORT: ${SERVER_PORT:?Set SERVER_PORT in root .env}
       APP_DATA_DIR: ${APP_DATA_DIR:?Use an absolute host directory}
       DATABASE_PATH: ${DATABASE_PATH:?Use a path inside APP_DATA_DIR}
       APP_STORAGE_DIR: ${APP_STORAGE_DIR:?Use an absolute host directory}
-      # Keep the external integration disconnected unless its optional overlay is loaded.
-      COMFYUI_BASE_URL: http://127.0.0.1:1
-      COMFYUI_STORAGE_PREFIX: /comfyui-unconfigured
-      COMFYUI_OUTPUT_DIR: /comfyui-unconfigured
+      COMFYUI_BASE_URL: ${COMFYUI_BASE_URL:?Set the ComfyUI URL reachable from Server}
+      COMFYUI_REFERENCE_DIR: ${COMFYUI_REFERENCE_DIR:?Set the absolute storage path visible to ComfyUI}
+      COMFYUI_OUTPUT_DIR: ${COMFYUI_OUTPUT_DIR:?Use an absolute host directory}
     volumes:
       - type: bind
         source: ${APP_DATA_DIR:?Use an absolute host directory}
@@ -35,6 +74,11 @@ services:
       - type: bind
         source: ${APP_STORAGE_DIR:?Use an absolute host directory}
         target: ${APP_STORAGE_DIR:?Use an absolute host directory}
+        bind:
+          create_host_path: true
+      - type: bind
+        source: ${COMFYUI_OUTPUT_DIR:?Use an absolute host directory}
+        target: ${COMFYUI_OUTPUT_DIR:?Use an absolute host directory}
         bind:
           create_host_path: true
     extra_hosts:

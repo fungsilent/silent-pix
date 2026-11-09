@@ -4,7 +4,7 @@ import { loadConfig } from '#/config'
 // and WebKitGTK use the custom `tauri://localhost` scheme. A webview that sends no
 // Origin, or `null`, stays rejected.
 const packagedDesktopOrigins: readonly string[] = ['http://tauri.localhost', 'tauri://localhost']
-const development = loadConfig().nodeEnv === 'development'
+const development = loadConfig().env === 'development'
 
 
 function developmentOrigin(origin: string | null): string | undefined {
