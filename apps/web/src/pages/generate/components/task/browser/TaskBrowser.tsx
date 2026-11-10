@@ -43,8 +43,8 @@ export function TaskBrowser() {
             next.push({
                 id: 'task-selection-limit',
                 tone: 'warning',
-                field: t('fields.selection'),
-                message: t('task.selectionLimit', { maximum: taskSelectionLimit }),
+                field: () => t('fields.selection'),
+                message: () => t('task.selectionLimit', { maximum: taskSelectionLimit }),
             })
         }
 
@@ -53,8 +53,8 @@ export function TaskBrowser() {
             next.push({
                 id: 'task-flag-error',
                 tone: 'error',
-                field: t('task.title'),
-                message: error,
+                field: () => t('task.title'),
+                message: () => error,
             })
         }
 

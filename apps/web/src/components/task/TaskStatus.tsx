@@ -9,25 +9,25 @@ type TaskStatusProps = {
 }
 
 type Item = {
-    label: string
+    label: () => string
     tone: BadgeTone
 }
 
 const statusMap: Record<TaskApi.TaskStatus, Item> = {
     queued: {
-        label: t('task.status.queued'),
+        label: () => t('task.status.queued'),
         tone: 'warning',
     },
     running: {
-        label: t('task.status.running'),
+        label: () => t('task.status.running'),
         tone: 'info',
     },
     done: {
-        label: t('task.status.done'),
+        label: () => t('task.status.done'),
         tone: 'success',
     },
     failed: {
-        label: t('task.status.failed'),
+        label: () => t('task.status.failed'),
         tone: 'danger',
     },
 }
@@ -35,5 +35,5 @@ const statusMap: Record<TaskApi.TaskStatus, Item> = {
 export function TaskStatus(props: TaskStatusProps) {
     const status = () => statusMap[props.status]
 
-    return <Badge tone={status().tone}>{status().label}</Badge>
+    return <Badge tone={status().tone}>{status().label()}</Badge>
 }

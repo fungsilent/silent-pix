@@ -26,15 +26,14 @@ const groupOf: Record<GeneratorField, GroupLabel> = {
 }
 
 const groupOrder = ['Sampler', 'Latent', 'Prompt', 'Other'] as const satisfies readonly GroupLabel[]
-const groupLabels = t('workflow.groups', { returnObjects: true })
 
 export type FieldGroup = {
-    label: string
+    label: () => string
     fields: readonly GeneratorField[]
 }
 
 /* 組的先後由 groupOrder 決定，組內順序沿用 shared 的欄位順序 */
 export const fieldGroups: readonly FieldGroup[] = groupOrder.map(label => ({
-    label: groupLabels[label],
+    label: () => t('workflow.groups', { returnObjects: true })[label],
     fields: config.generatorFields.filter(field => groupOf[field] === label),
 }))

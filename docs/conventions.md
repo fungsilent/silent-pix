@@ -477,12 +477,13 @@ Rules:
 - shared detail-panel primitives go in `apps/web/src/components/detail`
 - shared class recipes live in `apps/web/src/lib/theme.ts` beside `cn.ts`; tokens stay in `styles.css`
 - theme runtime is owned by `apps/web/src/store/theme.ts`; the startup bootstrap sets `data-theme` before first paint
-- UI copy uses native `t()` from `apps/web/src/lib/i18n.ts`; English resources live in `apps/web/src/i18n/en.json`, with resource keys derived by `i18next.d.ts`
+- UI copy uses reactive, natively typed `t()` from `apps/web/src/lib/i18n.ts`; English and Traditional Chinese resources live in `apps/web/src/i18n/en.json` and `zh-TW.json`, with resource keys derived by `i18next.d.ts`
+- keep translated captions reactive: call `t()` in reactive rendering or explicit label functions on stable option objects; store error values or message resolvers rather than translated snapshots
 - resources contain strings with i18next interpolation and plural forms, not formatting functions; keep canonical values and user content unchanged
 - brand names, technical format markers, keyboard keys, canonical field IDs, initial prompt content, and developer or external diagnostics stay outside the translation catalog
-- the i18next instance initializes bundled English resources synchronously for module-level labels; `main.tsx` awaits `i18nReady` before platform initialization and rendering
+- the i18next instance initializes bundled resources synchronously; `main.tsx` awaits `i18nReady` before platform initialization and rendering
 - API wrappers keep raw status/code/message without translation; `lib/error.ts` maps known codes from the i18next resource table, then falls back to the original message for unknown codes
-- translation results are text or normal attributes; no `innerHTML`; the current English-only runtime does not implement reactive language switching
+- translation results are text or normal attributes; no `innerHTML`; Settings switches English (`en`, default) and Traditional Chinese (`zh-TW`) without reloading; `localeStore` persists the validated selection in `silent-pix.locale` and updates the document language. Disabled storage keeps the choice for this session
 - `Button` variants describe visual weight (`ghost`, `soft`, `solid`); tones describe semantic color (`neutral`, `accent`, `danger`)
 - inline image stages follow the theme; the full-screen viewer backdrop and glass controls stay fixed in both themes, and content drawn directly on a stage uses `stage-fg`
 - Prompt and Graph editor themes come from factories and per-view Compartments; theme changes must not rebuild views or lose history

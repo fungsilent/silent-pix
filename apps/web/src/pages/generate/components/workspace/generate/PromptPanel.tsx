@@ -18,9 +18,9 @@ import type { PromptKind } from '#/pages/generate/form'
 import type { Accessor } from 'solid-js'
 
 /* MARK: PromptPanel */
-const promptLabel: Record<PromptKind, string> = {
-    negative: t('fields.negative'),
-    positive: t('fields.positive'),
+const promptLabel: Record<PromptKind, () => string> = {
+    negative: () => t('fields.negative'),
+    positive: () => t('fields.positive'),
 }
 
 export function PromptPanel() {
@@ -166,7 +166,7 @@ function PromptToggle(props: PromptToggleProps) {
             <span
                 class='size-[5px] shrink-0 rounded-full bg-current opacity-45'
             />
-            {promptLabel[props.kind]}
+            {promptLabel[props.kind]()}
         </Button>
     )
 }
@@ -189,7 +189,7 @@ function PromptSection(props: PromptSectionProps) {
             classList={{ hidden: !props.visible }}
         >
             <span class='pb-1.5 text-xs leading-none text-fg-muted'>
-                {promptLabel[props.kind]}
+                {promptLabel[props.kind]()}
             </span>
             {/* 既有的 editor host 就是 mask anchor，只補 relative */}
             <div class='relative overflow-hidden rounded-md border border-transparent bg-elevated'>

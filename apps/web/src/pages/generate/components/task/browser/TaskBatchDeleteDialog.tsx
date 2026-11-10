@@ -16,7 +16,7 @@ type TaskBatchDeleteDialogProps = {
 }
 
 export function TaskBatchDeleteDialog(props: TaskBatchDeleteDialogProps) {
-    const [error, setError] = createSignal<string>()
+    const [error, setError] = createSignal<() => string>()
     const isSelected = () => props.scope === 'selected'
 
     const confirm = async () => {
@@ -31,7 +31,7 @@ export function TaskBatchDeleteDialog(props: TaskBatchDeleteDialogProps) {
             props.onOpenChange(false)
         }
         catch (cause) {
-            setError(toErrorMessage(cause))
+            setError(() => () => toErrorMessage(cause))
         }
     }
 
@@ -51,7 +51,7 @@ export function TaskBatchDeleteDialog(props: TaskBatchDeleteDialogProps) {
             footer={(
                 <div class='flex w-full items-center justify-between gap-3'>
                     <Show when={error()}>
-                        {message => <FieldHint tone='danger'>{message()}</FieldHint>}
+                        {message => <FieldHint tone='danger'>{message()()}</FieldHint>}
                     </Show>
                     <div class='ml-auto flex shrink-0 gap-2'>
                         <Button

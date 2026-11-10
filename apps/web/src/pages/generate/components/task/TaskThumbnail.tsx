@@ -9,7 +9,7 @@ import type { JSX } from 'solid-js'
 
 type TaskPlaceholderMeta = {
     class: string
-    label: string
+    label: () => string
 }
 
 type TaskThumbnailClasses = {
@@ -32,19 +32,19 @@ type TaskThumbnailProps = {
 const placeholderMap: Record<TaskApi.TaskStatus, TaskPlaceholderMeta> = {
     done: {
         class: 'border-line-subtle bg-elevated text-fg-muted',
-        label: t('task.thumbnail.none'),
+        label: () => t('task.thumbnail.none'),
     },
     queued: {
         class: 'border-warning/30 bg-warning/10 text-warning-fg',
-        label: t('task.thumbnail.queued'),
+        label: () => t('task.thumbnail.queued'),
     },
     running: {
         class: 'border-info/30 bg-info/10 text-info-fg',
-        label: t('task.thumbnail.running'),
+        label: () => t('task.thumbnail.running'),
     },
     failed: {
         class: 'border-danger/30 bg-danger/10 text-danger-fg',
-        label: t('task.thumbnail.failed'),
+        label: () => t('task.thumbnail.failed'),
     },
 }
 

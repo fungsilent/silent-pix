@@ -8,8 +8,6 @@ import type { EditorState, Text } from '@codemirror/state'
 import type { EditorView } from '@codemirror/view'
 import type { DisabledTokenRange, DisabledTokenValue, ParsedToken, PromptEditorGroup, PromptEditorMeta } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
 
-const defaultGroupName = t('generate.prompt.defaultGroup')
-
 /*
  * 所有 group command 都是「只帶 effect、不帶 changes」的 transaction。
  * CodeMirror history 對帶有 inverted effect 的 transaction 仍會建立 event，
@@ -110,7 +108,7 @@ export function createGroup(view: EditorView, fromLine: number, toLine: number):
 
     const created: PromptEditorGroup = {
         id: createGroupId(),
-        name: defaultGroupName,
+        name: t('generate.prompt.defaultGroup'),
         start: from,
         enabled: true,
     }

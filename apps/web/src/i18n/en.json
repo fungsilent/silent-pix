@@ -59,7 +59,9 @@
             "on": "On",
             "loadingPreview": "Loading preview",
             "loadingPreviewHint": "Show the existing loading skeletons."
-        }
+        },
+        "language": "Language",
+        "languageDescription": "Choose the display language. Your selection is saved on this device."
     },
     "platform": {
         "localServerUrlFormat": "Use http://127.0.0.1:<port> without a path.",

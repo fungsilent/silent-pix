@@ -3,6 +3,7 @@ import { Compartment, EditorState } from '@codemirror/state'
 import { EditorView, keymap } from '@codemirror/view'
 import { createEffect, on, onCleanup } from 'solid-js'
 
+import { t } from '#/lib/i18n'
 import { promptDocumentToMeta, serializePromptDocument } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
 import { promptGutters } from '#/pages/generate/components/workspace/generate/prompt/prompt.gutter'
 import { promptMeta, promptMetaEffect, promptStateExtensions } from '#/pages/generate/components/workspace/generate/prompt/prompt.state'
@@ -80,6 +81,14 @@ export function PromptEditor(props: PromptEditorProps) {
 
         view?.dispatch({
             effects: themeCompartment.reconfigure(createPromptTheme(theme)),
+        })
+    })
+
+    createEffect(() => {
+        const title = t('generate.prompt.removeBoundary')
+
+        view?.dom.querySelectorAll<HTMLButtonElement>('.cm-prompt-group-remove').forEach(button => {
+            button.title = title
         })
     })
 

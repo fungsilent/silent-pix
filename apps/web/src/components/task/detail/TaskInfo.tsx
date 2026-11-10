@@ -50,7 +50,7 @@ type TaskInfoProps = {
 
 export function TaskInfo(props: TaskInfoProps) {
     const [deleteOpen, setDeleteOpen] = createSignal(false)
-    const [deleteError, setDeleteError] = createSignal<string>()
+    const [deleteError, setDeleteError] = createSignal<() => string>()
     const isCreate = () => props.mode === 'create'
     const isDraft = () => {
         if (props.mode !== 'create') {
@@ -99,7 +99,7 @@ export function TaskInfo(props: TaskInfoProps) {
             setDeleteOpen(false)
         }
         catch (cause) {
-            setDeleteError(toErrorMessage(cause))
+            setDeleteError(() => () => toErrorMessage(cause))
         }
     }
 
@@ -208,7 +208,7 @@ export function TaskInfo(props: TaskInfoProps) {
                     footer={(
                         <div class='flex w-full items-center justify-between gap-3'>
                             <Show when={deleteError()}>
-                                {message => <FieldHint tone='danger'>{message()}</FieldHint>}
+                                {message => <FieldHint tone='danger'>{message()()}</FieldHint>}
                             </Show>
                             <div class='ml-auto flex shrink-0 gap-2'>
                                 <Button

@@ -7,7 +7,7 @@ import type { Component } from 'solid-js'
 
 type FilterChipOption<Value extends string> = {
     value: Value
-    label: string
+    label: () => string
     Icon: Component<LucideProps>
 }
 
@@ -63,7 +63,7 @@ export function FilterChips<Value extends string>(props: FilterChipsProps<Value>
                 size={13}
                 strokeWidth={1.8}
             />
-            {props.presentation === 'icon' ? undefined : option.label}
+            {props.presentation === 'icon' ? undefined : option.label()}
         </>
     )
 
@@ -76,7 +76,7 @@ export function FilterChips<Value extends string>(props: FilterChipsProps<Value>
         >
             <Button
                 variant='ghost'
-                title={props.presentation === 'icon' ? props.allOption.label : undefined}
+                title={props.presentation === 'icon' ? props.allOption.label() : undefined}
                 classes={{
                     root: cn(
                         'h-7 gap-1.5 rounded-md px-2 text-[11px] font-medium',
@@ -92,7 +92,7 @@ export function FilterChips<Value extends string>(props: FilterChipsProps<Value>
             {props.options.map(option => (
                 <Button
                     variant='ghost'
-                    title={props.presentation === 'icon' ? option.label : undefined}
+                    title={props.presentation === 'icon' ? option.label() : undefined}
                     classes={{
                         root: cn(
                             'h-7 gap-1.5 rounded-md px-2 text-[11px] font-medium',

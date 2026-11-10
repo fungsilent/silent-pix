@@ -33,7 +33,7 @@ export function IssueChip(props: IssueChipProps) {
     /* 只要有一則是 error，整個 chip 就是紅的 */
     const tone = (): IssueTone => props.issues.some(issue => issue.tone === 'error') ? 'error' : 'warning'
     const label = () => count() === 1
-        ? props.issues[0]?.message ?? ''
+        ? props.issues[0]?.message() ?? ''
         : t('common.issues', { count: count() })
 
     return (
@@ -81,7 +81,7 @@ export function IssueChip(props: IssueChipProps) {
                                             strokeWidth={2}
                                         />
                                         <div class='flex min-w-0 flex-1 flex-col gap-0.5'>
-                                            <Show when={issue.field}>
+                                            <Show when={issue.field?.()}>
                                                 {field => (
                                                     <span class='font-mono text-[10.5px] uppercase leading-none tracking-[0.06em] text-fg-muted'>
                                                         {field()}
@@ -89,7 +89,7 @@ export function IssueChip(props: IssueChipProps) {
                                                 )}
                                             </Show>
                                             <span class='text-xs leading-[1.45] text-fg'>
-                                                {issue.message}
+                                                {issue.message()}
                                             </span>
                                         </div>
                                         <Show when={issue.onRetry}>

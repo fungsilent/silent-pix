@@ -53,23 +53,23 @@ type ImageTaskFlag = TaskApi.TaskFilterFlag
 
 type ImageFilterOption<Value extends string> = {
     value: Value
-    label: string
+    label: () => string
     Icon: Component<LucideProps>
 }
 
-const allTaskFlagOption = { label: t('common.all'), Icon: ListFilter }
+const allTaskFlagOption = { label: () => t('common.all'), Icon: ListFilter }
 
 const imageTaskFlagOptions: ImageFilterOption<ImageTaskFlag>[] = [
-    { value: 'unflag', label: t('task.filter.unflag'), Icon: FlagOff },
-    { value: 'pin', label: t('task.filter.pin'), Icon: Pin },
-    { value: 'discard', label: t('task.filter.discard'), Icon: Trash2 },
+    { value: 'unflag', label: () => t('task.filter.unflag'), Icon: FlagOff },
+    { value: 'pin', label: () => t('task.filter.pin'), Icon: Pin },
+    { value: 'discard', label: () => t('task.filter.discard'), Icon: Trash2 },
 ]
 
-const allImageTypeOption = { label: t('common.all'), Icon: ListFilter }
+const allImageTypeOption = { label: () => t('common.all'), Icon: ListFilter }
 
 const imageTypeOptions: ImageFilterOption<ImageType>[] = [
-    { value: 'input', label: t('image.input'), Icon: ImageDown },
-    { value: 'output', label: t('image.output'), Icon: ImageUp },
+    { value: 'input', label: () => t('image.input'), Icon: ImageDown },
+    { value: 'output', label: () => t('image.output'), Icon: ImageUp },
 ]
 
 export function ImagePickerDialog(props: ImagePickerDialogProps) {

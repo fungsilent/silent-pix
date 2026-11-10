@@ -9,10 +9,10 @@ import type { AppIssue } from '#/lib/issue'
 import type { GraphParse } from '#/pages/workflow/components/graph/graph.document'
 import type { WorkflowFormValues } from '#/pages/workflow/form'
 
-const fieldLabel: Record<keyof WorkflowFormValues, string> = {
-    name: t('fields.name'),
-    graphText: t('workflow.apiJson'),
-    configSchema: t('workflow.mapping.title'),
+const fieldLabel: Record<keyof WorkflowFormValues, () => string> = {
+    name: () => t('fields.name'),
+    graphText: () => t('workflow.apiJson'),
+    configSchema: () => t('workflow.mapping.title'),
 }
 
 export function toValidationIssues(issues: ZodIssue[]): AppIssue[] {
@@ -23,16 +23,16 @@ export function toValidationIssues(issues: ZodIssue[]): AppIssue[] {
         return {
             id: `validation-${index}`,
             tone: 'error',
-            field: isKnownField ? fieldLabel[key as keyof WorkflowFormValues] : undefined,
-            message: toIssueMessage(issue),
+            field: () => isKnownField ? fieldLabel[key as keyof WorkflowFormValues]() : undefined,
+            message: () => toIssueMessage(issue),
         }
     })
 }
 
-const graphFailureMessage: Record<Comfy.ParseApiGraphFailure, string> = {
-    'not-object': t('workflow.graph.notObject'),
-    'ui-format': t('workflow.graph.uiFormat'),
-    'invalid-node': t('workflow.graph.invalidNode'),
+const graphFailureMessage: Record<Comfy.ParseApiGraphFailure, () => string> = {
+    'not-object': () => t('workflow.graph.notObject'),
+    'ui-format': () => t('workflow.graph.uiFormat'),
+    'invalid-node': () => t('workflow.graph.invalidNode'),
 }
 
 const mappingIssueMessage: Record<Comfy.MappingIssueReason, (issue: Comfy.MappingIssue) => string> = {
@@ -46,8 +46,8 @@ export function toGraphIssues(parse: GraphParse): AppIssue[] {
         return [{
             id: 'graph-json',
             tone: 'error',
-            field: t('workflow.apiJson'),
-            message: parse.message,
+            field: () => t('workflow.apiJson'),
+            message: () => parse.message,
         }]
     }
 
@@ -55,8 +55,8 @@ export function toGraphIssues(parse: GraphParse): AppIssue[] {
         return [{
             id: `graph-${parse.reason}`,
             tone: 'error',
-            field: t('workflow.apiJson'),
-            message: graphFailureMessage[parse.reason],
+            field: () => t('workflow.apiJson'),
+            message: () => graphFailureMessage[parse.reason](),
         }]
     }
 
@@ -67,8 +67,8 @@ export function toMappingIssues(issues: Comfy.MappingIssue[]): AppIssue[] {
     return issues.map(issue => ({
         id: `mapping-${issue.field}`,
         tone: 'error',
-        field: issue.field,
-        message: mappingIssueMessage[issue.reason](issue),
+        field: () => issue.field,
+        message: () => mappingIssueMessage[issue.reason](issue),
     }))
 }
 
@@ -87,8 +87,8 @@ export function toRequirementIssues(input: {
         issues.push({
             id: 'name-required',
             tone: 'error',
-            field: t('fields.name'),
-            message: t('workflow.nameRequired'),
+            field: () => t('fields.name'),
+            message: () => t('workflow.nameRequired'),
         })
     }
 
@@ -96,8 +96,8 @@ export function toRequirementIssues(input: {
         issues.push({
             id: 'graph-empty',
             tone: 'error',
-            field: t('workflow.apiJson'),
-            message: t('workflow.graphRequired'),
+            field: () => t('workflow.apiJson'),
+            message: () => t('workflow.graphRequired'),
         })
     }
 
@@ -116,8 +116,8 @@ export function toListIssues(input: {
     return [{
         id: 'workflow-list-load',
         tone: 'error',
-        field: t('workflow.title'),
-        message: toErrorMessage(input.error),
+        field: () => t('workflow.title'),
+        message: () => toErrorMessage(input.error),
         onRetry: input.onRetry,
     }]
 }
@@ -130,8 +130,8 @@ export function toLoadIssues(error: unknown): AppIssue[] {
     return [{
         id: 'workflow-load',
         tone: 'error',
-        field: t('fields.workflow'),
-        message: toErrorMessage(error),
+        field: () => t('fields.workflow'),
+        message: () => toErrorMessage(error),
     }]
 }
 
@@ -143,8 +143,8 @@ export function toSaveIssues(input: {
         return [{
             id: 'save-conflict',
             tone: 'error',
-            field: t('common.save'),
-            message: t('workflow.saveConflict'),
+            field: () => t('common.save'),
+            message: () => t('workflow.saveConflict'),
         }]
     }
 
@@ -156,8 +156,8 @@ export function toSaveIssues(input: {
         return [{
             id: 'save-conflict',
             tone: 'error',
-            field: t('common.save'),
-            message: t('workflow.saveConflict'),
+            field: () => t('common.save'),
+            message: () => t('workflow.saveConflict'),
         }]
     }
 
@@ -168,7 +168,7 @@ export function toSaveIssues(input: {
     return [{
         id: 'save-failed',
         tone: 'error',
-        field: t('common.save'),
-        message: toErrorMessage(input.error),
+        field: () => t('common.save'),
+        message: () => toErrorMessage(input.error),
     }]
 }

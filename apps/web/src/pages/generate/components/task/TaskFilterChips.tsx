@@ -19,16 +19,16 @@ type TaskFilterChipsProps = {
 
 type FilterOption = {
     value: TaskApi.TaskFilterFlag
-    label: string
+    label: () => string
     Icon: Component<LucideProps>
 }
 
-const allOption = { label: t('common.all'), Icon: ListFilter }
+const allOption = { label: () => t('common.all'), Icon: ListFilter }
 
 const filterOptions: FilterOption[] = [
-    { value: 'unflag', label: t('task.filter.unflag'), Icon: FlagOff },
-    { value: 'pin', label: t('task.filter.pin'), Icon: FlagTriangleRight },
-    { value: 'discard', label: t('task.filter.discard'), Icon: HeartX },
+    { value: 'unflag', label: () => t('task.filter.unflag'), Icon: FlagOff },
+    { value: 'pin', label: () => t('task.filter.pin'), Icon: FlagTriangleRight },
+    { value: 'discard', label: () => t('task.filter.discard'), Icon: HeartX },
 ]
 
 export function TaskFilterChips(props: TaskFilterChipsProps) {

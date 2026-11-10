@@ -44,7 +44,7 @@ export function useRuntimeIssues(): Accessor<GenerateIssue[]> {
             const lost: GenerateIssue = {
                 id: 'server-connection',
                 tone: 'error',
-                message: t('generate.lostConnection'),
+                message: () => t('generate.lostConnection'),
             }
 
             return [lost]
@@ -57,8 +57,8 @@ export function useRuntimeIssues(): Accessor<GenerateIssue[]> {
             issues.push({
                 id: 'comfy-down',
                 tone: 'error',
-                field: 'ComfyUI',
-                message: t('generate.comfyUnavailable'),
+                field: () => 'ComfyUI',
+                message: () => t('generate.comfyUnavailable'),
             })
         }
 
@@ -67,7 +67,7 @@ export function useRuntimeIssues(): Accessor<GenerateIssue[]> {
                 id: 'workflow-load',
                 tone: 'error',
                 field: generateFieldLabel.workflowId,
-                message: toErrorMessage(workflowQuery.error),
+                message: () => toErrorMessage(workflowQuery.error),
                 onRetry: () => { void workflowQuery.refetch() },
             })
         }
@@ -76,7 +76,7 @@ export function useRuntimeIssues(): Accessor<GenerateIssue[]> {
                 id: 'workflow-empty',
                 tone: 'error',
                 field: generateFieldLabel.workflowId,
-                message: t('generate.noWorkflows'),
+                message: () => t('generate.noWorkflows'),
                 onRetry: () => { void workflowQuery.refetch() },
             })
         }
@@ -85,7 +85,7 @@ export function useRuntimeIssues(): Accessor<GenerateIssue[]> {
                 id: 'workflow-unusable',
                 tone: 'error',
                 field: generateFieldLabel.workflowId,
-                message: t('generate.workflowArchived'),
+                message: () => t('generate.workflowArchived'),
             })
         }
 
@@ -95,7 +95,7 @@ export function useRuntimeIssues(): Accessor<GenerateIssue[]> {
                 id: 'sampler-load',
                 tone: 'warning',
                 field: generateFieldLabel.sampler,
-                message: toErrorMessage(samplerQuery.error),
+                message: () => toErrorMessage(samplerQuery.error),
                 onRetry: () => { void samplerQuery.refetch() },
             })
         }
@@ -105,7 +105,7 @@ export function useRuntimeIssues(): Accessor<GenerateIssue[]> {
                 id: 'lora-load',
                 tone: 'warning',
                 field: generateFieldLabel.lora,
-                message: toErrorMessage(loraQuery.error),
+                message: () => toErrorMessage(loraQuery.error),
                 onRetry: () => { void loraQuery.refetch() },
             })
         }
@@ -118,8 +118,8 @@ export function useRuntimeIssues(): Accessor<GenerateIssue[]> {
             issues.push({
                 id: 'task-load',
                 tone: 'warning',
-                field: t('task.title'),
-                message: toErrorMessage(taskFeedQuery.error),
+                field: () => t('task.title'),
+                message: () => toErrorMessage(taskFeedQuery.error),
                 onRetry: () => { void taskFeedQuery.refetch() },
             })
         }
@@ -136,19 +136,20 @@ function mergeByMessage(issues: GenerateIssue[]): GenerateIssue[] {
     const merged = new Map<string, GenerateIssue>()
 
     for (const issue of issues) {
-        const existing = merged.get(issue.message)
+        const message = issue.message()
+        const existing = merged.get(message)
 
         if (!existing) {
-            merged.set(issue.message, issue)
+            merged.set(message, issue)
             continue
         }
 
         const retries = [existing.onRetry, issue.onRetry].filter(retry => retry !== undefined)
 
-        merged.set(issue.message, {
+        merged.set(message, {
             ...existing,
             tone: existing.tone === 'error' || issue.tone === 'error' ? 'error' : 'warning',
-            field: [existing.field, issue.field].filter(field => field !== undefined).join(', '),
+            field: () => [existing.field?.(), issue.field?.()].filter(field => field !== undefined).join(', '),
             onRetry: retries.length > 0
                 ? () => retries.forEach(retry => retry())
                 : undefined,

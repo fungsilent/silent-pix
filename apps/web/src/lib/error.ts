@@ -6,12 +6,6 @@ import type { ZodError } from 'zod'
 export type ZodIssue = ZodError['issues'][number]
 
 /*
- * 使用者看得到的文案由前端決定，後端的 message 只當保底。
- * 每一句都要交代「怎麼辦」，不要只說失敗。
- */
-const messageByCode = new Map(Object.entries(t('errors.api', { returnObjects: true })))
-
-/*
  * 對方已經明確不在了就別重試——ComfyUI 沒開，再試三次還是沒開，
  * 只會讓錯誤訊息晚好幾秒才出現。4xx 同理，是請求本身的問題。
  */
@@ -35,8 +29,13 @@ export function shouldRetryQuery(failureCount: number, error: unknown): boolean 
     return failureCount < 1
 }
 
+/*
+ * 使用者看得到的文案由前端決定，後端的 message 只當保底。
+ * 每一句都要交代「怎麼辦」，不要只說失敗。
+ */
 export function toErrorMessage(error: unknown): string {
     if (error instanceof ApiError) {
+        const messageByCode = new Map(Object.entries(t('errors.api', { returnObjects: true })))
         return messageByCode.get(error.code) ?? error.message ?? t('errors.generic')
     }
 

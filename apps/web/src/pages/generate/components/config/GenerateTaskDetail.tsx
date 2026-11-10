@@ -30,8 +30,8 @@ export function GenerateTaskDetail() {
     const deleteMutation = useDeleteTaskMutation()
     const [imagePickerOpen, setImagePickerOpen] = createSignal(false)
     const [loraPickerOpen, setLoraPickerOpen] = createSignal(false)
-    const [referenceError, setReferenceError] = createSignal<string>()
-    const [renameError, setRenameError] = createSignal<string>()
+    const [referenceError, setReferenceError] = createSignal<() => string>()
+    const [renameError, setRenameError] = createSignal<() => string>()
     const loraQuery = useLoraListQuery(loraPickerOpen)
 
     const name = form.useSelector(({ values }) => values.name)
@@ -150,7 +150,7 @@ export function GenerateTaskDetail() {
             }
 
             revokePendingPreview(previewUrl)
-            setReferenceError(t('image.unreadable'))
+            setReferenceError(() => () => t('image.unreadable'))
         })
         probe.src = previewUrl
     }
@@ -195,7 +195,7 @@ export function GenerateTaskDetail() {
             })
         }
         catch (cause) {
-            setRenameError(toErrorMessage(cause))
+            setRenameError(() => () => toErrorMessage(cause))
         }
     }
 
@@ -248,7 +248,7 @@ export function GenerateTaskDetail() {
         createdAt: () => detail.task()?.createdAt,
         draft: detail.draft,
         imageCount: () => detail.task()?.images.length ?? 0,
-        renameError,
+        renameError: () => renameError()?.(),
         renamePending: () => renameMutation.isPending,
         deletePending: () => deleteMutation.isPending,
     }
@@ -256,7 +256,7 @@ export function GenerateTaskDetail() {
         reference,
         denoise,
         imagePickerOpen,
-        referenceError,
+        referenceError: () => referenceError()?.(),
     }
     const configData: TaskConfigCreateData = {
         values: configValues,
@@ -291,7 +291,7 @@ export function GenerateTaskDetail() {
     }
     const imageActions: TaskImageActions = {
         onReferenceFile,
-        onReferenceReject: setReferenceError,
+        onReferenceReject: message => setReferenceError(() => message),
         onReferenceAsset,
         onRemoveReference,
         onDenoiseChange: value => form.setFieldValue('denoise', value),

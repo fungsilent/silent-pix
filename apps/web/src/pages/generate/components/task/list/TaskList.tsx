@@ -156,18 +156,18 @@ type TaskEmptyStateProps = {
     values: readonly TaskApi.TaskFilterFlag[] | undefined
 }
 
-const emptyStateCopy: Record<TaskApi.TaskFilterFlag, { title: string, message: string }> = {
+const emptyStateCopy: Record<TaskApi.TaskFilterFlag, { title: () => string, message: () => string }> = {
     unflag: {
-        title: t('task.empty.unflagTitle'),
-        message: t('task.empty.unflagMessage'),
+        title: () => t('task.empty.unflagTitle'),
+        message: () => t('task.empty.unflagMessage'),
     },
     pin: {
-        title: t('task.empty.pinTitle'),
-        message: t('task.empty.pinMessage'),
+        title: () => t('task.empty.pinTitle'),
+        message: () => t('task.empty.pinMessage'),
     },
     discard: {
-        title: t('task.empty.discardTitle'),
-        message: t('task.empty.discardMessage'),
+        title: () => t('task.empty.discardTitle'),
+        message: () => t('task.empty.discardMessage'),
     },
 }
 
@@ -183,19 +183,19 @@ function TaskEmptyState(props: TaskEmptyStateProps) {
 
         return props.values === undefined
             ? {
-                title: t('task.empty.title'),
-                message: t('task.empty.message'),
+                title: () => t('task.empty.title'),
+                message: () => t('task.empty.message'),
             }
             : {
-                title: t('task.empty.noMatchTitle'),
-                message: t('task.empty.filterMessage'),
+                title: () => t('task.empty.noMatchTitle'),
+                message: () => t('task.empty.filterMessage'),
             }
     }
 
     return (
         <div class='flex flex-col items-center gap-1 px-3 py-8 text-center'>
-            <p class='m-0 text-xs font-medium text-fg'>{copy().title}</p>
-            <p class='m-0 text-[11px] leading-relaxed text-fg-muted'>{copy().message}</p>
+            <p class='m-0 text-xs font-medium text-fg'>{copy().title()}</p>
+            <p class='m-0 text-[11px] leading-relaxed text-fg-muted'>{copy().message()}</p>
         </div>
     )
 }

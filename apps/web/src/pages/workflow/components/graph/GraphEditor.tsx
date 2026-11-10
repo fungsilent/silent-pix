@@ -38,6 +38,7 @@ export function GraphEditor(props: GraphEditorProps) {
     let view: EditorView | undefined
     const readOnlyCompartment = new Compartment()
     const themeCompartment = new Compartment()
+    const placeholderCompartment = new Compartment()
 
     onMount(() => {
         if (!host) return
@@ -52,7 +53,7 @@ export function GraphEditor(props: GraphEditorProps) {
                 workflowTokens,
                 history(),
                 keymap.of([...defaultKeymap, ...historyKeymap]),
-                placeholder(t('workflow.graph.placeholder')),
+                placeholderCompartment.of(placeholder(t('workflow.graph.placeholder'))),
                 themeCompartment.of(createWorkflowEditorTheme(themeStore.state.theme)),
                 readOnlyCompartment.of(EditorState.readOnly.of(props.readOnly)),
                 EditorView.updateListener.of(update => {
@@ -134,6 +135,12 @@ export function GraphEditor(props: GraphEditorProps) {
         view?.dispatch({
             effects: themeCompartment.reconfigure(createWorkflowEditorTheme(theme)),
         })
+    })
+
+    createEffect(() => {
+        const text = t('workflow.graph.placeholder')
+
+        view?.dispatch({ effects: placeholderCompartment.reconfigure(placeholder(text)) })
     })
 
     onCleanup(() => {

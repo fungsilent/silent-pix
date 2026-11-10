@@ -13,7 +13,7 @@ export function WorkflowDelete() {
     const store = useWorkflowStore()
     const mutation = useDeleteWorkflowMutation()
     const [open, setOpen] = createSignal(false)
-    const [error, setError] = createSignal<string>()
+    const [error, setError] = createSignal<() => string>()
 
     const selection = () => store.selection()
     const taskCount = () => selection().taskCount
@@ -55,7 +55,7 @@ export function WorkflowDelete() {
             }
         }
         catch (cause) {
-            setError(toErrorMessage(cause))
+            setError(() => () => toErrorMessage(cause))
         }
     }
 
@@ -84,7 +84,7 @@ export function WorkflowDelete() {
                     <div class='flex w-full items-center justify-between gap-3'>
                         <Show when={error()}>
                             {message => (
-                                <FieldHint tone='danger'>{message()}</FieldHint>
+                                <FieldHint tone='danger'>{message()()}</FieldHint>
                             )}
                         </Show>
                         <div class='ml-auto flex shrink-0 gap-2'>

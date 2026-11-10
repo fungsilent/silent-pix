@@ -38,7 +38,7 @@ export function WorkflowMapping() {
                         <Show when={index() > 0}>
                             <Line />
                         </Show>
-                        <DetailGroup title={group.label}>
+                        <DetailGroup title={group.label()}>
                             <For each={group.fields}>
                                 {field => (
                                     <MappingRow

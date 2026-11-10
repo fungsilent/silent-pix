@@ -36,7 +36,7 @@ export type TaskImageCreateData = TaskImageData & {
 
 export type TaskImageActions = {
     onReferenceFile: (file: File) => void
-    onReferenceReject: (message: string) => void
+    onReferenceReject: (message: () => string) => void
     onReferenceAsset: (item: ImageApi.ImageListItem) => void
     onRemoveReference: () => void
     onDenoiseChange: (value: number) => void
@@ -68,7 +68,7 @@ export function TaskImage(props: TaskImageProps) {
 
     const onReferenceReject = (rejection: FileUploadFileRejection) => {
         if (props.mode === 'create') {
-            props.actions.onReferenceReject(rejection.errors.includes('FILE_INVALID_TYPE')
+            props.actions.onReferenceReject(() => rejection.errors.includes('FILE_INVALID_TYPE')
                 ? t('image.invalidType')
                 : t('image.invalidReference'))
         }

@@ -5,9 +5,9 @@ import { probeConnection } from '#/api/connection'
 import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
 import { Dialog } from '#/components/base/Dialog'
-import { Text } from '#/components/field'
+import { Select, Text } from '#/components/field'
 import { cn } from '#/lib/cn'
-import { t } from '#/lib/i18n'
+import { localeStore, t } from '#/lib/i18n'
 import { getPlatform, saveLocalServerUrl, validateLocalServerUrl } from '#/lib/platform'
 import { theme } from '#/lib/theme'
 import { devStore } from '#/store/dev'
@@ -18,6 +18,11 @@ import type { Accessor, JSX } from 'solid-js'
 
 type ConnectionStatus = 'connected' | 'failed'
 
+const languageOptions = [
+    { value: 'en', label: 'English' },
+    { value: 'zh-TW', label: '繁體中文' },
+]
+
 export function SettingsPage() {
     const queryClient = useQueryClient()
     const platform = getPlatform()
@@ -25,7 +30,7 @@ export function SettingsPage() {
     const [connectionStatus, setConnectionStatus] = createSignal<ConnectionStatus>()
     const [testing, setTesting] = createSignal(false)
     const [saving, setSaving] = createSignal(false)
-    const [error, setError] = createSignal<string>()
+    const [error, setError] = createSignal<() => string>()
     const [pendingServerUrl, setPendingServerUrl] = createSignal<LocalServerUrl>()
 
     const testConnection = async () => {
@@ -37,7 +42,7 @@ export function SettingsPage() {
             nextServerUrl = validateLocalServerUrl(serverUrlInput())
         }
         catch (value) {
-            setError(value instanceof Error ? value.message : t('settings.invalidLocalServerUrl'))
+            setError(() => () => value instanceof Error ? value.message : t('settings.invalidLocalServerUrl'))
             return
         }
 
@@ -61,7 +66,7 @@ export function SettingsPage() {
     const persistServerUrl = async (nextServerUrl: LocalServerUrl) => {
         if (queryClient.isMutating() > 0) {
             setPendingServerUrl(undefined)
-            setError(t('settings.waitForCurrentAction'))
+            setError(() => () => t('settings.waitForCurrentAction'))
             setSaving(false)
             return
         }
@@ -74,7 +79,7 @@ export function SettingsPage() {
         }
         catch (value) {
             setPendingServerUrl(undefined)
-            setError(value instanceof Error ? value.message : t('settings.saveSettingsFailed'))
+            setError(() => () => value instanceof Error ? value.message : t('settings.saveSettingsFailed'))
             setSaving(false)
         }
     }
@@ -85,12 +90,12 @@ export function SettingsPage() {
             nextServerUrl = validateLocalServerUrl(serverUrlInput())
         }
         catch (value) {
-            setError(value instanceof Error ? value.message : t('settings.invalidLocalServerUrl'))
+            setError(() => () => value instanceof Error ? value.message : t('settings.invalidLocalServerUrl'))
             return
         }
 
         if (queryClient.isMutating() > 0) {
-            setError(t('settings.waitForCurrentAction'))
+            setError(() => () => t('settings.waitForCurrentAction'))
             return
         }
 
@@ -112,6 +117,19 @@ export function SettingsPage() {
 
             <div class='scrollbar-thin min-h-0 flex-1 overflow-y-auto px-4 py-[18px]'>
                 <div class='mx-auto flex w-full max-w-[520px] flex-col gap-3.5'>
+                    <SettingCard
+                        title={t('settings.language')}
+                        description={t('settings.languageDescription')}
+                    >
+                        <div class='border-t border-line-subtle px-3.5 py-3'>
+                            <Select
+                                label={t('settings.language')}
+                                options={languageOptions}
+                                value={localeStore.state.locale}
+                                onChange={localeStore.setLocale}
+                            />
+                        </div>
+                    </SettingCard>
                     <DevSettings
                         mode={() => devStore.state.mode}
                         loadingPreview={() => devStore.state.loadingPreview}
@@ -124,7 +142,7 @@ export function SettingsPage() {
                             connectionStatus={connectionStatus}
                             testing={testing}
                             saving={saving}
-                            error={error}
+                            error={() => error()?.()}
                             settingsError={platform.settingsError}
                             hasSavedServerUrl={Boolean(platform.endpoint)}
                             onValueChange={value => {
@@ -349,7 +367,7 @@ function SettingRow(props: SettingRowProps) {
 
 type SettingSegmentOption<Value extends string> = {
     value: Value
-    label: string
+    label: () => string
 }
 
 type SettingSegmentProps<Value extends string> = {
@@ -372,7 +390,7 @@ function SettingSegment<Value extends string>(props: SettingSegmentProps<Value>)
                     }}
                     onClick={() => props.onChange(option.value)}
                 >
-                    {option.label}
+                    {option.label()}
                 </Button>
             ))}
         </div>
@@ -389,13 +407,13 @@ type DevSettingsProps = {
 }
 
 const modeOptions = [
-    { value: 'normal', label: t('settings.dev.normal') },
-    { value: 'dev', label: t('settings.dev.dev') },
+    { value: 'normal', label: () => t('settings.dev.normal') },
+    { value: 'dev', label: () => t('settings.dev.dev') },
 ] as const satisfies readonly SettingSegmentOption<DevMode>[]
 
 const previewOptions = [
-    { value: 'off', label: t('settings.dev.off') },
-    { value: 'on', label: t('settings.dev.on') },
+    { value: 'off', label: () => t('settings.dev.off') },
+    { value: 'on', label: () => t('settings.dev.on') },
 ] as const
 
 function DevSettings(props: DevSettingsProps) {

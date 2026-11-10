@@ -80,7 +80,7 @@ apps/web/src/
     pages/workflow/         graph/mapping editor and Workflow management
     pages/compare/          image comparison workspace
     pages/settings/         shared Settings and runtime Dev Settings
-    i18n/                   English i18next resources and type augmentation
+    i18n/                   English/Traditional Chinese i18next resources and type augmentation
     store/                  shared UI choices and connection state
     lib/                    shared browser utilities
 ```
@@ -95,14 +95,18 @@ directly to `ApiError`; transport failures and malformed runtime values remain
 separate fallbacks. Workflow mutation mapping errors retain their `issues`
 evidence for the page's existing issue projection.
 
-Web copy uses one module-private i18next instance in `lib/i18n.ts`. It exports
-the native bound `t` and `i18nReady`; bundled `i18n/en.json` resources initialize
-synchronously for module-level labels, and `main.tsx` awaits readiness before
-platform initialization and rendering. `i18n/i18next.d.ts` derives resource
-key types from the English JSON. JSON string values do not preserve
-literal types for interpolation inference; runtime self-checks cover parameter
-substitution. The runtime supports English only, without a language detector,
-resource requests, or reactive switching.
+Web copy uses one module-private i18next instance in `lib/i18n.ts`. Its typed
+`t` proxy tracks Solid locale reads, and `localeStore` switches bundled English
+(`en`, default) and Traditional Chinese (`zh-TW`) resources without reloading.
+Settings uses the shared Select; the choice is validated and persisted under
+`silent-pix.locale` in localStorage and reflected in the document language.
+Unavailable storage keeps session switching usable. Resources initialize
+synchronously, and `main.tsx` awaits `i18nReady` before platform initialization
+and rendering. `i18n/i18next.d.ts` derives resource key types from the English
+JSON. JSON values do not preserve literal interpolation types; runtime
+self-checks cover resource parity and parameter substitution. Stable caption
+functions and deferred error messages update without replacing editable state.
+CodeMirror reconfigures its placeholder and updates operation titles in place.
 
 Current coverage is Header, Settings, startup and Desktop bridge messages,
 shared validation/error messages, IssueChip, Task/Generate, shared image pickers

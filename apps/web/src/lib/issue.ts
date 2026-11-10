@@ -7,8 +7,8 @@ export type IssueTone = 'error' | 'warning'
 export type AppIssue = {
     id: string
     tone: IssueTone
-    field?: string | undefined
-    message: string
+    field?: (() => string | undefined) | undefined
+    message: () => string
     onRetry?: (() => void) | undefined
 }
 
