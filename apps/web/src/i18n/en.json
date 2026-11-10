@@ -18,7 +18,8 @@
         "random": "Random",
         "selectedCount": "{{count}} selected",
         "save": "Save",
-        "untitled": "Untitled"
+        "untitled": "Untitled",
+        "showAll": "Show all"
     },
     "header": {
         "generate": "Generate",
@@ -211,10 +212,14 @@
         "loadMoreFailed": "Failed to load more images.",
         "empty": "No images yet.",
         "originInput": "{{task}} input",
-        "originOutput": "{{task}} #{{index}}"
+        "originOutput": "{{task}} #{{index}}",
+        "add": "Add images",
+        "unavailable": "Image unavailable",
+        "unavailableShort": "Unavailable"
     },
     "viewer": {
-        "fit": "Fit"
+        "fit": "Fit",
+        "previewAlt": "Generated preview"
     },
     "generate": {
         "selectWorkflow": "Select a workflow.",
@@ -297,5 +302,13 @@
             "Prompt": "Prompt",
             "Other": "Other"
         }
+    },
+    "compare": {
+        "emptyTitle": "No images to compare",
+        "emptyMessage": "Add images from your library to compare them side by side.",
+        "allHidden": "All images hidden",
+        "referenceImageTitle": "IMAGE",
+        "referenceImageAlt": "Selected reference image",
+        "shownCount": "{{shown}} / {{total}} shown"
     }
 }

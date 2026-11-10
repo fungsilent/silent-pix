@@ -2,6 +2,7 @@ import { createMemo, Show } from 'solid-js'
 
 import { TaskDetail } from '#/components/task/detail/TaskDetail'
 import { useTaskDetailQuery } from '#/features/task/task.query'
+import { t } from '#/lib/i18n'
 import { ReferenceImageDetail } from '#/pages/compare/components/ReferenceImageDetail'
 import { compareStore } from '#/store/compare'
 
@@ -56,7 +57,7 @@ export function CompareDetail() {
             return {
                 workflowId: current?.workflowId ?? '',
                 seed: '',
-                seedPlaceholder: current?.config.seed ?? 'Random',
+                seedPlaceholder: current?.config.seed ?? t('common.random'),
                 steps: current?.config.steps ?? 0,
                 cfg: current?.config.cfg ?? 0,
                 width: current?.config.width ?? 0,

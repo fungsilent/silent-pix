@@ -5,6 +5,7 @@ import { CollapseButton, CollapsedBar, Panel, PanelContent } from '#/components/
 import { DetailRow, DetailSection } from '#/components/detail'
 import { Number } from '#/components/field'
 import { formatDateTime } from '#/lib/format'
+import { t } from '#/lib/i18n'
 
 import type { ImageApi } from '@silent-pix/shared'
 
@@ -28,7 +29,7 @@ export function ReferenceImageDetail(props: ReferenceImageDetailProps) {
                     <div class='flex h-full min-h-0 flex-col'>
                         <Bar.Root classes={{ root: 'px-2' }}>
                             <Bar.Group>
-                                <Bar.Title>Detail</Bar.Title>
+                                <Bar.Title>{t('common.detail')}</Bar.Title>
                             </Bar.Group>
                             <Bar.Actions>
                                 <CollapseButton
@@ -59,12 +60,12 @@ function ReferenceImageContent(props: ReferenceImageContentProps) {
     return (
         <>
             <DetailSection>
-                <DetailRow label='ID'>
+                <DetailRow label={t('fields.id')}>
                     <span class='block truncate font-mono text-[11px] font-medium leading-none text-fg'>
                         {props.image.id}
                     </span>
                 </DetailRow>
-                <DetailRow label='Created'>
+                <DetailRow label={t('fields.created')}>
                     <span class='text-xs leading-none text-fg-secondary'>
                         {formatDateTime(props.image.createdAt)}
                     </span>
@@ -73,27 +74,27 @@ function ReferenceImageContent(props: ReferenceImageContentProps) {
 
             <Line />
 
-            <DetailSection title='IMAGE'>
+            <DetailSection title={t('compare.referenceImageTitle')}>
                 <div class='flex h-40 items-center justify-center overflow-hidden rounded-md bg-active'>
                     <img
                         class='max-h-full max-w-full object-contain'
                         src={resolveImageUrl(props.image.url)}
-                        alt='Selected reference image'
+                        alt={t('compare.referenceImageAlt')}
                     />
                 </div>
             </DetailSection>
 
             <Line />
 
-            <DetailSection title='Config'>
+            <DetailSection title={t('common.config')}>
                 <div class='grid grid-cols-2 gap-2'>
                     <Number
-                        label='Width'
+                        label={t('fields.width')}
                         value={props.image.width}
                         disabled
                     />
                     <Number
-                        label='Height'
+                        label={t('fields.height')}
                         value={props.image.height}
                         disabled
                     />

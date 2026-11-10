@@ -2,6 +2,7 @@ import { createEffect, createSignal, For, Show } from 'solid-js'
 
 import { resolveImageUrl } from '#/api/image'
 import { cn } from '#/lib/cn'
+import { t } from '#/lib/i18n'
 
 import type { createImageZoom, Offset, Size } from '#/lib/imageZoom'
 
@@ -66,7 +67,7 @@ export function ZoomStage(props: ZoomStageProps) {
                             width: props.zoom.scaled().width ? `${props.zoom.scaled().width}px` : 'auto',
                         }}
                         src={resolveImageUrl(source.url)}
-                        alt={index() === props.selectedIndex ? 'Generated preview' : ''}
+                        alt={index() === props.selectedIndex ? t('viewer.previewAlt') : ''}
                         draggable={false}
                         onPointerCancel={props.zoom.endDrag}
                         onPointerDown={props.zoom.onPointerDown}
@@ -79,7 +80,7 @@ export function ZoomStage(props: ZoomStageProps) {
 
             <Show when={image() && failedUrls().has(image()!.url)}>
                 <div class='absolute inset-0 grid place-items-center text-sm text-fg-muted'>
-                    Image unavailable
+                    {t('image.unavailable')}
                 </div>
             </Show>
 

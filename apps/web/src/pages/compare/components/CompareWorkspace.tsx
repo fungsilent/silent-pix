@@ -11,6 +11,7 @@ import { ZoomControls } from '#/components/viewer/ZoomControls'
 import { ZoomStage } from '#/components/viewer/ZoomStage'
 import { originLabel } from '#/features/image/image.label'
 import { cn } from '#/lib/cn'
+import { t } from '#/lib/i18n'
 import { createImageZoom } from '#/lib/imageZoom'
 import { isEditableTarget } from '#/lib/keyboard'
 import { compareStore } from '#/store/compare'
@@ -125,9 +126,9 @@ export function CompareWorkspace() {
         >
             <Bar.Root classes={{ root: 'border-b border-line-subtle' }}>
                 <Bar.Group>
-                    <Bar.Title>Compare</Bar.Title>
+                    <Bar.Title>{t('header.compare')}</Bar.Title>
                     <Bar.Meta classes={{ root: 'tabular-nums' }}>
-                        {entries().length} / {allEntries().length} shown
+                        {t('compare.shownCount', { shown: entries().length, total: allEntries().length })}
                     </Bar.Meta>
                 </Bar.Group>
                 <Bar.Actions>
@@ -136,7 +137,7 @@ export function CompareWorkspace() {
                             size='bar'
                             onClick={compareStore.showAllCompare}
                         >
-                            Show all
+                            {t('common.showAll')}
                         </Button>
                     </Show>
                     <Show when={allEntries().length > 0}>
@@ -144,7 +145,7 @@ export function CompareWorkspace() {
                             size='bar'
                             onClick={compareStore.clearCompare}
                         >
-                            Clear
+                            {t('common.clear')}
                         </Button>
                     </Show>
                     <Button
@@ -158,7 +159,7 @@ export function CompareWorkspace() {
                             size={14}
                             strokeWidth={1.8}
                         />
-                        Add images
+                        {t('image.add')}
                     </Button>
                 </Bar.Actions>
             </Bar.Root>
@@ -257,9 +258,9 @@ function EmptyCompareState(props: EmptyCompareStateProps) {
                     />
                 </div>
                 <div class='flex flex-col gap-1'>
-                    <h3 class='m-0 text-sm font-medium text-fg'>No images to compare</h3>
+                    <h3 class='m-0 text-sm font-medium text-fg'>{t('compare.emptyTitle')}</h3>
                     <p class='m-0 text-xs leading-relaxed text-fg-muted'>
-                        Add images from your library to compare them side by side.
+                        {t('compare.emptyMessage')}
                     </p>
                 </div>
                 <Button
@@ -272,7 +273,7 @@ function EmptyCompareState(props: EmptyCompareStateProps) {
                         size={14}
                         strokeWidth={1.8}
                     />
-                    Add images
+                    {t('image.add')}
                 </Button>
             </div>
         </div>
@@ -287,14 +288,14 @@ function AllHiddenState(props: AllHiddenStateProps) {
     return (
         <div class='relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-stage-empty'>
             <div class='flex flex-col items-center gap-3 text-center'>
-                <p class='m-0 text-sm font-medium text-fg'>All images hidden</p>
+                <p class='m-0 text-sm font-medium text-fg'>{t('compare.allHidden')}</p>
                 <Button
                     variant='solid'
                     tone='accent'
                     classes={{ root: 'h-8 px-3 text-xs' }}
                     onClick={props.onShowAll}
                 >
-                    Show all
+                    {t('common.showAll')}
                 </Button>
             </div>
         </div>
@@ -341,7 +342,7 @@ function CompareThumbnailStrip(props: CompareThumbnailStripProps) {
                                 />
                                 <Show when={failed()}>
                                     <span class='absolute inset-0 grid place-items-center bg-stage-control px-2 text-center text-[10px] text-stage-overlay-text'>
-                                        Unavailable
+                                        {t('image.unavailableShort')}
                                     </span>
                                 </Show>
                                 <span

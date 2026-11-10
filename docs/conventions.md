@@ -479,6 +479,7 @@ Rules:
 - theme runtime is owned by `apps/web/src/store/theme.ts`; the startup bootstrap sets `data-theme` before first paint
 - UI copy uses native `t()` from `apps/web/src/lib/i18n.ts`; English resources live in `apps/web/src/i18n/en.json`, with resource keys derived by `i18next.d.ts`
 - resources contain strings with i18next interpolation and plural forms, not formatting functions; keep canonical values and user content unchanged
+- brand names, technical format markers, keyboard keys, canonical field IDs, initial prompt content, and developer or external diagnostics stay outside the translation catalog
 - the i18next instance initializes bundled English resources synchronously for module-level labels; `main.tsx` awaits `i18nReady` before platform initialization and rendering
 - API wrappers keep raw status/code/message without translation; `lib/error.ts` maps known codes from the i18next resource table, then falls back to the original message for unknown codes
 - translation results are text or normal attributes; no `innerHTML`; the current English-only runtime does not implement reactive language switching

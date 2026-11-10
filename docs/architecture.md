@@ -106,9 +106,10 @@ resource requests, or reactive switching.
 
 Current coverage is Header, Settings, startup and Desktop bridge messages,
 shared validation/error messages, IssueChip, Task/Generate, shared image pickers
-and zoom controls, Prompt group defaults and operation titles, and Workflow and
-Graph editor copy. Compare-specific copy remains inline pending its migration.
-Canonical values, user content, and external diagnostics remain outside the catalog.
+and zoom controls, Prompt group defaults and operation titles, Workflow and
+Graph editor copy, and Compare. Remaining literals include brand names, technical
+format markers, keyboard keys, canonical field IDs, initial prompt content, and
+developer or external diagnostics; these remain outside the catalog.
 
 `lib/error.ts` obtains its code-to-message map through i18next `returnObjects`;
 the resource keys are the API codes, so there is no parallel code list. Known
