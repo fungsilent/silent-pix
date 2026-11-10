@@ -1,0 +1,100 @@
+{
+    "common": {
+        "cancel": "Cancel",
+        "retry": "Retry",
+        "settings": "Settings",
+        "issues_one": "{{count}} issue",
+        "issues_other": "{{count}} issues"
+    },
+    "header": {
+        "generate": "Generate",
+        "compare": "Compare",
+        "workflow": "Workflow",
+        "switchToLightTheme": "Switch to light theme",
+        "switchToDarkTheme": "Switch to dark theme"
+    },
+    "settings": {
+        "saveServerTitle": "Save Server and reload?",
+        "saveServerDescription": "Saving this Server reloads the app and clears the current page state.",
+        "saving": "Saving...",
+        "savingConnection": "Saving…",
+        "saveAndReload": "Save and reload",
+        "saveAndConnect": "Save and connect",
+        "connection": "Connection",
+        "connectionDescription": "REST, WebSocket, and image requests all use this URL. Saving reloads the app.",
+        "readSettingsError": "Could not read Desktop settings: {{message}}",
+        "retryReadSettings": "Retry reading settings",
+        "localServerUrl": "Local Server URL",
+        "localServerUrlHint": "Use http://127.0.0.1:<port>. Saving reloads the app.",
+        "testing": "Testing…",
+        "testConnection": "Test connection",
+        "connected": "Connected",
+        "connectionFailed": "Connection check failed",
+        "invalidLocalServerUrl": "Enter a valid local Server URL.",
+        "waitForCurrentAction": "Wait for the current action to finish before changing Servers.",
+        "saveSettingsFailed": "Could not save Desktop settings.",
+        "dev": {
+            "title": "Dev Settings",
+            "description": "Preview loading states for this session only. Real requests are untouched.",
+            "mode": "Mode",
+            "modeHint": "Dev reveals the preview controls. Reloading returns to Normal.",
+            "normal": "Normal",
+            "dev": "Dev",
+            "off": "Off",
+            "on": "On",
+            "loadingPreview": "Loading preview",
+            "loadingPreviewHint": "Show the existing loading skeletons."
+        }
+    },
+    "platform": {
+        "localServerUrlFormat": "Use http://127.0.0.1:<port> without a path.",
+        "localServerUrlPort": "Use a non-default port from 1 to 65535.",
+        "readSettingsFailed": "Could not read Desktop settings.",
+        "unexpectedSettings": "Desktop settings returned an unexpected value.",
+        "invalidServerUrl": "Desktop Server URL is invalid."
+    },
+    "errors": {
+        "startup": "Could not start Silent Pix.",
+        "generic": "Something went wrong.",
+        "api": {
+            "NETWORK_ERROR": "Server is unreachable. Start the backend and try again.",
+            "UNEXPECTED_ERROR": "The server returned an unexpected response.",
+            "COMFY_ERROR": "ComfyUI encountered an error. Check its console.",
+            "COMFY_LORA_LIST_ERROR": "Could not load the ComfyUI LoRA list. Try again.",
+            "COMFY_LORA_LIST_INVALID": "ComfyUI returned an unreadable LoRA list.",
+            "COMFY_OBJECT_INFO_ERROR": "Could not load ComfyUI sampler options. Try again.",
+            "COMFY_OBJECT_INFO_INVALID": "ComfyUI returned unreadable sampler options.",
+            "COMFY_OUTPUT_MISSING": "ComfyUI finished without producing an image.",
+            "COMFY_TIMEOUT": "ComfyUI stopped responding.",
+            "COMFY_UNAVAILABLE": "ComfyUI is not running. Start it, then retry.",
+            "CREATE_TASK_FAIL": "Failed to create task.",
+            "IMAGE_EMPTY": "Reference image is empty.",
+            "IMAGE_FILE_NOT_FOUND": "Image file not found.",
+            "IMAGE_NOT_FOUND": "Image not found.",
+            "IMAGE_STORE_FAILED": "Could not store the image. Check the server console.",
+            "IMAGE_UNSUPPORTED_TYPE": "Reference image must be a PNG or JPEG.",
+            "INTERNAL_SERVER_ERROR": "The server hit an unexpected error. Check its console.",
+            "INVALID_IMAGE_CURSOR": "The image list is out of sync. Reload to continue.",
+            "INVALID_TASK_CURSOR": "The task list is out of sync. Reload to continue.",
+            "ORIGIN_NOT_ALLOWED": "This origin is not allowed to connect to the server.",
+            "REFERENCE_IMAGE_NOT_FOUND": "Reference image not found.",
+            "ROUTE_NOT_FOUND": "Route not found.",
+            "SERVER_STOPPING": "The server is shutting down. Try again after it restarts.",
+            "TASK_ACTIVE": "One or more tasks are still active.",
+            "TASK_GENERATE_ERROR": "Generation failed. Check the ComfyUI console for details.",
+            "TASK_NOT_FOUND": "Task not found.",
+            "VALIDATION_ERROR": "The server rejected the request as invalid.",
+            "WORKFLOW_ARCHIVED": "This workflow is archived and cannot be used.",
+            "WORKFLOW_MAPPING_INVALID": "Some workflow bindings do not resolve against this graph.",
+            "WORKFLOW_NOT_FOUND": "That workflow is gone. The list has been refreshed — pick one and try again.",
+            "WORKFLOW_REVISION_CONFLICT": "This workflow changed elsewhere. Reload it before saving again."
+        },
+        "validation": {
+            "maxCharacters": "Must be {{maximum}} characters or less.",
+            "maximum": "Must be {{maximum}} or less.",
+            "minCharacters": "Must be at least {{minimum}} characters.",
+            "minimum": "Must be {{minimum}} or more.",
+            "invalidValue": "Enter a valid value."
+        }
+    }
+}

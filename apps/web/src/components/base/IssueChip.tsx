@@ -5,6 +5,7 @@ import { Portal } from 'solid-js/web'
 
 import { Button } from '#/components/base/Button'
 import { cn } from '#/lib/cn'
+import { t } from '#/lib/i18n'
 import { sortIssues } from '#/lib/issue'
 
 import type { AppIssue, IssueTone } from '#/lib/issue'
@@ -33,7 +34,7 @@ export function IssueChip(props: IssueChipProps) {
     const tone = (): IssueTone => props.issues.some(issue => issue.tone === 'error') ? 'error' : 'warning'
     const label = () => count() === 1
         ? props.issues[0]?.message ?? ''
-        : `${count()} issues`
+        : t('common.issues', { count: count() })
 
     return (
         <Show when={count() > 0}>
@@ -101,7 +102,7 @@ export function IssueChip(props: IssueChipProps) {
                                                         size={12}
                                                         strokeWidth={1.8}
                                                     />
-                                                    Retry
+                                                    {t('common.retry')}
                                                 </Button>
                                             )}
                                         </Show>

@@ -7,6 +7,7 @@ import { Button } from '#/components/base/Button'
 import { Dialog } from '#/components/base/Dialog'
 import { Text } from '#/components/field'
 import { cn } from '#/lib/cn'
+import { t } from '#/lib/i18n'
 import { getPlatform, saveLocalServerUrl, validateLocalServerUrl } from '#/lib/platform'
 import { theme } from '#/lib/theme'
 import { devStore } from '#/store/dev'
@@ -36,7 +37,7 @@ export function SettingsPage() {
             nextServerUrl = validateLocalServerUrl(serverUrlInput())
         }
         catch (value) {
-            setError(value instanceof Error ? value.message : 'Enter a valid local Server URL.')
+            setError(value instanceof Error ? value.message : t('settings.invalidLocalServerUrl'))
             return
         }
 
@@ -60,7 +61,7 @@ export function SettingsPage() {
     const persistServerUrl = async (nextServerUrl: LocalServerUrl) => {
         if (queryClient.isMutating() > 0) {
             setPendingServerUrl(undefined)
-            setError('Wait for the current action to finish before changing Servers.')
+            setError(t('settings.waitForCurrentAction'))
             setSaving(false)
             return
         }
@@ -73,7 +74,7 @@ export function SettingsPage() {
         }
         catch (value) {
             setPendingServerUrl(undefined)
-            setError(value instanceof Error ? value.message : 'Could not save Desktop settings.')
+            setError(value instanceof Error ? value.message : t('settings.saveSettingsFailed'))
             setSaving(false)
         }
     }
@@ -84,12 +85,12 @@ export function SettingsPage() {
             nextServerUrl = validateLocalServerUrl(serverUrlInput())
         }
         catch (value) {
-            setError(value instanceof Error ? value.message : 'Enter a valid local Server URL.')
+            setError(value instanceof Error ? value.message : t('settings.invalidLocalServerUrl'))
             return
         }
 
         if (queryClient.isMutating() > 0) {
-            setError('Wait for the current action to finish before changing Servers.')
+            setError(t('settings.waitForCurrentAction'))
             return
         }
 
@@ -105,7 +106,7 @@ export function SettingsPage() {
         <section class='flex min-h-0 flex-1 flex-col'>
             <Bar.Root classes={{ root: 'shrink-0 border-b border-line-subtle' }}>
                 <Bar.Group>
-                    <Bar.Title>Settings</Bar.Title>
+                    <Bar.Title>{t('common.settings')}</Bar.Title>
                 </Bar.Group>
             </Bar.Root>
 
@@ -159,8 +160,8 @@ function ServerSaveDialog(props: ServerSaveDialogProps) {
     return (
         <Dialog
             open={props.nextServerUrl !== undefined}
-            title='Save Server and reload?'
-            description='Saving this Server reloads the app and clears the current page state.'
+            title={t('settings.saveServerTitle')}
+            description={t('settings.saveServerDescription')}
             onOpenChange={open => {
                 if (!open && !props.saving) {
                     props.onCancel()
@@ -174,7 +175,7 @@ function ServerSaveDialog(props: ServerSaveDialogProps) {
                         disabled={props.saving}
                         onClick={props.onCancel}
                     >
-                        Cancel
+                        {t('common.cancel')}
                     </Button>
                     <Button
                         variant='solid'
@@ -186,7 +187,7 @@ function ServerSaveDialog(props: ServerSaveDialogProps) {
                             }
                         }}
                     >
-                        {props.saving ? 'Saving...' : 'Save and reload'}
+                        {props.saving ? t('settings.saving') : t('settings.saveAndReload')}
                     </Button>
                 </div>
             )}
@@ -217,35 +218,35 @@ type ConnectionSettingsProps = {
 function ConnectionSettings(props: ConnectionSettingsProps) {
     return (
         <SettingCard
-            title='Connection'
+            title={t('settings.connection')}
             tag='Desktop'
-            description='REST, WebSocket, and image requests all use this URL. Saving reloads the app.'
+            description={t('settings.connectionDescription')}
         >
             <Show when={props.settingsError}>
                 {message => (
                     <div class='flex flex-col gap-2 border-t border-line-subtle px-3.5 py-3'>
                         <p class='m-0 flex items-center gap-1.5 text-xs text-danger-fg'>
                             <span class='size-1.5 shrink-0 rounded-full bg-danger' />
-                            Could not read Desktop settings: {message()}
+                            {t('settings.readSettingsError', { message: message() })}
                         </p>
                         <Button
                             variant='ghost'
                             classes={{ root: 'self-start px-2 text-xs' }}
                             onClick={props.onRetrySettings}
                         >
-                            Retry reading settings
+                            {t('settings.retryReadSettings')}
                         </Button>
                     </div>
                 )}
             </Show>
             <div class='flex flex-col gap-2 border-t border-line-subtle px-3.5 py-3'>
                 <Text
-                    label='Local Server URL'
+                    label={t('settings.localServerUrl')}
                     value={props.value()}
                     placeholder='http://127.0.0.1:3070'
                     onInput={props.onValueChange}
                 />
-                <p class='m-0 text-[11px] leading-4 text-fg-muted'>Use http://127.0.0.1:&lt;port&gt;. Saving reloads the app.</p>
+                <p class='m-0 text-[11px] leading-4 text-fg-muted'>{t('settings.localServerUrlHint')}</p>
                 <div class='flex flex-wrap items-center gap-2'>
                     <Button
                         variant='soft'
@@ -253,7 +254,7 @@ function ConnectionSettings(props: ConnectionSettingsProps) {
                         disabled={props.testing() || props.saving() || props.value().trim() === ''}
                         onClick={props.onTest}
                     >
-                        {props.testing() ? 'Testing…' : 'Test connection'}
+                        {props.testing() ? t('settings.testing') : t('settings.testConnection')}
                     </Button>
                     <Button
                         disabled={props.saving() || props.testing() || props.value().trim() === ''}
@@ -261,7 +262,7 @@ function ConnectionSettings(props: ConnectionSettingsProps) {
                         tone='accent'
                         onClick={props.onSave}
                     >
-                        {props.saving() ? 'Saving…' : props.hasSavedServerUrl ? 'Save and reload' : 'Save and connect'}
+                        {props.saving() ? t('settings.savingConnection') : props.hasSavedServerUrl ? t('settings.saveAndReload') : t('settings.saveAndConnect')}
                     </Button>
                     <ConnectionState status={props.connectionStatus()} />
                 </div>
@@ -286,7 +287,7 @@ function ConnectionState(props: { status: ConnectionStatus | undefined }) {
                 return (
                     <span class={cn('flex items-center gap-1.5 text-[11px]', connected ? 'text-success-fg' : 'text-danger-fg')}>
                         <span class={cn('size-1.5 shrink-0 rounded-full', connected ? 'bg-success' : 'bg-danger')} />
-                        {connected ? 'Connected' : 'Connection check failed'}
+                        {connected ? t('settings.connected') : t('settings.connectionFailed')}
                     </span>
                 )
             }}
@@ -388,24 +389,24 @@ type DevSettingsProps = {
 }
 
 const modeOptions = [
-    { value: 'normal', label: 'Normal' },
-    { value: 'dev', label: 'Dev' },
+    { value: 'normal', label: t('settings.dev.normal') },
+    { value: 'dev', label: t('settings.dev.dev') },
 ] as const satisfies readonly SettingSegmentOption<DevMode>[]
 
 const previewOptions = [
-    { value: 'off', label: 'Off' },
-    { value: 'on', label: 'On' },
+    { value: 'off', label: t('settings.dev.off') },
+    { value: 'on', label: t('settings.dev.on') },
 ] as const
 
 function DevSettings(props: DevSettingsProps) {
     return (
         <SettingCard
-            title='Dev Settings'
-            description='Preview loading states for this session only. Real requests are untouched.'
+            title={t('settings.dev.title')}
+            description={t('settings.dev.description')}
         >
             <SettingRow
-                label='Mode'
-                hint='Dev reveals the preview controls. Reloading returns to Normal.'
+                label={t('settings.dev.mode')}
+                hint={t('settings.dev.modeHint')}
             >
                 <SettingSegment
                     value={props.mode()}
@@ -416,8 +417,8 @@ function DevSettings(props: DevSettingsProps) {
 
             <Show when={props.mode() === 'dev'}>
                 <SettingRow
-                    label='Loading preview'
-                    hint='Show the existing loading skeletons.'
+                    label={t('settings.dev.loadingPreview')}
+                    hint={t('settings.dev.loadingPreviewHint')}
                 >
                     <SettingSegment
                         value={props.loadingPreview() ? 'on' : 'off'}

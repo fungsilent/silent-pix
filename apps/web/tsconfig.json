@@ -13,7 +13,7 @@
         "rootDir": "src",
         "types": ["vite/client"]
     },
-    "include": ["src/**/*.ts", "src/**/*.tsx"],
+    "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.json"],
     "references": [
         { "path": "../../packages/event" },
         { "path": "../../packages/shared" }

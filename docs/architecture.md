@@ -80,6 +80,7 @@ apps/web/src/
     pages/workflow/         graph/mapping editor and Workflow management
     pages/compare/          image comparison workspace
     pages/settings/         shared Settings and runtime Dev Settings
+    i18n/                   English i18next resources and type augmentation
     store/                  shared UI choices and connection state
     lib/                    shared browser utilities
 ```
@@ -93,6 +94,27 @@ declared error types. `unwrap` maps declared `{ status, value.error }` bodies
 directly to `ApiError`; transport failures and malformed runtime values remain
 separate fallbacks. Workflow mutation mapping errors retain their `issues`
 evidence for the page's existing issue projection.
+
+Web copy uses one module-private i18next instance in `lib/i18n.ts`. It exports
+the native bound `t` and `i18nReady`; bundled `i18n/en.json` resources initialize
+synchronously for module-level labels, and `main.tsx` awaits readiness before
+platform initialization and rendering. `i18n/i18next.d.ts` derives resource
+key types from the English JSON. JSON string values do not preserve
+literal types for interpolation inference; runtime self-checks cover parameter
+substitution. The runtime supports English only, without a language detector,
+resource requests, or reactive switching.
+
+Current coverage is Header, Settings, startup and Desktop bridge messages,
+shared validation/error messages, and IssueChip. Task/Generate, Workflow and
+Compare still have inline copy pending their later migration phases. Canonical
+values, user content, and external diagnostics remain outside the catalog.
+
+`lib/error.ts` obtains its code-to-message map through i18next `returnObjects`;
+the resource keys are the API codes, so there is no parallel code list. Known
+codes display frontend messages; unknown codes retain `ApiError.message` as
+fallback. Eden wrappers preserve raw status, code, message and mapping issues,
+and do not import i18next. Interpolation results are rendered as text or normal
+attributes, with no HTML translation rendering.
 
 Generate uses real Task APIs, TanStack Query for server data, and page-scoped
 TanStack Form for editable values. The default draft supplies initial form

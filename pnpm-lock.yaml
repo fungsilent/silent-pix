@@ -290,6 +290,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      i18next:
+        specifier: ^27.1.0
+        version: 27.1.0(typescript@7.0.2)
       lucide-solid:
         specifier: ^1.63.0
         version: 1.63.0(solid-js@1.9.17)
@@ -2330,6 +2333,15 @@ packages:
 
   html-entities@2.3.3:
     resolution: {integrity: sha512-DV5Ln36z34NNTDgnz0EWGBLZENelNAtkiFA4kyNOG2tDI6Mz1uSWiq1wAKdyjnJwyDiDO7Fa2SO1CTxPXL8VxA==}
+
+  i18next@27.1.0:
+    resolution: {integrity: sha512-xdjb2OXFRm33rClqknpJmmYBvrPcaoEQ7/4kur5uTrbqckqzkbRO0ns6gFFki5TDmHzbIrFYpNBXhaRafmhJ/Q==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      typescript: ^5 || ^6 || ^7
+    peerDependenciesMeta:
+      typescript:
+        optional: true
 
   ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
@@ -4915,6 +4927,10 @@ snapshots:
   hookified@2.2.0: {}
 
   html-entities@2.3.3: {}
+
+  i18next@27.1.0(typescript@7.0.2):
+    optionalDependencies:
+      typescript: 7.0.2
 
   ieee754@1.2.1: {}
 

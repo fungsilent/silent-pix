@@ -1,4 +1,5 @@
-import { ApiError, networkErrorCode, unexpectedErrorCode } from '#/api/api.client'
+import { ApiError, networkErrorCode } from '#/api/api.client'
+import { t } from '#/lib/i18n'
 
 import type { ZodError } from 'zod'
 
@@ -8,20 +9,7 @@ export type ZodIssue = ZodError['issues'][number]
  * 使用者看得到的文案由前端決定，後端的 message 只當保底。
  * 每一句都要交代「怎麼辦」，不要只說失敗。
  */
-const messageByCode: Record<string, string> = {
-    [networkErrorCode]: 'Server is unreachable. Start the backend and try again.',
-    [unexpectedErrorCode]: 'The server returned an unexpected response.',
-    COMFY_LORA_LIST_INVALID: 'ComfyUI returned an unreadable LoRA list.',
-    COMFY_OBJECT_INFO_INVALID: 'ComfyUI returned unreadable sampler options.',
-    COMFY_OUTPUT_MISSING: 'ComfyUI finished without producing an image.',
-    COMFY_TIMEOUT: 'ComfyUI stopped responding.',
-    COMFY_UNAVAILABLE: 'ComfyUI is not running. Start it, then retry.',
-    INTERNAL_SERVER_ERROR: 'The server hit an unexpected error. Check its console.',
-    INVALID_TASK_CURSOR: 'The task list is out of sync. Reload to continue.',
-    TASK_GENERATE_ERROR: 'Generation failed. Check the ComfyUI console for details.',
-    VALIDATION_ERROR: 'The server rejected the request as invalid.',
-    WORKFLOW_NOT_FOUND: 'That workflow is gone. The list has been refreshed — pick one and try again.',
-}
+const messageByCode = new Map(Object.entries(t('errors.api', { returnObjects: true })))
 
 /*
  * 對方已經明確不在了就別重試——ComfyUI 沒開，再試三次還是沒開，
@@ -49,10 +37,10 @@ export function shouldRetryQuery(failureCount: number, error: unknown): boolean 
 
 export function toErrorMessage(error: unknown): string {
     if (error instanceof ApiError) {
-        return messageByCode[error.code] ?? error.message ?? 'Something went wrong.'
+        return messageByCode.get(error.code) ?? error.message ?? t('errors.generic')
     }
 
-    return 'Something went wrong.'
+    return t('errors.generic')
 }
 
 /*
@@ -63,14 +51,14 @@ export function toIssueMessage(issue: ZodIssue): string {
     switch (issue.code) {
         case 'too_big':
             return issue.origin === 'string'
-                ? `Must be ${issue.maximum} characters or less.`
-                : `Must be ${issue.maximum} or less.`
+                ? t('errors.validation.maxCharacters', { maximum: String(issue.maximum) })
+                : t('errors.validation.maximum', { maximum: String(issue.maximum) })
         case 'too_small':
             return issue.origin === 'string'
-                ? `Must be at least ${issue.minimum} characters.`
-                : `Must be ${issue.minimum} or more.`
+                ? t('errors.validation.minCharacters', { minimum: String(issue.minimum) })
+                : t('errors.validation.minimum', { minimum: String(issue.minimum) })
         case 'invalid_type':
-            return 'Enter a valid value.'
+            return t('errors.validation.invalidValue')
         default:
             return issue.message
     }

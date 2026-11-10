@@ -11,6 +11,8 @@ same range in `engines.pnpm`, which its Windows prerequisite checker reads.
 Use caret ranges for third-party dependencies and keep exact resolved versions
 in `pnpm-lock.yaml`. `pnpm-workspace.yaml` allows only esbuild's dependency build
 scripts.
+The pinned `i18next@27.1.0` release has a package-specific
+`minimumReleaseAgeExclude` entry added by pnpm when installing that version.
 
 ---
 
@@ -475,6 +477,11 @@ Rules:
 - shared detail-panel primitives go in `apps/web/src/components/detail`
 - shared class recipes live in `apps/web/src/lib/theme.ts` beside `cn.ts`; tokens stay in `styles.css`
 - theme runtime is owned by `apps/web/src/store/theme.ts`; the startup bootstrap sets `data-theme` before first paint
+- UI copy uses native `t()` from `apps/web/src/lib/i18n.ts`; English resources live in `apps/web/src/i18n/en.json`, with resource keys derived by `i18next.d.ts`
+- resources contain strings with i18next interpolation and plural forms, not formatting functions; keep canonical values and user content unchanged
+- the i18next instance initializes bundled English resources synchronously for module-level labels; `main.tsx` awaits `i18nReady` before platform initialization and rendering
+- API wrappers keep raw status/code/message without translation; `lib/error.ts` maps known codes from the i18next resource table, then falls back to the original message for unknown codes
+- translation results are text or normal attributes; no `innerHTML`; the current English-only runtime does not implement reactive language switching
 - `Button` variants describe visual weight (`ghost`, `soft`, `solid`); tones describe semantic color (`neutral`, `accent`, `danger`)
 - inline image stages follow the theme; the full-screen viewer backdrop and glass controls stay fixed in both themes, and content drawn directly on a stage uses `stage-fg`
 - Prompt and Graph editor themes come from factories and per-view Compartments; theme changes must not rebuild views or lose history

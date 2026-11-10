@@ -1,17 +1,19 @@
 import { invoke, isTauri } from '@tauri-apps/api/core'
 import { z } from 'zod'
 
+import { t } from '#/lib/i18n'
+
 const nativeServerUrl = z.string().nullable()
 const localServerUrl = z.string().trim().transform((input, context) => {
     const match = /^http:\/\/127\.0\.0\.1:([1-9][0-9]{0,4})$/.exec(input)
     if (!match) {
-        context.addIssue({ code: 'custom', message: 'Use http://127.0.0.1:<port> without a path.' })
+        context.addIssue({ code: 'custom', message: t('platform.localServerUrlFormat') })
         return z.NEVER
     }
 
     const port = Number(match[1])
     if (!Number.isInteger(port) || port < 1 || port > 65535 || port === 80) {
-        context.addIssue({ code: 'custom', message: 'Use a non-default port from 1 to 65535.' })
+        context.addIssue({ code: 'custom', message: t('platform.localServerUrlPort') })
         return z.NEVER
     }
 
@@ -53,7 +55,7 @@ async function readDesktopSettings(): Promise<Platform> {
         return {
             kind: 'desktop',
             endpoint: null,
-            settingsError: error instanceof Error ? error.message : 'Could not read Desktop settings.',
+            settingsError: error instanceof Error ? error.message : t('platform.readSettingsFailed'),
         }
     }
 }
@@ -61,7 +63,7 @@ async function readDesktopSettings(): Promise<Platform> {
 async function readNativeServerUrl(): Promise<LocalServerUrl | null> {
     const result = nativeServerUrl.safeParse(await invoke<unknown>('read_server_url'))
     if (!result.success) {
-        throw new Error('Desktop settings returned an unexpected value.')
+        throw new Error(t('platform.unexpectedSettings'))
     }
 
     if (result.data === null) {
@@ -70,7 +72,7 @@ async function readNativeServerUrl(): Promise<LocalServerUrl | null> {
 
     const parsedUrl = localServerUrl.safeParse(result.data)
     if (!parsedUrl.success) {
-        throw new Error(parsedUrl.error.issues[0]?.message ?? 'Desktop Server URL is invalid.')
+        throw new Error(parsedUrl.error.issues[0]?.message ?? t('platform.invalidServerUrl'))
     }
 
     return parsedUrl.data

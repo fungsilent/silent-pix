@@ -4,6 +4,7 @@ import { Button } from '#/components/base/Button'
 import { Menu, MenuItem } from '#/components/base/Menu'
 import { useHealthQuery } from '#/features/app/app.query'
 import { cn } from '#/lib/cn'
+import { t } from '#/lib/i18n'
 import { theme } from '#/lib/theme'
 import { appStore, serviceHealth } from '#/store/app'
 import { themeStore } from '#/store/theme'
@@ -22,7 +23,7 @@ export function Header() {
             >
                 <ModeButton
                     active={appStore.state.page === 'generate'}
-                    label='Generate'
+                    label={t('header.generate')}
                     onClick={() => appStore.setPage('generate')}
                 >
                     <Sparkles
@@ -32,7 +33,7 @@ export function Header() {
                 </ModeButton>
                 <ModeButton
                     active={appStore.state.page === 'compare'}
-                    label='Compare'
+                    label={t('header.compare')}
                     onClick={() => appStore.setPage('compare')}
                 >
                     <Columns2
@@ -42,7 +43,7 @@ export function Header() {
                 </ModeButton>
                 <ModeButton
                     active={appStore.state.page === 'workflow'}
-                    label='Workflow'
+                    label={t('header.workflow')}
                     onClick={() => appStore.setPage('workflow')}
                 >
                     <Workflow
@@ -77,7 +78,7 @@ function AppMenu() {
         >
             <MenuItem
                 value='settings'
-                label='Settings'
+                label={t('common.settings')}
                 current={appStore.state.page === 'settings'}
                 icon={(
                     <Settings
@@ -97,7 +98,7 @@ function ThemeToggle() {
     return (
         <Button
             variant='ghost'
-            title={dark() ? 'Switch to light theme' : 'Switch to dark theme'}
+            title={dark() ? t('header.switchToLightTheme') : t('header.switchToDarkTheme')}
             classes={{ root: 'size-[30px] shrink-0 p-0 text-fg-secondary' }}
             onClick={() => themeStore.toggleTheme()}
         >

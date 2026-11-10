@@ -4,6 +4,7 @@ import { render } from 'solid-js/web'
 import { initializeApiClient } from '#/api/api.client'
 import { App } from '#/App'
 import { shouldRetryQuery } from '#/lib/error'
+import { i18nReady, t } from '#/lib/i18n'
 import { initializePlatform } from '#/lib/platform'
 
 import '@fontsource-variable/manrope'
@@ -29,6 +30,7 @@ const queryClient = new QueryClient({
 
 async function startApp(): Promise<void> {
     try {
+        await i18nReady
         const platform = await initializePlatform()
         if (platform.endpoint) {
             initializeApiClient(platform.endpoint)
@@ -44,7 +46,7 @@ async function startApp(): Promise<void> {
         )
     }
     catch (error) {
-        const message = error instanceof Error ? error.message : 'Could not start Silent Pix.'
+        const message = error instanceof Error ? error.message : t('errors.startup')
         render(() => (
             <main class='flex h-dvh items-center justify-center bg-canvas p-6 text-sm text-danger-fg'>
                 {message}
