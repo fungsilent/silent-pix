@@ -1,6 +1,7 @@
 import { Show } from 'solid-js'
 
 import { Bar } from '#/components/base/Bar'
+import { t } from '#/lib/i18n'
 import { GraphEditor } from '#/pages/workflow/components/graph/GraphEditor'
 import { useWorkflowStore } from '#/pages/workflow/store'
 
@@ -14,17 +15,17 @@ export function GraphPanel() {
         <section class='flex min-w-0 flex-1 flex-col overflow-hidden border-r border-line bg-surface'>
             <Bar.Root>
                 <Bar.Group>
-                    <Bar.Title>API JSON</Bar.Title>
+                    <Bar.Title>{t('workflow.apiJson')}</Bar.Title>
                 </Bar.Group>
             </Bar.Root>
 
             <div class='flex min-h-0 flex-1 flex-col px-4 pb-3'>
-                <span class='pb-1.5 text-xs leading-none text-fg-muted'>Graph</span>
+                <span class='pb-1.5 text-xs leading-none text-fg-muted'>{t('workflow.graph.title')}</span>
                 <Show
                     when={store.hasSelection()}
                     fallback={(
                         <div class='flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-md border border-transparent bg-elevated px-8 text-center text-xs leading-relaxed text-fg-muted'>
-                            Add a workflow to paste its API JSON.
+                            {t('workflow.graph.addWorkflowHint')}
                         </div>
                     )}
                 >

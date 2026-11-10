@@ -4,6 +4,7 @@ import { EditorView, keymap, lineNumbers, placeholder } from '@codemirror/view'
 import { createEffect, onCleanup, onMount, Show } from 'solid-js'
 
 import { Loading } from '#/components/base/Loading'
+import { t } from '#/lib/i18n'
 import { parseGraphText } from '#/pages/workflow/components/graph/graph.document'
 import {
     fieldGutter,
@@ -51,7 +52,7 @@ export function GraphEditor(props: GraphEditorProps) {
                 workflowTokens,
                 history(),
                 keymap.of([...defaultKeymap, ...historyKeymap]),
-                placeholder('Paste the ComfyUI API JSON here.'),
+                placeholder(t('workflow.graph.placeholder')),
                 themeCompartment.of(createWorkflowEditorTheme(themeStore.state.theme)),
                 readOnlyCompartment.of(EditorState.readOnly.of(props.readOnly)),
                 EditorView.updateListener.of(update => {

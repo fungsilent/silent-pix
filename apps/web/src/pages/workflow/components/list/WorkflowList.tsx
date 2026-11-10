@@ -8,6 +8,7 @@ import { Line } from '#/components/base/Line'
 import { Loading } from '#/components/base/Loading'
 import { DetailTitle } from '#/components/detail'
 import { cn } from '#/lib/cn'
+import { t } from '#/lib/i18n'
 import { theme } from '#/lib/theme'
 import { useWorkflowStore } from '#/pages/workflow/store'
 
@@ -25,7 +26,7 @@ export function WorkflowList() {
         <aside class='flex w-[200px] flex-none flex-col overflow-hidden border-r border-line bg-surface'>
             <Bar.Root classes={{ root: 'pl-3 pr-2' }}>
                 <Bar.Group>
-                    <Bar.Title>Workflows</Bar.Title>
+                    <Bar.Title>{t('workflow.title')}</Bar.Title>
                 </Bar.Group>
                 <Bar.Actions>
                     <Button
@@ -55,7 +56,7 @@ export function WorkflowList() {
                         {value => (
                             <Row
                                 id={value()}
-                                name={draftName() || 'Untitled'}
+                                name={draftName() || t('common.untitled')}
                                 archived={false}
                             />
                         )}
@@ -74,7 +75,7 @@ export function WorkflowList() {
                     <Show when={archived().length > 0}>
                         <Line />
                         <div class='px-2.5 py-1'>
-                            <DetailTitle>Archived</DetailTitle>
+                            <DetailTitle>{t('workflow.archivedTitle')}</DetailTitle>
                         </div>
                         <For each={archived()}>
                             {item => (

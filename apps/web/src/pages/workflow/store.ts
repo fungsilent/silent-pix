@@ -7,6 +7,7 @@ import {
     useWorkflowDetailQuery,
     useWorkflowListQuery,
 } from '#/features/workflow/workflow.query'
+import { t } from '#/lib/i18n'
 import { createStore } from '#/lib/store'
 import { toLineMarks as createLineMarks, parseGraphText as parseWorkflowGraphText } from '#/pages/workflow/components/graph/graph.document'
 import {
@@ -153,12 +154,12 @@ export function createWorkflowStore() {
         )
     }
 
-    const draftLabel = createMemo((): 'Draft' | 'Unsaved' | null => {
+    const draftLabel = createMemo((): string | null => {
         if (uiStore.state.createDraftId !== null) {
-            return 'Draft'
+            return t('task.draft')
         }
 
-        return isModified() ? 'Unsaved' : null
+        return isModified() ? t('workflow.unsaved') : null
     })
 
     /* 沒有 draft 也沒有選中的 remote workflow：整頁沒有可編輯的對象 */

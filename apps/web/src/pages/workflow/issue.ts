@@ -1,6 +1,7 @@
 import { ApiError } from '#/api/api.client'
 import { WorkflowMappingApiError } from '#/api/workflow'
 import { toErrorMessage, toIssueMessage } from '#/lib/error'
+import { t } from '#/lib/i18n'
 
 import type { Comfy } from '@silent-pix/shared'
 import type { ZodIssue } from '#/lib/error'
@@ -9,9 +10,9 @@ import type { GraphParse } from '#/pages/workflow/components/graph/graph.documen
 import type { WorkflowFormValues } from '#/pages/workflow/form'
 
 const fieldLabel: Record<keyof WorkflowFormValues, string> = {
-    name: 'Name',
-    graphText: 'API JSON',
-    configSchema: 'Mapping',
+    name: t('fields.name'),
+    graphText: t('workflow.apiJson'),
+    configSchema: t('workflow.mapping.title'),
 }
 
 export function toValidationIssues(issues: ZodIssue[]): AppIssue[] {
@@ -29,15 +30,15 @@ export function toValidationIssues(issues: ZodIssue[]): AppIssue[] {
 }
 
 const graphFailureMessage: Record<Comfy.ParseApiGraphFailure, string> = {
-    'not-object': 'The pasted JSON is not a ComfyUI graph object.',
-    'ui-format': 'That is the UI workflow format. In ComfyUI use Workflow → Export (API).',
-    'invalid-node': 'Some nodes are missing class_type or inputs, so this is not an API graph.',
+    'not-object': t('workflow.graph.notObject'),
+    'ui-format': t('workflow.graph.uiFormat'),
+    'invalid-node': t('workflow.graph.invalidNode'),
 }
 
 const mappingIssueMessage: Record<Comfy.MappingIssueReason, (issue: Comfy.MappingIssue) => string> = {
-    'node-missing': issue => `Node ${issue.nodeId} is not in the pasted graph.`,
-    'input-missing': issue => `Node ${issue.nodeId} has no input named ${issue.input}.`,
-    'input-linked': issue => `${issue.nodeId}.${issue.input} is wired from another node, so it cannot be written.`,
+    'node-missing': issue => t('workflow.mapping.nodeMissing', { nodeId: issue.nodeId }),
+    'input-missing': issue => t('workflow.mapping.inputMissing', { nodeId: issue.nodeId, input: issue.input }),
+    'input-linked': issue => t('workflow.mapping.inputLinked', { nodeId: issue.nodeId, input: issue.input }),
 }
 
 export function toGraphIssues(parse: GraphParse): AppIssue[] {
@@ -45,7 +46,7 @@ export function toGraphIssues(parse: GraphParse): AppIssue[] {
         return [{
             id: 'graph-json',
             tone: 'error',
-            field: 'API JSON',
+            field: t('workflow.apiJson'),
             message: parse.message,
         }]
     }
@@ -54,7 +55,7 @@ export function toGraphIssues(parse: GraphParse): AppIssue[] {
         return [{
             id: `graph-${parse.reason}`,
             tone: 'error',
-            field: 'API JSON',
+            field: t('workflow.apiJson'),
             message: graphFailureMessage[parse.reason],
         }]
     }
@@ -86,8 +87,8 @@ export function toRequirementIssues(input: {
         issues.push({
             id: 'name-required',
             tone: 'error',
-            field: 'Name',
-            message: 'Give the workflow a name before saving.',
+            field: t('fields.name'),
+            message: t('workflow.nameRequired'),
         })
     }
 
@@ -95,8 +96,8 @@ export function toRequirementIssues(input: {
         issues.push({
             id: 'graph-empty',
             tone: 'error',
-            field: 'API JSON',
-            message: 'Paste the graph. In ComfyUI use Workflow → Export (API), then paste it here.',
+            field: t('workflow.apiJson'),
+            message: t('workflow.graphRequired'),
         })
     }
 
@@ -115,7 +116,7 @@ export function toListIssues(input: {
     return [{
         id: 'workflow-list-load',
         tone: 'error',
-        field: 'Workflows',
+        field: t('workflow.title'),
         message: toErrorMessage(input.error),
         onRetry: input.onRetry,
     }]
@@ -129,7 +130,7 @@ export function toLoadIssues(error: unknown): AppIssue[] {
     return [{
         id: 'workflow-load',
         tone: 'error',
-        field: 'Workflow',
+        field: t('fields.workflow'),
         message: toErrorMessage(error),
     }]
 }
@@ -142,8 +143,8 @@ export function toSaveIssues(input: {
         return [{
             id: 'save-conflict',
             tone: 'error',
-            field: 'Save',
-            message: 'This workflow changed elsewhere. Reload to see it, or copy your JSON out first.',
+            field: t('common.save'),
+            message: t('workflow.saveConflict'),
         }]
     }
 
@@ -155,8 +156,8 @@ export function toSaveIssues(input: {
         return [{
             id: 'save-conflict',
             tone: 'error',
-            field: 'Save',
-            message: 'This workflow changed elsewhere. Reload to see it, or copy your JSON out first.',
+            field: t('common.save'),
+            message: t('workflow.saveConflict'),
         }]
     }
 
@@ -167,7 +168,7 @@ export function toSaveIssues(input: {
     return [{
         id: 'save-failed',
         tone: 'error',
-        field: 'Save',
+        field: t('common.save'),
         message: toErrorMessage(input.error),
     }]
 }

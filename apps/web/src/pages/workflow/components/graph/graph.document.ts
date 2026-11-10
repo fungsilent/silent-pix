@@ -1,5 +1,7 @@
 import { comfy, config } from '@silent-pix/shared'
 
+import { t } from '#/lib/i18n'
+
 import type { Comfy, ConfigSchema, GeneratorField } from '@silent-pix/shared'
 
 export type GraphParse =
@@ -21,7 +23,7 @@ export function parseGraphText(text: string): GraphParse {
     catch (error) {
         return {
             status: 'invalid-json',
-            message: error instanceof Error ? error.message : 'The text is not valid JSON.',
+            message: error instanceof Error ? error.message : t('workflow.graph.invalidJson'),
         }
     }
 

@@ -6,6 +6,7 @@ import { Dialog } from '#/components/base/Dialog'
 import { FieldHint } from '#/components/base/FieldHint'
 import { useDeleteWorkflowMutation } from '#/features/workflow/workflow.query'
 import { toErrorMessage } from '#/lib/error'
+import { t } from '#/lib/i18n'
 import { useWorkflowStore } from '#/pages/workflow/store'
 
 export function WorkflowDelete() {
@@ -21,14 +22,14 @@ export function WorkflowDelete() {
     const willArchive = () => !isArchived() && taskCount() > 0
     const describe = () => {
         if (willArchive()) {
-            return `${taskCount()} task${taskCount() > 1 ? 's' : ''} still use this workflow, so it is archived instead of deleted. It leaves the generate picker and those tasks keep working.`
+            return t('workflow.archive.description', { count: taskCount() })
         }
 
         if (isArchived() && taskCount() > 0) {
-            return `This workflow is already archived. It is deleted only once no task uses it — ${taskCount()} still ${taskCount() > 1 ? 'do' : 'does'}.`
+            return t('workflow.archive.alreadyArchived', { count: taskCount() })
         }
 
-        return 'No task uses this workflow. It is removed from the database. This cannot be undone.'
+        return t('workflow.delete.description')
     }
 
     const openDialog = () => {
@@ -70,12 +71,12 @@ export function WorkflowDelete() {
                     size={13}
                     strokeWidth={1.8}
                 />
-                {willArchive() ? 'Archive workflow' : 'Delete workflow'}
+                {willArchive() ? t('workflow.archive.action') : t('workflow.delete.action')}
             </Button>
 
             <Dialog
                 open={open()}
-                title={willArchive() ? 'Archive this workflow?' : 'Delete this workflow?'}
+                title={willArchive() ? t('workflow.archive.title') : t('workflow.delete.title')}
                 description={describe()}
                 onOpenChange={setOpen}
                 classes={{ content: 'w-[420px] max-w-full' }}
@@ -92,7 +93,7 @@ export function WorkflowDelete() {
                                 disabled={mutation.isPending}
                                 onClick={() => setOpen(false)}
                             >
-                                Cancel
+                                {t('common.cancel')}
                             </Button>
                             <Button
                                 tone='danger'
@@ -101,15 +102,15 @@ export function WorkflowDelete() {
                                 onClick={() => void confirm()}
                             >
                                 {mutation.isPending
-                                    ? (willArchive() ? 'Archiving...' : 'Deleting...')
-                                    : (willArchive() ? 'Archive' : 'Delete')}
+                                    ? (willArchive() ? t('workflow.archive.pending') : t('common.deleting'))
+                                    : (willArchive() ? t('workflow.archive.confirm') : t('common.delete'))}
                             </Button>
                         </div>
                     </div>
                 )}
             >
                 <p class='m-0 truncate font-mono text-xs text-fg-secondary'>
-                    {selection().name || 'Untitled'}
+                    {selection().name || t('common.untitled')}
                 </p>
             </Dialog>
         </>

@@ -1,5 +1,7 @@
 import { config } from '@silent-pix/shared'
 
+import { t } from '#/lib/i18n'
+
 import type { GeneratorField } from '@silent-pix/shared'
 
 /*
@@ -24,14 +26,15 @@ const groupOf: Record<GeneratorField, GroupLabel> = {
 }
 
 const groupOrder = ['Sampler', 'Latent', 'Prompt', 'Other'] as const satisfies readonly GroupLabel[]
+const groupLabels = t('workflow.groups', { returnObjects: true })
 
 export type FieldGroup = {
-    label: GroupLabel
+    label: string
     fields: readonly GeneratorField[]
 }
 
 /* 組的先後由 groupOrder 決定，組內順序沿用 shared 的欄位順序 */
 export const fieldGroups: readonly FieldGroup[] = groupOrder.map(label => ({
-    label,
+    label: groupLabels[label],
     fields: config.generatorFields.filter(field => groupOf[field] === label),
 }))

@@ -6,6 +6,7 @@ import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
 import { IssueChip } from '#/components/base/IssueChip'
 import { Line } from '#/components/base/Line'
+import { t } from '#/lib/i18n'
 import { WorkflowInfo } from '#/pages/workflow/components/config/WorkflowInfo'
 import { WorkflowMapping } from '#/pages/workflow/components/config/WorkflowMapping'
 import {
@@ -93,7 +94,7 @@ export function WorkflowDetail() {
         >
             <Bar.Root>
                 <Bar.Group>
-                    <Bar.Title>Detail</Bar.Title>
+                    <Bar.Title>{t('common.detail')}</Bar.Title>
                 </Bar.Group>
                 <Show when={store.hasSelection()}>
                     <Bar.Actions classes={{ root: 'flex-1 justify-end' }}>
@@ -107,7 +108,7 @@ export function WorkflowDetail() {
                             when={!store.selection().isArchived}
                             fallback={
                                 <span class='shrink-0 text-[11.5px] leading-none text-fg-muted'>
-                                    Read-only · archived
+                                    {t('workflow.readOnlyArchived')}
                                 </span>
                             }
                         >
@@ -123,7 +124,7 @@ export function WorkflowDetail() {
                                     size={13}
                                     strokeWidth={1.7}
                                 />
-                                {isSaving() ? 'Saving' : 'Save'}
+                                {isSaving() ? t('workflow.saving') : t('common.save')}
                             </Button>
                         </Show>
                     </Bar.Actions>
@@ -142,9 +143,9 @@ export function WorkflowDetail() {
                                 />
                             </div>
                             <div class='flex flex-col gap-1'>
-                                <h3 class='m-0 text-sm font-medium text-fg'>No workflow selected</h3>
+                                <h3 class='m-0 text-sm font-medium text-fg'>{t('workflow.noSelection')}</h3>
                                 <p class='m-0 text-xs leading-relaxed text-fg-muted'>
-                                    A workflow holds the ComfyUI graph and the field mapping the generate page uses.
+                                    {t('workflow.description')}
                                 </p>
                             </div>
                             <Button
@@ -157,7 +158,7 @@ export function WorkflowDetail() {
                                     size={14}
                                     strokeWidth={1.8}
                                 />
-                                Add workflow
+                                {t('workflow.add')}
                             </Button>
                         </div>
                     </div>

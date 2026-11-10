@@ -4,6 +4,7 @@ import { Badge } from '#/components/base/Badge'
 import { Loading } from '#/components/base/Loading'
 import { DetailRow, DetailSection } from '#/components/detail'
 import { Editable } from '#/components/field'
+import { t } from '#/lib/i18n'
 import { WorkflowDelete } from '#/pages/workflow/components/config/WorkflowDelete'
 import { useWorkflowStore } from '#/pages/workflow/store'
 
@@ -20,14 +21,14 @@ export function WorkflowInfo() {
 
     return (
         <DetailSection inert={isLoading()}>
-            <DetailRow label='Name'>
+            <DetailRow label={t('fields.name')}>
                 <form.Field name='name'>
                     {field => (
                         <Loading.Mask loading={isLoading}>
                             <Editable
                                 disabled={store.isRemoteUnavailable() || store.selection().isArchived}
-                                label='Workflow name'
-                                placeholder='Untitled'
+                                label={t('workflow.nameLabel')}
+                                placeholder={t('common.untitled')}
                                 value={name()}
                                 onChange={field().handleChange}
                                 onCommit={value => field().handleChange(value.trim().slice(0, 120))}
@@ -38,7 +39,7 @@ export function WorkflowInfo() {
                 </form.Field>
             </DetailRow>
 
-            <DetailRow label='Revision'>
+            <DetailRow label={t('fields.revision')}>
                 <Loading.Mask loading={isLoading}>
                     <div class='flex h-5 min-w-0 items-center gap-2'>
                         <span

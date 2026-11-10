@@ -4,6 +4,7 @@ import { Line } from '#/components/base/Line'
 import { Loading } from '#/components/base/Loading'
 import { DetailGroup, DetailLabel, DetailSection } from '#/components/detail'
 import { Select } from '#/components/field'
+import { t } from '#/lib/i18n'
 import { fieldGroups } from '#/pages/workflow/generator-field'
 import { useWorkflowStore } from '#/pages/workflow/store'
 
@@ -22,13 +23,13 @@ export function WorkflowMapping() {
 
     return (
         <DetailSection
-            title='Mapping'
+            title={t('workflow.mapping.title')}
             inert={isLoading()}
         >
             <div class='grid grid-cols-[112px_1fr_168px] items-center gap-2 text-xs leading-none text-fg-muted'>
-                <span>Field</span>
-                <span>Node</span>
-                <span>Input</span>
+                <span>{t('workflow.mapping.field')}</span>
+                <span>{t('workflow.mapping.node')}</span>
+                <span>{t('workflow.mapping.input')}</span>
             </div>
 
             <For each={fieldGroups}>
@@ -82,10 +83,10 @@ function MappingRow(props: MappingRowProps) {
         const nodeId = props.binding?.nodeId
 
         if (nodeId && !selectedNode()) {
-            options.unshift({ badge: 'missing', label: nodeId, value: nodeId })
+            options.unshift({ badge: t('workflow.mapping.missing'), label: nodeId, value: nodeId })
         }
 
-        return [{ label: 'Not bound', value: unboundValue }, ...options]
+        return [{ label: t('workflow.mapping.unbound'), value: unboundValue }, ...options]
     }
 
     const inputItems = (): SelectOption[] => {
@@ -94,7 +95,7 @@ function MappingRow(props: MappingRowProps) {
         const input = props.binding?.input
 
         if (input && !inputs.includes(input)) {
-            options.unshift({ badge: 'missing', label: input, value: input })
+            options.unshift({ badge: t('workflow.mapping.missing'), label: input, value: input })
         }
 
         return options
@@ -120,7 +121,7 @@ function MappingRow(props: MappingRowProps) {
 
             <Loading.Mask loading={props.loading}>
                 <Select
-                    label={`${props.field} node`}
+                    label={t('workflow.mapping.nodeLabel', { field: props.field })}
                     value={props.binding?.nodeId ?? unboundValue}
                     options={nodeItems()}
                     disabled={props.readOnly}
@@ -137,7 +138,7 @@ function MappingRow(props: MappingRowProps) {
                 >
                     {binding => (
                         <Select
-                            label={`${props.field} input`}
+                            label={t('workflow.mapping.inputLabel', { field: props.field })}
                             value={binding().input}
                             options={inputItems()}
                             disabled={props.readOnly}

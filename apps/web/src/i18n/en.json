@@ -16,7 +16,9 @@
         "detail": "Detail",
         "config": "Config",
         "random": "Random",
-        "selectedCount": "{{count}} selected"
+        "selectedCount": "{{count}} selected",
+        "save": "Save",
+        "untitled": "Untitled"
     },
     "header": {
         "generate": "Generate",
@@ -129,7 +131,8 @@
         "negative": "Negative",
         "referenceImage": "Reference image",
         "prompt": "Prompt",
-        "selection": "Selection"
+        "selection": "Selection",
+        "revision": "Revision"
     },
     "task": {
         "title": "Tasks",
@@ -235,6 +238,64 @@
         "prompt": {
             "defaultGroup": "Group",
             "removeBoundary": "Remove group boundary"
+        }
+    },
+    "workflow": {
+        "title": "Workflows",
+        "nameLabel": "Workflow name",
+        "unsaved": "Unsaved",
+        "archivedTitle": "Archived",
+        "readOnlyArchived": "Read-only · archived",
+        "saving": "Saving",
+        "noSelection": "No workflow selected",
+        "description": "A workflow holds the ComfyUI graph and the field mapping the generate page uses.",
+        "add": "Add workflow",
+        "apiJson": "API JSON",
+        "graph": {
+            "title": "Graph",
+            "addWorkflowHint": "Add a workflow to paste its API JSON.",
+            "placeholder": "Paste the ComfyUI API JSON here.",
+            "invalidJson": "The text is not valid JSON.",
+            "notObject": "The pasted JSON is not a ComfyUI graph object.",
+            "uiFormat": "That is the UI workflow format. In ComfyUI use Workflow → Export (API).",
+            "invalidNode": "Some nodes are missing class_type or inputs, so this is not an API graph."
+        },
+        "mapping": {
+            "title": "Mapping",
+            "field": "Field",
+            "node": "Node",
+            "input": "Input",
+            "unbound": "Not bound",
+            "missing": "missing",
+            "nodeLabel": "{{field}} node",
+            "inputLabel": "{{field}} input",
+            "nodeMissing": "Node {{nodeId}} is not in the pasted graph.",
+            "inputMissing": "Node {{nodeId}} has no input named {{input}}.",
+            "inputLinked": "{{nodeId}}.{{input}} is wired from another node, so it cannot be written."
+        },
+        "nameRequired": "Give the workflow a name before saving.",
+        "graphRequired": "Paste the graph. In ComfyUI use Workflow → Export (API), then paste it here.",
+        "saveConflict": "This workflow changed elsewhere. Reload to see it, or copy your JSON out first.",
+        "archive": {
+            "action": "Archive workflow",
+            "title": "Archive this workflow?",
+            "pending": "Archiving...",
+            "confirm": "Archive",
+            "description_one": "{{count}} task still use this workflow, so it is archived instead of deleted. It leaves the generate picker and those tasks keep working.",
+            "description_other": "{{count}} tasks still use this workflow, so it is archived instead of deleted. It leaves the generate picker and those tasks keep working.",
+            "alreadyArchived_one": "This workflow is already archived. It is deleted only once no task uses it — {{count}} still does.",
+            "alreadyArchived_other": "This workflow is already archived. It is deleted only once no task uses it — {{count}} still do."
+        },
+        "delete": {
+            "action": "Delete workflow",
+            "title": "Delete this workflow?",
+            "description": "No task uses this workflow. It is removed from the database. This cannot be undone."
+        },
+        "groups": {
+            "Sampler": "Sampler",
+            "Latent": "Latent",
+            "Prompt": "Prompt",
+            "Other": "Other"
         }
     }
 }
