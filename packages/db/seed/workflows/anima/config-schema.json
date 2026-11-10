@@ -44,7 +44,7 @@
         "input": "lora_data"
     },
     "initImagePath": {
-        "nodeId": "133:139",
-        "input": "text"
+        "nodeId": "133:179",
+        "input": "value"
     }
 }

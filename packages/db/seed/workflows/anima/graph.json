@@ -1,261 +1,385 @@
 {
-    "47": {
-        "inputs": {
-            "lora_data": "[]",
-            "ltx_mode": false,
-            "lora_ui": "[]",
-            "model": [
-                "45:14",
-                0
-            ],
-            "clip": [
-                "45:16",
-                0
-            ]
-        },
-        "class_type": "MultiLoRALoader",
-        "_meta": {
-            "title": "Multi LoRA Loader"
-        }
+  "47": {
+    "inputs": {
+      "lora_data": "[]",
+      "ltx_mode": false,
+      "clip_mode": "[]",
+      "lora_ui": "[]",
+      "model": [
+        "45:14",
+        0
+      ],
+      "clip": [
+        "45:16",
+        0
+      ]
     },
-    "48": {
-        "inputs": {
-            "PromptStackState": "{\"version\":1,\"rows\":[{\"enabled\":true,\"label\":\"Default\",\"text\":\"nsfw, worst quality, low quality, score_1, score_2, score_3,\\nbad anatomy, bad hands, malformed hands, extra fingers, missing fingers,\\nextra limbs, twisted body, poorly drawn face, asymmetrical eyes,\\nblurry, messy lineart, flat shading, low detail,\\nwrong outfit, inaccurate clothing details, wrong colors,\\nextra accessories, text, watermark, logo, cropped, out of frame,\"}],\"separator\":\", \"}"
-        },
-        "class_type": "PixaromaPromptStack",
-        "_meta": {
-            "title": "Prompt Stack Pixaroma"
-        }
-    },
-    "50": {
-        "inputs": {
-            "PromptStackState": "{\"version\":1,\"rows\":[{\"enabled\":true,\"label\":\"畫質\",\"text\":\"masterpiece, best quality, score_9, score_8, highres, anime screenshot,\"},{\"enabled\":true,\"label\":\"刻晴\",\"text\":\"kqos, purple hair, purple eyes, twintails, cone hair bun,\"},{\"enabled\":true,\"label\":\"服裝\",\"text\":\"blue hair ribbon, pearl hair ornament, black lace choker, black dress, strapless, bare shoulders, detached flowing  sleeves, blue arm ribbons, black patterned pantyhose,\"},{\"enabled\":true,\"label\":\"pose\",\"text\":\"elegant sitting pose, dynamic pose, playful,\\ndynamic three-quarter view,\"},{\"enabled\":true,\"label\":\"backgroud\",\"text\":\"aesthetic background, fitting background, dynamic background, complementary background, detailed background, layered background,\"}],\"separator\":\", \"}"
-        },
-        "class_type": "PixaromaPromptStack",
-        "_meta": {
-            "title": "Prompt Stack Pixaroma"
-        }
-    },
-    "141": {
-        "inputs": {
-            "filename_prefix": "silent-pix",
-            "save_mode": "save",
-            "image": [
-                "99:60",
-                0
-            ]
-        },
-        "class_type": "PixaromaPreview",
-        "_meta": {
-            "title": "Preview Image Pixaroma"
-        }
-    },
-    "45:14": {
-        "inputs": {
-            "unet_name": "anima-aesthetic-v1.1.safetensors",
-            "weight_dtype": "default"
-        },
-        "class_type": "UNETLoader",
-        "_meta": {
-            "title": "載入擴散模型"
-        }
-    },
-    "45:15": {
-        "inputs": {
-            "vae_name": "qwen_image_vae.safetensors"
-        },
-        "class_type": "VAELoader",
-        "_meta": {
-            "title": "載入 VAE"
-        }
-    },
-    "45:16": {
-        "inputs": {
-            "clip_name": "qwen_3_06b_base.safetensors",
-            "type": "stable_diffusion",
-            "device": "default"
-        },
-        "class_type": "CLIPLoader",
-        "_meta": {
-            "title": "載入 CLIP"
-        }
-    },
-    "133:129": {
-        "inputs": {
-            "image_path": [
-                "133:139",
-                0
-            ],
-            "RGBA": "false",
-            "filename_text_extension": "false"
-        },
-        "class_type": "Image Load",
-        "_meta": {
-            "title": "Image Load"
-        }
-    },
-    "133:128": {
-        "inputs": {
-            "pixels": [
-                "133:129",
-                0
-            ],
-            "vae": [
-                "45:15",
-                0
-            ]
-        },
-        "class_type": "VAEEncode",
-        "_meta": {
-            "title": "VAE 編碼"
-        }
-    },
-    "133:127": {
-        "inputs": {
-            "string_a": [
-                "133:139",
-                0
-            ],
-            "string_b": "",
-            "mode": "Equal",
-            "case_sensitive": true
-        },
-        "class_type": "StringCompare",
-        "_meta": {
-            "title": "has image path"
-        }
-    },
-    "133:131": {
-        "inputs": {
-            "source": [
-                "133:127",
-                0
-            ]
-        },
-        "class_type": "PreviewAny",
-        "_meta": {
-            "title": "預覽任意"
-        }
-    },
-    "133:121": {
-        "inputs": {
-            "switch": [
-                "133:127",
-                0
-            ],
-            "on_false": [
-                "133:128",
-                0
-            ],
-            "on_true": [
-                "133:130",
-                0
-            ]
-        },
-        "class_type": "ComfySwitchNode",
-        "_meta": {
-            "title": "切換"
-        }
-    },
-    "133:130": {
-        "inputs": {
-            "width": 1536,
-            "height": 864,
-            "batch_size": 1
-        },
-        "class_type": "EmptyLatentImage",
-        "_meta": {
-            "title": "Size"
-        }
-    },
-    "133:139": {
-        "inputs": {
-            "text": "",
-            "text_b": "",
-            "text_c": "",
-            "text_d": ""
-        },
-        "class_type": "Text String",
-        "_meta": {
-            "title": "Text String"
-        }
-    },
-    "99:59": {
-        "inputs": {
-            "seed": 1050591915508876,
-            "steps": 10,
-            "cfg": 1,
-            "sampler_name": "dpmpp_2m_sde_gpu",
-            "scheduler": "simple",
-            "denoise": 0.7,
-            "model": [
-                "47",
-                0
-            ],
-            "positive": [
-                "99:85",
-                0
-            ],
-            "negative": [
-                "99:86",
-                0
-            ],
-            "latent_image": [
-                "133:121",
-                0
-            ]
-        },
-        "class_type": "KSampler",
-        "_meta": {
-            "title": "KSampler"
-        }
-    },
-    "99:60": {
-        "inputs": {
-            "samples": [
-                "99:59",
-                0
-            ],
-            "vae": [
-                "45:15",
-                0
-            ]
-        },
-        "class_type": "VAEDecode",
-        "_meta": {
-            "title": "VAE 解碼"
-        }
-    },
-    "99:85": {
-        "inputs": {
-            "text": [
-                "50",
-                0
-            ],
-            "clip": [
-                "47",
-                1
-            ]
-        },
-        "class_type": "CLIPTextEncode",
-        "_meta": {
-            "title": "正面clip"
-        }
-    },
-    "99:86": {
-        "inputs": {
-            "text": [
-                "48",
-                0
-            ],
-            "clip": [
-                "47",
-                1
-            ]
-        },
-        "class_type": "CLIPTextEncode",
-        "_meta": {
-            "title": "負面clip"
-        }
+    "class_type": "MultiLoRALoader",
+    "_meta": {
+      "title": "Multi LoRA Loader"
     }
+  },
+  "48": {
+    "inputs": {
+      "PromptStackState": "{\"version\":1,\"rows\":[{\"enabled\":true,\"label\":\"Default\",\"text\":\"\"}],\"separator\":\", \"}"
+    },
+    "class_type": "PixaromaPromptStack",
+    "_meta": {
+      "title": "Negative Prompt Stack Pixaroma"
+    }
+  },
+  "50": {
+    "inputs": {
+      "PromptStackState": "{\"version\":1,\"rows\":[{\"enabled\":true,\"label\":\"Default\",\"text\":\"\"}],\"separator\":\", \"}"
+    },
+    "class_type": "PixaromaPromptStack",
+    "_meta": {
+      "title": "Positive Prompt Stack Pixaroma"
+    }
+  },
+  "141": {
+    "inputs": {
+      "filename_prefix": "silent-pix",
+      "save_mode": "preview",
+      "image": [
+        "99:60",
+        0
+      ],
+      "CivitaiMeta": "0"
+    },
+    "class_type": "PixaromaPreview",
+    "_meta": {
+      "title": "Output Image Pixaroma"
+    }
+  },
+  "45:14": {
+    "inputs": {
+      "unet_name": "anima-aesthetic-v1.1.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "載入擴散模型"
+    }
+  },
+  "45:15": {
+    "inputs": {
+      "vae_name": "qwen_image_vae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "載入 VAE"
+    }
+  },
+  "45:16": {
+    "inputs": {
+      "clip_name": "qwen_3_06b_base.safetensors",
+      "type": "stable_diffusion",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "載入 CLIP"
+    }
+  },
+  "133:128": {
+    "inputs": {
+      "pixels": [
+        "133:192",
+        0
+      ],
+      "vae": [
+        "45:15",
+        0
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "Reference Image VAE Encode"
+    }
+  },
+  "133:121": {
+    "inputs": {
+      "switch": [
+        "133:174:178",
+        0
+      ],
+      "on_false": [
+        "133:130",
+        0
+      ],
+      "on_true": [
+        "133:128",
+        0
+      ]
+    },
+    "class_type": "ComfySwitchNode",
+    "_meta": {
+      "title": "Latent Switch (img / txt)"
+    }
+  },
+  "133:130": {
+    "inputs": {
+      "width": 1536,
+      "height": 864,
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "Size"
+    }
+  },
+  "133:147": {
+    "inputs": {
+      "name": "anima-lllite-inpainting-v2.safetensors"
+    },
+    "class_type": "ModelPatchLoader",
+    "_meta": {
+      "title": "Inpainting 模型修補載入器"
+    }
+  },
+  "133:148": {
+    "inputs": {
+      "strength": 1,
+      "start_percent": 0,
+      "end_percent": 1,
+      "model": [
+        "47",
+        0
+      ],
+      "model_patch": [
+        "133:147",
+        0
+      ],
+      "image": [
+        "133:192",
+        0
+      ],
+      "mask": [
+        "133:185",
+        0
+      ]
+    },
+    "class_type": "AnimaLLLiteApply",
+    "_meta": {
+      "title": "Inpainting Anima LLLite"
+    }
+  },
+  "133:162": {
+    "inputs": {
+      "value": ""
+    },
+    "class_type": "PrimitiveString",
+    "_meta": {
+      "title": "Mask Image Path"
+    }
+  },
+  "133:166": {
+    "inputs": {
+      "switch": [
+        "133:188",
+        0
+      ],
+      "on_false": [
+        "47",
+        0
+      ],
+      "on_true": [
+        "133:148",
+        0
+      ]
+    },
+    "class_type": "ComfySwitchNode",
+    "_meta": {
+      "title": "Model Switch"
+    }
+  },
+  "133:174:177": {
+    "inputs": {
+      "value": [
+        "133:179",
+        0
+      ]
+    },
+    "class_type": "ComfyNotNode",
+    "_meta": {
+      "title": "Not"
+    }
+  },
+  "133:174:178": {
+    "inputs": {
+      "value": [
+        "133:174:177",
+        0
+      ]
+    },
+    "class_type": "ComfyNotNode",
+    "_meta": {
+      "title": "Not"
+    }
+  },
+  "133:179": {
+    "inputs": {
+      "value": ""
+    },
+    "class_type": "PrimitiveString",
+    "_meta": {
+      "title": "Reference Image Path"
+    }
+  },
+  "133:182:180": {
+    "inputs": {
+      "value": [
+        "133:162",
+        0
+      ]
+    },
+    "class_type": "ComfyNotNode",
+    "_meta": {
+      "title": "Not"
+    }
+  },
+  "133:182:181": {
+    "inputs": {
+      "value": [
+        "133:182:180",
+        0
+      ]
+    },
+    "class_type": "ComfyNotNode",
+    "_meta": {
+      "title": "Not"
+    }
+  },
+  "133:185": {
+    "inputs": {
+      "channel": "red",
+      "image": [
+        "133:193",
+        0
+      ]
+    },
+    "class_type": "ImageToMask",
+    "_meta": {
+      "title": "將圖片轉換為遮罩"
+    }
+  },
+  "133:188": {
+    "inputs": {
+      "values.value0": [
+        "133:174:178",
+        0
+      ],
+      "values.value1": [
+        "133:182:181",
+        0
+      ]
+    },
+    "class_type": "ComfyAndNode",
+    "_meta": {
+      "title": "Is Inpainting"
+    }
+  },
+  "133:192": {
+    "inputs": {
+      "image": [
+        "133:179",
+        0
+      ]
+    },
+    "class_type": "LoadImageFromPath",
+    "_meta": {
+      "title": "Reference Image Load"
+    }
+  },
+  "133:193": {
+    "inputs": {
+      "image": [
+        "133:162",
+        0
+      ]
+    },
+    "class_type": "LoadImageFromPath",
+    "_meta": {
+      "title": "Reference Image Load"
+    }
+  },
+  "99:59": {
+    "inputs": {
+      "seed": 0,
+      "steps": 10,
+      "cfg": 1,
+      "sampler_name": "dpmpp_2m_sde_gpu",
+      "scheduler": "simple",
+      "denoise": 0.7,
+      "model": [
+        "133:166",
+        0
+      ],
+      "positive": [
+        "99:85",
+        0
+      ],
+      "negative": [
+        "99:86",
+        0
+      ],
+      "latent_image": [
+        "133:121",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "99:60": {
+    "inputs": {
+      "samples": [
+        "99:59",
+        0
+      ],
+      "vae": [
+        "45:15",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "Output Image VAE Decode"
+    }
+  },
+  "99:85": {
+    "inputs": {
+      "text": [
+        "50",
+        0
+      ],
+      "clip": [
+        "47",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "正面clip"
+    }
+  },
+  "99:86": {
+    "inputs": {
+      "text": [
+        "48",
+        0
+      ],
+      "clip": [
+        "47",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "負面clip"
+    }
+  }
 }
