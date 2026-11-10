@@ -8,6 +8,7 @@ import { Loading } from '#/components/base/Loading'
 import { CollapseButton, Panel, PanelContent } from '#/components/base/Panel'
 import { useTaskFeedQuery, useTaskFlagMutation } from '#/features/task/task.query'
 import { toErrorMessage } from '#/lib/error'
+import { t } from '#/lib/i18n'
 import { createLoadOnScroll } from '#/lib/loadOnScroll'
 import { TaskItem, TaskItemSkeleton } from '#/pages/generate/components/task/list/TaskItem'
 import { TaskFilterChips } from '#/pages/generate/components/task/TaskFilterChips'
@@ -44,7 +45,7 @@ export function TaskList() {
                 <div class='flex h-full min-h-0 flex-col'>
                     <Bar.Root classes={{ root: 'px-2' }}>
                         <Bar.Group>
-                            <Bar.Title>Tasks</Bar.Title>
+                            <Bar.Title>{t('task.title')}</Bar.Title>
                         </Bar.Group>
                         <Bar.Actions classes={{ root: 'gap-1' }}>
                             <Button
@@ -140,7 +141,7 @@ export function TaskList() {
                                     ref={loadOnScroll.setTrigger}
                                     class='py-2 text-center text-xs text-fg-muted'
                                 >
-                                    {taskFeedQuery.isFetchingNextPage ? 'Loading...' : ''}
+                                    {taskFeedQuery.isFetchingNextPage ? t('common.loading') : ''}
                                 </div>
                             </Show>
                         </Loading.Swap>
@@ -157,16 +158,16 @@ type TaskEmptyStateProps = {
 
 const emptyStateCopy: Record<TaskApi.TaskFilterFlag, { title: string, message: string }> = {
     unflag: {
-        title: 'No unflagged tasks',
-        message: 'Tasks without a pin or discard flag will appear here.',
+        title: t('task.empty.unflagTitle'),
+        message: t('task.empty.unflagMessage'),
     },
     pin: {
-        title: 'No pinned tasks',
-        message: 'Pin a task to keep it close at hand.',
+        title: t('task.empty.pinTitle'),
+        message: t('task.empty.pinMessage'),
     },
     discard: {
-        title: 'No discarded tasks',
-        message: 'Discarded tasks will appear here for review.',
+        title: t('task.empty.discardTitle'),
+        message: t('task.empty.discardMessage'),
     },
 }
 
@@ -182,12 +183,12 @@ function TaskEmptyState(props: TaskEmptyStateProps) {
 
         return props.values === undefined
             ? {
-                title: 'No tasks yet',
-                message: 'Generated tasks will appear here.',
+                title: t('task.empty.title'),
+                message: t('task.empty.message'),
             }
             : {
-                title: 'No matching tasks',
-                message: 'Try a different task filter.',
+                title: t('task.empty.noMatchTitle'),
+                message: t('task.empty.filterMessage'),
             }
     }
 
@@ -206,7 +207,7 @@ type TaskLoadErrorProps = {
 function TaskLoadError(props: TaskLoadErrorProps) {
     return (
         <div class='flex flex-col items-center gap-2 px-3 py-8 text-center'>
-            <p class='m-0 text-xs text-fg-muted'>Failed to load tasks.</p>
+            <p class='m-0 text-xs text-fg-muted'>{t('task.loadFailed')}</p>
             <Button
                 type='button'
                 classes={{ root: 'h-7 px-2 text-[11px]' }}
@@ -216,7 +217,7 @@ function TaskLoadError(props: TaskLoadErrorProps) {
                     size={13}
                     strokeWidth={1.8}
                 />
-                Retry
+                {t('common.retry')}
             </Button>
         </div>
     )

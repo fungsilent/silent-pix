@@ -4,6 +4,7 @@ import { Button } from '#/components/base/Button'
 import { Dialog } from '#/components/base/Dialog'
 import { FieldHint } from '#/components/base/FieldHint'
 import { toErrorMessage } from '#/lib/error'
+import { t } from '#/lib/i18n'
 
 type TaskBatchDeleteDialogProps = {
     open: boolean
@@ -37,10 +38,10 @@ export function TaskBatchDeleteDialog(props: TaskBatchDeleteDialogProps) {
     return (
         <Dialog
             open={props.open}
-            title={isSelected() ? 'Delete selected tasks?' : 'Delete all marked tasks?'}
+            title={isSelected() ? t('task.deleteSelectedTitle') : t('task.deleteMarkedTitle')}
             description={isSelected()
-                ? `Permanently delete ${props.selectedCount} selected task${props.selectedCount === 1 ? '' : 's'}. This cannot be undone.`
-                : 'Permanently delete every discarded task. Active tasks are skipped and remain selected.'}
+                ? t('task.deleteSelectedDescription', { count: props.selectedCount })
+                : t('task.deleteDiscardedDescription')}
             onOpenChange={open => {
                 if (!props.pending) {
                     props.onOpenChange(open)
@@ -58,7 +59,7 @@ export function TaskBatchDeleteDialog(props: TaskBatchDeleteDialogProps) {
                             classes={{ root: 'min-w-20 text-sm' }}
                             onClick={() => props.onOpenChange(false)}
                         >
-                            Cancel
+                            {t('common.cancel')}
                         </Button>
                         <Button
                             tone='danger'
@@ -66,7 +67,7 @@ export function TaskBatchDeleteDialog(props: TaskBatchDeleteDialogProps) {
                             classes={{ root: 'min-w-20 text-sm' }}
                             onClick={() => void confirm()}
                         >
-                            {props.pending ? 'Deleting...' : 'Delete'}
+                            {props.pending ? t('common.deleting') : t('common.delete')}
                         </Button>
                     </div>
                 </div>
@@ -74,8 +75,8 @@ export function TaskBatchDeleteDialog(props: TaskBatchDeleteDialogProps) {
         >
             <p class='m-0 text-xs leading-5 text-fg-secondary'>
                 {isSelected()
-                    ? 'The selected tasks and their unreferenced images will be removed permanently.'
-                    : 'Tasks that are still queued or running are kept so generation can finish.'}
+                    ? t('task.deleteSelectedHint')
+                    : t('task.deleteDiscardedHint')}
             </p>
         </Dialog>
     )

@@ -4,7 +4,19 @@
         "retry": "Retry",
         "settings": "Settings",
         "issues_one": "{{count}} issue",
-        "issues_other": "{{count}} issues"
+        "issues_other": "{{count}} issues",
+        "apply": "Apply",
+        "clear": "Clear",
+        "close": "Close",
+        "delete": "Delete",
+        "deleting": "Deleting...",
+        "loading": "Loading...",
+        "all": "All",
+        "search": "Search",
+        "detail": "Detail",
+        "config": "Config",
+        "random": "Random",
+        "selectedCount": "{{count}} selected"
     },
     "header": {
         "generate": "Generate",
@@ -95,6 +107,134 @@
             "minCharacters": "Must be at least {{minimum}} characters.",
             "minimum": "Must be {{minimum}} or more.",
             "invalidValue": "Enter a valid value."
+        }
+    },
+    "fields": {
+        "id": "ID",
+        "name": "Name",
+        "status": "Status",
+        "created": "Created",
+        "workflow": "Workflow",
+        "workflowTemplate": "Workflow Template",
+        "seed": "Seed",
+        "steps": "Steps",
+        "cfg": "CFG",
+        "width": "Width",
+        "height": "Height",
+        "batch": "Batch",
+        "sampler": "Sampler",
+        "denoise": "Denoise",
+        "lora": "LoRA",
+        "positive": "Positive",
+        "negative": "Negative",
+        "referenceImage": "Reference image",
+        "prompt": "Prompt",
+        "selection": "Selection"
+    },
+    "task": {
+        "title": "Tasks",
+        "singular": "Task",
+        "draft": "Draft",
+        "archived": "archived",
+        "status": {
+            "queued": "Queued",
+            "running": "Running",
+            "done": "Done",
+            "failed": "Failed"
+        },
+        "filter": {
+            "unflag": "Unflag",
+            "pin": "Pin",
+            "discard": "Discard"
+        },
+        "loadDetailFailed": "Failed to load task detail.",
+        "loadFailed": "Failed to load tasks.",
+        "deleteAction": "Delete task",
+        "deleteTitle": "Delete this task?",
+        "deleteWithoutImages": "The task is removed from disk. This cannot be undone.",
+        "deleteSelectedTitle": "Delete selected tasks?",
+        "deleteMarkedTitle": "Delete all marked tasks?",
+        "deleteDiscardedDescription": "Permanently delete every discarded task. Active tasks are skipped and remain selected.",
+        "deleteSelectedHint": "The selected tasks and their unreferenced images will be removed permanently.",
+        "deleteDiscardedHint": "Tasks that are still queued or running are kept so generation can finish.",
+        "deleteDiscardedAction": "Delete discarded...",
+        "search": "Search tasks",
+        "searchPlaceholder": "task name or task ID...",
+        "thumbnail": {
+            "none": "No thumbnail",
+            "queued": "Queued task thumbnail pending",
+            "running": "Running task thumbnail pending",
+            "failed": "Task failed"
+        },
+        "empty": {
+            "unflagTitle": "No unflagged tasks",
+            "unflagMessage": "Tasks without a pin or discard flag will appear here.",
+            "pinTitle": "No pinned tasks",
+            "pinMessage": "Pin a task to keep it close at hand.",
+            "discardTitle": "No discarded tasks",
+            "discardMessage": "Discarded tasks will appear here for review.",
+            "title": "No tasks yet",
+            "message": "Generated tasks will appear here.",
+            "noMatchTitle": "No matching tasks",
+            "filterMessage": "Try a different task filter.",
+            "searchMessage": "Try another search or filter."
+        },
+        "outputs": {
+            "loading": "Loading task outputs...",
+            "failed": "Failed to load task outputs.",
+            "empty": "This task has no outputs yet."
+        },
+        "deleteWithImages_one": "The task and its {{count}} image are removed from disk. This cannot be undone.",
+        "deleteWithImages_other": "The task and its {{count}} images are removed from disk. This cannot be undone.",
+        "deleteSelectedDescription_one": "Permanently delete {{count}} selected task. This cannot be undone.",
+        "deleteSelectedDescription_other": "Permanently delete {{count}} selected tasks. This cannot be undone.",
+        "deleteSelectedButton": "Delete {{count}} tasks...",
+        "selectionLimit": "Maximum {{maximum}} tasks per batch."
+    },
+    "image": {
+        "title": "Image",
+        "dropHint": "Drop an image or click to browse",
+        "searchLibrary": "Search image library",
+        "noReference": "No reference image.",
+        "invalidType": "Use a PNG or JPEG image.",
+        "invalidReference": "That file cannot be used as a reference image.",
+        "unreadable": "That file could not be read as an image.",
+        "addToCompare": "Add images to compare",
+        "chooseReference": "Choose reference image",
+        "typeLabel": "Type",
+        "input": "Input",
+        "output": "Output",
+        "loadFailed": "Failed to load images.",
+        "loadMoreFailed": "Failed to load more images.",
+        "empty": "No images yet.",
+        "originInput": "{{task}} input",
+        "originOutput": "{{task}} #{{index}}"
+    },
+    "viewer": {
+        "fit": "Fit"
+    },
+    "generate": {
+        "selectWorkflow": "Select a workflow.",
+        "lostConnection": "Lost connection to the server. Reconnecting...",
+        "comfyUnavailable": "ComfyUI is not running. Start it.",
+        "noWorkflows": "No workflows available. Add one in ComfyUI, then retry.",
+        "workflowArchived": "This workflow is archived and cannot be used. Pick another one to generate.",
+        "creating": "Creating...",
+        "noImage": "No image",
+        "previewAlt": "Selected generated preview",
+        "lora": {
+            "none": "No LoRA selected.",
+            "select": "Select LoRA",
+            "search": "Search LoRA",
+            "searchPlaceholder": "Search LoRA...",
+            "loadFailed": "Failed to load LoRAs.",
+            "unavailable": "No LoRAs available in ComfyUI.",
+            "noMatch": "No LoRA matches the search.",
+            "weight": "{{name}} weight"
+        },
+        "prompt": {
+            "defaultGroup": "Group",
+            "removeBoundary": "Remove group boundary"
         }
     }
 }

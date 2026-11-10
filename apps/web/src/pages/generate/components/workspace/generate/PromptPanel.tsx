@@ -6,6 +6,7 @@ import { Button } from '#/components/base/Button'
 import { IssueChip } from '#/components/base/IssueChip'
 import { Loading } from '#/components/base/Loading'
 import { cn } from '#/lib/cn'
+import { t } from '#/lib/i18n'
 import { promptDefaultHeight, promptMinHeight } from '#/pages/generate/components/workspace/generate/prompt/prompt.theme'
 import { PromptEditor } from '#/pages/generate/components/workspace/generate/prompt/PromptEditor'
 import { useGenerateDetail } from '#/pages/generate/detail'
@@ -18,8 +19,8 @@ import type { Accessor } from 'solid-js'
 
 /* MARK: PromptPanel */
 const promptLabel: Record<PromptKind, string> = {
-    negative: 'Negative',
-    positive: 'Positive',
+    negative: t('fields.negative'),
+    positive: t('fields.positive'),
 }
 
 export function PromptPanel() {
@@ -67,7 +68,7 @@ export function PromptPanel() {
         <section class='flex shrink-0 flex-col overflow-hidden border-b border-line-subtle bg-surface'>
             <Bar.Root>
                 <Bar.Group>
-                    <Bar.Title>Prompt</Bar.Title>
+                    <Bar.Title>{t('fields.prompt')}</Bar.Title>
                     <PromptToggle
                         kind='positive'
                         visible={visible('positive')}
@@ -100,7 +101,7 @@ export function PromptPanel() {
                             size={16}
                             strokeWidth={2.2}
                         />
-                        {isSubmitting() ? 'Creating...' : 'Generate'}
+                        {isSubmitting() ? t('generate.creating') : t('header.generate')}
                     </Button>
                 </Bar.Actions>
             </Bar.Root>

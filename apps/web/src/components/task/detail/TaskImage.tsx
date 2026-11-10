@@ -11,6 +11,7 @@ import { FileDrop, Number, Slider } from '#/components/field'
 import { ImagePickerDialog } from '#/components/image/ImagePickerDialog'
 import { ImageViewer } from '#/components/viewer/ImageViewer'
 import { originLabel } from '#/features/image/image.label'
+import { t } from '#/lib/i18n'
 
 import type { FileUploadFileRejection } from '@ark-ui/solid'
 import type { ImageApi } from '@silent-pix/shared'
@@ -68,8 +69,8 @@ export function TaskImage(props: TaskImageProps) {
     const onReferenceReject = (rejection: FileUploadFileRejection) => {
         if (props.mode === 'create') {
             props.actions.onReferenceReject(rejection.errors.includes('FILE_INVALID_TYPE')
-                ? 'Use a PNG or JPEG image.'
-                : 'That file cannot be used as a reference image.')
+                ? t('image.invalidType')
+                : t('image.invalidReference'))
         }
     }
 
@@ -99,7 +100,7 @@ export function TaskImage(props: TaskImageProps) {
 
     return (
         <DetailSection
-            title='Image'
+            title={t('image.title')}
             inert={props.loading()}
         >
             <Show
@@ -117,7 +118,7 @@ export function TaskImage(props: TaskImageProps) {
                                         size={20}
                                         strokeWidth={1.5}
                                     />
-                                    <span class='text-xs text-fg-secondary'>Drop an image or click to browse</span>
+                                    <span class='text-xs text-fg-secondary'>{t('image.dropHint')}</span>
                                     <span class='text-[11px]'>PNG · JPEG</span>
                                 </FileDrop>
                             </Loading.Mask>
@@ -130,7 +131,7 @@ export function TaskImage(props: TaskImageProps) {
                                         size={13}
                                         strokeWidth={1.8}
                                     />
-                                    Search image library
+                                    {t('image.searchLibrary')}
                                 </Button>
                             </Loading.Mask>
                         </>
@@ -141,7 +142,7 @@ export function TaskImage(props: TaskImageProps) {
                                     size={20}
                                     strokeWidth={1.5}
                                 />
-                                <span class='text-xs'>No reference image.</span>
+                                <span class='text-xs'>{t('image.noReference')}</span>
                             </div>
                         </Loading.Mask>
                     )
@@ -167,11 +168,11 @@ export function TaskImage(props: TaskImageProps) {
 
             <Show when={reference()}>
                 <div class='flex flex-col gap-1'>
-                    <span class='text-xs leading-none text-fg-muted'>Denoise</span>
+                    <span class='text-xs leading-none text-fg-muted'>{t('fields.denoise')}</span>
                     <Loading.Mask loading={props.loading}>
                         <div class='flex items-center gap-2.5'>
                             <Slider
-                                label='Denoise'
+                                label={t('fields.denoise')}
                                 min={0.05}
                                 max={1}
                                 step={0.05}
@@ -181,7 +182,7 @@ export function TaskImage(props: TaskImageProps) {
                                 classes={{ root: 'flex-1' }}
                             />
                             <Number
-                                label='Denoise'
+                                label={t('fields.denoise')}
                                 min={0.05}
                                 max={1}
                                 step={0.05}
@@ -240,7 +241,7 @@ function ReferenceSlot(props: ReferenceSlotProps) {
                 <img
                     class='absolute inset-0 size-full object-contain'
                     src={resolveImageUrl(props.reference.url)}
-                    alt='Reference image'
+                    alt={t('fields.referenceImage')}
                     onClick={() => setExpanded(true)}
                 />
                 <Show when={props.mode === 'create'}>

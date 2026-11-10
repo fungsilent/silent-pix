@@ -8,6 +8,7 @@ import { DetailSection } from '#/components/detail'
 import { Number, Slider } from '#/components/field'
 import { TaskLoraPickerDialog } from '#/components/task/detail/TaskLoraPickerDialog'
 import { cn } from '#/lib/cn'
+import { t } from '#/lib/i18n'
 
 import type { SelectOption } from '#/components/field'
 import type { Accessor } from 'solid-js'
@@ -89,7 +90,7 @@ export function TaskLora(props: TaskLoraProps) {
 
     return (
         <DetailSection
-            title='LoRA'
+            title={t('fields.lora')}
             count={!props.loading() && loras().length >= 2 ? loras().length : undefined}
             inert={props.loading()}
         >
@@ -127,7 +128,7 @@ export function TaskLora(props: TaskLoraProps) {
                                     </div>
                                     <div class='flex items-center gap-2.5'>
                                         <Slider
-                                            label={`${lora().name} weight`}
+                                            label={t('generate.lora.weight', { name: lora().name })}
                                             value={lora().weight}
                                             min={0}
                                             max={2}
@@ -137,7 +138,7 @@ export function TaskLora(props: TaskLoraProps) {
                                             classes={{ root: 'flex-1' }}
                                         />
                                         <Number
-                                            label={`${lora().name} weight`}
+                                            label={t('generate.lora.weight', { name: lora().name })}
                                             value={lora().weight}
                                             min={0}
                                             max={2}
@@ -160,7 +161,7 @@ export function TaskLora(props: TaskLoraProps) {
 
             <Show when={loras().length === 0}>
                 <Loading.Mask loading={props.loading}>
-                    <FieldHint>No LoRA selected.</FieldHint>
+                    <FieldHint>{t('generate.lora.none')}</FieldHint>
                 </Loading.Mask>
             </Show>
 
@@ -176,7 +177,7 @@ export function TaskLora(props: TaskLoraProps) {
                             size={13}
                             strokeWidth={1.8}
                         />
-                        <span class='leading-none'>Select LoRA</span>
+                        <span class='leading-none'>{t('generate.lora.select')}</span>
                     </Button>
                 </Loading.Mask>
                 <TaskLoraPickerDialog

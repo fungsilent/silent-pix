@@ -3,6 +3,7 @@ import { createMemo } from 'solid-js'
 import { useLoraListQuery, useSamplerListQuery, useTaskFeedQuery } from '#/features/task/task.query'
 import { useWorkflowListQuery } from '#/features/workflow/workflow.query'
 import { toErrorMessage } from '#/lib/error'
+import { t } from '#/lib/i18n'
 import { generateFieldLabel } from '#/pages/generate/issue'
 import { useGenerateStore } from '#/pages/generate/store'
 import { hasLostConnection, serviceHealth } from '#/store/app'
@@ -43,7 +44,7 @@ export function useRuntimeIssues(): Accessor<GenerateIssue[]> {
             const lost: GenerateIssue = {
                 id: 'server-connection',
                 tone: 'error',
-                message: 'Lost connection to the server. Reconnecting...',
+                message: t('generate.lostConnection'),
             }
 
             return [lost]
@@ -57,7 +58,7 @@ export function useRuntimeIssues(): Accessor<GenerateIssue[]> {
                 id: 'comfy-down',
                 tone: 'error',
                 field: 'ComfyUI',
-                message: 'ComfyUI is not running. Start it.',
+                message: t('generate.comfyUnavailable'),
             })
         }
 
@@ -75,7 +76,7 @@ export function useRuntimeIssues(): Accessor<GenerateIssue[]> {
                 id: 'workflow-empty',
                 tone: 'error',
                 field: generateFieldLabel.workflowId,
-                message: 'No workflows available. Add one in ComfyUI, then retry.',
+                message: t('generate.noWorkflows'),
                 onRetry: () => { void workflowQuery.refetch() },
             })
         }
@@ -84,7 +85,7 @@ export function useRuntimeIssues(): Accessor<GenerateIssue[]> {
                 id: 'workflow-unusable',
                 tone: 'error',
                 field: generateFieldLabel.workflowId,
-                message: 'This workflow is archived and cannot be used. Pick another one to generate.',
+                message: t('generate.workflowArchived'),
             })
         }
 
@@ -117,7 +118,7 @@ export function useRuntimeIssues(): Accessor<GenerateIssue[]> {
             issues.push({
                 id: 'task-load',
                 tone: 'warning',
-                field: 'Tasks',
+                field: t('task.title'),
                 message: toErrorMessage(taskFeedQuery.error),
                 onRetry: () => { void taskFeedQuery.refetch() },
             })

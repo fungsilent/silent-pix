@@ -2,6 +2,7 @@ import { CircleX, Hourglass, Image as ImageIcon, LoaderCircle } from 'lucide-sol
 
 import { resolveImageUrl } from '#/api/image'
 import { cn } from '#/lib/cn'
+import { t } from '#/lib/i18n'
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { JSX } from 'solid-js'
@@ -31,19 +32,19 @@ type TaskThumbnailProps = {
 const placeholderMap: Record<TaskApi.TaskStatus, TaskPlaceholderMeta> = {
     done: {
         class: 'border-line-subtle bg-elevated text-fg-muted',
-        label: 'No thumbnail',
+        label: t('task.thumbnail.none'),
     },
     queued: {
         class: 'border-warning/30 bg-warning/10 text-warning-fg',
-        label: 'Queued task thumbnail pending',
+        label: t('task.thumbnail.queued'),
     },
     running: {
         class: 'border-info/30 bg-info/10 text-info-fg',
-        label: 'Running task thumbnail pending',
+        label: t('task.thumbnail.running'),
     },
     failed: {
         class: 'border-danger/30 bg-danger/10 text-danger-fg',
-        label: 'Task failed',
+        label: t('task.thumbnail.failed'),
     },
 }
 

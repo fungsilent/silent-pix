@@ -2,6 +2,7 @@ import { createEffect, createMemo, createSignal, on, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { ImageViewer } from '#/components/viewer/ImageViewer'
+import { t } from '#/lib/i18n'
 import { useGenerateDetail } from '#/pages/generate/detail'
 
 import type { Accessor } from 'solid-js'
@@ -43,13 +44,13 @@ export function TaskBrowserViewer(props: TaskBrowserViewerProps) {
                     class='pointer-events-none fixed inset-x-0 bottom-4 z-20 flex justify-center'
                 >
                     <span class='rounded-md border border-line bg-surface px-3 py-2 text-xs text-fg-muted shadow-lg'>
-                        Loading task outputs...
+                        {t('task.outputs.loading')}
                     </span>
                 </div>
             </Show>
             <Show when={props.taskId() && detail.error()}>
                 <TaskViewerMessage
-                    message='Failed to load task outputs.'
+                    message={t('task.outputs.failed')}
                     onClose={props.onClose}
                 />
             </Show>
@@ -61,7 +62,7 @@ export function TaskBrowserViewer(props: TaskBrowserViewerProps) {
                     && viewerImages().length === 0}
             >
                 <TaskViewerMessage
-                    message='This task has no outputs yet.'
+                    message={t('task.outputs.empty')}
                     onClose={props.onClose}
                 />
             </Show>
@@ -100,7 +101,7 @@ function TaskViewerMessage(props: TaskViewerMessageProps) {
                     classes={{ root: 'h-6 px-2 text-[11px]' }}
                     onClick={props.onClose}
                 >
-                    Close
+                    {t('common.close')}
                 </Button>
             </div>
         </div>

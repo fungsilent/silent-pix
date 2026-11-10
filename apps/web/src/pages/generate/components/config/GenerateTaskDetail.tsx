@@ -4,6 +4,7 @@ import { TaskDetail } from '#/components/task/detail/TaskDetail'
 import { useDeleteTaskMutation, useLoraListQuery, useRenameTaskMutation, useSamplerListQuery } from '#/features/task/task.query'
 import { useWorkflowListQuery } from '#/features/workflow/workflow.query'
 import { toErrorMessage } from '#/lib/error'
+import { t } from '#/lib/i18n'
 import { useGenerateDetail } from '#/pages/generate/detail'
 import {
     referencePreviewUrl,
@@ -61,7 +62,7 @@ export function GenerateTaskDetail() {
         const archived = workflowQuery.data?.options.find(workflow => workflow.id === current)
 
         return archived
-            ? [{ badge: 'archived', label: archived.name, value: archived.id }, ...options]
+            ? [{ badge: t('task.archived'), label: archived.name, value: archived.id }, ...options]
             : options
     }
 
@@ -149,7 +150,7 @@ export function GenerateTaskDetail() {
             }
 
             revokePendingPreview(previewUrl)
-            setReferenceError('That file could not be read as an image.')
+            setReferenceError(t('image.unreadable'))
         })
         probe.src = previewUrl
     }
@@ -231,7 +232,7 @@ export function GenerateTaskDetail() {
     const configValues = (): TaskConfigValues => ({
         workflowId: workflowId(),
         seed: seed(),
-        seedPlaceholder: detail.task()?.config.seed ?? 'Random',
+        seedPlaceholder: detail.task()?.config.seed ?? t('common.random'),
         steps: steps(),
         cfg: cfg(),
         width: width(),

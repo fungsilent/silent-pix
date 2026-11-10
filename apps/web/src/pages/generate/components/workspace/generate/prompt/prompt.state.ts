@@ -1,6 +1,7 @@
 import { invertedEffects } from '@codemirror/commands'
 import { EditorState, StateEffect, StateField } from '@codemirror/state'
 
+import { t } from '#/lib/i18n'
 import { groupEnd, parseTokens } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
 
 import type { ChangeDesc, EditorState as EditorStateType, Extension, Text } from '@codemirror/state'
@@ -62,7 +63,7 @@ function reconcilePromptMeta(
         const first = meta.groups[0]
         groups.push(first
             ? { ...first, start: 0 }
-            : { id: 'group-fallback', name: 'Prompt', start: 0, enabled: true })
+            : { id: 'group-fallback', name: t('fields.prompt'), start: 0, enabled: true })
     }
 
     groups.sort((a, b) => a.start - b.start)

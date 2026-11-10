@@ -2,6 +2,7 @@ import { FlagOff, FlagTriangleRight, HeartX, ListFilter } from 'lucide-solid'
 
 import { FilterChips } from '#/components/base/FilterChips'
 import { cn } from '#/lib/cn'
+import { t } from '#/lib/i18n'
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { LucideProps } from 'lucide-solid'
@@ -22,12 +23,12 @@ type FilterOption = {
     Icon: Component<LucideProps>
 }
 
-const allOption = { label: 'All', Icon: ListFilter }
+const allOption = { label: t('common.all'), Icon: ListFilter }
 
 const filterOptions: FilterOption[] = [
-    { value: 'unflag', label: 'Unflag', Icon: FlagOff },
-    { value: 'pin', label: 'Pin', Icon: FlagTriangleRight },
-    { value: 'discard', label: 'Discard', Icon: HeartX },
+    { value: 'unflag', label: t('task.filter.unflag'), Icon: FlagOff },
+    { value: 'pin', label: t('task.filter.pin'), Icon: FlagTriangleRight },
+    { value: 'discard', label: t('task.filter.discard'), Icon: HeartX },
 ]
 
 export function TaskFilterChips(props: TaskFilterChipsProps) {

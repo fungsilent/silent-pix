@@ -7,6 +7,7 @@ import {
     useTaskFlagMutation,
 } from '#/features/task/task.query'
 import { toErrorMessage } from '#/lib/error'
+import { t } from '#/lib/i18n'
 import { TaskBatchDeleteDialog } from '#/pages/generate/components/task/browser/TaskBatchDeleteDialog'
 import { TaskBrowserGrid } from '#/pages/generate/components/task/browser/TaskBrowserGrid'
 import { TaskBrowserToolbar } from '#/pages/generate/components/task/browser/TaskBrowserToolbar'
@@ -42,8 +43,8 @@ export function TaskBrowser() {
             next.push({
                 id: 'task-selection-limit',
                 tone: 'warning',
-                field: 'Selection',
-                message: 'Maximum 200 tasks per batch.',
+                field: t('fields.selection'),
+                message: t('task.selectionLimit', { maximum: taskSelectionLimit }),
             })
         }
 
@@ -52,7 +53,7 @@ export function TaskBrowser() {
             next.push({
                 id: 'task-flag-error',
                 tone: 'error',
-                field: 'Tasks',
+                field: t('task.title'),
                 message: error,
             })
         }

@@ -5,6 +5,7 @@ import { Button } from '#/components/base/Button'
 import { Loading } from '#/components/base/Loading'
 import { DetailSection } from '#/components/detail'
 import { Number, Select, Text } from '#/components/field'
+import { t } from '#/lib/i18n'
 
 import type { SelectOption } from '#/components/field'
 import type { Accessor } from 'solid-js'
@@ -147,12 +148,12 @@ export function TaskConfig(props: TaskConfigProps) {
 
     return (
         <DetailSection
-            title='Config'
+            title={t('common.config')}
             inert={props.loading()}
         >
             <Loading.Control loading={() => props.loading() || workflowLoading()}>
                 <Select
-                    label='Workflow Template'
+                    label={t('fields.workflowTemplate')}
                     value={values().workflowId}
                     options={props.data.workflowOptions()}
                     badgeTone='warning'
@@ -163,7 +164,7 @@ export function TaskConfig(props: TaskConfigProps) {
 
             <Loading.Control loading={props.loading}>
                 <Text
-                    label='Seed'
+                    label={t('fields.seed')}
                     value={values().seed}
                     placeholder={values().seedPlaceholder}
                     disabled={!isCreate()}
@@ -188,7 +189,7 @@ export function TaskConfig(props: TaskConfigProps) {
             <div class='grid min-w-0 grid-cols-2 gap-2'>
                 <Loading.Control loading={props.loading}>
                     <Number
-                        label='Steps'
+                        label={t('fields.steps')}
                         min={1}
                         max={100}
                         value={values().steps}
@@ -198,7 +199,7 @@ export function TaskConfig(props: TaskConfigProps) {
                 </Loading.Control>
                 <Loading.Control loading={props.loading}>
                     <Number
-                        label='CFG'
+                        label={t('fields.cfg')}
                         min={0}
                         max={100}
                         value={values().cfg}
@@ -211,7 +212,7 @@ export function TaskConfig(props: TaskConfigProps) {
             <div class='grid min-w-0 grid-cols-2 gap-2'>
                 <Loading.Control loading={props.loading}>
                     <Number
-                        label='Width'
+                        label={t('fields.width')}
                         min={64}
                         max={4096}
                         value={values().width}
@@ -221,7 +222,7 @@ export function TaskConfig(props: TaskConfigProps) {
                 </Loading.Control>
                 <Loading.Control loading={props.loading}>
                     <Number
-                        label='Height'
+                        label={t('fields.height')}
                         min={64}
                         max={4096}
                         value={values().height}
@@ -233,7 +234,7 @@ export function TaskConfig(props: TaskConfigProps) {
 
             <Loading.Control loading={props.loading}>
                 <Number
-                    label='Batch'
+                    label={t('fields.batch')}
                     min={1}
                     max={16}
                     value={values().batch}
@@ -244,7 +245,7 @@ export function TaskConfig(props: TaskConfigProps) {
 
             <Loading.Control loading={() => props.loading() || samplerLoading()}>
                 <Select
-                    label='Sampler'
+                    label={t('fields.sampler')}
                     value={values().sampler}
                     options={props.data.samplerOptions()}
                     disabled={!isCreate() || samplerLoading() || samplerError() || props.data.samplerOptions().length === 0}

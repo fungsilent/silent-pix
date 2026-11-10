@@ -1,3 +1,5 @@
+import { t } from '#/lib/i18n'
+
 import type { Text } from '@codemirror/state'
 import type { TaskApi } from '@silent-pix/shared'
 
@@ -198,7 +200,7 @@ export function promptDocumentToMeta(document: PromptDocument, text: Text): Prom
     if (groups.length === 0) {
         groups.push({
             id: createGroupId(),
-            name: 'Prompt',
+            name: t('fields.prompt'),
             start: 0,
             enabled: true,
         })

@@ -2,6 +2,7 @@ import { Minus, Plus } from 'lucide-solid'
 import { createSignal, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
+import { t } from '#/lib/i18n'
 
 import type { createImageZoom } from '#/lib/imageZoom'
 
@@ -38,7 +39,7 @@ export function ZoomControls(props: ZoomControlsProps) {
                         }}
                         onClick={() => setEditingZoom(true)}
                     >
-                        {props.zoom.isFit() ? 'Fit' : `${Math.round(props.zoom.percent())}%`}
+                        {props.zoom.isFit() ? t('viewer.fit') : `${Math.round(props.zoom.percent())}%`}
                     </Button>
                 )}
             >

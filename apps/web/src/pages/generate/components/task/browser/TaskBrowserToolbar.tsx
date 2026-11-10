@@ -13,6 +13,7 @@ import { Button } from '#/components/base/Button'
 import { IssueChip } from '#/components/base/IssueChip'
 import { Text } from '#/components/field/Text'
 import { cn } from '#/lib/cn'
+import { t } from '#/lib/i18n'
 import { theme } from '#/lib/theme'
 import { TaskFilterChips } from '#/pages/generate/components/task/TaskFilterChips'
 
@@ -43,13 +44,13 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
         <div class='flex shrink-0 flex-col border-b border-line-subtle bg-surface'>
             <Bar.Root classes={{ root: 'px-2' }}>
                 <Bar.Group>
-                    <Bar.Title>Tasks</Bar.Title>
+                    <Bar.Title>{t('task.title')}</Bar.Title>
                 </Bar.Group>
                 <Bar.Actions classes={{ root: 'flex-1 justify-end' }}>
                     <Text
-                        label='Search tasks'
+                        label={t('task.search')}
                         value={props.search}
-                        placeholder='task name or task ID...'
+                        placeholder={t('task.searchPlaceholder')}
                         icon={(
                             <Search
                                 size={14}
@@ -82,7 +83,7 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                     <div class='ml-auto flex min-w-0 flex-wrap items-center justify-end gap-1'>
                         <Show when={props.selectedCount > 0}>
                             <span class='mr-1 text-xs text-fg-muted tabular-nums'>
-                                {props.selectedCount} selected
+                                {t('common.selectedCount', { count: props.selectedCount })}
                             </span>
                             <Button
                                 variant='ghost'
@@ -90,7 +91,7 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                                 classes={{ root: 'h-7 px-2 text-[11px]' }}
                                 onClick={props.onClearSelection}
                             >
-                                Clear
+                                {t('common.clear')}
                             </Button>
                             <Button
                                 variant='ghost'
@@ -102,7 +103,7 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                                     size={13}
                                     strokeWidth={1.8}
                                 />
-                                Unflag
+                                {t('task.filter.unflag')}
                             </Button>
                             <Button
                                 variant='soft'
@@ -114,7 +115,7 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                                     size={13}
                                     strokeWidth={1.8}
                                 />
-                                Pin
+                                {t('task.filter.pin')}
                             </Button>
                             <Button
                                 variant='soft'
@@ -126,7 +127,7 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                                     size={13}
                                     strokeWidth={1.8}
                                 />
-                                Discard
+                                {t('task.filter.discard')}
                             </Button>
                             <Button
                                 tone='danger'
@@ -138,7 +139,7 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                                     size={13}
                                     strokeWidth={1.8}
                                 />
-                                Delete {props.selectedCount} tasks...
+                                {t('task.deleteSelectedButton', { count: props.selectedCount })}
                             </Button>
                         </Show>
                         <IssueChip
@@ -160,7 +161,7 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                                     size={13}
                                     strokeWidth={1.8}
                                 />
-                                Delete discarded...
+                                {t('task.deleteDiscardedAction')}
                             </Button>
                         </Show>
                     </div>

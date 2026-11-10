@@ -1,4 +1,5 @@
 import { Badge } from '#/components/base/Badge'
+import { t } from '#/lib/i18n'
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { BadgeTone } from '#/components/base/Badge'
@@ -14,19 +15,19 @@ type Item = {
 
 const statusMap: Record<TaskApi.TaskStatus, Item> = {
     queued: {
-        label: 'Queued',
+        label: t('task.status.queued'),
         tone: 'warning',
     },
     running: {
-        label: 'Running',
+        label: t('task.status.running'),
         tone: 'info',
     },
     done: {
-        label: 'Done',
+        label: t('task.status.done'),
         tone: 'success',
     },
     failed: {
-        label: 'Failed',
+        label: t('task.status.failed'),
         tone: 'danger',
     },
 }

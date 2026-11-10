@@ -11,6 +11,7 @@ import { Editable } from '#/components/field/Editable'
 import { TaskStatus } from '#/components/task/TaskStatus'
 import { toErrorMessage } from '#/lib/error'
 import { formatDateTime } from '#/lib/format'
+import { t } from '#/lib/i18n'
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { Accessor } from 'solid-js'
@@ -104,7 +105,7 @@ export function TaskInfo(props: TaskInfoProps) {
 
     return (
         <DetailSection inert={props.loading()}>
-            <DetailRow label='ID'>
+            <DetailRow label={t('fields.id')}>
                 <Loading.Mask loading={props.loading}>
                     {/* cold 時用 nbsp 撐住行高，mask 才有高度；不是假資料 */}
                     <span class='block truncate font-mono text-[11px] font-medium leading-none text-fg'>
@@ -113,7 +114,7 @@ export function TaskInfo(props: TaskInfoProps) {
                 </Loading.Mask>
             </DetailRow>
 
-            <DetailRow label='Name'>
+            <DetailRow label={t('fields.name')}>
                 <div class='flex min-w-0 flex-col gap-1'>
                     <Loading.Mask loading={props.loading}>
                         <Editable
@@ -122,7 +123,7 @@ export function TaskInfo(props: TaskInfoProps) {
                                 || props.loading()
                                 || props.data.status() === undefined
                                 || renamePending()}
-                            label='Name'
+                            label={t('fields.name')}
                             value={props.data.name()}
                             onChange={value => {
                                 if (props.mode === 'create') {
@@ -141,7 +142,7 @@ export function TaskInfo(props: TaskInfoProps) {
                 </div>
             </DetailRow>
 
-            <DetailRow label='Status'>
+            <DetailRow label={t('fields.status')}>
                 <Loading.Mask loading={props.loading}>
                     <Show
                         when={isDraft()}
@@ -155,12 +156,12 @@ export function TaskInfo(props: TaskInfoProps) {
                             </Show>
                         )}
                     >
-                        <Badge tone='neutral'>Draft</Badge>
+                        <Badge tone='neutral'>{t('task.draft')}</Badge>
                     </Show>
                 </Loading.Mask>
             </DetailRow>
 
-            <DetailRow label='Created'>
+            <DetailRow label={t('fields.created')}>
                 <Loading.Mask loading={props.loading}>
                     <span
                         class='block text-xs leading-none'
@@ -190,7 +191,7 @@ export function TaskInfo(props: TaskInfoProps) {
                             size={13}
                             strokeWidth={1.8}
                         />
-                        Delete task
+                        {t('task.deleteAction')}
                     </Button>
                 </Loading.Mask>
             </Show>
@@ -198,10 +199,10 @@ export function TaskInfo(props: TaskInfoProps) {
             <Show when={isCreate()}>
                 <Dialog
                     open={deleteOpen()}
-                    title='Delete this task?'
+                    title={t('task.deleteTitle')}
                     description={imageCount() > 0
-                        ? `The task and its ${imageCount()} image${imageCount() > 1 ? 's' : ''} are removed from disk. This cannot be undone.`
-                        : 'The task is removed from disk. This cannot be undone.'}
+                        ? t('task.deleteWithImages', { count: imageCount() })
+                        : t('task.deleteWithoutImages')}
                     onOpenChange={setDeleteOpen}
                     classes={{ content: 'w-[420px] max-w-full' }}
                     footer={(
@@ -215,7 +216,7 @@ export function TaskInfo(props: TaskInfoProps) {
                                     disabled={deletePending()}
                                     onClick={() => setDeleteOpen(false)}
                                 >
-                                    Cancel
+                                    {t('common.cancel')}
                                 </Button>
                                 <Button
                                     tone='danger'
@@ -223,7 +224,7 @@ export function TaskInfo(props: TaskInfoProps) {
                                     disabled={deletePending()}
                                     onClick={() => void confirmDelete()}
                                 >
-                                    {deletePending() ? 'Deleting...' : 'Delete'}
+                                    {deletePending() ? t('common.deleting') : t('common.delete')}
                                 </Button>
                             </div>
                         </div>

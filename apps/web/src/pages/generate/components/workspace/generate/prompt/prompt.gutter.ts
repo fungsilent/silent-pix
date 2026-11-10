@@ -1,6 +1,7 @@
 import { RangeSet, StateEffect, StateField } from '@codemirror/state'
 import { Decoration, gutter, GutterMarker, layer, lineNumberMarkers, lineNumbers, ViewPlugin } from '@codemirror/view'
 
+import { t } from '#/lib/i18n'
 import { createGroup, lineRange, removeGroupBoundary, renameGroup, toggleGroup } from '#/pages/generate/components/workspace/generate/prompt/prompt.command'
 import { groupEnd } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
 import { groupDragExtensions, startGroupDrag } from '#/pages/generate/components/workspace/generate/prompt/prompt.group-drag'
@@ -116,7 +117,7 @@ class GroupNameMarker extends GutterMarker {
             remove.className = 'cm-prompt-group-remove'
             remove.type = 'button'
             remove.textContent = '−'
-            remove.title = 'Remove group boundary'
+            remove.title = t('generate.prompt.removeBoundary')
             root.append(remove)
         }
 

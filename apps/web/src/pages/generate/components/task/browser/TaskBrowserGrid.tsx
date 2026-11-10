@@ -5,6 +5,7 @@ import { Button } from '#/components/base/Button'
 import { Loading } from '#/components/base/Loading'
 import { cn } from '#/lib/cn'
 import { createDragSelection } from '#/lib/dragSelection'
+import { t } from '#/lib/i18n'
 import { createLoadOnScroll } from '#/lib/loadOnScroll'
 import { TaskBrowserCard } from '#/pages/generate/components/task/browser/TaskBrowserCard'
 
@@ -134,7 +135,7 @@ export function TaskBrowserGrid(props: TaskBrowserGridProps) {
                                 ref={loadOnScroll.setTrigger}
                                 class='col-span-8 py-2 text-center text-xs text-fg-muted'
                             >
-                                {props.fetchingNextPage ? 'Loading...' : ''}
+                                {props.fetchingNextPage ? t('common.loading') : ''}
                             </div>
                         </Show>
                     </div>
@@ -161,8 +162,8 @@ function TaskBrowserEmptyState() {
     return (
         <div class='flex h-full min-h-48 items-center justify-center px-4 py-12 text-center'>
             <div>
-                <p class='m-0 text-sm font-medium text-fg'>No matching tasks</p>
-                <p class='mt-1 text-xs text-fg-muted'>Try another search or filter.</p>
+                <p class='m-0 text-sm font-medium text-fg'>{t('task.empty.noMatchTitle')}</p>
+                <p class='mt-1 text-xs text-fg-muted'>{t('task.empty.searchMessage')}</p>
             </div>
         </div>
     )
@@ -175,7 +176,7 @@ type TaskBrowserLoadErrorProps = {
 function TaskBrowserLoadError(props: TaskBrowserLoadErrorProps) {
     return (
         <div class='flex flex-col items-center gap-2 px-4 py-12 text-center'>
-            <p class='m-0 text-sm text-fg-muted'>Failed to load tasks.</p>
+            <p class='m-0 text-sm text-fg-muted'>{t('task.loadFailed')}</p>
             <Button
                 type='button'
                 data-marquee-control='true'
@@ -186,7 +187,7 @@ function TaskBrowserLoadError(props: TaskBrowserLoadErrorProps) {
                     size={14}
                     strokeWidth={1.8}
                 />
-                Retry
+                {t('common.retry')}
             </Button>
         </div>
     )

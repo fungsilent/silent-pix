@@ -6,6 +6,7 @@ import { Dialog } from '#/components/base/Dialog'
 import { Loading } from '#/components/base/Loading'
 import { Text } from '#/components/field/Text'
 import { cn } from '#/lib/cn'
+import { t } from '#/lib/i18n'
 
 import type { SelectOption } from '#/components/field'
 
@@ -48,7 +49,7 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
     return (
         <Dialog
             open={props.open}
-            title='Select LoRA'
+            title={t('generate.lora.select')}
             onOpenChange={props.onOpenChange}
             classes={{
                 backdrop: 'bg-backdrop-muted backdrop-blur-[2px]',
@@ -58,7 +59,7 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
             footer={(
                 <div class='flex w-full items-center justify-between gap-3'>
                     <span class='text-xs text-fg-muted tabular-nums'>
-                        {selected().length} selected
+                        {t('common.selectedCount', { count: selected().length })}
                     </span>
                     <div class='flex gap-2'>
                         <Button
@@ -66,7 +67,7 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
                             classes={{ root: 'min-w-20 text-sm' }}
                             onClick={() => props.onOpenChange(false)}
                         >
-                            Cancel
+                            {t('common.cancel')}
                         </Button>
                         <Button
                             type='button'
@@ -74,16 +75,16 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
                             classes={{ root: 'min-w-20 text-sm' }}
                             onClick={() => props.onApply(selected())}
                         >
-                            Apply
+                            {t('common.apply')}
                         </Button>
                     </div>
                 </div>
             )}
         >
             <Text
-                label='Search LoRA'
+                label={t('generate.lora.search')}
                 value={keyword()}
-                placeholder='Search LoRA...'
+                placeholder={t('generate.lora.searchPlaceholder')}
                 icon={(
                     <Search
                         size={14}
@@ -107,7 +108,7 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
                 >
                     <Show when={props.error}>
                         <div class='flex flex-col items-center gap-3 py-8 text-center'>
-                            <p class='m-0 text-sm text-danger-fg'>Failed to load LoRAs.</p>
+                            <p class='m-0 text-sm text-danger-fg'>{t('generate.lora.loadFailed')}</p>
                             <Button
                                 type='button'
                                 classes={{ root: 'text-sm' }}
@@ -117,7 +118,7 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
                                     size={14}
                                     strokeWidth={1.8}
                                 />
-                                Retry
+                                {t('common.retry')}
                             </Button>
                         </div>
                     </Show>
@@ -128,8 +129,8 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
                             fallback={(
                                 <p class='m-0 py-8 text-center text-sm text-fg-muted'>
                                     {props.options.length === 0
-                                        ? 'No LoRAs available in ComfyUI.'
-                                        : 'No LoRA matches the search.'}
+                                        ? t('generate.lora.unavailable')
+                                        : t('generate.lora.noMatch')}
                                 </p>
                             )}
                         >

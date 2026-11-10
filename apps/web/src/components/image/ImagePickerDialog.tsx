@@ -22,6 +22,7 @@ import { TaskFlagOverlay } from '#/components/task/TaskFlagOverlay'
 import { originLabel } from '#/features/image/image.label'
 import { useImageListQuery } from '#/features/image/image.query'
 import { cn } from '#/lib/cn'
+import { t } from '#/lib/i18n'
 import { createLoadOnScroll } from '#/lib/loadOnScroll'
 
 import type { ImageApi, TaskApi } from '@silent-pix/shared'
@@ -56,19 +57,19 @@ type ImageFilterOption<Value extends string> = {
     Icon: Component<LucideProps>
 }
 
-const allTaskFlagOption = { label: 'All', Icon: ListFilter }
+const allTaskFlagOption = { label: t('common.all'), Icon: ListFilter }
 
 const imageTaskFlagOptions: ImageFilterOption<ImageTaskFlag>[] = [
-    { value: 'unflag', label: 'Unflag', Icon: FlagOff },
-    { value: 'pin', label: 'Pin', Icon: Pin },
-    { value: 'discard', label: 'Discard', Icon: Trash2 },
+    { value: 'unflag', label: t('task.filter.unflag'), Icon: FlagOff },
+    { value: 'pin', label: t('task.filter.pin'), Icon: Pin },
+    { value: 'discard', label: t('task.filter.discard'), Icon: Trash2 },
 ]
 
-const allImageTypeOption = { label: 'All', Icon: ListFilter }
+const allImageTypeOption = { label: t('common.all'), Icon: ListFilter }
 
 const imageTypeOptions: ImageFilterOption<ImageType>[] = [
-    { value: 'input', label: 'Input', Icon: ImageDown },
-    { value: 'output', label: 'Output', Icon: ImageUp },
+    { value: 'input', label: t('image.input'), Icon: ImageDown },
+    { value: 'output', label: t('image.output'), Icon: ImageUp },
 ]
 
 export function ImagePickerDialog(props: ImagePickerDialogProps) {
@@ -165,7 +166,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
     return (
         <Dialog
             open={props.open}
-            title={props.mode === 'multiple' ? 'Add images to compare' : 'Choose reference image'}
+            title={props.mode === 'multiple' ? t('image.addToCompare') : t('image.chooseReference')}
             onOpenChange={props.onOpenChange}
             classes={{
                 content: 'h-[100vh] w-[1200px] max-w-[calc(100vw-2rem)]',
@@ -178,7 +179,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                         fallback={(
                             <Show when={props.mode === 'multiple' && selectedMultiple().length > 0}>
                                 <span class='text-xs text-fg-secondary'>
-                                    {selectedMultiple().length} selected
+                                    {t('common.selectedCount', { count: selectedMultiple().length })}
                                 </span>
                             </Show>
                         )}
@@ -194,7 +195,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                             classes={{ root: 'min-w-20 text-sm' }}
                             onClick={() => props.onOpenChange(false)}
                         >
-                            Cancel
+                            {t('common.cancel')}
                         </Button>
                         <Button
                             variant='solid'
@@ -203,7 +204,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                             classes={{ root: 'min-w-20 text-sm' }}
                             onClick={apply}
                         >
-                            Apply
+                            {t('common.apply')}
                         </Button>
                     </div>
                 </div>
@@ -212,9 +213,9 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
             <div class='flex min-w-0 flex-col gap-2'>
                 <div class='flex min-w-0'>
                     <Text
-                        label='Search'
+                        label={t('common.search')}
                         value={keyword()}
-                        placeholder='task name or task ID...'
+                        placeholder={t('task.searchPlaceholder')}
                         icon={(
                             <Search
                                 size={14}
@@ -232,7 +233,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                         class='m-0 flex min-w-0 items-center gap-3 border-0 p-0 disabled:opacity-40'
                     >
                         <span class='text-[10px] font-medium uppercase tracking-wide text-fg-title'>
-                            Task
+                            {t('task.singular')}
                         </span>
                         <FilterChips
                             allOption={allTaskFlagOption}
@@ -243,7 +244,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                     </fieldset>
                     <div class='flex items-center gap-3'>
                         <span class='text-[10px] font-medium uppercase tracking-wide text-fg-title'>
-                            Type
+                            {t('image.typeLabel')}
                         </span>
                         <FilterChips
                             allOption={allImageTypeOption}
@@ -277,7 +278,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                 >
                     <Show when={hasLoadError()}>
                         <div class='flex flex-col items-center gap-3 py-8 text-center'>
-                            <p class='m-0 text-sm text-danger-fg'>Failed to load images.</p>
+                            <p class='m-0 text-sm text-danger-fg'>{t('image.loadFailed')}</p>
                             <Button
                                 type='button'
                                 classes={{ root: 'text-sm' }}
@@ -287,7 +288,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                                     size={14}
                                     strokeWidth={1.8}
                                 />
-                                Retry
+                                {t('common.retry')}
                             </Button>
                         </div>
                     </Show>
@@ -297,7 +298,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                             when={items().length > 0}
                             fallback={(
                                 <p class='m-0 py-8 text-center text-xs text-fg-muted'>
-                                    No images yet.
+                                    {t('image.empty')}
                                 </p>
                             )}
                         >
@@ -393,9 +394,9 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
 
                             <Show when={query.isError}>
                                 <div class='flex flex-col items-center gap-2 py-4'>
-                                    <p class='m-0 text-xs text-danger-fg'>Failed to load more images.</p>
+                                    <p class='m-0 text-xs text-danger-fg'>{t('image.loadMoreFailed')}</p>
                                     <Button onClick={() => void query.fetchNextPage()}>
-                                        Retry
+                                        {t('common.retry')}
                                     </Button>
                                 </div>
                             </Show>
@@ -404,7 +405,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                                     ref={loadOnScroll.setTrigger}
                                     class='py-2 text-center text-xs text-fg-muted'
                                 >
-                                    {query.isFetchingNextPage ? 'Loading...' : ''}
+                                    {query.isFetchingNextPage ? t('common.loading') : ''}
                                 </div>
                             </Show>
                         </Show>

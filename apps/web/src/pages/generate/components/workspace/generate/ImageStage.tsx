@@ -5,6 +5,7 @@ import { resolveImageUrl } from '#/api/image'
 import { Button } from '#/components/base/Button'
 import { Loading } from '#/components/base/Loading'
 import { cn } from '#/lib/cn'
+import { t } from '#/lib/i18n'
 import { isEditableTarget } from '#/lib/keyboard'
 
 import type { ImageApi } from '@silent-pix/shared'
@@ -78,13 +79,13 @@ export function ImageStage(props: ImageStageProps) {
                 <Show
                     when={selectedImage()}
                     /* loading 時還不知道有沒有圖，不能說 No image；stage 留黑 */
-                    fallback={<Show when={!props.loading}><div class='text-sm text-fg-muted'>No image</div></Show>}
+                    fallback={<Show when={!props.loading}><div class='text-sm text-fg-muted'>{t('generate.noImage')}</div></Show>}
                 >
                     {image => (
                         <img
                             class='h-full w-full object-contain'
                             src={resolveImageUrl(image().url)}
-                            alt='Selected generated preview'
+                            alt={t('generate.previewAlt')}
                             onClick={props.onExpand}
                         />
                     )}

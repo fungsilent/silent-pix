@@ -7,6 +7,7 @@ import { TaskConfig } from '#/components/task/detail/TaskConfig'
 import { TaskImage } from '#/components/task/detail/TaskImage'
 import { TaskInfo } from '#/components/task/detail/TaskInfo'
 import { TaskLora } from '#/components/task/detail/TaskLora'
+import { t } from '#/lib/i18n'
 
 import type { TaskConfigActions, TaskConfigCreateData, TaskConfigData } from '#/components/task/detail/TaskConfig'
 import type { TaskImageActions, TaskImageCreateData, TaskImageData } from '#/components/task/detail/TaskImage'
@@ -148,7 +149,7 @@ function TaskDetailPanel(props: TaskDetailPanelProps) {
                     <div class='flex h-full min-h-0 flex-col'>
                         <Bar.Root classes={{ root: 'px-2' }}>
                             <Bar.Group>
-                                <Bar.Title>Detail</Bar.Title>
+                                <Bar.Title>{t('common.detail')}</Bar.Title>
                             </Bar.Group>
                             <Bar.Actions>
                                 <CollapseButton
@@ -171,7 +172,7 @@ function TaskDetailPanel(props: TaskDetailPanelProps) {
                             </Show>
                             <Show when={props.error()}>
                                 <p class='m-0 py-4 text-center text-xs text-fg-muted'>
-                                    Failed to load task detail.
+                                    {t('task.loadDetailFailed')}
                                 </p>
                             </Show>
                         </PanelContent>

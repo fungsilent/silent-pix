@@ -105,9 +105,10 @@ substitution. The runtime supports English only, without a language detector,
 resource requests, or reactive switching.
 
 Current coverage is Header, Settings, startup and Desktop bridge messages,
-shared validation/error messages, and IssueChip. Task/Generate, Workflow and
-Compare still have inline copy pending their later migration phases. Canonical
-values, user content, and external diagnostics remain outside the catalog.
+shared validation/error messages, IssueChip, Task/Generate, shared image pickers
+and zoom controls, and Prompt group defaults and operation titles. Workflow and
+Compare-specific copy remains inline pending their later migration phases.
+Canonical values, user content, and external diagnostics remain outside the catalog.
 
 `lib/error.ts` obtains its code-to-message map through i18next `returnObjects`;
 the resource keys are the API codes, so there is no parallel code list. Known
