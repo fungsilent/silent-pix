@@ -91,6 +91,7 @@ These are implementation constraints. `docs/architecture.md` describes current s
 - Keep shared field primitives generic. Domain rows, grouped labels, LoRA layouts, and actions belong in domain UI components; keep them page-local unless shared across pages. Shared task detail UI lives in `components/task/detail`.
 - Generate task-list components live under `apps/web/src/pages/generate/components/task`.
 - Generate-specific task detail/config adapters live under `apps/web/src/pages/generate/components/config`; shared TaskDetail components stay under `apps/web/src/components/task/detail`.
+- The Generate detail adapter owns draft default Workflow selection independently of the collapsible detail content; shared TaskConfig only displays values and reports user changes.
 
 ## Storage and Boundaries
 
@@ -112,7 +113,7 @@ These are implementation constraints. `docs/architecture.md` describes current s
 - Store image files on the filesystem and metadata in SQLite. Do not store image binary data in SQLite.
 - Images are content-addressed by sha256 and stored once. `images` owns the content, `task_images` owns what a task does with it. An image row and its file are deleted only when the last reference is gone, and the database commits before the filesystem unlinks.
 - `imageCleanup.removeUnreferenced()` owns the deduplicated, chunked guarded delete (`NOT EXISTS(task_images)` plus `DELETE RETURNING id/path`) and per-item unlink outcomes; task cleanup and GC call it while holding `withImageMutation`, and it never reacquires the lock.
-- Task generation downloads Comfy outputs outside the image lock; `taskExecution` holds `withImageMutation` only across ingest, reference commit, and orphan cleanup, then publishes the committed snapshot before successful Comfy output unlink.
+- Task generation downloads Comfy outputs outside the image lock; `taskExecution` holds `withImageMutation` only across ingest, reference commit, and orphan cleanup, then publishes the committed snapshot before successful Comfy output unlink. Lifecycle status helpers return their outcomes; `generate()` owns publication after successful guarded updates, including preflight failures, and subsequent Comfy cleanup. Post-commit cleanup rejections reach ComfyClient's existing callback error logger and do not change the Task outcome.
 - Ingest, reference creation, deletion, and GC must not unlink content another operation has referenced or republished. DB foreign keys and commit-before-unlink alone do not guarantee filesystem concurrency safety. Server image mutations use the process-local `withImageMutation` mutex through reference commit or cleanup unlink; mutation helpers require the caller to hold it and must not reacquire it. Online GC is server-owned at `/api/image/garbage-collection`; the normal `image:gc` CLI only triggers that route. The supported deployment has one server writer per database/storage pair; a second writer is unsupported. `image:gc:offline -- --confirm-server-stopped` is a stopped-server recovery command, and normal GC never falls back to it.
 - Image cleanup and filesystem sweep paths use canonical `config.appStorageDir`; GC has no storage-root override.
 - Image metadata is sniffed from the bytes. Never trust the client's declared type, and never derive it from a filename.

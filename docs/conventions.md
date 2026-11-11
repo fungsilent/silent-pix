@@ -288,6 +288,11 @@ legacy `workflowRevision = 0` rows remain unknown rather than being backfilled.
 callback wiring, output ingest and rollback, Task status/error mapping, its
 generation-only completion transaction, and lifecycle publication. It loads a
 canonical snapshot and publishes its lifecycle event directly at the call site.
+Lifecycle status helpers return their outcomes; `generate()` owns publication
+after successful guarded updates, including preflight failures, and subsequent
+ComfyUI cleanup. Completion publishes before cleanup;
+post-commit cleanup rejections reach ComfyClient's existing callback error logger
+without changing the Task outcome.
 Keep the dependency one-way:
 `task.service.ts` owns resource queries, business operations, startup recovery,
 snapshots, and public options and must not import the execution module.
@@ -503,6 +508,7 @@ Rules:
 - `SettingsPage` owns Dev store access and passes narrow accessors and callbacks to its local Dev Settings component; the Header reads app page state and does not own preview state
 - domain actions may be flattened onto returned stores but must not live inside reactive state
 - Generate and Workflow page editor state uses page-scoped TanStack Form through context
+- the Generate detail adapter owns draft default Workflow selection outside the collapsible detail content; shared TaskConfig only displays values and reports user changes
 - Form validators are pure submit-boundary Zod checks; invalid issues flow through the page's existing issue pipeline
 - Solid stores own UI/query lifecycle state only, not duplicated form values
 - Form-level reactive state uses `form.useSelector()` or `<form.Subscribe>`; direct `form.state` reads are imperative snapshots only

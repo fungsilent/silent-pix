@@ -1,5 +1,5 @@
 import { Undo2 } from 'lucide-solid'
-import { createEffect, Show } from 'solid-js'
+import { Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { Loading } from '#/components/base/Loading'
@@ -30,7 +30,6 @@ export type TaskConfigData = {
 
 export type TaskConfigCreateData = TaskConfigData & {
     hasReference: Accessor<boolean>
-    isDraft: Accessor<boolean>
     restorableSeed: Accessor<string | null>
     workflowLoading: Accessor<boolean>
     workflowError: Accessor<boolean>
@@ -124,27 +123,6 @@ export function TaskConfig(props: TaskConfigProps) {
             props.actions.onSamplerChange(value)
         }
     }
-
-    createEffect(() => {
-        if (props.mode !== 'create' || !props.data.isDraft()) {
-            return
-        }
-
-        const options = props.data.workflowOptions()
-        const first = options[0]
-
-        if (!first) {
-            return
-        }
-
-        const current = values().workflowId
-
-        if (current && options.some(option => option.value === current)) {
-            return
-        }
-
-        props.actions.onWorkflowChange(first.value)
-    })
 
     return (
         <DetailSection

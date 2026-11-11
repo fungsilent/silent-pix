@@ -125,6 +125,9 @@ attributes, with no HTML translation rendering.
 Generate uses real Task APIs, TanStack Query for server data, and page-scoped
 TanStack Form for editable values. The default draft supplies initial form
 values; it is not a backend task. Task lifecycle authority stays in the server.
+The Generate detail adapter owns draft default Workflow selection outside the
+collapsible detail content, so collapsing the panel does not suspend form
+initialization. Shared TaskConfig only displays values and reports user changes.
 
 The LoRA picker dialog owns its search text and temporary selection, resetting
 both when opened and returning selected names only on Apply. Generate retains
@@ -540,8 +543,12 @@ This model remains in process memory only; legacy tasks with
 `taskExecution.generate()` owns the ComfyUI flow it starts, including prompt
 construction, callback installation, output ingestion and its completion
 transaction, failure mutation, canonical snapshots, event publication, and
-ComfyUI cleanup. `ComfyClient.execute(): void` leaves the lifecycle callbacks
-and output finalization untracked; the route and client do not provide
+ComfyUI cleanup. Lifecycle status helpers return their outcomes; `generate()`
+owns publication after successful guarded updates, including preflight failures.
+Its completion callback publishes the committed snapshot before ComfyUI cleanup;
+cleanup rejections reach ComfyClient's existing callback error logger and cannot
+change the committed Task outcome. `ComfyClient.execute(): void` leaves the lifecycle
+callbacks and output finalization untracked; the route and client do not provide
 execution tracking, cancellation, or shutdown draining. It may call
 `taskService` for task reads and writes; `task.service.ts` does not import the
 execution module. Resource queries, startup recovery, snapshots, and public

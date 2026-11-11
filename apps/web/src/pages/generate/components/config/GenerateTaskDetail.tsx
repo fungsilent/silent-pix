@@ -68,6 +68,20 @@ export function GenerateTaskDetail() {
 
     const samplerOptions = () => samplerQuery.data?.options ?? []
 
+    createEffect(() => {
+        if (!detail.draft()) return
+
+        const options = workflowOptions()
+        const first = options[0]
+
+        if (!first) return
+
+        const current = workflowId()
+        if (!current || !options.some(option => option.value === current)) {
+            form.setFieldValue('workflowId', first.value)
+        }
+    })
+
     const normalizeReference = (reference: ReferenceImage | null): TaskImageReference | null => {
         if (!reference) {
             return null
@@ -263,7 +277,6 @@ export function GenerateTaskDetail() {
         workflowOptions,
         samplerOptions,
         hasReference: () => referenceImage() !== null,
-        isDraft: detail.draft,
         restorableSeed: () => detail.task()?.config.seed ?? null,
         workflowLoading: () => workflowQuery.isLoading,
         workflowError: () => workflowQuery.isError,
