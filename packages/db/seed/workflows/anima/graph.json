@@ -40,7 +40,7 @@
   "141": {
     "inputs": {
       "filename_prefix": "silent-pix",
-      "save_mode": "preview",
+      "save_mode": "save",
       "image": [
         "99:60",
         0
