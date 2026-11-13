@@ -8,6 +8,8 @@ import { taskListItem } from '#shared/contract/task'
 export const snapshot = taskListItem
     .omit({ thumbnail: true })
     .extend({
+        errorCode: z.string().nullable(),
+        errorMessage: z.string().nullable(),
         images: z.array(imageResource),
     })
 

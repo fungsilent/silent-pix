@@ -8,6 +8,7 @@ import { FieldHint } from '#/components/base/FieldHint'
 import { Loading } from '#/components/base/Loading'
 import { DetailRow, DetailSection } from '#/components/detail'
 import { Editable } from '#/components/field/Editable'
+import { TaskFailure } from '#/components/task/detail/TaskFailure'
 import { TaskStatus } from '#/components/task/TaskStatus'
 import { toErrorMessage } from '#/lib/error'
 import { formatDateTime } from '#/lib/format'
@@ -20,6 +21,8 @@ export type TaskInfoData = {
     id: Accessor<string | undefined>
     name: Accessor<string>
     status: Accessor<TaskApi.TaskStatus | undefined>
+    errorCode: Accessor<string | null | undefined>
+    errorMessage: Accessor<string | null | undefined>
     createdAt: Accessor<string | undefined>
 }
 
@@ -160,6 +163,16 @@ export function TaskInfo(props: TaskInfoProps) {
                     </Show>
                 </Loading.Mask>
             </DetailRow>
+
+            <Show
+                when={!props.loading() && !isDraft() && props.data.status() === 'failed' && props.data.id()}
+                keyed
+            >
+                <TaskFailure
+                    errorCode={props.data.errorCode() ?? null}
+                    errorMessage={props.data.errorMessage() ?? null}
+                />
+            </Show>
 
             <DetailRow label={t('fields.created')}>
                 <Loading.Mask loading={props.loading}>

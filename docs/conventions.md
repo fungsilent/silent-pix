@@ -311,6 +311,12 @@ generation Promise and the callbacks started by `execute(): void` remain
 untracked, so graceful shutdown does not drain them and late finalization
 against a closed DB remains a known unsupported lifecycle case.
 
+Task detail responses and realtime snapshots carry nullable `errorCode` and
+`errorMessage` from storage. Keep both fields in detail-cache projection and
+equality checks. Shared TaskInfo's failure section translates known codes, uses a
+generic reason for unknown codes, and renders stored diagnostics as text. Do
+not attribute generic generation failures to ComfyUI.
+
 An optional model module can own:
 
 ```txt

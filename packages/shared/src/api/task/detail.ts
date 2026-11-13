@@ -15,6 +15,8 @@ export const getTaskResponse = z.object({
     id: z.uuid(),
     name: z.string().nullable(),
     status: taskStatus,
+    errorCode: z.string().nullable(),
+    errorMessage: z.string().nullable(),
     pin: z.boolean(),
     discard: z.boolean(),
     createdAt: z.iso.datetime(),

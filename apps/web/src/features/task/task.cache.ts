@@ -363,6 +363,8 @@ function toTaskSnapshot(task: TaskApi.GetTaskResponse): Event.Task.Snapshot {
         id: task.id,
         name: task.name,
         status: task.status,
+        errorCode: task.errorCode,
+        errorMessage: task.errorMessage,
         pin: task.pin,
         discard: task.discard,
         createdAt: task.createdAt,
@@ -378,6 +380,8 @@ function applySnapshot(
     if (
         task.name === snapshot.name
         && task.status === snapshot.status
+        && task.errorCode === snapshot.errorCode
+        && task.errorMessage === snapshot.errorMessage
         && task.pin === snapshot.pin
         && task.discard === snapshot.discard
         && sameImages(task.images, snapshot.images)
@@ -389,6 +393,8 @@ function applySnapshot(
         ...task,
         name: snapshot.name,
         status: snapshot.status,
+        errorCode: snapshot.errorCode,
+        errorMessage: snapshot.errorMessage,
         pin: snapshot.pin,
         discard: snapshot.discard,
         images: snapshot.images,

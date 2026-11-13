@@ -259,6 +259,8 @@ export function GenerateTaskDetail() {
         id: () => detail.task()?.id,
         name,
         status: () => detail.task()?.status,
+        errorCode: () => detail.task()?.errorCode,
+        errorMessage: () => detail.task()?.errorMessage,
         createdAt: () => detail.task()?.createdAt,
         draft: detail.draft,
         imageCount: () => detail.task()?.images.length ?? 0,

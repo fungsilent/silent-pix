@@ -32,6 +32,8 @@ export function CompareDetail() {
         id: () => task()?.id,
         name: () => task()?.name ?? '',
         status: () => task()?.status,
+        errorCode: () => task()?.errorCode,
+        errorMessage: () => task()?.errorMessage,
         createdAt: () => task()?.createdAt,
     }
     const image: TaskImageData = {

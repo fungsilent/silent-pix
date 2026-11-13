@@ -748,8 +748,16 @@ snapshot/detail supplies the complete list item; otherwise matching feeds are
 invalidated. Search membership and incomplete-page insertion still recover
 through REST.
 
-Task detail snapshots project `name`, `status`, `pin`, `discard`, and `images`
-with referential equality when all projected values are unchanged. Generate
+Task detail REST responses and realtime snapshots include nullable `errorCode`
+and `errorMessage` from storage. Shared TaskInfo displays a failed task's localized
+reason beneath its status, with collapsible stored diagnostics in the detail
+panel. Unknown codes use a generic reason; missing diagnostics are
+explicit. Generate keeps the central "No image" state. Failure details follow the
+existing panel's collapse and narrow-viewport visibility. List items remain unchanged.
+
+Task detail snapshots project `name`, `status`, `errorCode`, `errorMessage`,
+`pin`, `discard`, and `images` with referential equality when all projected
+values are unchanged. Generate
 coordinates the Query-owned task detail with its page-scoped TanStack Form:
 changing task identity loads the full task, while a same-task server rename only
 updates the form `name` when it still equals the previous server name (`null`
