@@ -94,7 +94,7 @@ export function PromptPanel() {
                         tone='accent'
                         disabled={isSubmitting() || isLoading()}
                         classes={{
-                            root: 'shrink-0 font-semibold disabled:cursor-not-allowed disabled:opacity-60'
+                            root: 'shrink-0 font-semibold'
                         }}
                     >
                         <Sparkles

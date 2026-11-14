@@ -1,4 +1,4 @@
-import { Expand, RefreshCw } from 'lucide-solid'
+import { Expand } from 'lucide-solid'
 import { createMemo, For, Show } from 'solid-js'
 
 import { Bar } from '#/components/base/Bar'
@@ -6,15 +6,14 @@ import { Button } from '#/components/base/Button'
 import { FieldHint } from '#/components/base/FieldHint'
 import { Loading } from '#/components/base/Loading'
 import { CollapseButton, Panel, PanelContent } from '#/components/base/Panel'
+import { StatusMessage } from '#/components/base/StatusMessage'
 import { useTaskFeedQuery, useTaskFlagMutation } from '#/features/task/task.query'
 import { toErrorMessage } from '#/lib/error'
 import { t } from '#/lib/i18n'
 import { createLoadOnScroll } from '#/lib/loadOnScroll'
 import { TaskItem, TaskItemSkeleton } from '#/pages/generate/components/task/list/TaskItem'
-import { TaskFilterChips } from '#/pages/generate/components/task/TaskFilterChips'
+import { TaskFilterChips, taskFilterEmptyCopy } from '#/pages/generate/components/task/TaskFilterChips'
 import { taskStore } from '#/store/task'
-
-import type { TaskApi } from '@silent-pix/shared'
 
 const taskSkeletonRows = [0, 1, 2, 3, 4, 5]
 
@@ -103,14 +102,26 @@ export function TaskList() {
                             <Show
                                 when={!taskFeedQuery.isError || taskFeedQuery.data}
                                 fallback={(
-                                    <TaskLoadError onRetry={() => void taskFeedQuery.refetch()} />
+                                    <Show when={!panel.isCollapsed()}>
+                                        <StatusMessage
+                                            kind='load-error'
+                                            size='compact'
+                                            message={t('task.loadFailed')}
+                                            onRetry={() => void taskFeedQuery.refetch()}
+                                        />
+                                    </Show>
                                 )}
                             >
                                 <Show
                                     when={tasks().length > 0}
                                     fallback={(
                                         <Show when={!panel.isCollapsed()}>
-                                            <TaskEmptyState values={taskStore.state.feedTaskFlags} />
+                                            <StatusMessage
+                                                kind='empty'
+                                                size='compact'
+                                                title={taskFilterEmptyCopy().title}
+                                                message={taskFilterEmptyCopy().message}
+                                            />
                                         </Show>
                                     )}
                                 >
@@ -131,8 +142,13 @@ export function TaskList() {
                                     </For>
                                 </Show>
 
-                                <Show when={taskFeedQuery.isError}>
-                                    <TaskLoadError onRetry={() => void taskFeedQuery.refetch()} />
+                                <Show when={taskFeedQuery.isError && !panel.isCollapsed()}>
+                                    <StatusMessage
+                                        kind='load-error'
+                                        size='compact'
+                                        message={t('task.loadFailed')}
+                                        onRetry={() => void taskFeedQuery.refetch()}
+                                    />
                                 </Show>
                             </Show>
 
@@ -149,76 +165,5 @@ export function TaskList() {
                 </div>
             )}
         </Panel>
-    )
-}
-
-type TaskEmptyStateProps = {
-    values: readonly TaskApi.TaskFilterFlag[] | undefined
-}
-
-const emptyStateCopy: Record<TaskApi.TaskFilterFlag, { title: () => string, message: () => string }> = {
-    unflag: {
-        title: () => t('task.empty.unflagTitle'),
-        message: () => t('task.empty.unflagMessage'),
-    },
-    pin: {
-        title: () => t('task.empty.pinTitle'),
-        message: () => t('task.empty.pinMessage'),
-    },
-    discard: {
-        title: () => t('task.empty.discardTitle'),
-        message: () => t('task.empty.discardMessage'),
-    },
-}
-
-function TaskEmptyState(props: TaskEmptyStateProps) {
-    const singleFlag = () => props.values?.length === 1
-        ? props.values[0]
-        : undefined
-    const copy = () => {
-        const flag = singleFlag()
-        if (flag) {
-            return emptyStateCopy[flag]
-        }
-
-        return props.values === undefined
-            ? {
-                title: () => t('task.empty.title'),
-                message: () => t('task.empty.message'),
-            }
-            : {
-                title: () => t('task.empty.noMatchTitle'),
-                message: () => t('task.empty.filterMessage'),
-            }
-    }
-
-    return (
-        <div class='flex flex-col items-center gap-1 px-3 py-8 text-center'>
-            <p class='m-0 text-xs font-medium text-fg'>{copy().title()}</p>
-            <p class='m-0 text-[11px] leading-relaxed text-fg-muted'>{copy().message()}</p>
-        </div>
-    )
-}
-
-type TaskLoadErrorProps = {
-    onRetry: () => void
-}
-
-function TaskLoadError(props: TaskLoadErrorProps) {
-    return (
-        <div class='flex flex-col items-center gap-2 px-3 py-8 text-center'>
-            <p class='m-0 text-xs text-fg-muted'>{t('task.loadFailed')}</p>
-            <Button
-                type='button'
-                classes={{ root: 'h-7 px-2 text-[11px]' }}
-                onClick={props.onRetry}
-            >
-                <RefreshCw
-                    size={13}
-                    strokeWidth={1.8}
-                />
-                {t('common.retry')}
-            </Button>
-        </div>
     )
 }

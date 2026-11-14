@@ -1,6 +1,7 @@
 import { createEffect, createSignal, For, Show } from 'solid-js'
 
 import { resolveImageUrl } from '#/api/image'
+import { StatusMessage } from '#/components/base/StatusMessage'
 import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
 
@@ -19,6 +20,7 @@ type ZoomStageProps = {
     selectedIndex: number
     zoom: Zoom
     onClick: (event: MouseEvent) => void
+    stageDanger?: boolean
 }
 
 export function ZoomStage(props: ZoomStageProps) {
@@ -79,8 +81,12 @@ export function ZoomStage(props: ZoomStageProps) {
             </For>
 
             <Show when={image() && failedUrls().has(image()!.url)}>
-                <div class='absolute inset-0 grid place-items-center text-sm text-fg-muted'>
-                    {t('image.unavailable')}
+                <div class='absolute inset-0 grid place-items-center px-4'>
+                    <StatusMessage
+                        kind='content-error'
+                        message={t('image.unavailable')}
+                        classes={{ message: props.stageDanger ? 'text-stage-danger' : '' }}
+                    />
                 </div>
             </Show>
 

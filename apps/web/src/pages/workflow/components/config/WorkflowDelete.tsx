@@ -64,7 +64,7 @@ export function WorkflowDelete() {
             <Button
                 tone='danger'
                 disabled={mutation.isPending}
-                classes={{ root: 'w-full disabled:cursor-not-allowed disabled:opacity-60' }}
+                classes={{ root: 'w-full' }}
                 onClick={openDialog}
             >
                 <Trash2
@@ -89,7 +89,7 @@ export function WorkflowDelete() {
                         </Show>
                         <div class='ml-auto flex shrink-0 gap-2'>
                             <Button
-                                classes={{ root: 'min-w-20 text-sm' }}
+                                size='dialog'
                                 disabled={mutation.isPending}
                                 onClick={() => setOpen(false)}
                             >
@@ -97,7 +97,7 @@ export function WorkflowDelete() {
                             </Button>
                             <Button
                                 tone='danger'
-                                classes={{ root: 'min-w-20 text-sm' }}
+                                size='dialog'
                                 disabled={mutation.isPending}
                                 onClick={() => void confirm()}
                             >

@@ -1,9 +1,10 @@
-import { Check, Plus, RefreshCw, Search } from 'lucide-solid'
+import { Check, Plus, Search } from 'lucide-solid'
 import { createEffect, createSignal, For, on, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { Dialog } from '#/components/base/Dialog'
 import { Loading } from '#/components/base/Loading'
+import { StatusMessage } from '#/components/base/StatusMessage'
 import { Text } from '#/components/field/Text'
 import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
@@ -64,7 +65,7 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
                     <div class='flex gap-2'>
                         <Button
                             type='button'
-                            classes={{ root: 'min-w-20 text-sm' }}
+                            size='dialog'
                             onClick={() => props.onOpenChange(false)}
                         >
                             {t('common.cancel')}
@@ -72,7 +73,7 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
                         <Button
                             type='button'
                             tone='accent'
-                            classes={{ root: 'min-w-20 text-sm' }}
+                            size='dialog'
                             onClick={() => props.onApply(selected())}
                         >
                             {t('common.apply')}
@@ -107,31 +108,25 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
                     )}
                 >
                     <Show when={props.error}>
-                        <div class='flex flex-col items-center gap-3 py-8 text-center'>
-                            <p class='m-0 text-sm text-danger-fg'>{t('generate.lora.loadFailed')}</p>
-                            <Button
-                                type='button'
-                                classes={{ root: 'text-sm' }}
-                                onClick={props.onRetry}
-                            >
-                                <RefreshCw
-                                    size={14}
-                                    strokeWidth={1.8}
-                                />
-                                {t('common.retry')}
-                            </Button>
-                        </div>
+                        <StatusMessage
+                            kind='load-error'
+                            size='compact'
+                            message={t('generate.lora.loadFailed')}
+                            onRetry={props.onRetry}
+                        />
                     </Show>
 
                     <Show when={!props.error}>
                         <Show
                             when={visibleOptions().length > 0}
                             fallback={(
-                                <p class='m-0 py-8 text-center text-sm text-fg-muted'>
-                                    {props.options.length === 0
+                                <StatusMessage
+                                    kind='empty'
+                                    size='compact'
+                                    message={props.options.length === 0
                                         ? t('generate.lora.unavailable')
                                         : t('generate.lora.noMatch')}
-                                </p>
+                                />
                             )}
                         >
                             <div class='flex flex-col'>

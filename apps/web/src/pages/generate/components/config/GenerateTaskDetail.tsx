@@ -11,6 +11,7 @@ import {
     referenceSize,
 } from '#/pages/generate/form'
 import { useGenerateStore } from '#/pages/generate/store'
+import { taskStore } from '#/store/task'
 
 import type { ImageApi } from '@silent-pix/shared'
 import type { TaskConfigActions, TaskConfigCreateData, TaskConfigValues } from '#/components/task/detail/TaskConfig'
@@ -309,6 +310,7 @@ export function GenerateTaskDetail() {
         onReferenceReject: message => setReferenceError(() => message),
         onReferenceAsset,
         onRemoveReference,
+        onSelectOrigin: taskStore.selectTask,
         onDenoiseChange: value => form.setFieldValue('denoise', value),
         setImagePickerOpen,
     }
@@ -344,6 +346,7 @@ export function GenerateTaskDetail() {
             actions={actions}
             error={() => detail.error() && detail.task() === undefined}
             loading={detail.loading}
+            onRetry={detail.retry}
         />
     )
 }

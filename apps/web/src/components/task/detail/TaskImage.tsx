@@ -39,6 +39,7 @@ export type TaskImageActions = {
     onReferenceReject: (message: () => string) => void
     onReferenceAsset: (item: ImageApi.ImageListItem) => void
     onRemoveReference: () => void
+    onSelectOrigin: (taskId: string) => void
     onDenoiseChange: (value: number) => void
     setImagePickerOpen: (open: boolean) => void
 }
@@ -155,6 +156,11 @@ export function TaskImage(props: TaskImageProps) {
                             loading={props.loading()}
                             reference={value()}
                             onRemove={onRemoveReference}
+                            onSelectOrigin={taskId => {
+                                if (props.mode === 'create') {
+                                    props.actions.onSelectOrigin(taskId)
+                                }
+                            }}
                         />
                     )
                     : (
@@ -221,6 +227,7 @@ type ReferenceSlotProps = {
     loading: boolean
     reference: TaskImageReference
     onRemove: () => void
+    onSelectOrigin: (taskId: string) => void
 } | {
     mode: 'view'
     loading: boolean
@@ -272,7 +279,14 @@ function ReferenceSlot(props: ReferenceSlotProps) {
                                 </span>
                             )}
                         >
-                            <Button classes={{ root: 'w-full border border-line bg-transparent' }}>
+                            <Button
+                                classes={{ root: 'w-full border border-line bg-transparent' }}
+                                onClick={() => {
+                                    if (props.mode === 'create') {
+                                        props.onSelectOrigin(origin().taskId)
+                                    }
+                                }}
+                            >
                                 <RotateCcw
                                     size={13}
                                     strokeWidth={1.7}

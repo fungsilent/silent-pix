@@ -32,7 +32,7 @@
         "saveServerTitle": "Save Server and reload?",
         "saveServerDescription": "Saving this Server reloads the app and clears the current page state.",
         "saving": "Saving...",
-        "savingConnection": "Saving…",
+        "savingConnection": "Saving...",
         "saveAndReload": "Save and reload",
         "saveAndConnect": "Save and connect",
         "connection": "Connection",
@@ -41,7 +41,7 @@
         "retryReadSettings": "Retry reading settings",
         "localServerUrl": "Local Server URL",
         "localServerUrlHint": "Use http://127.0.0.1:<port>. Saving reloads the app.",
-        "testing": "Testing…",
+        "testing": "Testing...",
         "testConnection": "Test connection",
         "connected": "Connected",
         "connectionFailed": "Connection check failed",
@@ -219,7 +219,8 @@
         "deleteWithImages_other": "The task and its {{count}} images are removed from disk. This cannot be undone.",
         "deleteSelectedDescription_one": "Permanently delete {{count}} selected task. This cannot be undone.",
         "deleteSelectedDescription_other": "Permanently delete {{count}} selected tasks. This cannot be undone.",
-        "deleteSelectedButton": "Delete {{count}} tasks...",
+        "deleteSelectedButton_one": "Delete {{count}} task...",
+        "deleteSelectedButton_other": "Delete {{count}} tasks...",
         "selectionLimit": "Maximum {{maximum}} tasks per batch."
     },
     "image": {
@@ -273,6 +274,8 @@
         }
     },
     "workflow": {
+        "loadListFailed": "Failed to load workflows.",
+        "loadFailed": "Failed to load workflow.",
         "title": "Workflows",
         "nameLabel": "Workflow name",
         "unsaved": "Unsaved",
@@ -313,7 +316,7 @@
             "title": "Archive this workflow?",
             "pending": "Archiving...",
             "confirm": "Archive",
-            "description_one": "{{count}} task still use this workflow, so it is archived instead of deleted. It leaves the generate picker and those tasks keep working.",
+            "description_one": "{{count}} task still uses this workflow, so it is archived instead of deleted. It leaves the generate picker and those tasks keep working.",
             "description_other": "{{count}} tasks still use this workflow, so it is archived instead of deleted. It leaves the generate picker and those tasks keep working.",
             "alreadyArchived_one": "This workflow is already archived. It is deleted only once no task uses it — {{count}} still does.",
             "alreadyArchived_other": "This workflow is already archived. It is deleted only once no task uses it — {{count}} still do."

@@ -98,7 +98,7 @@ function TaskViewerMessage(props: TaskViewerMessageProps) {
                 <span>{props.message}</span>
                 <Button
                     variant='ghost'
-                    classes={{ root: 'h-6 px-2 text-[11px]' }}
+                    size='compact'
                     onClick={props.onClose}
                 >
                     {t('common.close')}

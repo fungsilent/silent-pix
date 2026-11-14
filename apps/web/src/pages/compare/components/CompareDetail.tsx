@@ -1,4 +1,4 @@
-import { createMemo, Show } from 'solid-js'
+import { createMemo, createSignal, Show } from 'solid-js'
 
 import { TaskDetail } from '#/components/task/detail/TaskDetail'
 import { useTaskDetailQuery } from '#/features/task/task.query'
@@ -13,6 +13,8 @@ import type { TaskInfoData } from '#/components/task/detail/TaskInfo'
 import type { TaskLoraData } from '#/components/task/detail/TaskLora'
 
 export function CompareDetail() {
+    const [collapsed, setCollapsed] = createSignal(false)
+    const collapse = { collapsed, setCollapsed }
     const selected = createMemo(() => compareStore.selectedCompare())
     const taskId = createMemo(() => {
         const usage = selected()?.usage
@@ -92,18 +94,25 @@ export function CompareDetail() {
     return (
         <Show
             when={selected()}
-            fallback={<ReferenceImageDetail />}
+            fallback={<ReferenceImageDetail collapse={collapse} />}
         >
             {entry => (
                 <Show
                     when={entry().usage?.type === 'output'}
-                    fallback={<ReferenceImageDetail image={entry().image} />}
+                    fallback={(
+                        <ReferenceImageDetail
+                            image={entry().image}
+                            collapse={collapse}
+                        />
+                    )}
                 >
                     <TaskDetail
                         mode='view'
                         data={data}
                         error={() => Boolean(taskId()) && taskDetailQuery.isError && task() === undefined}
                         loading={() => taskId() !== undefined && taskDetailQuery.isLoading}
+                        onRetry={() => void taskDetailQuery.refetch()}
+                        collapse={collapse}
                     />
                 </Show>
             )}

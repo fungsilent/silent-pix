@@ -8,9 +8,11 @@ import { formatDateTime } from '#/lib/format'
 import { t } from '#/lib/i18n'
 
 import type { ImageApi } from '@silent-pix/shared'
+import type { PanelCollapse } from '#/components/base/Panel'
 
 type ReferenceImageDetailProps = {
     image?: ImageApi.ImageResource | undefined
+    collapse: PanelCollapse
 }
 
 export function ReferenceImageDetail(props: ReferenceImageDetailProps) {
@@ -21,6 +23,7 @@ export function ReferenceImageDetail(props: ReferenceImageDetailProps) {
                 open: 'w-[350px]',
                 close: 'w-10',
             }}
+            collapse={props.collapse}
         >
             {panel => (
                 panel.isCollapsed() ? (

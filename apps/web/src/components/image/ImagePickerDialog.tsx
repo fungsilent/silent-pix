@@ -5,7 +5,6 @@ import {
     ImageUp,
     ListFilter,
     Pin,
-    RefreshCw,
     Search,
     Trash2,
 } from 'lucide-solid'
@@ -17,6 +16,7 @@ import { Dialog } from '#/components/base/Dialog'
 import { FilterChips } from '#/components/base/FilterChips'
 import { Loading } from '#/components/base/Loading'
 import { PanelContent } from '#/components/base/Panel'
+import { StatusMessage } from '#/components/base/StatusMessage'
 import { Text } from '#/components/field'
 import { TaskFlagOverlay } from '#/components/task/TaskFlagOverlay'
 import { originLabel } from '#/features/image/image.label'
@@ -192,7 +192,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                     </Show>
                     <div class='ml-auto flex shrink-0 gap-2'>
                         <Button
-                            classes={{ root: 'min-w-20 text-sm' }}
+                            size='dialog'
                             onClick={() => props.onOpenChange(false)}
                         >
                             {t('common.cancel')}
@@ -201,7 +201,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                             variant='solid'
                             tone='accent'
                             disabled={!hasSelection()}
-                            classes={{ root: 'min-w-20 text-sm' }}
+                            size='dialog'
                             onClick={apply}
                         >
                             {t('common.apply')}
@@ -277,29 +277,23 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                     )}
                 >
                     <Show when={hasLoadError()}>
-                        <div class='flex flex-col items-center gap-3 py-8 text-center'>
-                            <p class='m-0 text-sm text-danger-fg'>{t('image.loadFailed')}</p>
-                            <Button
-                                type='button'
-                                classes={{ root: 'text-sm' }}
-                                onClick={() => void query.refetch()}
-                            >
-                                <RefreshCw
-                                    size={14}
-                                    strokeWidth={1.8}
-                                />
-                                {t('common.retry')}
-                            </Button>
-                        </div>
+                        <StatusMessage
+                            kind='load-error'
+                            size='compact'
+                            message={t('image.loadFailed')}
+                            onRetry={() => void query.refetch()}
+                        />
                     </Show>
 
                     <Show when={!hasLoadError()}>
                         <Show
                             when={items().length > 0}
                             fallback={(
-                                <p class='m-0 py-8 text-center text-xs text-fg-muted'>
-                                    {t('image.empty')}
-                                </p>
+                                <StatusMessage
+                                    kind='empty'
+                                    size='compact'
+                                    message={t('image.empty')}
+                                />
                             )}
                         >
                             <div class='grid grid-cols-5 gap-3'>
@@ -393,12 +387,12 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                             </div>
 
                             <Show when={query.isError}>
-                                <div class='flex flex-col items-center gap-2 py-4'>
-                                    <p class='m-0 text-xs text-danger-fg'>{t('image.loadMoreFailed')}</p>
-                                    <Button onClick={() => void query.fetchNextPage()}>
-                                        {t('common.retry')}
-                                    </Button>
-                                </div>
+                                <StatusMessage
+                                    kind='load-error'
+                                    size='compact'
+                                    message={t('image.loadMoreFailed')}
+                                    onRetry={() => void query.fetchNextPage()}
+                                />
                             </Show>
                             <Show when={query.hasNextPage && !query.isError}>
                                 <div

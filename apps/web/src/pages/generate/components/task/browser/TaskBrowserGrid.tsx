@@ -1,8 +1,7 @@
-import { RefreshCw } from 'lucide-solid'
 import { createSignal, For, Show } from 'solid-js'
 
-import { Button } from '#/components/base/Button'
 import { Loading } from '#/components/base/Loading'
+import { StatusMessage } from '#/components/base/StatusMessage'
 import { cn } from '#/lib/cn'
 import { createDragSelection } from '#/lib/dragSelection'
 import { t } from '#/lib/i18n'
@@ -19,6 +18,7 @@ type TaskBrowserGridProps = {
     taskById: Accessor<ReadonlyMap<string, TaskApi.TaskListItem>>
     focusedTaskId: Accessor<string | undefined>
     selectedTaskIds: Accessor<readonly string[]>
+    emptyCopy: { title: string, message: string }
     loading: boolean
     hasData: boolean
     error: boolean
@@ -104,8 +104,12 @@ export function TaskBrowserGrid(props: TaskBrowserGridProps) {
                                         </div>
                                     )}
                                 >
-                                    <div class='col-span-8'>
-                                        <TaskBrowserEmptyState />
+                                    <div class='col-span-8 flex min-h-48 items-center justify-center px-4 py-12'>
+                                        <StatusMessage
+                                            kind='empty'
+                                            title={props.emptyCopy.title}
+                                            message={props.emptyCopy.message}
+                                        />
                                     </div>
                                 </Show>
                             )}
@@ -158,37 +162,21 @@ export function TaskBrowserGrid(props: TaskBrowserGridProps) {
     )
 }
 
-function TaskBrowserEmptyState() {
-    return (
-        <div class='flex h-full min-h-48 items-center justify-center px-4 py-12 text-center'>
-            <div>
-                <p class='m-0 text-sm font-medium text-fg'>{t('task.empty.noMatchTitle')}</p>
-                <p class='mt-1 text-xs text-fg-muted'>{t('task.empty.searchMessage')}</p>
-            </div>
-        </div>
-    )
-}
-
 type TaskBrowserLoadErrorProps = {
     onRetry: () => void
 }
 
 function TaskBrowserLoadError(props: TaskBrowserLoadErrorProps) {
     return (
-        <div class='flex flex-col items-center gap-2 px-4 py-12 text-center'>
-            <p class='m-0 text-sm text-fg-muted'>{t('task.loadFailed')}</p>
-            <Button
-                type='button'
-                data-marquee-control='true'
-                classes={{ root: 'h-8 px-3 text-xs' }}
-                onClick={props.onRetry}
-            >
-                <RefreshCw
-                    size={14}
-                    strokeWidth={1.8}
-                />
-                {t('common.retry')}
-            </Button>
+        <div
+            data-marquee-control='true'
+            class='flex justify-center px-4 py-12'
+        >
+            <StatusMessage
+                kind='load-error'
+                message={t('task.loadFailed')}
+                onRetry={props.onRetry}
+            />
         </div>
     )
 }

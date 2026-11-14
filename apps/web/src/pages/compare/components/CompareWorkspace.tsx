@@ -5,6 +5,7 @@ import { resolveImageUrl } from '#/api/image'
 import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
 import { CenteredText } from '#/components/base/CenteredText'
+import { StatusMessage } from '#/components/base/StatusMessage'
 import { ImagePickerDialog } from '#/components/image/ImagePickerDialog'
 import { ImageViewer } from '#/components/viewer/ImageViewer'
 import { ZoomControls } from '#/components/viewer/ZoomControls'
@@ -225,7 +226,7 @@ export function CompareWorkspace() {
                     )}
                     thumbnailLabel={(_, index) => {
                         const entry = entries()[index]
-                        return entry ? originLabel(entry.usage) : null
+                        return entry ? originLabel(entry.usage) ?? entry.image.id.slice(0, 8) : null
                     }}
                     onClose={() => setExpanded(false)}
                     onSelect={selectViewerImage}
@@ -249,33 +250,28 @@ type EmptyCompareStateProps = {
 
 function EmptyCompareState(props: EmptyCompareStateProps) {
     return (
-        <div class='relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-stage-empty'>
-            <div class='flex max-w-[280px] flex-col items-center gap-3 text-center'>
-                <div class='grid size-12 place-items-center rounded-xl border border-line-subtle bg-elevated text-fg-muted'>
+        <div class='relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-stage-empty px-4'>
+            <StatusMessage
+                kind='empty'
+                title={t('compare.emptyTitle')}
+                message={t('compare.emptyMessage')}
+                icon={(
                     <ImagePlus
                         size={21}
                         strokeWidth={1.5}
                     />
-                </div>
-                <div class='flex flex-col gap-1'>
-                    <h3 class='m-0 text-sm font-medium text-fg'>{t('compare.emptyTitle')}</h3>
-                    <p class='m-0 text-xs leading-relaxed text-fg-muted'>
-                        {t('compare.emptyMessage')}
-                    </p>
-                </div>
-                <Button
-                    variant='solid'
-                    tone='accent'
-                    classes={{ root: 'mt-1 h-8 px-3 text-xs' }}
-                    onClick={props.onAdd}
-                >
-                    <ImagePlus
-                        size={14}
-                        strokeWidth={1.8}
-                    />
-                    {t('image.add')}
-                </Button>
-            </div>
+                )}
+                action={{
+                    label: t('image.add'),
+                    icon: (
+                        <ImagePlus
+                            size={14}
+                            strokeWidth={1.8}
+                        />
+                    ),
+                    onClick: props.onAdd,
+                }}
+            />
         </div>
     )
 }
@@ -286,18 +282,15 @@ type AllHiddenStateProps = {
 
 function AllHiddenState(props: AllHiddenStateProps) {
     return (
-        <div class='relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-stage-empty'>
-            <div class='flex flex-col items-center gap-3 text-center'>
-                <p class='m-0 text-sm font-medium text-fg'>{t('compare.allHidden')}</p>
-                <Button
-                    variant='solid'
-                    tone='accent'
-                    classes={{ root: 'h-8 px-3 text-xs' }}
-                    onClick={props.onShowAll}
-                >
-                    {t('common.showAll')}
-                </Button>
-            </div>
+        <div class='relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-stage-empty px-4'>
+            <StatusMessage
+                kind='empty'
+                title={t('compare.allHidden')}
+                action={{
+                    label: t('common.showAll'),
+                    onClick: props.onShowAll,
+                }}
+            />
         </div>
     )
 }

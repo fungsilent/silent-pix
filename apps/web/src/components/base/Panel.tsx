@@ -15,9 +15,16 @@ type PanelRenderState = {
     toggle: () => void
 }
 
+/* 要在不同面板之間共用收合狀態時由外部提供；沒給就由 Panel 自己記 */
+export type PanelCollapse = {
+    collapsed: Accessor<boolean>
+    setCollapsed: (collapsed: boolean) => void
+}
+
 type PanelProps = {
     children: JSX.Element | ((state: PanelRenderState) => JSX.Element)
     defaultCollapsed?: boolean
+    collapse?: PanelCollapse | undefined
     classes?: {
         root?: string
         open?: string
@@ -26,7 +33,16 @@ type PanelProps = {
 }
 
 export function Panel(props: PanelProps) {
-    const [isCollapsed, setIsCollapsed] = createSignal(props.defaultCollapsed ?? false)
+    const [ownCollapsed, setOwnCollapsed] = createSignal(props.defaultCollapsed ?? false)
+    const isCollapsed = () => props.collapse ? props.collapse.collapsed() : ownCollapsed()
+    const setIsCollapsed = (value: boolean) => {
+        if (props.collapse) {
+            props.collapse.setCollapsed(value)
+        }
+        else {
+            setOwnCollapsed(value)
+        }
+    }
 
     const state: PanelRenderState = {
         collapse: () => {
@@ -37,7 +53,7 @@ export function Panel(props: PanelProps) {
         },
         isCollapsed,
         toggle: () => {
-            setIsCollapsed(value => !value)
+            setIsCollapsed(!isCollapsed())
         },
     }
 

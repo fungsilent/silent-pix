@@ -38,6 +38,7 @@ export function GeneratePage() {
             && acceptedTask() === undefined,
         loading: () => Boolean(taskStore.state.selectedTaskId) && taskDetailQuery.isLoading,
         task: acceptedTask,
+        retry: () => void taskDetailQuery.refetch(),
     })
     const generateStore = createGenerateStore({
         onSubmit: async values => {

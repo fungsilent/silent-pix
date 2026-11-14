@@ -6,10 +6,10 @@ import type { JSX } from 'solid-js'
 
 export type ButtonTone = 'accent' | 'danger' | 'neutral'
 export type ButtonVariant = 'ghost' | 'soft' | 'solid'
-type ButtonSize = 'bar'
+type ButtonSize = 'bar' | 'compact' | 'dialog'
 
 type ButtonProps = JSX.ButtonHTMLAttributes<HTMLButtonElement> & {
-    size?: ButtonSize
+    size?: ButtonSize | undefined
     tone?: ButtonTone
     variant?: ButtonVariant
     classes?: {
@@ -39,6 +39,12 @@ const variantClass: Record<ButtonVariant, Record<ButtonTone, string>> = {
     },
 }
 
+const sizeClass: Record<ButtonSize, string> = {
+    bar: 'h-[30px] px-3 py-0 text-xs',
+    compact: 'h-7 px-2 text-[11px]',
+    dialog: 'min-w-20 text-sm',
+}
+
 const toneFocusClass: Record<ButtonTone, string> = {
     accent: 'focus-visible:border-accent focus-visible:ring-accent/40',
     danger: 'focus-visible:border-danger focus-visible:ring-danger/40',
@@ -56,7 +62,8 @@ export function Button(props: ButtonProps) {
             type={local.type ?? 'button'}
             class={cn(
                 'flex cursor-pointer items-center justify-center gap-2 rounded-md border border-transparent px-3 py-1.5 text-xs outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40',
-                local.size === 'bar' && 'h-[30px] px-3 py-0 text-xs',
+                'disabled:cursor-not-allowed disabled:opacity-60',
+                local.size && sizeClass[local.size],
                 variantClass[variant()][tone()],
                 toneFocusClass[tone()],
                 local.classes?.root,

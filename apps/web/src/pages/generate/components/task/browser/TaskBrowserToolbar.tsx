@@ -12,7 +12,6 @@ import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
 import { IssueChip } from '#/components/base/IssueChip'
 import { Text } from '#/components/field/Text'
-import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
 import { theme } from '#/lib/theme'
 import { TaskFilterChips } from '#/pages/generate/components/task/TaskFilterChips'
@@ -88,7 +87,7 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                             <Button
                                 variant='ghost'
                                 disabled={props.flagPending}
-                                classes={{ root: 'h-7 px-2 text-[11px]' }}
+                                size='compact'
                                 onClick={props.onClearSelection}
                             >
                                 {t('common.clear')}
@@ -96,7 +95,7 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                             <Button
                                 variant='ghost'
                                 disabled={props.flagPending}
-                                classes={{ root: 'h-7 px-2 text-[11px]' }}
+                                size='compact'
                                 onClick={() => props.onSetFlags(null)}
                             >
                                 <FlagOff
@@ -108,7 +107,8 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                             <Button
                                 variant='soft'
                                 disabled={props.flagPending}
-                                classes={{ root: cn('h-7 px-2 text-[11px]', theme.taskFlag.pin.soft) }}
+                                size='compact'
+                                classes={{ root: theme.taskFlag.pin.soft }}
                                 onClick={() => props.onSetFlags('pin')}
                             >
                                 <FlagTriangleRight
@@ -120,7 +120,8 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                             <Button
                                 variant='soft'
                                 disabled={props.flagPending}
-                                classes={{ root: cn('h-7 px-2 text-[11px]', theme.taskFlag.discard.soft) }}
+                                size='compact'
+                                classes={{ root: theme.taskFlag.discard.soft }}
                                 onClick={() => props.onSetFlags('discard')}
                             >
                                 <HeartX
@@ -132,7 +133,7 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                             <Button
                                 tone='danger'
                                 disabled={props.deletePending}
-                                classes={{ root: 'h-7 px-2 text-[11px]' }}
+                                size='compact'
                                 onClick={props.onDeleteSelected}
                             >
                                 <Trash2
@@ -154,7 +155,7 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                             <Button
                                 tone='danger'
                                 disabled={props.deletePending}
-                                classes={{ root: 'h-7 px-2 text-[11px]' }}
+                                size='compact'
                                 onClick={props.onDeleteAll}
                             >
                                 <Trash2

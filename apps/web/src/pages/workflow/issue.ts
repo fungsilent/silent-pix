@@ -105,23 +105,6 @@ export function toRequirementIssues(input: {
 }
 
 /* 清單掛掉整頁就沒東西可選，比 detail 掛掉更嚴重，所以一樣是 error */
-export function toListIssues(input: {
-    error: unknown
-    onRetry: () => void
-}): AppIssue[] {
-    if (!input.error) {
-        return []
-    }
-
-    return [{
-        id: 'workflow-list-load',
-        tone: 'error',
-        field: () => t('workflow.title'),
-        message: () => toErrorMessage(input.error),
-        onRetry: input.onRetry,
-    }]
-}
-
 export function toLoadIssues(error: unknown): AppIssue[] {
     if (!error) {
         return []

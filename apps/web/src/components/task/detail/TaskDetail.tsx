@@ -3,12 +3,14 @@ import { Show } from 'solid-js'
 import { Bar } from '#/components/base/Bar'
 import { Line } from '#/components/base/Line'
 import { CollapseButton, CollapsedBar, Panel, PanelContent } from '#/components/base/Panel'
+import { StatusMessage } from '#/components/base/StatusMessage'
 import { TaskConfig } from '#/components/task/detail/TaskConfig'
 import { TaskImage } from '#/components/task/detail/TaskImage'
 import { TaskInfo } from '#/components/task/detail/TaskInfo'
 import { TaskLora } from '#/components/task/detail/TaskLora'
 import { t } from '#/lib/i18n'
 
+import type { PanelCollapse } from '#/components/base/Panel'
 import type { TaskConfigActions, TaskConfigCreateData, TaskConfigData } from '#/components/task/detail/TaskConfig'
 import type { TaskImageActions, TaskImageCreateData, TaskImageData } from '#/components/task/detail/TaskImage'
 import type { TaskInfoActions, TaskInfoCreateData, TaskInfoData } from '#/components/task/detail/TaskInfo'
@@ -36,17 +38,18 @@ export type TaskDetailCreateActions = {
     lora: TaskLoraActions
 }
 
-type TaskDetailProps = {
+type TaskDetailProps = ({
     mode: 'create'
     data: TaskDetailCreateData
     actions: TaskDetailCreateActions
-    error: Accessor<boolean>
-    loading: Accessor<boolean>
 } | {
     mode: 'view'
     data: TaskDetailViewData
+}) & {
     error: Accessor<boolean>
     loading: Accessor<boolean>
+    onRetry: () => void
+    collapse?: PanelCollapse | undefined
 }
 
 export function TaskDetail(props: TaskDetailProps) {
@@ -55,7 +58,8 @@ export function TaskDetail(props: TaskDetailProps) {
     return (
         <TaskDetailPanel
             error={hasError}
-            loading={props.loading}
+            onRetry={props.onRetry}
+            collapse={props.collapse}
         >
             <TaskDetailContent {...props} />
         </TaskDetailPanel>
@@ -129,7 +133,8 @@ function TaskDetailContent(props: TaskDetailProps) {
 type TaskDetailPanelProps = {
     children: JSX.Element
     error: Accessor<boolean>
-    loading: Accessor<boolean>
+    onRetry: () => void
+    collapse: PanelCollapse | undefined
 }
 
 function TaskDetailPanel(props: TaskDetailPanelProps) {
@@ -141,6 +146,7 @@ function TaskDetailPanel(props: TaskDetailPanelProps) {
                 open: 'w-[350px]',
                 close: 'w-10',
             }}
+            collapse={props.collapse}
         >
             {panel => (
                 panel.isCollapsed() ? (
@@ -171,9 +177,12 @@ function TaskDetailPanel(props: TaskDetailPanelProps) {
                                 </div>
                             </Show>
                             <Show when={props.error()}>
-                                <p class='m-0 py-4 text-center text-xs text-fg-muted'>
-                                    {t('task.loadDetailFailed')}
-                                </p>
+                                <StatusMessage
+                                    kind='load-error'
+                                    size='compact'
+                                    message={t('task.loadDetailFailed')}
+                                    onRetry={props.onRetry}
+                                />
                             </Show>
                         </PanelContent>
                     </div>

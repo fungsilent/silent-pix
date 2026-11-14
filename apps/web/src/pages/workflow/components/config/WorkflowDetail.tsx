@@ -6,12 +6,12 @@ import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
 import { IssueChip } from '#/components/base/IssueChip'
 import { Line } from '#/components/base/Line'
+import { StatusMessage } from '#/components/base/StatusMessage'
 import { t } from '#/lib/i18n'
 import { WorkflowInfo } from '#/pages/workflow/components/config/WorkflowInfo'
 import { WorkflowMapping } from '#/pages/workflow/components/config/WorkflowMapping'
 import {
     toGraphIssues,
-    toListIssues,
     toLoadIssues,
     toMappingIssues,
     toRequirementIssues,
@@ -30,11 +30,8 @@ export function WorkflowDetail() {
 
     const issues = createMemo(() => [
         ...store.state.validationIssues,
-        ...toListIssues({
-            error: store.listQuery.isError ? store.listQuery.error : null,
-            onRetry: store.refreshWorkflowList,
-        }),
-        ...toLoadIssues(detailQuery.isError ? detailQuery.error : null),
+        /* 沒有資料的讀取失敗由內容區的 StatusMessage 顯示；這裡只剩背景重新整理失敗 */
+        ...toLoadIssues(detailQuery.isError && detailQuery.data ? detailQuery.error : null),
         ...toRequirementIssues({
             isDirty: store.isModified(),
             name: store.selection().name,
@@ -51,6 +48,7 @@ export function WorkflowDetail() {
     ])
 
     const isSaving = store.isSubmitting
+    const loadFailed = () => store.hasSelection() && detailQuery.isError && !detailQuery.data
 
     const canSave = () => {
         const selection = store.selection()
@@ -96,7 +94,7 @@ export function WorkflowDetail() {
                 <Bar.Group>
                     <Bar.Title>{t('common.detail')}</Bar.Title>
                 </Bar.Group>
-                <Show when={store.hasSelection()}>
+                <Show when={store.hasSelection() && !loadFailed()}>
                     <Bar.Actions classes={{ root: 'flex-1 justify-end' }}>
                         <IssueChip
                             issues={issues()}
@@ -118,7 +116,7 @@ export function WorkflowDetail() {
                                 tone='accent'
                                 type='submit'
                                 disabled={!canSave()}
-                                classes={{ root: 'shrink-0 font-semibold disabled:cursor-not-allowed disabled:opacity-60' }}
+                                classes={{ root: 'shrink-0 font-semibold' }}
                             >
                                 <Save
                                     size={13}
@@ -135,45 +133,53 @@ export function WorkflowDetail() {
                 when={store.hasSelection()}
                 fallback={(
                     <div class='flex min-h-0 flex-1 items-center justify-center px-4 pb-5'>
-                        <div class='flex max-w-[280px] flex-col items-center gap-3 text-center'>
-                            <div class='grid size-12 place-items-center rounded-xl border border-line-subtle bg-elevated text-fg-muted'>
+                        <StatusMessage
+                            kind='empty'
+                            title={t('workflow.noSelection')}
+                            message={t('workflow.description')}
+                            icon={(
                                 <Workflow
                                     size={21}
                                     strokeWidth={1.5}
                                 />
-                            </div>
-                            <div class='flex flex-col gap-1'>
-                                <h3 class='m-0 text-sm font-medium text-fg'>{t('workflow.noSelection')}</h3>
-                                <p class='m-0 text-xs leading-relaxed text-fg-muted'>
-                                    {t('workflow.description')}
-                                </p>
-                            </div>
-                            <Button
-                                variant='solid'
-                                tone='accent'
-                                classes={{ root: 'mt-1 h-8 px-3 text-xs' }}
-                                onClick={() => store.startCreate()}
-                            >
-                                <Workflow
-                                    size={14}
-                                    strokeWidth={1.8}
-                                />
-                                {t('workflow.add')}
-                            </Button>
-                        </div>
+                            )}
+                            action={{
+                                label: t('workflow.add'),
+                                icon: (
+                                    <Workflow
+                                        size={14}
+                                        strokeWidth={1.8}
+                                    />
+                                ),
+                                onClick: () => store.startCreate(),
+                            }}
+                        />
                     </div>
                 )}
             >
-                <div class='scrollbar-thin flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 pb-5'>
-                    <div
-                        class='contents'
-                        inert={store.isDetailLoading()}
-                    >
-                        <WorkflowInfo />
-                        <Line />
-                        <WorkflowMapping />
+                <Show
+                    when={!loadFailed()}
+                    fallback={(
+                        <div class='flex min-h-0 flex-1 items-center justify-center px-4 pb-5'>
+                            <StatusMessage
+                                kind='load-error'
+                                message={t('workflow.loadFailed')}
+                                onRetry={() => void detailQuery.refetch()}
+                            />
+                        </div>
+                    )}
+                >
+                    <div class='scrollbar-thin flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 pb-5'>
+                        <div
+                            class='contents'
+                            inert={store.isDetailLoading()}
+                        >
+                            <WorkflowInfo />
+                            <Line />
+                            <WorkflowMapping />
+                        </div>
                     </div>
-                </div>
+                </Show>
             </Show>
         </form>
     )

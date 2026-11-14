@@ -56,7 +56,7 @@ export function TaskBatchDeleteDialog(props: TaskBatchDeleteDialogProps) {
                     <div class='ml-auto flex shrink-0 gap-2'>
                         <Button
                             disabled={props.pending}
-                            classes={{ root: 'min-w-20 text-sm' }}
+                            size='dialog'
                             onClick={() => props.onOpenChange(false)}
                         >
                             {t('common.cancel')}
@@ -64,7 +64,7 @@ export function TaskBatchDeleteDialog(props: TaskBatchDeleteDialogProps) {
                         <Button
                             tone='danger'
                             disabled={props.pending}
-                            classes={{ root: 'min-w-20 text-sm' }}
+                            size='dialog'
                             onClick={() => void confirm()}
                         >
                             {props.pending ? t('common.deleting') : t('common.delete')}

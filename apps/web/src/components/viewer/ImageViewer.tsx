@@ -179,6 +179,7 @@ export function ImageViewer(props: ImageViewerProps) {
                     selectedIndex={props.selectedIndex}
                     zoom={zoom}
                     onClick={closeOnBackdrop}
+                    stageDanger
                 />
 
                 <Show when={hasMany() && zoom.isFit()}>

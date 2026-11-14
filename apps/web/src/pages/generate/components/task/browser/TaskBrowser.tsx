@@ -12,6 +12,7 @@ import { TaskBatchDeleteDialog } from '#/pages/generate/components/task/browser/
 import { TaskBrowserGrid } from '#/pages/generate/components/task/browser/TaskBrowserGrid'
 import { TaskBrowserToolbar } from '#/pages/generate/components/task/browser/TaskBrowserToolbar'
 import { TaskBrowserViewer } from '#/pages/generate/components/task/browser/TaskBrowserViewer'
+import { taskFilterEmptyCopy } from '#/pages/generate/components/task/TaskFilterChips'
 import { taskStore } from '#/store/task'
 
 import type { TaskApi } from '@silent-pix/shared'
@@ -121,6 +122,24 @@ export function TaskBrowser() {
         taskStore.setFeedTaskFlags(taskFlags)
     }
 
+    const changeSearch = (search: string) => {
+        setSelectedTaskIds([])
+        setSelectionLimitWarning(false)
+        taskStore.setFeedSearch(search)
+    }
+
+    createEffect(() => {
+        if (!taskFeedQuery.data) return
+
+        const loaded = taskById()
+        const current = selectedTaskIds()
+        const kept = current.filter(taskId => loaded.has(taskId))
+
+        if (kept.length !== current.length) {
+            setSelectedTaskIds(kept)
+        }
+    })
+
     const showPermanentDelete = () => {
         const taskFlags = taskStore.state.feedTaskFlags
         return taskFlags?.length === 1 && taskFlags[0] === 'discard'
@@ -181,7 +200,7 @@ export function TaskBrowser() {
                 selectedCount={selectedTaskIds().length}
                 issues={issues()}
                 issuesOpen={issuesOpen()}
-                onSearchChange={taskStore.setFeedSearch}
+                onSearchChange={changeSearch}
                 onTaskFlagsChange={changeFilter}
                 onClearSelection={() => {
                     setSelectedTaskIds([])
@@ -202,6 +221,7 @@ export function TaskBrowser() {
                 taskById={taskById}
                 focusedTaskId={() => taskStore.state.selectedTaskId}
                 selectedTaskIds={selectedTaskIds}
+                emptyCopy={taskFilterEmptyCopy()}
                 loading={taskFeedQuery.isLoading}
                 hasData={taskFeedQuery.data !== undefined}
                 error={taskFeedQuery.isError}

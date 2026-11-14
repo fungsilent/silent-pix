@@ -225,7 +225,7 @@ export function TaskInfo(props: TaskInfoProps) {
                             </Show>
                             <div class='ml-auto flex shrink-0 gap-2'>
                                 <Button
-                                    classes={{ root: 'min-w-20 text-sm' }}
+                                    size='dialog'
                                     disabled={deletePending()}
                                     onClick={() => setDeleteOpen(false)}
                                 >
@@ -233,7 +233,7 @@ export function TaskInfo(props: TaskInfoProps) {
                                 </Button>
                                 <Button
                                     tone='danger'
-                                    classes={{ root: 'min-w-20 text-sm' }}
+                                    size='dialog'
                                     disabled={deletePending()}
                                     onClick={() => void confirmDelete()}
                                 >

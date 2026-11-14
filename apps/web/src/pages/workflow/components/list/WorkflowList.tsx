@@ -6,6 +6,7 @@ import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
 import { Line } from '#/components/base/Line'
 import { Loading } from '#/components/base/Loading'
+import { StatusMessage } from '#/components/base/StatusMessage'
 import { DetailTitle } from '#/components/detail'
 import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
@@ -52,40 +53,52 @@ export function WorkflowList() {
                         </For>
                     )}
                 >
-                    <Show when={draftId()}>
-                        {value => (
-                            <Row
-                                id={value()}
-                                name={draftName() || t('common.untitled')}
-                                archived={false}
+                    <Show
+                        when={!listQuery.isError || listQuery.data}
+                        fallback={(
+                            <StatusMessage
+                                kind='load-error'
+                                size='compact'
+                                message={t('workflow.loadListFailed')}
+                                onRetry={() => store.refreshWorkflowList()}
                             />
                         )}
-                    </Show>
+                    >
+                        <Show when={draftId()}>
+                            {value => (
+                                <Row
+                                    id={value()}
+                                    name={draftName() || t('common.untitled')}
+                                    archived={false}
+                                />
+                            )}
+                        </Show>
 
-                    <For each={active()}>
-                        {item => (
-                            <Row
-                                id={item.id}
-                                name={item.name}
-                                archived={false}
-                            />
-                        )}
-                    </For>
-
-                    <Show when={archived().length > 0}>
-                        <Line />
-                        <div class='px-2.5 py-1'>
-                            <DetailTitle>{t('workflow.archivedTitle')}</DetailTitle>
-                        </div>
-                        <For each={archived()}>
+                        <For each={active()}>
                             {item => (
                                 <Row
                                     id={item.id}
                                     name={item.name}
-                                    archived
+                                    archived={false}
                                 />
                             )}
                         </For>
+
+                        <Show when={archived().length > 0}>
+                            <Line />
+                            <div class='px-2.5 py-1'>
+                                <DetailTitle>{t('workflow.archivedTitle')}</DetailTitle>
+                            </div>
+                            <For each={archived()}>
+                                {item => (
+                                    <Row
+                                        id={item.id}
+                                        name={item.name}
+                                        archived
+                                    />
+                                )}
+                            </For>
+                        </Show>
                     </Show>
                 </Loading.Swap>
             </div>

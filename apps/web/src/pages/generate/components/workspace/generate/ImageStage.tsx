@@ -4,6 +4,7 @@ import { For, onCleanup, onMount, Show } from 'solid-js'
 import { resolveImageUrl } from '#/api/image'
 import { Button } from '#/components/base/Button'
 import { Loading } from '#/components/base/Loading'
+import { StatusMessage } from '#/components/base/StatusMessage'
 import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
 import { isEditableTarget } from '#/lib/keyboard'
@@ -78,8 +79,14 @@ export function ImageStage(props: ImageStageProps) {
             <div class='relative flex min-h-0 flex-1 items-center justify-center overflow-hidden'>
                 <Show
                     when={selectedImage()}
-                    /* loading 時還不知道有沒有圖，不能說 No image；stage 留黑 */
-                    fallback={<Show when={!props.loading}><div class='text-sm text-fg-muted'>{t('generate.noImage')}</div></Show>}
+                    fallback={(
+                        <Show when={!props.loading}>
+                            <StatusMessage
+                                kind='empty'
+                                title={t('generate.noImage')}
+                            />
+                        </Show>
+                    )}
                 >
                     {image => (
                         <img

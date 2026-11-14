@@ -20,6 +20,7 @@ export type GenerateDetail = {
     loading: Accessor<boolean>
     /* cold loading 或 error 時為 undefined */
     task: Accessor<TaskApi.GetTaskResponse | undefined>
+    retry: () => void
 }
 
 /* 尚未套用預覽規則的原始 query 狀態 */
@@ -38,6 +39,7 @@ export function createGenerateDetail(source: GenerateDetailSource): GenerateDeta
         error: () => !isPreviewing() && source.error(),
         loading: () => isPreviewing() || source.loading(),
         task: () => isPreviewing() ? undefined : source.task(),
+        retry: source.retry,
     }
 }
 
