@@ -32,7 +32,7 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
             data-task-id={props.task.id}
             class={cn(
                 'group relative min-w-0 rounded-lg border border-transparent p-2',
-                props.focused && !props.checked && 'bg-active shadow-inset',
+                props.focused && !props.checked && 'bg-selected',
                 props.checked && !props.focused && 'border-accent bg-accent/20 ring-2 ring-accent/40',
                 props.focused && props.checked && 'border-accent bg-accent/20 ring-2 ring-accent/40',
             )}

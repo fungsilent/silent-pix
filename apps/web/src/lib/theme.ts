@@ -4,7 +4,7 @@ export const theme = {
         disabled: 'disabled:cursor-default disabled:border-line-subtle disabled:bg-disabled disabled:text-fg-muted',
         disabledData: 'data-[disabled]:cursor-default data-[disabled]:border-line-subtle data-[disabled]:bg-disabled data-[disabled]:text-fg-muted',
     },
-    selected: 'bg-active text-fg shadow-inset hover:bg-active',
+    selected: 'bg-selected text-fg hover:bg-selected',
     /*
      * Flag 分兩件事：縮圖左上的角摺是「狀態」，常駐且不可點；
      * 行右端的兩顆是「操作」，只在 hover 整張卡／整列時出現。

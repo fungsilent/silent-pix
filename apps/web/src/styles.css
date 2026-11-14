@@ -43,6 +43,8 @@
      * Dark 的比例一律比 Light 大——暗底把階差吃掉了，要更強才看得見。
      */
     --sp-hover: rgb(255 255 255 / 9%);
+    /* 選取態也是疊加層，比 hover 深一階：滑過其他項目時仍分得出哪個是選中的 */
+    --sp-selected: rgb(255 255 255 / 13%);
     /* 底本來就是 elevated 的（soft button、Dialog 關閉鈕、prompt 移除鈕）需要實色，
        因為 bg-* 是替換不是疊加，alpha 疊到 parent 上等於沒變 */
     --sp-elevated-hover: #333333;
@@ -101,7 +103,6 @@
 
     /* Slider 軌道：凹陷感要在任何父層上都成立，所以是相對疊加不是固定色 */
     --sp-track: rgb(255 255 255 / 12%);
-    --sp-inset-highlight: rgb(255 255 255 / 9%);
     --sp-disabled: rgb(255 255 255 / 6%);
     --sp-scroll-thumb: rgb(255 255 255 / 28%);
     --sp-scroll-hover: rgb(255 255 255 / 40%);
@@ -205,6 +206,7 @@
     --sp-active: #e4e4e4;
     /* 亮底本來就看得清楚，疊加層一律比 Dark 弱一半左右 */
     --sp-hover: rgb(0 0 0 / 4%);
+    --sp-selected: rgb(0 0 0 / 7%);
     --sp-elevated-hover: #e8e8e8;
     /*
      * 輸入框直接到白，界定完全交給 border。這也讓 disabled（4% 黑）重新站得住：
@@ -271,7 +273,6 @@
 
     /* 白底反射比黑底強，scrim 與陰影都比 dark 收斂一階 */
     --sp-track: rgb(0 0 0 / 8%);
-    --sp-inset-highlight: rgb(0 0 0 / 5%);
     --sp-disabled: rgb(0 0 0 / 4%);
     --sp-scroll-thumb: rgb(0 0 0 / 20%);
     --sp-scroll-hover: rgb(0 0 0 / 30%);
@@ -330,6 +331,7 @@
     --color-field: var(--sp-field);
     --color-field-border: var(--sp-field-border);
     --color-hover: var(--sp-hover);
+    --color-selected: var(--sp-selected);
     --color-elevated-hover: var(--sp-elevated-hover);
     --color-stage: var(--sp-stage);
     --color-stage-empty: var(--sp-stage-empty);
@@ -380,7 +382,6 @@
     --color-backdrop-muted: var(--sp-backdrop-muted);
     --color-disabled: var(--sp-disabled);
     --color-track: var(--sp-track);
-    --color-inset-highlight: var(--sp-inset-highlight);
     --color-scroll-thumb: var(--sp-scroll-thumb);
     --color-scroll-hover: var(--sp-scroll-hover);
     --color-stage-control: var(--sp-stage-control);
@@ -408,7 +409,6 @@
     --color-prompt-hatch-low: var(--sp-prompt-hatch-low);
     --color-prompt-hatch-high: var(--sp-prompt-hatch-high);
 
-    --shadow-inset: inset 0 0 0 1px var(--sp-inset-highlight);
     --shadow-popover: 0 12px 32px var(--sp-shadow);
     --shadow-health-up: var(--sp-health-up-shadow);
     --shadow-health-down: var(--sp-health-down-shadow);

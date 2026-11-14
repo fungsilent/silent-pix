@@ -22,7 +22,7 @@ export function Menu(props: MenuProps) {
             <ArkMenu.Trigger
                 class={cn(
                     'flex cursor-pointer items-center justify-center rounded-md border border-transparent outline-none',
-                    'data-[state=open]:bg-active data-[state=open]:text-fg data-[state=open]:shadow-inset',
+                    'data-[state=open]:bg-selected data-[state=open]:text-fg',
                     'hover:bg-hover focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40',
                     props.classes?.trigger,
                 )}
@@ -62,7 +62,7 @@ export function MenuItem(props: MenuItemProps) {
             class={cn(
                 'flex h-8 cursor-pointer items-center gap-2 rounded px-2 text-xs text-fg outline-none',
                 '[&_svg]:shrink-0 [&_svg]:text-fg-muted data-[highlighted]:bg-hover',
-                props.current && 'bg-active shadow-inset data-[highlighted]:bg-active [&_svg]:text-fg',
+                props.current && 'bg-selected data-[highlighted]:bg-selected [&_svg]:text-fg',
             )}
             onSelect={props.onSelect}
         >
