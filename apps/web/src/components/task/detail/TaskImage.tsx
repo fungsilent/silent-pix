@@ -173,7 +173,7 @@ export function TaskImage(props: TaskImageProps) {
             </Show>
 
             <Show when={reference()}>
-                <div class='flex flex-col gap-1'>
+                <div class='flex flex-col gap-1.5'>
                     <span class='text-xs leading-none text-fg-muted'>{t('fields.denoise')}</span>
                     <Loading.Mask loading={props.loading}>
                         <div class='flex items-center gap-2.5'>

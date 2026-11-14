@@ -47,7 +47,7 @@ export function Select(props: SelectProps) {
                     props.onChange?.(value)
                 }
             }}
-            class={cn('flex min-w-0 flex-col gap-1', props.classes?.root)}
+            class={cn('flex min-w-0 flex-col gap-1.5', props.classes?.root)}
         >
             <ArkSelect.Label class={cn('text-xs leading-none text-fg-muted', props.classes?.label)}>
                 {props.label}

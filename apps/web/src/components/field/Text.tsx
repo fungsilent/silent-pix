@@ -26,7 +26,7 @@ type TextProps = {
 
 export function Text(props: TextProps) {
     return (
-        <Field.Root class={cn('flex min-w-0 flex-col gap-1', props.classes?.root)}>
+        <Field.Root class={cn('flex min-w-0 flex-col gap-1.5', props.classes?.root)}>
             <Field.Label class={cn('text-xs leading-none text-fg-muted', props.classes?.label)}>
                 {props.label}
             </Field.Label>
