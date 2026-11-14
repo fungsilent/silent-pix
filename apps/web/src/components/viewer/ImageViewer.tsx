@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Star, Trash2, X } from 'lucide-solid'
+import { ChevronLeft, ChevronRight, X } from 'lucide-solid'
 import { For, onCleanup, onMount, Show } from 'solid-js'
 import { Portal } from 'solid-js/web'
 
@@ -20,7 +20,6 @@ type ImageViewerProps = {
     selectedIndex: number
     onClose: () => void
     onSelect: (index: number) => void
-    actions?: JSX.Element | null
     header?: JSX.Element | null
     thumbnailLabel?: (image: ViewerImage, index: number) => string | null
 }
@@ -115,33 +114,9 @@ export function ImageViewer(props: ImageViewerProps) {
                 </Show>
 
                 <div class='absolute right-6 top-6 z-10 flex items-center gap-2'>
-                    <Show when={props.actions !== null}>
-                        {props.actions ?? (
-                            <>
-                                <Button
-                                    variant='ghost'
-                                    classes={{ root: cn('size-9 rounded-md border p-0', glass) }}
-                                >
-                                    <Star
-                                        size={16}
-                                        strokeWidth={1.8}
-                                    />
-                                </Button>
-                                <Button
-                                    variant='ghost'
-                                    classes={{ root: cn('size-9 rounded-md border p-0 hover:text-stage-danger', glass) }}
-                                >
-                                    <Trash2
-                                        size={16}
-                                        strokeWidth={1.8}
-                                    />
-                                </Button>
-                            </>
-                        )}
-                    </Show>
                     <Button
                         variant='ghost'
-                        classes={{ root: cn('ml-1 size-9 rounded-md border p-0', glass) }}
+                        classes={{ root: cn('size-9 rounded-md border p-0', glass) }}
                         onClick={() => props.onClose()}
                     >
                         <X

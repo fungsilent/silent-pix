@@ -77,7 +77,6 @@ export function TaskBrowserViewer(props: TaskBrowserViewerProps) {
                 <ImageViewer
                     images={viewerImages()}
                     selectedIndex={viewerIndex()}
-                    actions={null}
                     onClose={props.onClose}
                     onSelect={setViewerIndex}
                 />

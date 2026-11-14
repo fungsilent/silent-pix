@@ -306,7 +306,6 @@ function ReferenceSlot(props: ReferenceSlotProps) {
                         height: props.reference.height,
                     }]}
                     selectedIndex={0}
-                    actions={null}
                     onClose={() => setExpanded(false)}
                     onSelect={() => undefined}
                 />

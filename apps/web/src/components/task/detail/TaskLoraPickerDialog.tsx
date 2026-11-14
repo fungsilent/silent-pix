@@ -72,6 +72,7 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
                         </Button>
                         <Button
                             type='button'
+                            variant='solid'
                             tone='accent'
                             size='dialog'
                             onClick={() => props.onApply(selected())}

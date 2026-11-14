@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Columns2, Expand, ImagePlus, Star, Trash2 } from 'lucide-solid'
+import { ChevronLeft, ChevronRight, Columns2, Expand, ImagePlus } from 'lucide-solid'
 import { For, onCleanup, onMount, Show } from 'solid-js'
 
 import { resolveImageUrl } from '#/api/image'
@@ -104,6 +104,7 @@ export function ImageStage(props: ImageStageProps) {
                 >
                     <Button
                         variant='ghost'
+                        title={t('image.viewFull')}
                         classes={{ root: cn('size-8 rounded-md border p-0', glass) }}
                         onClick={props.onExpand}
                     >
@@ -114,6 +115,7 @@ export function ImageStage(props: ImageStageProps) {
                     </Button>
                     <Button
                         variant='ghost'
+                        title={t('image.openInCompare')}
                         classes={{ root: cn('size-8 rounded-md border p-0', glass) }}
                         onClick={() => {
                             const image = selectedImage()
@@ -130,6 +132,7 @@ export function ImageStage(props: ImageStageProps) {
                     {/* 緊迫迴圈：剛生完一批，挑一張直接接著改，不必開 dialog */}
                     <Button
                         variant='ghost'
+                        title={t('image.useAsReference')}
                         classes={{ root: cn('size-8 rounded-md border p-0', glass) }}
                         onClick={() => {
                             const image = selectedImage()
@@ -139,24 +142,6 @@ export function ImageStage(props: ImageStageProps) {
                         }}
                     >
                         <ImagePlus
-                            size={15}
-                            strokeWidth={1.8}
-                        />
-                    </Button>
-                    <Button
-                        variant='ghost'
-                        classes={{ root: cn('size-8 rounded-md border p-0', glass) }}
-                    >
-                        <Star
-                            size={15}
-                            strokeWidth={1.8}
-                        />
-                    </Button>
-                    <Button
-                        variant='ghost'
-                        classes={{ root: cn('size-8 rounded-md border p-0 hover:text-stage-danger', glass) }}
-                    >
-                        <Trash2
                             size={15}
                             strokeWidth={1.8}
                         />

@@ -50,6 +50,7 @@ export function TaskList() {
                             <Button
                                 size='bar'
                                 variant='ghost'
+                                title={t('task.expandBrowser')}
                                 classes={{ root: 'size-[30px] shrink-0 p-0' }}
                                 onClick={() => taskStore.setBrowserOpen(true)}
                             >

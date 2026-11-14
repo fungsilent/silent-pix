@@ -178,14 +178,14 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                         when={props.mode === 'single' && selectedSingle()}
                         fallback={(
                             <Show when={props.mode === 'multiple' && selectedMultiple().length > 0}>
-                                <span class='text-xs text-fg-secondary'>
+                                <span class='text-xs text-fg-muted tabular-nums'>
                                     {t('common.selectedCount', { count: selectedMultiple().length })}
                                 </span>
                             </Show>
                         )}
                     >
                         {item => (
-                            <span class='min-w-0 truncate text-xs text-fg-secondary'>
+                            <span class='min-w-0 truncate text-xs text-fg-muted tabular-nums'>
                                 {item().image.width} × {item().image.height}
                             </span>
                         )}
@@ -230,7 +230,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                 <div class='flex flex-wrap items-center gap-6'>
                     <fieldset
                         disabled={imageType()?.[0] === 'input'}
-                        class='m-0 flex min-w-0 items-center gap-3 border-0 p-0 disabled:opacity-40'
+                        class='m-0 flex min-w-0 items-center gap-3 border-0 p-0 disabled:cursor-not-allowed disabled:opacity-60'
                     >
                         <span class='text-[10px] font-medium uppercase tracking-wide text-fg-title'>
                             {t('task.singular')}

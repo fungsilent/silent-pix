@@ -150,6 +150,7 @@ export function TaskConfig(props: TaskConfigProps) {
                     action={(
                         <Show when={isCreate()}>
                             <Button
+                                title={t('task.useTaskSeed')}
                                 disabled={!restorableSeed()}
                                 classes={{ root: 'size-8 p-0' }}
                                 onClick={onRestoreSeed}

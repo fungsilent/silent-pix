@@ -190,6 +190,7 @@ export function CompareWorkspace() {
                         </Show>
                         <Button
                             variant='ghost'
+                            title={t('image.viewFull')}
                             classes={{ root: 'absolute right-3 top-3 z-10 size-8 rounded-md border border-stage-line bg-stage-control p-0 text-on-stage hover:bg-stage-control-hover backdrop-blur-[8px] hover:text-on-stage' }}
                             onClick={() => setExpanded(true)}
                         >
@@ -217,7 +218,6 @@ export function CompareWorkspace() {
                 <ImageViewer
                     images={images()}
                     selectedIndex={selectedIndex()}
-                    actions={null}
                     header={(
                         <CurrentCompareImage
                             entry={selectedEntry()!}
@@ -320,8 +320,8 @@ function CompareThumbnailStrip(props: CompareThumbnailStripProps) {
                                 variant='ghost'
                                 classes={{
                                     root: cn(
-                                        'relative h-full w-auto shrink-0 overflow-hidden rounded-md border p-0',
-                                        selected() ? 'border-accent ring-2 ring-accent' : 'border-transparent',
+                                        'relative h-full w-auto shrink-0 overflow-hidden rounded-md p-0',
+                                        selected() && 'ring-2 ring-stage-fg',
                                         entry.hidden && 'opacity-40 grayscale',
                                     ),
                                 }}

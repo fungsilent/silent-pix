@@ -19,7 +19,9 @@
         "selectedCount": "{{count}} selected",
         "save": "Save",
         "untitled": "Untitled",
-        "showAll": "Show all"
+        "showAll": "Show all",
+        "collapse": "Collapse",
+        "expand": "Expand"
     },
     "header": {
         "generate": "Generate",
@@ -221,7 +223,10 @@
         "deleteSelectedDescription_other": "Permanently delete {{count}} selected tasks. This cannot be undone.",
         "deleteSelectedButton_one": "Delete {{count}} task...",
         "deleteSelectedButton_other": "Delete {{count}} tasks...",
-        "selectionLimit": "Maximum {{maximum}} tasks per batch."
+        "selectionLimit": "Maximum {{maximum}} tasks per batch.",
+        "expandBrowser": "Expand task list",
+        "collapseBrowser": "Collapse task list",
+        "useTaskSeed": "Use this task's seed"
     },
     "image": {
         "title": "Image",
@@ -243,7 +248,10 @@
         "originOutput": "{{task}} #{{index}}",
         "add": "Add images",
         "unavailable": "Image unavailable",
-        "unavailableShort": "Unavailable"
+        "unavailableShort": "Unavailable",
+        "viewFull": "View full size",
+        "openInCompare": "Open in Compare",
+        "useAsReference": "Use as reference image"
     },
     "viewer": {
         "fit": "Fit",

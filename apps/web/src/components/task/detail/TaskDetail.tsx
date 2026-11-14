@@ -1,9 +1,8 @@
 import { Show } from 'solid-js'
 
-import { Bar } from '#/components/base/Bar'
 import { Line } from '#/components/base/Line'
-import { CollapseButton, CollapsedBar, Panel, PanelContent } from '#/components/base/Panel'
 import { StatusMessage } from '#/components/base/StatusMessage'
+import { DetailPanel } from '#/components/detail'
 import { TaskConfig } from '#/components/task/detail/TaskConfig'
 import { TaskImage } from '#/components/task/detail/TaskImage'
 import { TaskInfo } from '#/components/task/detail/TaskInfo'
@@ -139,55 +138,22 @@ type TaskDetailPanelProps = {
 
 function TaskDetailPanel(props: TaskDetailPanelProps) {
     return (
-        <Panel
-            classes={{
-                root: 'border-l border-line bg-surface max-[980px]:hidden',
-                // 350 是讓 ID 欄位能完整顯示 36 字元 UUID 的最小寬度
-                open: 'w-[350px]',
-                close: 'w-10',
-            }}
-            collapse={props.collapse}
-        >
-            {panel => (
-                panel.isCollapsed() ? (
-                    <CollapsedBar onClick={panel.toggle} />
-                ) : (
-                    <div class='flex h-full min-h-0 flex-col'>
-                        <Bar.Root classes={{ root: 'px-2' }}>
-                            <Bar.Group>
-                                <Bar.Title>{t('common.detail')}</Bar.Title>
-                            </Bar.Group>
-                            <Bar.Actions>
-                                <CollapseButton
-                                    collapsed={panel.isCollapsed()}
-                                    onClick={panel.toggle}
-                                />
-                            </Bar.Actions>
-                        </Bar.Root>
-                        <PanelContent
-                            classes={{
-                                content: 'gap-3 px-4 pt-0 pb-5',
-                            }}
-                        >
-                            <Show when={!props.error()}>
-                                <div
-                                    class='contents'
-                                >
-                                    {props.children}
-                                </div>
-                            </Show>
-                            <Show when={props.error()}>
-                                <StatusMessage
-                                    kind='load-error'
-                                    size='compact'
-                                    message={t('task.loadDetailFailed')}
-                                    onRetry={props.onRetry}
-                                />
-                            </Show>
-                        </PanelContent>
-                    </div>
-                )
-            )}
-        </Panel>
+        <DetailPanel collapse={props.collapse}>
+            <Show when={!props.error()}>
+                <div
+                    class='contents'
+                >
+                    {props.children}
+                </div>
+            </Show>
+            <Show when={props.error()}>
+                <StatusMessage
+                    kind='load-error'
+                    size='compact'
+                    message={t('task.loadDetailFailed')}
+                    onRetry={props.onRetry}
+                />
+            </Show>
+        </DetailPanel>
     )
 }

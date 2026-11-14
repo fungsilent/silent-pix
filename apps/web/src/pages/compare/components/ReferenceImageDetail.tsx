@@ -1,8 +1,6 @@
 import { resolveImageUrl } from '#/api/image'
-import { Bar } from '#/components/base/Bar'
 import { Line } from '#/components/base/Line'
-import { CollapseButton, CollapsedBar, Panel, PanelContent } from '#/components/base/Panel'
-import { DetailRow, DetailSection } from '#/components/detail'
+import { DetailPanel, DetailRow, DetailSection } from '#/components/detail'
 import { Number } from '#/components/field'
 import { formatDateTime } from '#/lib/format'
 import { t } from '#/lib/i18n'
@@ -17,41 +15,9 @@ type ReferenceImageDetailProps = {
 
 export function ReferenceImageDetail(props: ReferenceImageDetailProps) {
     return (
-        <Panel
-            classes={{
-                root: 'border-l border-line bg-surface max-[980px]:hidden',
-                open: 'w-[350px]',
-                close: 'w-10',
-            }}
-            collapse={props.collapse}
-        >
-            {panel => (
-                panel.isCollapsed() ? (
-                    <CollapsedBar onClick={panel.toggle} />
-                ) : (
-                    <div class='flex h-full min-h-0 flex-col'>
-                        <Bar.Root classes={{ root: 'px-2' }}>
-                            <Bar.Group>
-                                <Bar.Title>{t('common.detail')}</Bar.Title>
-                            </Bar.Group>
-                            <Bar.Actions>
-                                <CollapseButton
-                                    collapsed={panel.isCollapsed()}
-                                    onClick={panel.toggle}
-                                />
-                            </Bar.Actions>
-                        </Bar.Root>
-                        <PanelContent
-                            classes={{
-                                content: 'gap-3 px-4 pt-0 pb-5',
-                            }}
-                        >
-                            {props.image && <ReferenceImageContent image={props.image} />}
-                        </PanelContent>
-                    </div>
-                )
-            )}
-        </Panel>
+        <DetailPanel collapse={props.collapse}>
+            {props.image && <ReferenceImageContent image={props.image} />}
+        </DetailPanel>
     )
 }
 

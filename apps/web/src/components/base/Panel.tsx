@@ -4,6 +4,7 @@ import { createSignal } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { cn } from '#/lib/cn'
+import { t } from '#/lib/i18n'
 
 import type { Accessor, JSX } from 'solid-js'
 
@@ -105,6 +106,7 @@ export function CollapseButton(props: CollapseButtonProps) {
     return (
         <Button
             variant='ghost'
+            title={props.collapsed ? t('common.expand') : t('common.collapse')}
             classes={{ root: 'size-[30px] shrink-0 p-0' }}
             onClick={props.onClick}
         >
