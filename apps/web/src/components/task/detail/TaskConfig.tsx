@@ -152,7 +152,7 @@ export function TaskConfig(props: TaskConfigProps) {
                             <Button
                                 title={t('task.useTaskSeed')}
                                 disabled={!restorableSeed()}
-                                classes={{ root: 'size-8 p-0' }}
+                                classes={{ root: 'size-7 p-0' }}
                                 onClick={onRestoreSeed}
                             >
                                 <Undo2

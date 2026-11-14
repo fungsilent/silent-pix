@@ -63,7 +63,7 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                         size='bar'
                         variant='ghost'
                         title={t('task.collapseBrowser')}
-                        classes={{ root: 'size-[30px] shrink-0 p-0' }}
+                        classes={{ root: 'size-7 shrink-0 p-0' }}
                         onClick={props.onCollapse}
                     >
                         <Minimize2

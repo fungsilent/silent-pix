@@ -378,7 +378,7 @@ type SettingSegmentProps<Value extends string> = {
 
 function SettingSegment<Value extends string>(props: SettingSegmentProps<Value>) {
     return (
-        <div class='flex h-[30px] shrink-0 items-center gap-0.5 rounded-md border border-line-subtle bg-elevated p-0.5'>
+        <div class='flex h-7 shrink-0 items-center gap-0.5 rounded-md border border-line-subtle bg-elevated p-px'>
             {props.options.map(option => (
                 <Button
                     variant='ghost'

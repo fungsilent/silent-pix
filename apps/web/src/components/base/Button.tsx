@@ -40,9 +40,9 @@ const variantClass: Record<ButtonVariant, Record<ButtonTone, string>> = {
 }
 
 const sizeClass: Record<ButtonSize, string> = {
-    bar: 'h-[30px] px-3 py-0 text-xs',
+    bar: 'h-7 px-3 py-0 text-xs',
     compact: 'h-7 px-2 text-[11px]',
-    dialog: 'min-w-20 text-sm',
+    dialog: 'h-7 min-w-20 py-0 text-xs',
 }
 
 const toneFocusClass: Record<ButtonTone, string> = {
@@ -61,7 +61,7 @@ export function Button(props: ButtonProps) {
             {...rest}
             type={local.type ?? 'button'}
             class={cn(
-                'flex cursor-pointer items-center justify-center gap-2 rounded-md border border-transparent px-3 py-1.5 text-xs outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40',
+                'flex cursor-pointer items-center justify-center gap-2 rounded-md border border-transparent px-3 py-[5px] text-xs outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40',
                 'disabled:cursor-not-allowed disabled:opacity-60',
                 local.size && sizeClass[local.size],
                 variantClass[variant()][tone()],

@@ -112,7 +112,7 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
                 classes={{
                     root: cn(
                         /* 貼著縮圖角落而不是卡片角落：內縮對齊右下角的張數 pill，兩顆浮在圖上的東西要同一個邊距 */
-                        'absolute right-3.5 top-3.5 size-7 rounded-md border-0 p-0 transition-opacity',
+                        'absolute right-3.5 top-3.5 size-6 rounded-md border-0 p-0 transition-opacity',
                         props.checked
                             ? 'bg-accent text-on-stage hover:bg-accent-hover'
                             : 'pointer-events-none bg-stage-control text-on-stage/75 opacity-0 hover:bg-stage-control-hover hover:text-on-stage group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 focus-visible:pointer-events-auto focus-visible:opacity-100',

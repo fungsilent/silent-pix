@@ -55,7 +55,7 @@ export function Select(props: SelectProps) {
             <ArkSelect.Control>
                 <ArkSelect.Trigger
                     class={cn(
-                        'flex h-8 w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-field-border bg-field px-3 text-left text-xs leading-none text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent/40',
+                        'flex h-7 w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-field-border bg-field px-3 text-left text-xs leading-none text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent/40',
                         theme.field.disabled,
                         props.classes?.trigger,
                     )}

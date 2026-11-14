@@ -116,7 +116,7 @@ export function ImageViewer(props: ImageViewerProps) {
                 <div class='absolute right-6 top-6 z-10 flex items-center gap-2'>
                     <Button
                         variant='ghost'
-                        classes={{ root: cn('size-9 rounded-md border p-0', glass) }}
+                        classes={{ root: cn('size-8 rounded-md border p-0', glass) }}
                         onClick={() => props.onClose()}
                     >
                         <X
@@ -129,7 +129,7 @@ export function ImageViewer(props: ImageViewerProps) {
                 <Show when={hasMany()}>
                     <Button
                         variant='ghost'
-                        classes={{ root: cn('absolute left-6 top-1/2 z-10 size-10 -translate-y-1/2 rounded-md border p-0', glass) }}
+                        classes={{ root: cn('absolute left-6 top-1/2 z-10 size-8 -translate-y-1/2 rounded-md border p-0', glass) }}
                         onClick={selectPrevious}
                     >
                         <ChevronLeft
@@ -139,7 +139,7 @@ export function ImageViewer(props: ImageViewerProps) {
                     </Button>
                     <Button
                         variant='ghost'
-                        classes={{ root: cn('absolute right-6 top-1/2 z-10 size-10 -translate-y-1/2 rounded-md border p-0', glass) }}
+                        classes={{ root: cn('absolute right-6 top-1/2 z-10 size-8 -translate-y-1/2 rounded-md border p-0', glass) }}
                         onClick={selectNext}
                     >
                         <ChevronRight

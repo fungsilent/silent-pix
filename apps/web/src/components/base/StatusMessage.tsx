@@ -116,7 +116,7 @@ export function StatusMessage(props: StatusMessageProps) {
                         variant={props.kind === 'empty' ? 'solid' : 'soft'}
                         tone={props.kind === 'empty' ? 'accent' : 'neutral'}
                         size={compact() ? 'compact' : undefined}
-                        classes={{ root: compact() ? '' : 'mt-1 h-8 px-3 text-xs' }}
+                        classes={{ root: compact() ? '' : 'mt-1' }}
                         onClick={() => value().onClick()}
                     >
                         {value().icon}

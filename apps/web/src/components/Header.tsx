@@ -19,7 +19,7 @@ export function Header() {
             <span class='text-[13px] font-semibold tracking-[0.02em] text-fg'>Silent Pix</span>
 
             <div
-                class='ml-1 flex h-[30px] items-center gap-0.5 rounded-md border border-line-subtle bg-elevated p-0.5'
+                class='ml-1 flex h-7 items-center gap-0.5 rounded-md border border-line-subtle bg-elevated p-px'
             >
                 <ModeButton
                     active={appStore.state.page === 'generate'}
@@ -68,7 +68,7 @@ export function Header() {
 function AppMenu() {
     return (
         <Menu
-            classes={{ trigger: 'size-8 shrink-0 text-fg-secondary' }}
+            classes={{ trigger: 'size-7 shrink-0 text-fg-secondary' }}
             trigger={(
                 <MenuIcon
                     size={16}
@@ -99,7 +99,7 @@ function ThemeToggle() {
         <Button
             variant='ghost'
             title={dark() ? t('header.switchToLightTheme') : t('header.switchToDarkTheme')}
-            classes={{ root: 'size-[30px] shrink-0 p-0 text-fg-secondary' }}
+            classes={{ root: 'size-7 shrink-0 p-0 text-fg-secondary' }}
             onClick={() => themeStore.toggleTheme()}
         >
             {dark()

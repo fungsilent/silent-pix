@@ -59,8 +59,8 @@ function Mask(props: WrapProps) {
 
 /*
  * 欄位式。只遮 field 底部的 control，上方 label 留著。
- * Text／Number／Select／Editable 的 control 都是 h-8 且對齊 root 底部——
- * 這個 h-8 跟著 components/field 走，primitive 改高度這裡要同步。
+ * Text／Number／Select／Editable 的 control 都是 h-7 且對齊 root 底部——
+ * 這個 h-7 跟著 components/field 走，primitive 改高度這裡要同步。
  */
 function Control(props: WrapProps) {
     const loading = isColdLoading(() => props.loading())
@@ -69,7 +69,7 @@ function Control(props: WrapProps) {
         <div class={cn('relative min-w-0', props.class)}>
             {props.children}
             <Show when={loading()}>
-                <Skeleton class='absolute inset-x-0 bottom-0 h-8' />
+                <Skeleton class='absolute inset-x-0 bottom-0 h-7' />
             </Show>
         </div>
     )

@@ -80,6 +80,7 @@ export function FilterChips<Value extends string>(props: FilterChipsProps<Value>
                 classes={{
                     root: cn(
                         'h-7 gap-1.5 rounded-md px-2 text-[11px] font-medium',
+                        props.presentation === 'icon' && 'w-7 px-0',
                         props.values === undefined
                             ? theme.selected
                             : 'text-fg-muted',
@@ -96,6 +97,7 @@ export function FilterChips<Value extends string>(props: FilterChipsProps<Value>
                     classes={{
                         root: cn(
                             'h-7 gap-1.5 rounded-md px-2 text-[11px] font-medium',
+                            props.presentation === 'icon' && 'w-7 px-0',
                             active(option.value)
                                 ? theme.selected
                                 : 'text-fg-muted',

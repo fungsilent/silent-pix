@@ -107,7 +107,7 @@ export function CollapseButton(props: CollapseButtonProps) {
         <Button
             variant='ghost'
             title={props.collapsed ? t('common.expand') : t('common.collapse')}
-            classes={{ root: 'size-[30px] shrink-0 p-0' }}
+            classes={{ root: 'size-7 shrink-0 p-0' }}
             onClick={props.onClick}
         >
             {

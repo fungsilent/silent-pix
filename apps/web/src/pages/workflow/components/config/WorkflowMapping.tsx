@@ -134,7 +134,7 @@ function MappingRow(props: MappingRowProps) {
             <Loading.Mask loading={props.loading}>
                 <Show
                     when={props.binding}
-                    fallback={<div class='h-8 rounded-md border border-dashed border-line' />}
+                    fallback={<div class='h-7 rounded-md border border-dashed border-line' />}
                 >
                     {binding => (
                         <Select

@@ -16,7 +16,7 @@ export function ZoomControls(props: ZoomControlsProps) {
     const [editingZoom, setEditingZoom] = createSignal(false)
 
     return (
-        <div class='absolute bottom-6 left-6 z-10 flex h-9 items-center gap-1 rounded-md border border-stage-line bg-stage-control px-1 text-on-stage backdrop-blur-[8px]'>
+        <div class='absolute bottom-6 left-6 z-10 flex h-8 items-center gap-1 rounded-md border border-stage-line bg-stage-control px-1 text-on-stage backdrop-blur-[8px]'>
             <Button
                 variant='ghost'
                 disabled={!props.zoom.canZoomOut()}

@@ -151,7 +151,7 @@ export function ImageStage(props: ImageStageProps) {
                 <Show when={hasMany()}>
                     <Button
                         variant='ghost'
-                        classes={{ root: cn('absolute left-3 top-1/2 size-9 -translate-y-1/2 rounded-md border p-0', glass) }}
+                        classes={{ root: cn('absolute left-3 top-1/2 size-8 -translate-y-1/2 rounded-md border p-0', glass) }}
                         onClick={selectPrevious}
                     >
                         <ChevronLeft
@@ -161,7 +161,7 @@ export function ImageStage(props: ImageStageProps) {
                     </Button>
                     <Button
                         variant='ghost'
-                        classes={{ root: cn('absolute right-3 top-1/2 size-9 -translate-y-1/2 rounded-md border p-0', glass) }}
+                        classes={{ root: cn('absolute right-3 top-1/2 size-8 -translate-y-1/2 rounded-md border p-0', glass) }}
                         onClick={selectNext}
                     >
                         <ChevronRight
