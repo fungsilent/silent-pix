@@ -11,6 +11,8 @@ same range in `engines.pnpm`, which its Windows prerequisite checker reads.
 Use caret ranges for third-party dependencies and keep exact resolved versions
 in `pnpm-lock.yaml`. `pnpm-workspace.yaml` allows only esbuild's dependency build
 scripts.
+ExifReader uses its published implementation; its optional custom-build
+postinstall is explicitly disabled with `allowBuilds.exifreader: false`.
 The pinned `i18next@27.1.0` release has a package-specific
 `minimumReleaseAgeExclude` entry added by pnpm when installing that version.
 
@@ -523,6 +525,57 @@ Rules:
 - composition vs configuration: children whose structure varies take `children`; components where only values vary take props
 - choose composition when consumers vary structure; slot/consumer counts are not fixed refactor thresholds
 ```
+
+### Local image metadata
+
+The page-owned metadata parser validates magic bytes rather than trusting a
+filename or MIME hint. It accepts files up to 32 MiB, limits decompressed text
+and returned raw UTF-8 text to 2 MiB, and returns at most 512 complete entries.
+Unknown compression/encoding and skipped data produce `incomplete: true`;
+oversized fields are omitted whole, never returned as truncated JSON. A
+conservative 255-PNG-block guard covers ExifReader's silent compressed-chunk
+cap. Preserve original text and EXIF payload offsets for copy; parsed
+JSON is only for validated graph classification and the prompt/node
+projection; integers beyond the safe range are protected before parsing so node
+values keep their original spelling.
+These are local Tool types, not shared REST contracts or changes to the image
+upload allowlist. Worker messages return codes for the page to translate.
+
+`MetadataPage` owns its selected File, result, and Worker lifecycle locally;
+neither stores nor Query cache duplicate them. Open buttons use a hidden native
+file input; window-level drag/drop opens or replaces one file. Reset the input
+after selection so the same file can be selected again. Parser code stays in a
+Vite Worker bundle. A new selection, clear, departure, or five-second deadline
+terminates the active Worker, and
+callbacks check that Worker identity before updating the page. Preview URLs are
+created only after byte-format validation and revoked when replaced or disposed.
+Copy failures and a multi-file drop over an open file appear as warnings in the
+Issue chip and keep the current result; a multi-file drop on the opening screen
+shows the error there. The Generation tab shows processed data in order: Prompt cards, Nodes, then the
+Workflow (API) and Workflow JSON groups; absent groups are hidden. The API graph
+stored under the `prompt` key yields one Prompt card per text-encoder text field,
+following links to the node holding the text and listing each source once; a
+Prompt or parameters field that is not an API graph is one whole card. Node
+inputs show links by source node title and ID (output index only when not 0);
+clicking one expands Nodes, scrolls to that node and highlights it briefly.
+String inputs that parse as a JSON object or array are shown indented. Raw lists
+every field unprocessed under its original key. Prompt, API and Workflow copy use the original payload
+after any EXIF prefix; Raw copy retains the entire field. Incomplete results
+show a warning without manufacturing a missing Workflow. AppMenu and Settings
+remain reachable without a configured endpoint; health and events stay guarded.
+Valid JSON is displayed with two-space indentation by changing whitespace
+outside strings only; copy retains the original text, including large
+numeric tokens and escaped strings.
+Keep custom JSON parsing, formatting, integer-display, container detection, and
+property-line lookup in `lib/json.ts`; EXIF, graph validation, and mapping rules
+remain domain-owned. Formatting accepts already-validated JSON text and defaults
+to the existing 4 MiB display-output limit, returning the original above it.
+Workflow paste validates the graph first, then explicitly formats without that
+display limit so its line-mark indentation remains available. Generic property
+lookup reads two-space JSON, decodes escaped keys, and replaces duplicate property
+subtrees; Workflow projects node/inputs locations from that tree. Object-to-JSON
+conversion continues to use `JSON.stringify` directly; protected integer display
+uses the paired helpers in `lib/json.ts`.
 
 ### Composition or configuration
 

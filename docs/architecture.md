@@ -80,6 +80,7 @@ apps/web/src/
     pages/workflow/         graph/mapping editor and Workflow management
     pages/compare/          image comparison workspace
     pages/settings/         shared Settings and runtime Dev Settings
+    pages/metadata/         local image metadata Tool, parser, and Worker
     i18n/                   English/Traditional Chinese i18next resources and type augmentation
     store/                  shared UI choices and connection state
     lib/                    shared browser utilities
@@ -121,6 +122,38 @@ codes display frontend messages; unknown codes retain `ApiError.message` as
 fallback. Eden wrappers preserve raw status, code, message and mapping issues,
 and do not import i18next. Interpolation results are rendered as text or normal
 attributes, with no HTML translation rendering.
+
+`pages/metadata/metadata.parse.ts` reads user-selected PNG, JPEG, and WebP bytes
+locally through ExifReader. Its one-shot Worker accepts a `File` and returns a
+typed result or error code; it makes no Server/ComfyUI calls and writes no storage.
+PNG text and EXIF generation fields retain their original text, with a payload
+offset for prefixed EXIF fields, Prompt/Workflow classification, and for an API
+graph its extracted prompts and node list.
+Large seeds are never serialized from parsed JSON. File size, decompressed text,
+returned text, and entry count are bounded; skipped/unsupported text is marked
+incomplete. `MetadataPage` owns the selected File, preview Object URL, result,
+tabs, and one active Worker. Replacement, clear, departure, completion, or a
+five-second timeout terminates the Worker; preview URLs are revoked on release.
+Copy preserves original payload text and does not serialize parsed JSON.
+The viewer indents validated JSON by changing whitespace outside strings, with
+a display-size cap; numeric tokens and escaped strings retain their spelling.
+Page-local `components/MetadataFilePanel.tsx` owns the file sidebar display;
+`components/MetadataResultPane.tsx` owns Generation/Raw rendering, group state,
+and node navigation. File and browser resource lifecycles remain in the page.
+`lib/json.ts` owns text-preserving JSON indentation, object/array text detection,
+unsafe-integer parsing/display, and named-property line lookup. Formatting defaults
+to metadata's existing 4 MiB display cap; Workflow explicitly opts into uncapped
+formatting after graph validation to retain the indentation required by line marks.
+Property lookup reads two-space JSON, decodes keys, and replaces duplicate property
+subtrees so line lookup follows JSON's last-value behavior. Workflow owns the
+node/inputs projection and mapping rules. Its object parsing and REST serialization
+retain their existing JavaScript number behavior.
+The AppMenu opens this Tool without a Server endpoint. Header and Settings remain
+available when Desktop settings are empty; generation workspaces stay disabled,
+and health queries/Server events start only when an endpoint exists. Web can use
+the Tool after its assets load; this does not add offline asset caching. Windows
+native file selection, drag/drop, and Clipboard still require packaged
+runtime validation.
 
 Generate uses real Task APIs, TanStack Query for server data, and page-scoped
 TanStack Form for editable values. The default draft supplies initial form

@@ -347,5 +347,63 @@
         "referenceImageTitle": "圖片",
         "referenceImageAlt": "選取的參考圖片",
         "shownCount": "已顯示 {{shown}} / {{total}} 張"
+    },
+    "metadata": {
+        "title": "圖片 Metadata",
+        "openTitle": "開啟圖片",
+        "openMessage": "把 PNG、JPEG 或 WebP 檔拖進視窗任何位置。檔案只在這台裝置上讀取，不會上傳。",
+        "choose": "選擇圖片",
+        "openImage": "開啟圖片",
+        "dropTitle": "放開以讀取 metadata",
+        "dropMessage": "放開後開啟這張圖片。",
+        "previewAlt": "已選取的圖片",
+        "previewUnavailable": "無法預覽",
+        "file": "檔案",
+        "fields": {
+            "name": "名稱",
+            "format": "格式",
+            "dimensions": "尺寸",
+            "size": "大小"
+        },
+        "tabs": {
+            "generation": "生成資訊",
+            "raw": "原始資料"
+        },
+        "missing": {
+            "generation": "此圖片未包含可讀取的生成資訊。",
+            "raw": "此圖片未包含可讀取的文字 metadata。"
+        },
+        "groups": {
+            "prompt": "Prompt",
+            "nodes": "節點",
+            "api": "Workflow (API)",
+            "workflow": "Workflow"
+        },
+        "incomplete": "部分 metadata 無法讀取或超過限制，目前僅顯示完整解析的欄位。",
+        "formats": {
+            "api-graph": "ComfyUI API graph",
+            "ui-graph": "ComfyUI UI graph",
+            "text": "文字",
+            "invalid-json": "JSON 格式錯誤",
+            "unknown-json": "未辨識的 JSON 結構"
+        },
+        "sources": {
+            "png-text": "PNG text",
+            "exif": "EXIF"
+        },
+        "textNode": "文字節點",
+        "output": "輸出 {{index}}",
+        "copy": "複製",
+        "copied": "已複製",
+        "copyFailed": "無法複製到剪貼簿。",
+        "errors": {
+            "FILE_TOO_LARGE": "圖片太大，請選擇較小的檔案。",
+            "UNSUPPORTED_IMAGE": "請選擇 PNG、JPEG 或 WebP 圖片。",
+            "INVALID_IMAGE": "無法讀取圖片或其中的 metadata。",
+            "READ_FAILED": "無法讀取檔案，請重新選擇。",
+            "TIMEOUT": "讀取 metadata 逾時，請嘗試另一張圖片。",
+            "WORKER_FAILED": "此裝置無法讀取 metadata，請重試。",
+            "TOO_MANY_FILES": "請一次選擇一張圖片。"
+        }
     }
 }

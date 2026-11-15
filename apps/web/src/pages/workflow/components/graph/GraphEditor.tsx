@@ -5,6 +5,7 @@ import { createEffect, onCleanup, onMount, Show } from 'solid-js'
 
 import { Loading } from '#/components/base/Loading'
 import { t } from '#/lib/i18n'
+import { formatJsonText } from '#/lib/json'
 import { parseGraphText } from '#/pages/workflow/components/graph/graph.document'
 import {
     fieldGutter,
@@ -75,7 +76,7 @@ export function GraphEditor(props: GraphEditorProps) {
                         const parse = parseGraphText(text)
 
                         if (parse.status === 'ok') {
-                            const formatted = JSON.stringify(parse.graph, null, 2)
+                            const formatted = formatJsonText(text, Infinity)
 
                             if (formatted !== text) {
                                 queueMicrotask(() => {

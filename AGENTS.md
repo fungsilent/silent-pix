@@ -84,6 +84,7 @@ These are implementation constraints. `docs/architecture.md` describes current s
 - `App.tsx` composes app-level chrome such as `components/Header.tsx`; page components should not own the app header.
 - A TSX file may contain multiple components. Keep a page-specific component local to its only consumer by default; split it into its own file when it has multiple consumers, an independent ownership boundary, or enough isolated complexity to make the split useful.
 - Component-specific non-component logic may live beside its component; page-wide logic belongs at the page root, and shared browser utilities belong in `lib` when they have a clear shared responsibility.
+- Custom JSON text parsing, formatting, integer display, and property-line lookup live in `apps/web/src/lib/json.ts`; EXIF, graph validation, and mapping rules remain domain-owned.
 - Short, single-use functions, components, fixtures, and types default to inline/local ownership. Extract them only for reuse, an independent ownership boundary, or clearly isolated complexity.
 - The component that acquires query/store data owns that access and distributes narrow props to its children. Each child defines its own narrow props contract; this is not a duplicate of a library or transport type merely because some fields overlap; do not make a child mix injected props with direct access to the same parent-owned data source.
 - Solid `<For>` keys by item reference, not by an explicit key prop. If mapped or decorated objects may be recreated, iterate stable primitive IDs and resolve the latest item reactively; ordinary state updates must not remount focused or editable controls.
@@ -124,11 +125,9 @@ These are implementation constraints. `docs/architecture.md` describes current s
 ## Plan Documents
 
 - Implementation plans live in `temp/<feature>-<author>-plan.md`. `temp/` is gitignored; plans are working documents, not repo history.
-- Before writing one, read `.agents/skills/plan-doc/SKILL.md`. It defines the required sections, and the density rule: show the change as schema sketches, ASCII layouts, and tables; do not argue for it in prose.
 - Never overwrite the user's own requirement sketch in `temp/`.
 
 ## Phased Implementation
 
-- When executing an approved phased plan or when the user requests the Sol / Luna phased workflow, read `.agents/skills/phased-implementation/SKILL.md` before implementation.
 - The user is the only PHASE gate authority. Automated validation and agent review never advance a PHASE without explicit user confirmation.
 - Prefer the simplest architecture that cleanly fits current requirements and current system shape. Avoid speculative architecture, but surface concrete boundary problems and propose scoped refactors when existing complexity justifies them; if that conflicts with an explicit rule in this file, stop for user review.

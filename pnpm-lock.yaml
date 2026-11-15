@@ -290,6 +290,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      exifreader:
+        specifier: ^4.54.0
+        version: 4.54.0
       i18next:
         specifier: ^27.1.0
         version: 27.1.0(typescript@7.0.2)
@@ -1699,6 +1702,10 @@ packages:
     resolution: {integrity: sha512-mbCddXd+jm7hfx7w2YU64/Av4/NqqeG3GoRZgxPcgoTxYjhrcfJRw9ULch71SS4G+Q3bOXFhRvPqjguN0Hyp5w==}
     hasBin: true
 
+  '@xmldom/xmldom@0.9.12':
+    resolution: {integrity: sha512-5AXjrcMClTryPe9LgZrygpB1lj7s0S9E0+W+AHaVKAVyHanafK86iPSvG5xHVSp/jC+VH1UXu0TAEmY279xH7A==}
+    engines: {node: '>=14.6'}
+
   '@zag-js/accordion@1.45.0':
     resolution: {integrity: sha512-q29KwigVLWWM6PbZwmwPxmecKIUYpWwOK5k28mX4NdRACKEonxdkvZQePhcAD5FIKbCvacB4POE6OOCy/E3JSQ==}
 
@@ -2259,6 +2266,10 @@ packages:
     peerDependenciesMeta:
       typebox:
         optional: true
+
+  exifreader@4.54.0:
+    resolution: {integrity: sha512-7mJXhbDMwLnuRtBaId8dIR5S8Hhvz3R1Qjvo3MIXtwFGRr+vbYdVVjbyfQ5F1FsBKVjog6aKx+hcf8yqNHxJUg==}
+    hasBin: true
 
   fast-decode-uri-component@1.0.1:
     resolution: {integrity: sha512-WKgKWg5eUxvRZGwW8FvfbaH7AXSh2cL+3j5fMGzUMCxWBJ3dV3a7Wz8y2f/uQ0e3B6WmodD3oS54jTQ9HVTIIg==}
@@ -3991,6 +4002,9 @@ snapshots:
     dependencies:
       '@typescript/old': typescript@6.0.3
 
+  '@xmldom/xmldom@0.9.12':
+    optional: true
+
   '@zag-js/accordion@1.45.0':
     dependencies:
       '@zag-js/anatomy': 1.45.0
@@ -4862,6 +4876,10 @@ snapshots:
   esutils@2.0.3: {}
 
   exact-mirror@1.2.6: {}
+
+  exifreader@4.54.0:
+    optionalDependencies:
+      '@xmldom/xmldom': 0.9.12
 
   fast-decode-uri-component@1.0.1: {}
 

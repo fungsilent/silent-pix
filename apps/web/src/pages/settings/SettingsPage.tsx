@@ -5,13 +5,14 @@ import { probeConnection } from '#/api/connection'
 import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
 import { Dialog } from '#/components/base/Dialog'
+import { SegmentGroup } from '#/components/base/SegmentGroup'
 import { Select, Text } from '#/components/field'
 import { cn } from '#/lib/cn'
 import { localeStore, t } from '#/lib/i18n'
 import { getPlatform, saveLocalServerUrl, validateLocalServerUrl } from '#/lib/platform'
-import { theme } from '#/lib/theme'
 import { devStore } from '#/store/dev'
 
+import type { SegmentGroupOption } from '#/components/base/SegmentGroup'
 import type { LocalServerUrl } from '#/lib/platform'
 import type { DevMode } from '#/store/dev'
 import type { Accessor, JSX } from 'solid-js'
@@ -363,40 +364,6 @@ function SettingRow(props: SettingRowProps) {
     )
 }
 
-/* MARK: SettingSegment */
-
-type SettingSegmentOption<Value extends string> = {
-    value: Value
-    label: () => string
-}
-
-type SettingSegmentProps<Value extends string> = {
-    value: Value
-    options: readonly SettingSegmentOption<Value>[]
-    onChange: (value: Value) => void
-}
-
-function SettingSegment<Value extends string>(props: SettingSegmentProps<Value>) {
-    return (
-        <div class='flex h-7 shrink-0 items-center gap-0.5 rounded-md border border-line-subtle bg-elevated p-px'>
-            {props.options.map(option => (
-                <Button
-                    variant='ghost'
-                    classes={{
-                        root: cn(
-                            'h-6 min-w-[50px] rounded px-2.5 py-0 text-[11.5px] font-medium',
-                            props.value === option.value ? theme.selected : 'text-fg-muted',
-                        ),
-                    }}
-                    onClick={() => props.onChange(option.value)}
-                >
-                    {option.label()}
-                </Button>
-            ))}
-        </div>
-    )
-}
-
 /* MARK: DevSettings */
 
 type DevSettingsProps = {
@@ -409,7 +376,7 @@ type DevSettingsProps = {
 const modeOptions = [
     { value: 'normal', label: () => t('settings.dev.normal') },
     { value: 'dev', label: () => t('settings.dev.dev') },
-] as const satisfies readonly SettingSegmentOption<DevMode>[]
+] as const satisfies readonly SegmentGroupOption<DevMode>[]
 
 const previewOptions = [
     { value: 'off', label: () => t('settings.dev.off') },
@@ -426,7 +393,7 @@ function DevSettings(props: DevSettingsProps) {
                 label={t('settings.dev.mode')}
                 hint={t('settings.dev.modeHint')}
             >
-                <SettingSegment
+                <SegmentGroup
                     value={props.mode()}
                     options={modeOptions}
                     onChange={props.onModeChange}
@@ -438,7 +405,7 @@ function DevSettings(props: DevSettingsProps) {
                     label={t('settings.dev.loadingPreview')}
                     hint={t('settings.dev.loadingPreviewHint')}
                 >
-                    <SettingSegment
+                    <SegmentGroup
                         value={props.loadingPreview() ? 'on' : 'off'}
                         options={previewOptions}
                         onChange={value => props.onLoadingPreviewChange(value === 'on')}

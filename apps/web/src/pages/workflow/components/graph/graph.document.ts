@@ -1,6 +1,7 @@
 import { comfy, config } from '@silent-pix/shared'
 
 import { t } from '#/lib/i18n'
+import { getJsonPropertyLines } from '#/lib/json'
 
 import type { Comfy, ConfigSchema, GeneratorField } from '@silent-pix/shared'
 
@@ -39,58 +40,14 @@ export function parseGraphText(text: string): GraphParse {
     }
 }
 
-/*
- * 只在載入或貼上時正規化過的排版上成立：node id 縮排 2、inputs 縮排 4、input key 縮排 6。
- * 這是我們自己產生的字串，所以可以這樣讀。
- */
-const nodeLinePattern = /^ {2}"((?:[^"\\]|\\.)*)": \{$/
-const inputLinePattern = /^ {6}"((?:[^"\\]|\\.)*)":/
-const inputsOpenPattern = /^ {4}"inputs": \{$/
-const nodeClosePattern = /^ {2}\}/
-
 export type InputLines = Map<string, Map<string, number>>
 
 export function toInputLines(text: string): InputLines {
-    const lines = text.split('\n')
     const result: InputLines = new Map()
-    let node: Map<string, number> | undefined
-    let insideInputs = false
-
-    lines.forEach((line, index) => {
-        const nodeMatch = nodeLinePattern.exec(line)
-
-        if (nodeMatch?.[1] !== undefined) {
-            node = new Map()
-            insideInputs = false
-            result.set(JSON.parse(`"${nodeMatch[1]}"`) as string, node)
-            return
-        }
-
-        if (!node) {
-            return
-        }
-
-        if (inputsOpenPattern.test(line)) {
-            insideInputs = true
-            return
-        }
-
-        if (nodeClosePattern.test(line)) {
-            node = undefined
-            insideInputs = false
-            return
-        }
-
-        if (!insideInputs) {
-            return
-        }
-
-        const inputMatch = inputLinePattern.exec(line)
-
-        if (inputMatch?.[1] !== undefined) {
-            node.set(JSON.parse(`"${inputMatch[1]}"`) as string, index + 1)
-        }
-    })
+    for (const [nodeId, node] of getJsonPropertyLines(text)) {
+        const inputs = node.properties.get('inputs')?.properties
+        result.set(nodeId, new Map(Array.from(inputs ?? [], ([name, property]) => [name, property.line])))
+    }
 
     return result
 }

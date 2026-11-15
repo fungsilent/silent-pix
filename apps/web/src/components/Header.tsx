@@ -1,70 +1,55 @@
-import { Columns2, Menu as MenuIcon, Moon, Settings, Sparkles, Sun, Workflow } from 'lucide-solid'
+import { Columns2, FileImage, Menu as MenuIcon, Moon, Settings, Sparkles, Sun, Workflow } from 'lucide-solid'
+import { Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { Menu, MenuItem } from '#/components/base/Menu'
+import { SegmentGroup } from '#/components/base/SegmentGroup'
 import { useHealthQuery } from '#/features/app/app.query'
 import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
-import { theme } from '#/lib/theme'
+import { getPlatform } from '#/lib/platform'
 import { appStore, serviceHealth } from '#/store/app'
 import { themeStore } from '#/store/theme'
 
-import type { JSX } from 'solid-js'
+import type { SegmentGroupOption } from '#/components/base/SegmentGroup'
 
 /* MARK: Header */
-export function Header() {
-    return (
-        <header class='flex h-12 shrink-0 items-center gap-3 border-b border-line-subtle bg-surface pl-2.5 pr-3'>
-            <AppMenu />
-            <span class='text-[13px] font-semibold tracking-[0.02em] text-fg'>Silent Pix</span>
+type Mode = 'generate' | 'compare' | 'workflow'
 
-            <div
-                class='ml-1 flex h-7 items-center gap-0.5 rounded-md border border-line-subtle bg-elevated p-px'
-            >
-                <ModeButton
-                    active={appStore.state.page === 'generate'}
-                    label={t('header.generate')}
-                    onClick={() => appStore.setPage('generate')}
-                >
-                    <Sparkles
-                        size={13}
-                        strokeWidth={1.6}
-                    />
-                </ModeButton>
-                <ModeButton
-                    active={appStore.state.page === 'compare'}
-                    label={t('header.compare')}
-                    onClick={() => appStore.setPage('compare')}
-                >
-                    <Columns2
-                        size={13}
-                        strokeWidth={1.6}
-                    />
-                </ModeButton>
-                <ModeButton
-                    active={appStore.state.page === 'workflow'}
-                    label={t('header.workflow')}
-                    onClick={() => appStore.setPage('workflow')}
-                >
-                    <Workflow
-                        size={13}
-                        strokeWidth={1.6}
-                    />
-                </ModeButton>
-            </div>
+const modeIcon = { size: 13, strokeWidth: 1.6 }
+
+const modeOptions = [
+    { value: 'generate', label: () => t('header.generate'), icon: () => <Sparkles {...modeIcon} /> },
+    { value: 'compare', label: () => t('header.compare'), icon: () => <Columns2 {...modeIcon} /> },
+    { value: 'workflow', label: () => t('header.workflow'), icon: () => <Workflow {...modeIcon} /> },
+] as const satisfies readonly SegmentGroupOption<Mode>[]
+
+export function Header() {
+    const platform = getPlatform()
+
+    return (
+        <header class='flex h-12 shrink-0 items-center gap-3 overflow-x-auto border-b border-line-subtle bg-surface pl-2.5 pr-3'>
+            <AppMenu />
+            <span class='shrink-0 whitespace-nowrap text-[13px] font-semibold tracking-[0.02em] text-fg'>Silent Pix</span>
+
+            <SegmentGroup
+                value={modeOptions.find(option => option.value === appStore.state.page)?.value ?? null}
+                options={modeOptions}
+                disabled={!platform.endpoint}
+                classes={{ root: 'ml-1' }}
+                onChange={appStore.setPage}
+            />
 
             <div class='flex-1' />
 
             <ThemeToggle />
-            <ServiceStatus />
+            <Show when={platform.endpoint}>
+                <ServiceStatus />
+            </Show>
         </header>
     )
 }
 
-/*
- * Settings 不是第四個工作區，所以不進 mode group。漢堡鈕本來就在 header 上
- * 且沒有任何行為，選單同時給了它存在的理由，也給之後的項目留了位置。
- */
 function AppMenu() {
     return (
         <Menu
@@ -76,6 +61,18 @@ function AppMenu() {
                 />
             )}
         >
+            <MenuItem
+                value='metadata'
+                label={t('metadata.title')}
+                current={appStore.state.page === 'metadata'}
+                icon={(
+                    <FileImage
+                        size={14}
+                        strokeWidth={1.7}
+                    />
+                )}
+                onSelect={() => appStore.setPage('metadata')}
+            />
             <MenuItem
                 value='settings'
                 label={t('common.settings')}
@@ -115,33 +112,6 @@ function ThemeToggle() {
                         strokeWidth={1.7}
                     />
                 )}
-        </Button>
-    )
-}
-
-type ModeButtonProps = {
-    active: boolean
-    children: JSX.Element
-    label: string
-    onClick: () => void
-}
-
-function ModeButton(props: ModeButtonProps) {
-    return (
-        <Button
-            variant='ghost'
-            classes={{
-                root: cn(
-                    'h-6 gap-1.5 rounded px-2.5 py-0 text-xs font-medium',
-                    props.active
-                        ? theme.selected
-                        : 'text-fg-muted',
-                ),
-            }}
-            onClick={props.onClick}
-        >
-            {props.children}
-            {props.label}
         </Button>
     )
 }

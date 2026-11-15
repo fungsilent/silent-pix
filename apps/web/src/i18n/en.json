@@ -348,5 +348,63 @@
         "referenceImageTitle": "IMAGE",
         "referenceImageAlt": "Selected reference image",
         "shownCount": "{{shown}} / {{total}} shown"
+    },
+    "metadata": {
+        "title": "Image Metadata",
+        "openTitle": "Open an image",
+        "openMessage": "Drop a PNG, JPEG or WebP file anywhere in this window. It is read on this device and never uploaded.",
+        "choose": "Choose image",
+        "openImage": "Open image",
+        "dropTitle": "Drop to read metadata",
+        "dropMessage": "Release to open this image.",
+        "previewAlt": "Selected image",
+        "previewUnavailable": "Preview unavailable",
+        "file": "File",
+        "fields": {
+            "name": "Name",
+            "format": "Format",
+            "dimensions": "Dimensions",
+            "size": "Size"
+        },
+        "tabs": {
+            "generation": "Generation",
+            "raw": "Raw"
+        },
+        "missing": {
+            "generation": "This image does not contain readable generation data.",
+            "raw": "No readable text metadata was found in this image."
+        },
+        "groups": {
+            "prompt": "Prompt",
+            "nodes": "Nodes",
+            "api": "Workflow (API)",
+            "workflow": "Workflow"
+        },
+        "incomplete": "Some metadata could not be read or exceeded the limits. Only complete extracted fields are shown.",
+        "formats": {
+            "api-graph": "ComfyUI API graph",
+            "ui-graph": "ComfyUI UI graph",
+            "text": "Text",
+            "invalid-json": "Invalid JSON",
+            "unknown-json": "Unrecognized JSON structure"
+        },
+        "sources": {
+            "png-text": "PNG text",
+            "exif": "EXIF"
+        },
+        "textNode": "Text node",
+        "output": "output {{index}}",
+        "copy": "Copy",
+        "copied": "Copied",
+        "copyFailed": "Could not copy to the clipboard.",
+        "errors": {
+            "FILE_TOO_LARGE": "The image is too large. Choose a smaller file.",
+            "UNSUPPORTED_IMAGE": "Choose a PNG, JPEG, or WebP image.",
+            "INVALID_IMAGE": "The image or its metadata could not be read.",
+            "READ_FAILED": "Could not read the file. Select it again.",
+            "TIMEOUT": "Reading the metadata took too long. Try another image.",
+            "WORKER_FAILED": "Could not read metadata on this device. Try again.",
+            "TOO_MANY_FILES": "Choose one image at a time."
+        }
     }
 }

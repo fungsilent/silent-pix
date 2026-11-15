@@ -4,6 +4,7 @@ packages:
 
 allowBuilds:
   esbuild: true
+  exifreader: false
 
 minimumReleaseAgeExclude:
   - i18next@27.1.0

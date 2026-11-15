@@ -22,6 +22,7 @@ export function FileDrop(props: FileDropProps) {
     return (
         <FileUpload.Root
             accept={props.accept}
+            acceptedFiles={[]}
             maxFiles={1}
             maxFileSize={props.maxFileSize}
             disabled={props.disabled}
