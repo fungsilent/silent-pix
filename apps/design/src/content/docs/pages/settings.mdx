@@ -18,13 +18,14 @@ import Fixed from '@silent-pix/blueprint/components/Fixed.astro'
 設定頁的卡片：標題＋說明，下方以分隔線切出欄位區或設定列。
 
 <Gallery min="560px">
-<State component="setting-card" state="language" label="Language · select" frame="w-full max-w-[520px]" />
+<State component="setting-card" state="appearance" label="Appearance · language + theme" frame="w-full max-w-[520px]" />
 </Gallery>
 
 <Rules component="setting-card" part="card">
 
 <ul class="ds-rules">
 <Rule component="setting-card" id="layout">Settings 頁的單位；頁面內容單欄、最寬 520px，卡片間距 `gap-3.5`。卡片 `rounded-lg border border-line-subtle bg-surface`。</Rule>
+<Rule component="setting-card" id="appearance">Appearance 卡兩列：Language（Select，選擇存在這台裝置）與 Theme（Segment group：Dark／Light，切換立即生效）。主題只在這裡切換，Header 不放主題鈕。</Rule>
 <Rule component="setting-card" id="header">卡頭：標題 13px semibold，可接一個 `bg-elevated` 底的大寫小 tag（目前只有 Connection 帶「Desktop」）；下方一行 11.5px muted 說明。卡頭以下每一區都以 `border-t border-line-subtle px-3.5` 起頭。</Rule>
 <Rule component="setting-card" id="blocks">區塊兩種：欄位區（`py-3`，放 L0 Select／Text 等欄位與說明）與設定列（`min-h-14 justify-between`，左側標題＋提示、右側控制項）。</Rule>
 <Rule component="setting-card" id="row-control">設定列的控制項是 segment group：`h-7` `bg-elevated` 容器，選中項用 L0 selected 樣式，未選中為 ghost `text-fg-muted`。</Rule>
@@ -68,8 +69,9 @@ Desktop 才有的 Server 連線設定：輸入、測試、儲存。
 
 <ul class="ds-rules">
 <Rule component="setting-card" id="connection-desktop-only">Connection 卡只在 Desktop 平台出現。已有儲存的 URL 時主按鈕是「Save and reload」，否則「Save and connect」；改到不同 Server 時先開確認 dialog。</Rule>
-<Rule component="setting-card" id="test-result">測試結果只有 Connected／Connection check failed 兩種，尚未測試時不顯示；修改輸入即清除結果與錯誤。狀態與錯誤一律用 1.5 的圓點加語意 fg 色文字，不用 badge。</Rule>
-<Rule component="setting-card" id="read-error">設定讀取失敗時在欄位區上方多一區：danger 圓點訊息 ＋ ghost「Retry reading settings」。</Rule>
+<Rule component="setting-card" id="test-result">測試結果只有 Connected／Connection check failed 兩種，是連線狀態不是錯誤：留在按鈕右側，用 1.5 的圓點加語意 fg 色文字，不用 badge；尚未測試時不顯示，修改輸入即清除。</Rule>
+<Rule component="setting-card" id="invalid">URL 不合法時，danger Field hint 取代欄位下方的說明文字（同 Text field 的 error），不另加一行。</Rule>
+<Rule component="setting-card" id="read-error">設定讀取失敗時在欄位區上方多一區，用 compact StatusMessage 的 load-error：一句 muted 訊息＋預設 Retry，不用紅色。</Rule>
 <Rule component="setting-card" id="button-states">URL 為空、測試中或儲存中兩顆按鈕都用 L0 Button 停用樣式；進行中的那顆依 L0 pending 換成「Testing...」／「Saving...」。</Rule>
 </ul>
 
@@ -98,14 +100,14 @@ Desktop 才有的 Server 連線設定：輸入、測試、儲存。
 ## Screen
 
 <Screen>
-    <Slot name="header" component="app-header" states="other-page,no-endpoint" />
+    <Slot name="header" component="app-header" states="settings,no-endpoint" />
     <section class="flex min-h-0 flex-1 flex-col">
         <div class="flex h-12 shrink-0 items-center gap-3 border-b border-line-subtle bg-surface px-4">
             <h2 class="m-0 min-w-0 truncate text-[13px] font-semibold leading-none text-fg">Settings</h2>
         </div>
         <div class="scrollbar-thin min-h-0 flex-1 overflow-y-auto px-4 py-[18px]">
             <div class="mx-auto flex w-full max-w-[520px] flex-col gap-3.5">
-                <Fixed component="setting-card" state="language" />
+                <Fixed component="setting-card" state="appearance" />
                 <Slot name="dev" component="setting-card" states="dev-normal,dev-preview-off,dev-preview-on" />
                 <Slot name="connection" component="setting-card" states="connection-connected,connection-unset,connection-testing,connection-failed,connection-invalid,connection-saving,connection-read-error" empty="browser · no Connection card" />
             </div>
@@ -118,8 +120,9 @@ Desktop 才有的 Server 連線設定：輸入、測試、儲存。
 
 <ul class="ds-rules">
 <Rule component="settings-screen" id="title-bar">標題列高 48px、`border-b border-line-subtle`；內容區獨立捲動，`px-4 py-[18px]`，卡片間距 `gap-3.5`。</Rule>
-<Rule component="settings-screen" id="card-order">卡片順序固定：Language、Dev Settings、Connection（僅 Desktop）。</Rule>
-<Rule component="settings-screen" id="no-endpoint">Desktop 尚未設定 Server（no endpoint）時一律顯示本頁；Header 的分頁全部停用（依 L0 Segment group disabled）、服務狀態隱藏，選單與主題切換照常；Connection 卡為未設定狀態。</Rule>
+<Rule component="settings-screen" id="card-order">卡片順序固定：Appearance、Dev Settings、Connection（僅 Desktop）。</Rule>
+<Rule component="settings-screen" id="no-endpoint">Desktop 尚未設定 Server（no endpoint）時一律顯示本頁；Header 的模式選單停用、服務狀態隱藏，Tools 與 Settings 照常；Connection 卡為未設定狀態。</Rule>
+<Rule component="settings-screen" id="save-error">儲存設定失敗（例如 Desktop 設定寫不進去）時，錯誤進 Header 的 Issue chip（來源 Connection）；確認 dialog 已關閉，錯誤不放進卡片內。</Rule>
 <Rule component="settings-screen" id="server-switch">改到不同 Server 時先開確認 dialog，蓋住整個視窗（含 Header）；儲存後整個 app 重新載入。</Rule>
 </ul>
 

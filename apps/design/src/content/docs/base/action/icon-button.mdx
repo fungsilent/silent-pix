@@ -28,7 +28,7 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 <ul class="ds-rules">
 <Rule component="icon-button" id="when-to-use">只有圖示、沒有文字的方形按鈕。看圖示猜不出用途的（收合／展開、放大成 browser、送到 Compare、設為參考圖、還原 seed）用 hover 提示（title）寫出名稱；關閉、上下一張、新增、移除這類一看就懂的不加。外形與 L0 button 同一套 variant：ghost 透明底、soft `bg-elevated`；不做 solid。</Rule>
 <Rule component="icon-button" id="size">尺寸只有兩種，而且永遠是正方形：一般 `size-7`（28px，跟同列的按鈕、欄位同高），圖示 13–16px；附在清單列或縮圖上的 `size-6`（24px），圖示 13px。不另外為 bar、欄位旁或 dialog 做不同尺寸。</Rule>
-<Rule component="icon-button" id="collapse-theme">面板收合鈕是這一型的固定用法，規則見 L0 collapse-button。主題切換顯示「切換後」的圖示（Dark 顯示 Sun、Light 顯示 Moon），用 `text-fg-secondary`。</Rule>
+<Rule component="icon-button" id="collapse-theme">面板收合鈕是這一型的固定用法，規則見 L0 collapse-button。</Rule>
 <Rule component="icon-button" id="soft-on-elevated">Dialog 右上關閉與欄位旁的 reset 用 soft，讓它在 elevated 表面上仍看得到範圍；欄位旁的編輯（筆形）用 ghost，hover 才把圖示提亮到 `text-fg`。</Rule>
 <Rule component="icon-button" id="row-remove">清單列內的移除鈕平時是 ghost neutral，hover 才轉 `bg-danger/15 text-danger-fg`，不在靜止時搶眼。</Rule>
 <Rule component="icon-button" id="menu-trigger">Menu trigger 開啟期間維持選取態（`bg-selected text-fg`），關閉後回到 ghost。</Rule>

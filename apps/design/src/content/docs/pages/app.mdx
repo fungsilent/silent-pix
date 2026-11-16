@@ -1,6 +1,6 @@
 ---
 title: App
-description: 所有頁面共用的整體版面：頂端的 Header 與 App menu 導覽。
+description: 所有頁面共用的整體版面：頂端的 Header（同時是 Desktop 的視窗標題列）與其中的模式、Tools 選單。
 sidebar:
     order: 1
 ---
@@ -11,79 +11,109 @@ import Rule from '@silent-pix/blueprint/components/Rule.astro'
 import Rules from '@silent-pix/blueprint/components/Rules.astro'
 import Screen from '@silent-pix/blueprint/components/Screen.astro'
 import Slot from '@silent-pix/blueprint/components/Slot.astro'
-import Switch from '@silent-pix/blueprint/components/Switch.astro'
-import Case from '@silent-pix/blueprint/components/Case.astro'
 
-## Header · 目前頁面
+## Header · 頁面與平台
 
-App 最上方 48px 的全域列：App menu、品牌名、三個模式分頁、主題切換與服務狀態。所有頁面共用同一條，頁面本身不畫 header。目前所在的頁面以中間的模式分頁表示。
+App 最上方 36px 的全域列，同時是視窗的標題列：品牌名、模式選單、Tools 選單、拖曳區、Issue chip、服務狀態燈與 Settings 鈕；Desktop 的 Windows／Linux 另有視窗控制。所有頁面共用同一條，頁面本身不畫 header。
 
 <Gallery min="900px">
-<State component="app-header" state="generate" label="generate active · all up" />
-<State component="app-header" state="compare" label="compare active" />
-<State component="app-header" state="workflow" label="workflow active" />
-<State component="app-header" state="other-page" label="metadata / settings · no tab active" />
+<State component="app-header" state="generate" label="Windows · Generate · all up" frame="min-w-[1000px]" />
+<State component="app-header" state="compare" label="Windows · Compare" frame="min-w-[1000px]" />
+<State component="app-header" state="workflow" label="Windows · Workflow" frame="min-w-[1000px]" />
+<State component="app-header" state="metadata" label="Windows · tool page (Image Metadata)" frame="min-w-[1000px]" />
+<State component="app-header" state="settings" label="Windows · Settings" frame="min-w-[1000px]" />
+<State component="app-header" state="mac" label="macOS · native window buttons" frame="min-w-[1000px]" />
+<State component="app-header" state="web" label="Web · no window controls" frame="min-w-[1000px]" />
 </Gallery>
 
 <Rules component="app-header" part="pages">
 
 <ul class="ds-rules">
-<Rule component="app-header" id="layout-order">左到右固定順序：App menu（見 **app-menu**）→ 品牌名 → 模式分頁 → 彈性空白 → 主題切換 → 服務狀態。列高 48px，左 10px／右 12px 內距，底線 `border-line-subtle`。視窗太窄時整列橫向捲動，不換行、不收合。</Rule>
-<Rule component="app-header" id="mode-tabs">模式分頁是 `bg-elevated` 底的 segment group，內含三顆 24px 高的 ghost 鈕；目前模式用 selected 樣式（`bg-selected text-fg`），其餘 `text-fg-muted`。目前頁面是 Image Metadata 或 Settings 時三個分頁都不亮。</Rule>
-<Rule component="app-header" id="theme-toggle">主題切換顯示「切換後」的圖示：深色主題顯示 Sun、淺色主題顯示 Moon；hover 只加 ghost 底色。</Rule>
+<Rule component="app-header" id="layout-order">左到右固定順序：（macOS 的原生視窗鈕）→ 品牌名「Silent Pix」→ 模式選單 → Tools 選單 → 拖曳區（彈性空白）→ Issue chip（有問題時）→ 服務狀態燈 → Settings 鈕 →（Windows／Linux 的視窗控制）。列高 36px（`h-9`），比面板的 48px Bar 薄，讀起來是標題列而不是另一條工具列；控制項維持 28px，上下各留 4px。底線 `border-line-subtle`，項目間距 4px。App 圖示尚未定稿，先用品牌名。</Rule>
+<Rule component="app-header" id="title-bar">Desktop 不用作業系統的標題列，Header 就是標題列：拖曳區與品牌名等非控制項的空白可以按住拖動視窗，雙擊放大／還原；按鈕與選單照常點擊。Windows／Linux 在最右側畫三顆 46×36px 的視窗控制（縮小、放大／還原、關閉），hover 用 `bg-hover`，關閉鈕 hover 用 `bg-danger text-on-stage`。macOS 保留原生的三顆視窗鈕（由系統繪製；藍圖中的紅黃綠只是示意系統顏色，不是產品 token），Header 左側讓出位置，並把原生鈕垂直置中在 36px 的列上。Web 沒有視窗控制，拖曳區只是空白。</Rule>
+<Rule component="app-header" id="mode-menu">模式選單的觸發鈕顯示目前（或最後使用）的模式圖示與名稱加 ▾，展開後列出 Generate／Compare／Workflow 三項（選單樣式見 L0 Menu），目前模式用 selected 樣式。觸發鈕平常是 ghost，展開時 `bg-selected text-fg`；目前頁面是模式時文字 `text-fg`，在 Tools 或 Settings 頁時 `text-fg-muted`。</Rule>
+<Rule component="app-header" id="tools-menu">Tools 選單放工具類頁面，目前只有 Image Metadata；新增工具頁才加項目，不分組。觸發鈕只有文字「Tools」加 ▾；目前在工具頁時文字 `text-fg`，選單內那一項用 selected 樣式。</Rule>
+<Rule component="app-header" id="settings">Settings 是 `size-7` 的齒輪 ghost 鈕；目前在 Settings 頁時維持 `bg-selected text-fg`。主題切換在 Settings 的 Appearance 卡，不放 Header。</Rule>
+<Rule component="app-header" id="narrow">視窗變窄時依序收縮：服務狀態只留燈、模式選單只留圖示；仍不夠時才隱藏品牌名。不換行、不橫向捲動。</Rule>
 </ul>
 
 </Rules>
 
-## Header · 服務狀態
+## Header · 選單
 
-右側的服務狀態列：Server、DB、Comfy 各一段；全部正常的樣子見上一節。
+模式選單與 Tools 選單展開的樣子。
 
 <Gallery min="900px">
-<State component="app-header" state="comfy-down" label="service · Comfy down" />
-<State component="app-header" state="server-down" label="service · Server down · others unknown" />
-<State component="app-header" state="connecting" label="service · unknown (never connected)" />
+<State component="app-header" state="mode-menu" label="mode menu open" frame="relative min-w-[1000px] h-[220px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="app-header" state="tools-menu" label="Tools menu open · current = Image Metadata" frame="relative min-w-[1000px] h-[220px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+</Gallery>
+
+## Header · 服務狀態
+
+服務狀態收成一顆燈：全部正常只有綠燈，出問題才加文字，細節在點開的 popover。
+
+<Gallery min="900px">
+<State component="app-header" state="comfy-down" label="Comfy down" frame="min-w-[1000px]" />
+<State component="app-header" state="server-down" label="Server down" frame="min-w-[1000px]" />
+<State component="app-header" state="connecting" label="connecting · never connected" frame="min-w-[1000px]" />
+<State component="app-header" state="status-open" label="popover · Comfy down" frame="relative min-w-[1000px] h-[220px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 </Gallery>
 
 <Rules component="app-header" part="service">
 
 <ul class="ds-rules">
-<Rule component="app-header" id="service-status">服務狀態是一顆 soft 按鈕（點擊重新檢查），內含 Server／DB／Comfy 三段，以 `bg-line` 細線分隔。狀態點 6px：up 為 `bg-success` 帶光暈；down 為 `bg-danger` 帶光暈，並把該段染成 `bg-danger/12 text-danger-fg`；unknown 為 `bg-fg-muted` 無光暈。</Rule>
+<Rule component="app-header" id="service-status">服務狀態燈：Server／DB／Comfy 全部正常時是 `size-7` ghost 鈕內一顆 8px 的 `bg-success` 光暈點，沒有文字。有服務斷線時變成 `bg-danger/12 text-danger-fg` 的鈕，6px `bg-danger` 點加斷線的名稱（例如「Comfy down」，兩個以上時「2 down」）；從未連上時是 muted 點加「Connecting」。</Rule>
+<Rule component="app-header" id="status-popover">點狀態燈展開 `w-60` 的 Popover（靠右緣 bottom-end，見 L0 Popover）：Server／DB／Comfy 各一列，6px 狀態點、名稱、右側狀態文字（Connected／Not reachable／Unknown，斷線為 `text-danger-fg`）；下方分隔線後是 soft「Recheck」重新檢查。</Rule>
 <Rule component="app-header" id="status-source">Server 跟即時連線走。DB／Comfy 在即時連線首次建立前先用一次查詢結果墊著，之後只認即時狀態；斷線時 DB／Comfy 一律轉 unknown，不沿用最後一份結果。從未連上過時三段都是 unknown。</Rule>
+</ul>
+
+</Rules>
+
+## Header · Issue
+
+整個 App 唯一的 Issue chip，在服務狀態燈左邊。
+
+<Gallery min="900px">
+<State component="app-header" state="issues" label="3 (error + warning)" frame="min-w-[1000px]" />
+<State component="app-header" state="issues-open" label="open" frame="relative min-w-[1000px] h-[260px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+</Gallery>
+
+<Rules component="app-header" part="issues">
+
+<ul class="ds-rules">
+<Rule component="app-header" id="issues">整個 App 唯一的 Issue chip，只在有問題時出現；彙整各頁、各面板的操作失敗與前置檢查，每則標出來源。剛按下 Generate、Save 這類主要按鈕而被擋下時自動展開（一則也展開，因為 chip 只顯示數字）。規則見 L0 Issue chip。</Rule>
 </ul>
 
 </Rules>
 
 ## Header · 未設定 Server
 
-還沒設定 Server 時，模式分頁停用、服務狀態隱藏。
+還沒設定 Server 時，模式選單停用、服務狀態隱藏。
 
 <Gallery min="900px">
-<State component="app-header" state="no-endpoint" label="no endpoint · tabs disabled · status hidden" />
+<State component="app-header" state="no-endpoint" label="no endpoint · mode menu disabled · status hidden" frame="min-w-[1000px]" />
 </Gallery>
 
 <Rules component="app-header" part="no-endpoint">
 
 <ul class="ds-rules">
-<Rule component="app-header" id="no-endpoint">尚未設定 Server endpoint 時三個分頁停用（照 L0 Segment group 停用），服務狀態整個不顯示；原本的目前模式仍保留 selected 外觀，只是一起變淡。App menu 與主題切換照常可用，讓使用者能進 Settings 設定 endpoint。</Rule>
+<Rule component="app-header" id="no-endpoint">尚未設定 Server endpoint 時模式選單停用（`opacity-60`，不能展開），服務狀態燈整個不顯示；Tools 與 Settings 照常可用，讓使用者能進 Settings 設定 endpoint。</Rule>
 </ul>
 
 </Rules>
 
-## App menu
+## 啟動失敗
 
-Header 最左的漢堡選單，放不屬於三個模式分頁的 app 層頁面：Image Metadata 與 Settings。外觀、hover 與鍵盤操作照基礎元件 [Menu](/base/container/menu/)，這裡只列它自己的項目與「目前所在頁」的樣子。
+App 啟動時就出錯（例如讀不到設定），整個視窗只顯示一個置中的 StatusMessage，沒有 Header。
 
-<Gallery min="360px">
-<State component="app-menu" state="open" label="open · current page is a mode" frame="relative h-[132px] overflow-hidden rounded-lg border border-line-subtle bg-surface pl-2.5 pt-2" />
-<State component="app-menu" state="open-metadata" label="open · current = Image Metadata" frame="relative h-[132px] overflow-hidden rounded-lg border border-line-subtle bg-surface pl-2.5 pt-2" />
-<State component="app-menu" state="open-settings" label="open · current = Settings" frame="relative h-[132px] overflow-hidden rounded-lg border border-line-subtle bg-surface pl-2.5 pt-2" />
+<Gallery min="600px">
+<State component="app-startup" state="error" label="startup failed · reload" frame="flex h-[360px] overflow-hidden rounded-lg border border-line-subtle" />
 </Gallery>
 
-<Rules component="app-menu">
+<Rules component="app-startup">
 
 <ul class="ds-rules">
-<Rule component="app-menu" id="entries">只有 Image Metadata 與 Settings 兩項，沒有分組或分隔線。新增 app 層頁面才加項目；三個模式分頁不放進選單。</Rule>
+<Rule component="app-startup" id="error">用 regular StatusMessage 的 load-error 置中在 `bg-canvas` 上：一句 muted 訊息，按鈕是「Reload」（重新載入整個 App）。不用紅字，不顯示原始例外訊息以外的技術細節。</Rule>
 </ul>
 
 </Rules>
@@ -91,14 +121,6 @@ Header 最左的漢堡選單，放不屬於三個模式分頁的 app 層頁面�
 ## Screen
 
 <Screen>
-    <Slot name="header" component="app-header" states="generate,compare,workflow,other-page,no-endpoint,comfy-down,server-down,connecting" />
+    <Slot name="header" component="app-header" states="generate,compare,workflow,metadata,settings,mac,web,mode-menu,tools-menu,comfy-down,server-down,connecting,status-open,issues,issues-open,no-endpoint" />
     <div class="min-h-0 flex-1 bg-canvas"></div>
-    <Switch name="overlay">
-        <Case state="none" label="none" />
-        <Case state="menu" label="App menu open">
-            <div class="absolute left-0 top-0 z-40 pl-2.5 pt-[9.5px]">
-                <Slot name="menu" component="app-menu" states="open,open-metadata,open-settings" />
-            </div>
-        </Case>
-    </Switch>
 </Screen>

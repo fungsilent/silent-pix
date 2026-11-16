@@ -16,7 +16,6 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 <State component="editable" state="idle" label="idle" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
 <State component="editable" state="placeholder" label="empty · placeholder" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
 <State component="editable" state="editing" label="editing" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
-<State component="editable" state="error" label="save failed" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
 <State component="editable" state="disabled" label="disabled" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
 <State component="editable" state="read-only" label="read-only · no trigger" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
 </Gallery>
@@ -25,7 +24,7 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 
 <ul class="ds-rules">
 <Rule component="editable" id="preview">就地改名：平時是外觀同 text-field 的預覽框，右側一顆 28px ghost 筆形 icon-button；點預覽或筆形進入編輯。用在 detail row（label 欄 74px）中，不另開改名 dialog。</Rule>
-<Rule component="editable" id="editing">編輯中預覽與筆形都隱藏，只剩 focus 樣式的 input；Enter／失焦送出、Esc 取消。送出失敗時保持編輯並在下方顯示 L0 field-hint danger。</Rule>
+<Rule component="editable" id="editing">編輯中預覽與筆形都隱藏，只剩 focus 樣式的 input；Enter／失焦送出、Esc 取消。送出失敗時保持編輯，錯誤由 Header 的 Issue chip 顯示（見 App model 的錯誤分層），Editable 本身不加錯誤提示。</Rule>
 <Rule component="editable" id="empty">空值顯示 placeholder（`Untitled`）並以 `text-fg-muted` 呈現。</Rule>
 <Rule component="editable" id="disabled">停用（例如封存的項目、尚未建立的草稿）沿用 field 停用樣式，筆形仍在但不可用；純檢視的位置連筆形都不出現。</Rule>
 </ul>

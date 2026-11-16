@@ -49,7 +49,7 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 <Rule component="bar" id="layout">固定 `h-12 items-center gap-3 bg-surface`。左群組 `gap-2`：標題 `text-[13px] font-semibold leading-none text-fg`、單行 truncate；meta 緊接標題，`text-[11.5px] text-fg-muted`，數字用 `tabular-nums`。右群組 `ml-auto gap-2` 放動作。</Rule>
 <Rule component="bar" id="page-bar">page：頁面主區的 Bar 用 `px-4` 並自帶底線 `border-b border-line-subtle`。in panel：面板內的 Bar 用 `px-2` 讓 28px 圖示鈕貼齊面板邊緣，不畫底線（面板內容自己接在下面）；純圖示動作之間可收緊為 `gap-1`。</Rule>
 <Rule component="bar" id="buttons">Bar 內按鈕：文字鈕用 L0 Button bar（`h-7 px-3 text-xs`），圖示鈕用 L0 Icon button `size-7` ghost。整條 Bar 最多一顆 solid accent 主要動作，放最右。</Rule>
-<Rule component="bar" id="issue-chip">問題摘要（L0 Issue chip）放在右群組、主要動作的左邊。</Rule>
+<Rule component="bar" id="issue-chip">面板 Bar 不放 Issue chip：問題一律集中到 Header（見 App model 的錯誤分層）；右群組只放面板自己的動作。</Rule>
 </ul>
 
 </Rules>

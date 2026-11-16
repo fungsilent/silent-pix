@@ -4,7 +4,7 @@
 
 ## 頁面結構
 
-- 側欄先列 **Tokens**（`src/content/docs/foundations/`）與**基礎元件**（`src/content/docs/base/<group>/<component>.mdx`，一個元件一頁），再列**頁面**（`src/content/docs/pages/<page>.mdx`，一個產品頁面一頁）。App 頁只放所有頁面共用的整體版面與導覽（Header、App menu），也有自己的 Screen。多個頁面都會用、但不屬於版面的通用元件（例如 Image viewer、Zoom controls）放基礎元件（例如 Media 組）。只用在單一頁面的部件放在該頁；各頁內容不同、或之後可能各自演化的（例如各頁的確認 dialog、Generate 選參考圖與 Compare 加圖的 picker），拆成各頁自己的部件，共通的外框由基礎元件（例如 Dialog）負責。
+- 側欄先列 **Tokens**（`src/content/docs/foundations/`）與**基礎元件**（`src/content/docs/base/<group>/<component>.mdx`，一個元件一頁），再列**頁面**（`src/content/docs/pages/<page>.mdx`，一個產品頁面一頁）。App 頁只放所有頁面共用的整體版面與導覽（Header 與其中的模式、Tools 選單），也有自己的 Screen。多個頁面都會用、但不屬於版面的通用元件（例如 Image viewer、Zoom controls）放基礎元件（例如 Media 組）。只用在單一頁面的部件放在該頁；各頁內容不同、或之後可能各自演化的（例如各頁的確認 dialog、Generate 選參考圖與 Compare 加圖的 picker），拆成各頁自己的部件，共通的外框由基礎元件（例如 Dialog）負責。
 - 產品頁面內：每個部件（L1）一個 `##` 章節，依畫面由外到內、由上到下排列；最後一個章節是 `## Screen`，即整頁示範（L2）。
 - 基礎元件頁以 `## Examples` 放範例，頁末放 `<Rules>`。一個元件包含幾個各自有狀態與規則的子元件時（例如 Panel 的 Bar、Collapse button），改成每個子元件一個 `##` 章節，各自有格子寬度與 `<Rules>`。基礎元件頁只畫元件的骨架與通用狀態，內容用一眼看得出是佔位的中性文字（例如 `Label`、`Value`、`Section`、`Menu item`），不用像真實產品的內容拼湊，也不發明產品沒有的項目；通用規則只寫在這裡。各頁的實例只放客製的部分（自己的內容、只有這頁才有的狀態與規則），簡介用一句話連到基礎元件頁，不重畫通用狀態；沒有客製的實例不另外展示。實作時不照抄佔位文字。只是另一個元件的固定用法或變體（例如 Task status 之於 Badge、Stage button 之於 Icon button），也併成同一頁的章節，不另立一頁；狀態多的單一元件，依性質分成幾節（例如 Button 的 Variant 與 tone、狀態、尺寸與版面）。
 - 頁面標題與簡介只寫在 frontmatter，不在內文重複。
