@@ -1,0 +1,19 @@
+{
+  "app": {
+    "windows": [
+      {
+        "title": "Silent Pix",
+        "width": 1440,
+        "height": 960,
+        "resizable": true,
+        "decorations": true,
+        "fullscreen": false,
+        "dragDropEnabled": false,
+        "minWidth": 960,
+        "minHeight": 640,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true
+      }
+    ]
+  }
+}

@@ -3,7 +3,7 @@ import { CompareWorkspace } from '#/pages/compare/components/CompareWorkspace'
 
 export function ComparePage() {
     return (
-        <div class='flex h-[calc(100dvh-48px)] min-h-0 overflow-hidden'>
+        <div class='flex min-h-0 flex-1 overflow-hidden'>
             <CompareWorkspace />
             <CompareDetail />
         </div>

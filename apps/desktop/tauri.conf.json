@@ -21,6 +21,7 @@
         "width": 1440,
         "height": 960,
         "resizable": true,
+        "decorations": false,
         "fullscreen": false,
         "dragDropEnabled": false,
         "minWidth": 960,

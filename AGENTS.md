@@ -3,7 +3,7 @@
 These are implementation constraints. `docs/architecture.md` describes current structure and known gaps; `docs/conventions.md` explains the conventions. Keep the three aligned. An implementation gap does not relax an invariant.
 
 - Keep package ownership strict:
-    - `apps/web`: SolidJS UI and backend API client, plus the single narrow Tauri command bridge in `src/lib/platform.ts`. The bridge may detect Tauri and call fixed Desktop settings commands; native storage and validation remain in `apps/desktop`. It must not expose arbitrary native commands or paths. Shared UI primitives live in `apps/web/src/components`; page-specific UI lives under that page folder.
+    - `apps/web`: SolidJS UI and backend API client, plus the single narrow Tauri command bridge in `src/lib/platform.ts`. The bridge may detect Tauri, call fixed Desktop settings commands, and call the fixed current-window controls (start dragging, minimize, toggle maximize, close) for the custom title bar; native storage and validation remain in `apps/desktop`. It must not expose arbitrary native commands or paths. Shared UI primitives live in `apps/web/src/components`; page-specific UI lives under that page folder.
     - `apps/server`: Elysia app, middleware, routes, services, env, and lifecycle.
     - `apps/desktop`: desktop shell, startup model, and validated native local Server settings.
     - `apps/design`: the design system blueprint content (pages, state fragments, its own token stylesheet), built with `packages/blueprint`. It and `apps/web` never import each other.

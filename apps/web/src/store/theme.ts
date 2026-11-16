@@ -20,8 +20,4 @@ export const themeStore = createStore({ theme: themeFromDocument() }, store => (
             /* Session changes still work when persistence is unavailable. */
         }
     },
-    toggleTheme: () => {
-        const theme: Theme = store.state.theme === 'dark' ? 'light' : 'dark'
-        themeStore.setTheme(theme)
-    },
 }))

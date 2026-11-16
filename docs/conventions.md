@@ -590,7 +590,7 @@ clicking one expands Nodes, scrolls to that node and highlights it briefly.
 String inputs that parse as a JSON object or array are shown indented. Raw lists
 every field unprocessed under its original key. Prompt, API and Workflow copy use the original payload
 after any EXIF prefix; Raw copy retains the entire field. Incomplete results
-show a warning without manufacturing a missing Workflow. AppMenu and Settings
+show a warning without manufacturing a missing Workflow. The Tools menu and Settings
 remain reachable without a configured endpoint; health and events stay guarded.
 Valid JSON is displayed with two-space indentation by changing whitespace
 outside strings only; copy retains the original text, including large
@@ -641,7 +641,8 @@ Current component roles:
 
 ```txt
 components/Header.tsx
-    App-level header with an icon-only theme toggle beside service status.
+    App-level header and Desktop title bar: mode menu, Tools menu, drag region,
+    service status light with a Popover, Settings button, and window controls.
 
 components/base/Button.tsx
     Base button primitive.
@@ -659,7 +660,10 @@ components/base/Dialog.tsx
     Modal primitive. Takes children and footer so each caller composes its own body.
 
 components/base/IssueChip.tsx
-    Shared issue popover chip. Consumers pass `AppIssue[]` from `lib/issue.ts`.
+    Shared issue chip (count only) with its issue list in a Popover. Consumers pass `AppIssue[]` from `lib/issue.ts`.
+
+components/base/Popover.tsx
+    Ark Popover with the shared L0 Popover surface; callers style their trigger.
 
 components/detail/*
     Detail-panel composition primitives: DetailTitle, DetailSection, DetailGroup,

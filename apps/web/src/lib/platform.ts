@@ -1,4 +1,5 @@
 import { invoke, isTauri } from '@tauri-apps/api/core'
+import { getCurrentWindow } from '@tauri-apps/api/window'
 import { z } from 'zod'
 
 import { t } from '#/lib/i18n'
@@ -84,6 +85,17 @@ export function getPlatform(): Platform {
     }
 
     return platform
+}
+
+export function isMacDesktop(): boolean {
+    return getPlatform().kind === 'desktop' && navigator.userAgent.includes('Mac')
+}
+
+/* 只開放目前視窗的固定控制；拖曳由 data-tauri-drag-region 處理 */
+export const currentWindow = {
+    minimize: () => void getCurrentWindow().minimize(),
+    toggleMaximize: () => void getCurrentWindow().toggleMaximize(),
+    close: () => void getCurrentWindow().close(),
 }
 
 export function validateLocalServerUrl(value: string): LocalServerUrl {

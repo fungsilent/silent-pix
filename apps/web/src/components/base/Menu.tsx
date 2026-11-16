@@ -10,6 +10,7 @@ import type { JSX } from 'solid-js'
 type MenuProps = {
     trigger: JSX.Element
     children: JSX.Element
+    disabled?: boolean
     classes?: {
         trigger?: string
         content?: string
@@ -19,11 +20,14 @@ type MenuProps = {
 export function Menu(props: MenuProps) {
     return (
         <ArkMenu.Root positioning={{ placement: 'bottom-start', gutter: 4 }}>
+            {/* 選完項目焦點會還給觸發鈕並被判成 focus-visible；桌面選單列不顯示焦點框 */}
             <ArkMenu.Trigger
+                disabled={props.disabled}
                 class={cn(
                     'flex items-center justify-center rounded-md border border-transparent outline-none',
                     'data-[state=open]:bg-selected data-[state=open]:text-fg',
-                    'hover:bg-hover focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40',
+                    'hover:bg-hover',
+                    'disabled:opacity-60 disabled:hover:bg-transparent',
                     props.classes?.trigger,
                 )}
             >

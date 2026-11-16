@@ -121,7 +121,7 @@ export function GeneratePage() {
         <GenerateStoreProvider store={generateStore}>
             <GenerateDetailProvider value={detail}>
                 <form
-                    class='flex h-[calc(100dvh-48px)] min-h-0 overflow-hidden'
+                    class='flex min-h-0 flex-1 overflow-hidden'
                     onKeyDown={event => {
                         if (
                             event.key === 'Enter'

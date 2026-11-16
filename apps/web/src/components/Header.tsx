@@ -1,123 +1,196 @@
-import { Columns2, FileImage, Menu as MenuIcon, Moon, Settings, Sparkles, Sun, Workflow } from 'lucide-solid'
-import { Show } from 'solid-js'
+import { ChevronDown, Columns2, FileImage, Minus, RefreshCw, Settings, Sparkles, Square, Workflow, X } from 'lucide-solid'
+import { createMemo, For, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { Menu, MenuItem } from '#/components/base/Menu'
-import { SegmentGroup } from '#/components/base/SegmentGroup'
+import { Popover } from '#/components/base/Popover'
 import { useHealthQuery } from '#/features/app/app.query'
 import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
-import { getPlatform } from '#/lib/platform'
+import { currentWindow, getPlatform, isMacDesktop } from '#/lib/platform'
 import { appStore, serviceHealth } from '#/store/app'
-import { themeStore } from '#/store/theme'
 
-import type { SegmentGroupOption } from '#/components/base/SegmentGroup'
+import type { JSX } from 'solid-js'
 
 /* MARK: Header */
 type Mode = 'generate' | 'compare' | 'workflow'
 
 const modeIcon = { size: 13, strokeWidth: 1.6 }
 
-const modeOptions = [
+const modes: { value: Mode, label: () => string, icon: () => JSX.Element }[] = [
     { value: 'generate', label: () => t('header.generate'), icon: () => <Sparkles {...modeIcon} /> },
     { value: 'compare', label: () => t('header.compare'), icon: () => <Columns2 {...modeIcon} /> },
     { value: 'workflow', label: () => t('header.workflow'), icon: () => <Workflow {...modeIcon} /> },
-] as const satisfies readonly SegmentGroupOption<Mode>[]
+]
 
+const menuTrigger = 'h-7 shrink-0 gap-1.5 px-2.5 text-xs font-medium'
+
+/*
+ * Desktop 不用作業系統的標題列：Header 就是標題列。
+ * data-tauri-drag-region 只作用在標記的元素本身，所以控制項照常可點，空白處可拖曳、雙擊放大。
+ */
 export function Header() {
     const platform = getPlatform()
+    const windowControls = platform.kind === 'desktop' && !isMacDesktop()
+    const pageMode = () => modes.find(item => item.value === appStore.state.page)
+    /* 在 Tools 或 Settings 頁時，模式選單仍顯示最後使用的模式 */
+    const currentMode = createMemo<(typeof modes)[number]>(previous => pageMode() ?? previous, modes[0]!)
+    const onMode = () => pageMode() !== undefined
 
     return (
-        <header class='flex h-12 shrink-0 items-center gap-3 overflow-x-auto border-b border-line-subtle bg-surface pl-2.5 pr-3'>
-            <AppMenu />
-            <span class='shrink-0 whitespace-nowrap text-[13px] font-semibold tracking-[0.02em] text-fg'>Silent Pix</span>
+        <header
+            data-tauri-drag-region
+            class={cn(
+                'flex h-9 shrink-0 items-center gap-1 border-b border-line-subtle bg-surface',
+                isMacDesktop() ? 'pl-[78px]' : 'pl-3',
+                windowControls ? 'pr-0' : 'pr-3',
+            )}
+        >
+            <span
+                data-tauri-drag-region
+                class='mr-2 shrink-0 whitespace-nowrap text-[13px] font-semibold tracking-[0.02em] text-fg'
+            >
+                Silent Pix
+            </span>
 
-            <SegmentGroup
-                value={modeOptions.find(option => option.value === appStore.state.page)?.value ?? null}
-                options={modeOptions}
+            <Menu
                 disabled={!platform.endpoint}
-                classes={{ root: 'ml-1' }}
-                onChange={appStore.setPage}
+                classes={{ trigger: cn(menuTrigger, onMode() ? 'text-fg' : 'text-fg-muted') }}
+                trigger={(
+                    <>
+                        {currentMode().icon()}
+                        {currentMode().label()}
+                        <ChevronDown
+                            class='shrink-0 opacity-60'
+                            size={12}
+                            strokeWidth={2}
+                        />
+                    </>
+                )}
+            >
+                <For each={modes}>
+                    {mode => (
+                        <MenuItem
+                            value={mode.value}
+                            label={mode.label()}
+                            current={appStore.state.page === mode.value}
+                            icon={mode.icon()}
+                            onSelect={() => appStore.setPage(mode.value)}
+                        />
+                    )}
+                </For>
+            </Menu>
+
+            <Menu
+                classes={{ trigger: cn(menuTrigger, appStore.state.page === 'metadata' ? 'text-fg' : 'text-fg-muted') }}
+                trigger={(
+                    <>
+                        {t('header.tools')}
+                        <ChevronDown
+                            class='shrink-0 opacity-60'
+                            size={12}
+                            strokeWidth={2}
+                        />
+                    </>
+                )}
+            >
+                <MenuItem
+                    value='metadata'
+                    label={t('metadata.title')}
+                    current={appStore.state.page === 'metadata'}
+                    icon={(
+                        <FileImage
+                            size={14}
+                            strokeWidth={1.7}
+                        />
+                    )}
+                    onSelect={() => appStore.setPage('metadata')}
+                />
+            </Menu>
+
+            <div
+                data-tauri-drag-region
+                class='h-full min-w-6 flex-1'
             />
 
-            <div class='flex-1' />
-
-            <ThemeToggle />
             <Show when={platform.endpoint}>
                 <ServiceStatus />
+            </Show>
+            <Button
+                variant='ghost'
+                title={t('common.settings')}
+                classes={{
+                    root: cn(
+                        'size-7 shrink-0 p-0',
+                        appStore.state.page === 'settings' ? 'bg-selected text-fg hover:bg-selected' : 'text-fg-secondary',
+                    ),
+                }}
+                onClick={() => appStore.setPage('settings')}
+            >
+                <Settings
+                    size={15}
+                    strokeWidth={1.7}
+                />
+            </Button>
+
+            <Show when={windowControls}>
+                <WindowControls />
             </Show>
         </header>
     )
 }
 
-function AppMenu() {
+/* MARK: WindowControls */
+function WindowControls() {
+    const control = 'flex h-full w-[46px] items-center justify-center text-fg-secondary outline-none hover:bg-hover'
+
     return (
-        <Menu
-            classes={{ trigger: 'size-7 shrink-0 text-fg-secondary' }}
-            trigger={(
-                <MenuIcon
-                    size={16}
-                    strokeWidth={1.6}
+        <div class='ml-2 flex h-full shrink-0'>
+            <button
+                type='button'
+                title={t('header.minimize')}
+                class={control}
+                onClick={currentWindow.minimize}
+            >
+                <Minus
+                    size={14}
+                    strokeWidth={1.5}
                 />
-            )}
-        >
-            <MenuItem
-                value='metadata'
-                label={t('metadata.title')}
-                current={appStore.state.page === 'metadata'}
-                icon={(
-                    <FileImage
-                        size={14}
-                        strokeWidth={1.7}
-                    />
-                )}
-                onSelect={() => appStore.setPage('metadata')}
-            />
-            <MenuItem
-                value='settings'
-                label={t('common.settings')}
-                current={appStore.state.page === 'settings'}
-                icon={(
-                    <Settings
-                        size={14}
-                        strokeWidth={1.7}
-                    />
-                )}
-                onSelect={() => appStore.setPage('settings')}
-            />
-        </Menu>
-    )
-}
-
-function ThemeToggle() {
-    const dark = () => themeStore.state.theme === 'dark'
-
-    return (
-        <Button
-            variant='ghost'
-            title={dark() ? t('header.switchToLightTheme') : t('header.switchToDarkTheme')}
-            classes={{ root: 'size-7 shrink-0 p-0 text-fg-secondary' }}
-            onClick={() => themeStore.toggleTheme()}
-        >
-            {dark()
-                ? (
-                    <Sun
-                        size={16}
-                        strokeWidth={1.7}
-                    />
-                )
-                : (
-                    <Moon
-                        size={16}
-                        strokeWidth={1.7}
-                    />
-                )}
-        </Button>
+            </button>
+            <button
+                type='button'
+                title={t('header.maximize')}
+                class={control}
+                onClick={currentWindow.toggleMaximize}
+            >
+                <Square
+                    size={12}
+                    strokeWidth={1.5}
+                />
+            </button>
+            <button
+                type='button'
+                title={t('header.close')}
+                class={cn(control, 'hover:bg-danger hover:text-on-stage')}
+                onClick={currentWindow.close}
+            >
+                <X
+                    size={14}
+                    strokeWidth={1.5}
+                />
+            </button>
+        </div>
     )
 }
 
 /* MARK: ServiceStatus */
 type ServiceState = 'up' | 'down' | 'unknown'
+
+const dotClass: Record<ServiceState, string> = {
+    up: 'bg-success shadow-health-up',
+    down: 'bg-danger shadow-health-down',
+    unknown: 'bg-fg-muted',
+}
 
 function ServiceStatus() {
     const query = useHealthQuery()
@@ -129,7 +202,7 @@ function ServiceStatus() {
     const health = () => serviceHealth()
         ?? (appStore.state.hasConnected ? undefined : query.data)
 
-    const connectionState = (): ServiceState => {
+    const serverState = (): ServiceState => {
         if (appStore.state.connection === 'connected') {
             return 'up'
         }
@@ -147,66 +220,65 @@ function ServiceStatus() {
         return value[service] ? 'up' : 'down'
     }
 
-    return (
-        <Button
-            classes={{ root: 'h-7 shrink-0 gap-0 border-line-subtle px-1 py-0' }}
-            onClick={() => void query.refetch()}
-        >
-            <ServiceSegment
-                service='server'
-                name='Server'
-                state={connectionState()}
-            />
-            <Divider />
-            <ServiceSegment
-                service='database'
-                name='DB'
-                state={state('database')}
-            />
-            <Divider />
-            <ServiceSegment
-                service='comfy'
-                name='Comfy'
-                state={state('comfy')}
-            />
-        </Button>
-    )
-}
+    const services = () => [
+        { name: 'Server', state: serverState() },
+        { name: 'DB', state: state('database') },
+        { name: 'Comfy', state: state('comfy') },
+    ]
+    const down = () => services().filter(service => service.state === 'down')
+    const allUp = () => services().every(service => service.state === 'up')
 
-function Divider() {
     return (
-        <span
-            class='mx-0.5 h-3.5 w-px shrink-0 bg-line'
-        />
-    )
-}
-
-/* MARK: ServiceSegment */
-type ServiceSegmentProps = {
-    name: string
-    service: 'comfy' | 'database' | 'server'
-    state: ServiceState
-}
-
-function ServiceSegment(props: ServiceSegmentProps) {
-    return (
-        <span
-            class={cn(
-                'flex h-5 items-center gap-1.5 rounded px-2 text-[11.5px] leading-none',
-                props.state === 'down'
-                    ? 'bg-danger/12 text-danger-fg'
-                    : 'text-fg-secondary',
+        <Popover
+            placement='bottom-end'
+            classes={{
+                trigger: cn(
+                    'flex h-7 shrink-0 items-center justify-center gap-1.5 rounded-md text-xs',
+                    allUp() ? 'w-7' : 'px-2',
+                    down().length > 0
+                        ? 'bg-danger/12 text-danger-fg hover:bg-danger/[0.18]'
+                        : 'text-fg-muted hover:bg-hover data-[state=open]:bg-selected data-[state=open]:text-fg',
+                ),
+                content: 'w-60',
+            }}
+            trigger={(
+                <Show
+                    when={!allUp()}
+                    fallback={<span class={cn('size-2 shrink-0 rounded-full', dotClass.up)} />}
+                >
+                    <span class={cn('size-1.5 shrink-0 rounded-full', down().length > 0 ? dotClass.down : dotClass.unknown)} />
+                    {down().length === 0
+                        ? t('header.status.connecting')
+                        : down().length === 1
+                            ? t('header.status.oneDown', { name: down()[0]!.name })
+                            : t('header.status.downCount', { count: down().length })}
+                </Show>
             )}
         >
-            <span
-                class={cn(
-                    'size-1.5 shrink-0 rounded-full',
-                    props.state === 'up' && 'bg-success shadow-health-up',
-                    props.state === 'down' && 'bg-danger shadow-health-down',
-                    props.state === 'unknown' && 'bg-fg-muted',
+            <For each={services()}>
+                {service => (
+                    <div class='flex h-8 items-center gap-2 px-2 text-xs'>
+                        <span class={cn('size-1.5 shrink-0 rounded-full', dotClass[service.state])} />
+                        <span class='text-fg-secondary'>{service.name}</span>
+                        <span class={cn('ml-auto', service.state === 'down' ? 'text-danger-fg' : 'text-fg-muted')}>
+                            {t(`header.status.${service.state}`)}
+                        </span>
+                    </div>
                 )}
-            />
-            {props.name}
-        </span>
+            </For>
+            <div class='my-1 border-t border-line-subtle' />
+            <div class='flex justify-end px-1 pb-0.5'>
+                <Button
+                    classes={{ root: 'h-6 shrink-0 gap-1.5 px-2' }}
+                    onClick={() => void query.refetch()}
+                >
+                    <RefreshCw
+                        size={12}
+                        strokeWidth={1.8}
+                    />
+                    {t('header.status.recheck')}
+                </Button>
+            </div>
+        </Popover>
     )
 }

@@ -11,10 +11,12 @@ import { cn } from '#/lib/cn'
 import { localeStore, t } from '#/lib/i18n'
 import { getPlatform, saveLocalServerUrl, validateLocalServerUrl } from '#/lib/platform'
 import { devStore } from '#/store/dev'
+import { themeStore } from '#/store/theme'
 
 import type { SegmentGroupOption } from '#/components/base/SegmentGroup'
 import type { LocalServerUrl } from '#/lib/platform'
 import type { DevMode } from '#/store/dev'
+import type { Theme } from '#/store/theme'
 import type { Accessor, JSX } from 'solid-js'
 
 type ConnectionStatus = 'connected' | 'failed'
@@ -23,6 +25,11 @@ const languageOptions = [
     { value: 'en', label: 'English' },
     { value: 'zh-TW', label: '繁體中文' },
 ]
+
+const themeOptions = [
+    { value: 'dark', label: () => t('settings.themeDark') },
+    { value: 'light', label: () => t('settings.themeLight') },
+] as const satisfies readonly SegmentGroupOption<Theme>[]
 
 export function SettingsPage() {
     const queryClient = useQueryClient()
@@ -119,8 +126,8 @@ export function SettingsPage() {
             <div class='scrollbar-thin min-h-0 flex-1 overflow-y-auto px-4 py-[18px]'>
                 <div class='mx-auto flex w-full max-w-[520px] flex-col gap-3.5'>
                     <SettingCard
-                        title={t('settings.language')}
-                        description={t('settings.languageDescription')}
+                        title={t('settings.appearance')}
+                        description={t('settings.appearanceDescription')}
                     >
                         <div class='border-t border-line-subtle px-3.5 py-3'>
                             <Select
@@ -130,6 +137,16 @@ export function SettingsPage() {
                                 onChange={localeStore.setLocale}
                             />
                         </div>
+                        <SettingRow
+                            label={t('settings.theme')}
+                            hint={t('settings.themeHint')}
+                        >
+                            <SegmentGroup
+                                value={themeStore.state.theme}
+                                options={themeOptions}
+                                onChange={themeStore.setTheme}
+                            />
+                        </SettingRow>
                     </SettingCard>
                     <DevSettings
                         mode={() => devStore.state.mode}

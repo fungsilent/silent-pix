@@ -148,7 +148,7 @@ Property lookup reads two-space JSON, decodes keys, and replaces duplicate prope
 subtrees so line lookup follows JSON's last-value behavior. Workflow owns the
 node/inputs projection and mapping rules. Its object parsing and REST serialization
 retain their existing JavaScript number behavior.
-The AppMenu opens this Tool without a Server endpoint. Header and Settings remain
+The Header Tools menu opens this Tool without a Server endpoint. Header and Settings remain
 available when Desktop settings are empty; generation workspaces stay disabled,
 and health queries/Server events start only when an endpoint exists. Web can use
 the Tool after its assets load; this does not add offline asset caching. Windows
@@ -186,7 +186,7 @@ Theme runtime:
 - Theme is `light | dark`; missing or invalid values default to dark
 - `apps/web/index.html` synchronously reads `silent-pix.theme` before first paint and sets `data-theme`
 - `apps/web/src/store/theme.ts` owns runtime theme state, DOM updates, and best-effort localStorage persistence
-- Header exposes an icon-only toggle beside service status
+- Settings Appearance card switches Dark/Light; the Header has no theme toggle
 - `styles.css` owns token values and mappings; `lib/theme.ts` owns reusable class recipes
 - inline ImageStage follows theme (near-black in dark, near-white in light; the empty state moves one step toward canvas)
 - the full-screen viewer backdrop and every glass control stay fixed transparent black with white icons in both themes; content drawn directly on a stage uses `stage-fg`
@@ -351,6 +351,13 @@ Vite for UI assets and HMR while REST, WebSocket, and image traffic goes directl
 to the native saved Server URL; the shell does not start the backend or ComfyUI.
 Tauri's native drag/drop handler is disabled so the shared Web UI receives
 HTML5 file-drop events, including reference-image drops on Windows WebView2.
+The OS title bar is replaced by the shared Web Header: Windows/Linux use
+`decorations: false` and the Header draws minimize/maximize/close through the
+fixed current-window controls in `lib/platform.ts`; `tauri.macos.conf.json`
+keeps the native traffic lights with an Overlay title bar. Header blank areas
+carry `data-tauri-drag-region` (drag, double-click maximize). Capabilities
+grant only those window permissions. Windows Snap Layouts on the custom
+maximize button and Linux edge resizing are not verified from this workspace.
 
 The repository-root `.env` is the shared development endpoint source:
 `WEB_HOST` and `WEB_PORT` configure Browser Vite, Desktop Vite desktop mode,

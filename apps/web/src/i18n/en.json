@@ -3,8 +3,6 @@
         "cancel": "Cancel",
         "retry": "Retry",
         "settings": "Settings",
-        "issues_one": "{{count}} issue",
-        "issues_other": "{{count}} issues",
         "apply": "Apply",
         "clear": "Clear",
         "close": "Close",
@@ -27,8 +25,19 @@
         "generate": "Generate",
         "compare": "Compare",
         "workflow": "Workflow",
-        "switchToLightTheme": "Switch to light theme",
-        "switchToDarkTheme": "Switch to dark theme"
+        "tools": "Tools",
+        "minimize": "Minimize",
+        "maximize": "Maximize",
+        "close": "Close",
+        "status": {
+            "connecting": "Connecting",
+            "oneDown": "{{name}} down",
+            "downCount": "{{count}} down",
+            "up": "Connected",
+            "down": "Not reachable",
+            "unknown": "Unknown",
+            "recheck": "Recheck"
+        }
     },
     "settings": {
         "saveServerTitle": "Save Server and reload?",
@@ -63,7 +72,12 @@
             "loadingPreviewHint": "Show the existing loading skeletons."
         },
         "language": "Language",
-        "languageDescription": "Choose the display language. Your selection is saved on this device."
+        "appearance": "Appearance",
+        "appearanceDescription": "Language and theme for this device.",
+        "theme": "Theme",
+        "themeHint": "Applies immediately.",
+        "themeDark": "Dark",
+        "themeLight": "Light"
     },
     "platform": {
         "localServerUrlFormat": "Use http://127.0.0.1:<port> without a path.",

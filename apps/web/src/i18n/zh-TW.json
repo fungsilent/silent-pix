@@ -3,8 +3,6 @@
         "cancel": "取消",
         "retry": "重試",
         "settings": "設定",
-        "issues_one": "{{count}} 個問題",
-        "issues_other": "{{count}} 個問題",
         "apply": "套用",
         "clear": "清除",
         "close": "關閉",
@@ -27,8 +25,19 @@
         "generate": "生成",
         "compare": "比較",
         "workflow": "工作流程",
-        "switchToLightTheme": "切換至淺色主題",
-        "switchToDarkTheme": "切換至深色主題"
+        "tools": "工具",
+        "minimize": "最小化",
+        "maximize": "最大化",
+        "close": "關閉",
+        "status": {
+            "connecting": "連線中",
+            "oneDown": "{{name}} 中斷",
+            "downCount": "{{count}} 項中斷",
+            "up": "已連線",
+            "down": "無法連線",
+            "unknown": "未知",
+            "recheck": "重新檢查"
+        }
     },
     "settings": {
         "saveServerTitle": "儲存 Server 並重新載入？",
@@ -63,7 +72,12 @@
             "loadingPreviewHint": "顯示現有的載入骨架畫面。"
         },
         "language": "語言",
-        "languageDescription": "選擇介面顯示語言，選擇會儲存在此裝置。"
+        "appearance": "外觀",
+        "appearanceDescription": "這台裝置的語言與主題。",
+        "theme": "主題",
+        "themeHint": "立即生效。",
+        "themeDark": "深色",
+        "themeLight": "淺色"
     },
     "platform": {
         "localServerUrlFormat": "請使用 http://127.0.0.1:<port>，且不含路徑。",
