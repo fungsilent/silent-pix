@@ -5,10 +5,13 @@ import { probeConnection } from '#/api/connection'
 import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
 import { Dialog } from '#/components/base/Dialog'
+import { FieldHint } from '#/components/base/FieldHint'
 import { SegmentGroup } from '#/components/base/SegmentGroup'
+import { StatusMessage } from '#/components/base/StatusMessage'
 import { Select, Text } from '#/components/field'
 import { cn } from '#/lib/cn'
 import { localeStore, t } from '#/lib/i18n'
+import { useIssueSource } from '#/lib/issue'
 import { getPlatform, saveLocalServerUrl, validateLocalServerUrl } from '#/lib/platform'
 import { devStore } from '#/store/dev'
 import { themeStore } from '#/store/theme'
@@ -38,11 +41,20 @@ export function SettingsPage() {
     const [connectionStatus, setConnectionStatus] = createSignal<ConnectionStatus>()
     const [testing, setTesting] = createSignal(false)
     const [saving, setSaving] = createSignal(false)
-    const [error, setError] = createSignal<() => string>()
+    /* 欄位錯誤留在欄位下；儲存這類操作失敗進 Header 的 Issue chip */
+    const [urlError, setUrlError] = createSignal<() => string>()
+    const [actionError, setActionError] = createSignal<() => string>()
+    useIssueSource(() => {
+        const message = actionError()
+        return message
+            ? [{ id: 'settings-connection', tone: 'error', field: () => t('settings.connection'), message, onDismiss: () => setActionError() }]
+            : []
+    })
     const [pendingServerUrl, setPendingServerUrl] = createSignal<LocalServerUrl>()
 
     const testConnection = async () => {
-        setError(undefined)
+        setUrlError(undefined)
+        setActionError(undefined)
         setConnectionStatus(undefined)
 
         let nextServerUrl: LocalServerUrl
@@ -50,7 +62,7 @@ export function SettingsPage() {
             nextServerUrl = validateLocalServerUrl(serverUrlInput())
         }
         catch (value) {
-            setError(() => () => value instanceof Error ? value.message : t('settings.invalidLocalServerUrl'))
+            setUrlError(() => () => value instanceof Error ? value.message : t('settings.invalidLocalServerUrl'))
             return
         }
 
@@ -74,20 +86,20 @@ export function SettingsPage() {
     const persistServerUrl = async (nextServerUrl: LocalServerUrl) => {
         if (queryClient.isMutating() > 0) {
             setPendingServerUrl(undefined)
-            setError(() => () => t('settings.waitForCurrentAction'))
+            setActionError(() => () => t('settings.waitForCurrentAction'))
             setSaving(false)
             return
         }
 
         setSaving(true)
-        setError(undefined)
+        setActionError(undefined)
         try {
             await saveLocalServerUrl(nextServerUrl)
             window.location.reload()
         }
         catch (value) {
             setPendingServerUrl(undefined)
-            setError(() => () => value instanceof Error ? value.message : t('settings.saveSettingsFailed'))
+            setActionError(() => () => value instanceof Error ? value.message : t('settings.saveSettingsFailed'))
             setSaving(false)
         }
     }
@@ -98,12 +110,12 @@ export function SettingsPage() {
             nextServerUrl = validateLocalServerUrl(serverUrlInput())
         }
         catch (value) {
-            setError(() => () => value instanceof Error ? value.message : t('settings.invalidLocalServerUrl'))
+            setUrlError(() => () => value instanceof Error ? value.message : t('settings.invalidLocalServerUrl'))
             return
         }
 
         if (queryClient.isMutating() > 0) {
-            setError(() => () => t('settings.waitForCurrentAction'))
+            setActionError(() => () => t('settings.waitForCurrentAction'))
             return
         }
 
@@ -160,13 +172,13 @@ export function SettingsPage() {
                             connectionStatus={connectionStatus}
                             testing={testing}
                             saving={saving}
-                            error={() => error()?.()}
+                            urlError={() => urlError()?.()}
                             settingsError={platform.settingsError}
                             hasSavedServerUrl={Boolean(platform.endpoint)}
                             onValueChange={value => {
                                 setServerUrlInput(value)
                                 setConnectionStatus(undefined)
-                                setError(undefined)
+                                setUrlError(undefined)
                             }}
                             onTest={() => void testConnection()}
                             onSave={() => void saveConnection()}
@@ -242,7 +254,7 @@ type ConnectionSettingsProps = {
     connectionStatus: Accessor<ConnectionStatus | undefined>
     testing: Accessor<boolean>
     saving: Accessor<boolean>
-    error: Accessor<string | undefined>
+    urlError: Accessor<string | undefined>
     settingsError: string | undefined
     hasSavedServerUrl: boolean
     onValueChange: (value: string) => void
@@ -260,18 +272,14 @@ function ConnectionSettings(props: ConnectionSettingsProps) {
         >
             <Show when={props.settingsError}>
                 {message => (
-                    <div class='flex flex-col gap-2 border-t border-line-subtle px-3.5 py-3'>
-                        <p class='m-0 flex items-center gap-1.5 text-xs text-danger-fg'>
-                            <span class='size-1.5 shrink-0 rounded-full bg-danger' />
-                            {t('settings.readSettingsError', { message: message() })}
-                        </p>
-                        <Button
-                            variant='ghost'
-                            classes={{ root: 'self-start px-2 text-xs' }}
-                            onClick={props.onRetrySettings}
-                        >
-                            {t('settings.retryReadSettings')}
-                        </Button>
+                    <div class='border-t border-line-subtle px-3.5'>
+                        <StatusMessage
+                            kind='load-error'
+                            size='compact'
+                            message={t('settings.readSettingsError', { message: message() })}
+                            classes={{ root: 'py-3' }}
+                            onRetry={props.onRetrySettings}
+                        />
                     </div>
                 )}
             </Show>
@@ -282,7 +290,12 @@ function ConnectionSettings(props: ConnectionSettingsProps) {
                     placeholder='http://127.0.0.1:3070'
                     onInput={props.onValueChange}
                 />
-                <p class='m-0 text-[11px] leading-4 text-fg-muted'>{t('settings.localServerUrlHint')}</p>
+                <Show
+                    when={props.urlError()}
+                    fallback={<p class='m-0 text-[11px] leading-4 text-fg-muted'>{t('settings.localServerUrlHint')}</p>}
+                >
+                    {message => <FieldHint tone='danger'>{message()}</FieldHint>}
+                </Show>
                 <div class='flex flex-wrap items-center gap-2'>
                     <Button
                         variant='soft'
@@ -302,14 +315,6 @@ function ConnectionSettings(props: ConnectionSettingsProps) {
                     </Button>
                     <ConnectionState status={props.connectionStatus()} />
                 </div>
-                <Show when={props.error()}>
-                    {message => (
-                        <p class='m-0 flex items-center gap-1.5 text-xs text-danger-fg'>
-                            <span class='size-1.5 shrink-0 rounded-full bg-danger' />
-                            {message()}
-                        </p>
-                    )}
-                </Show>
             </div>
         </SettingCard>
     )

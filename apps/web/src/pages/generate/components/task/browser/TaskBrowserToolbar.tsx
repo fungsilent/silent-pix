@@ -10,25 +10,20 @@ import { Show } from 'solid-js'
 
 import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
-import { IssueChip } from '#/components/base/IssueChip'
 import { Text } from '#/components/field/Text'
 import { t } from '#/lib/i18n'
 import { theme } from '#/lib/theme'
 import { TaskFilterChips } from '#/pages/generate/components/task/TaskFilterChips'
 
 import type { TaskApi } from '@silent-pix/shared'
-import type { AppIssue } from '#/lib/issue'
 
 type TaskBrowserToolbarProps = {
     taskFlags: readonly TaskApi.TaskFilterFlag[] | undefined
     search: string
     selectedCount: number
-    issues: AppIssue[]
-    issuesOpen: boolean
     onSearchChange: (search: string) => void
     onTaskFlagsChange: (taskFlags: TaskApi.TaskFilterFlag[] | undefined) => void
     onClearSelection: () => void
-    onIssuesOpenChange: (open: boolean) => void
     onSetFlags: (flag: TaskApi.TaskFlag | null) => void
     flagPending: boolean
     onDeleteSelected: () => void
@@ -79,7 +74,7 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                     onChange={props.onTaskFlagsChange}
                     classes={{ root: 'px-0 pb-0' }}
                 />
-                <Show when={props.selectedCount > 0 || props.issues.length > 0 || props.showPermanentDelete}>
+                <Show when={props.selectedCount > 0 || props.showPermanentDelete}>
                     <div class='ml-auto flex min-w-0 flex-wrap items-center justify-end gap-1'>
                         <Show when={props.selectedCount > 0}>
                             <span class='mr-1 text-xs text-fg-muted tabular-nums'>
@@ -144,13 +139,8 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                                 {t('task.deleteSelectedButton', { count: props.selectedCount })}
                             </Button>
                         </Show>
-                        <IssueChip
-                            issues={props.issues}
-                            open={props.issuesOpen}
-                            onOpenChange={props.onIssuesOpenChange}
-                        />
                         <Show when={props.showPermanentDelete}>
-                            <Show when={props.selectedCount > 0 || props.issues.length > 0}>
+                            <Show when={props.selectedCount > 0}>
                                 <div class='mx-1 h-5 w-px bg-line-subtle' />
                             </Show>
                             <Button

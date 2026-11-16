@@ -3,13 +3,12 @@ import { createMemo, For, Show } from 'solid-js'
 
 import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
-import { FieldHint } from '#/components/base/FieldHint'
 import { Loading } from '#/components/base/Loading'
 import { CollapseButton, Panel, PanelContent } from '#/components/base/Panel'
 import { StatusMessage } from '#/components/base/StatusMessage'
 import { useTaskFeedQuery, useTaskFlagMutation } from '#/features/task/task.query'
-import { toErrorMessage } from '#/lib/error'
 import { t } from '#/lib/i18n'
+import { toFailureIssue, useIssueSource } from '#/lib/issue'
 import { createLoadOnScroll } from '#/lib/loadOnScroll'
 import { TaskItem, TaskItemSkeleton } from '#/pages/generate/components/task/list/TaskItem'
 import { TaskFilterChips, taskFilterEmptyCopy } from '#/pages/generate/components/task/TaskFilterChips'
@@ -20,6 +19,7 @@ const taskSkeletonRows = [0, 1, 2, 3, 4, 5]
 export function TaskList() {
     const taskFeedQuery = useTaskFeedQuery()
     const flagMutation = useTaskFlagMutation()
+    useIssueSource(() => toFailureIssue('task-list-flag', () => t('task.title'), flagMutation.error, () => flagMutation.reset()))
     const loadOnScroll = createLoadOnScroll({
         canLoad: () => taskFeedQuery.hasNextPage
             && !taskFeedQuery.isFetching
@@ -71,16 +71,6 @@ export function TaskList() {
                             onChange={taskStore.setFeedTaskFlags}
                             presentation='icon'
                         />
-                        <Show when={flagMutation.error}>
-                            {error => (
-                                <FieldHint
-                                    tone='danger'
-                                    class='px-3 pb-1'
-                                >
-                                    {toErrorMessage(error())}
-                                </FieldHint>
-                            )}
-                        </Show>
                     </Show>
                     <PanelContent
                         viewportRef={loadOnScroll.setViewport}

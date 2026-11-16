@@ -1,4 +1,4 @@
-import { ChevronDown, RefreshCw, TriangleAlert } from 'lucide-solid'
+import { ChevronDown, RefreshCw, TriangleAlert, X } from 'lucide-solid'
 import { For, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
@@ -92,6 +92,21 @@ export function IssueChip(props: IssueChipProps) {
                                             strokeWidth={1.8}
                                         />
                                         {t('common.retry')}
+                                    </Button>
+                                )}
+                            </Show>
+                            <Show when={!issue.onRetry && issue.onDismiss}>
+                                {onDismiss => (
+                                    <Button
+                                        variant='ghost'
+                                        title={t('common.dismiss')}
+                                        classes={{ root: 'size-6 shrink-0 p-0' }}
+                                        onClick={() => onDismiss()()}
+                                    >
+                                        <X
+                                            size={13}
+                                            strokeWidth={2}
+                                        />
                                     </Button>
                                 )}
                             </Show>

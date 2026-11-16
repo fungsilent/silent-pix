@@ -19,7 +19,9 @@
         "untitled": "Untitled",
         "showAll": "Show all",
         "collapse": "Collapse",
-        "expand": "Expand"
+        "expand": "Expand",
+        "dismiss": "Dismiss",
+        "reload": "Reload"
     },
     "header": {
         "generate": "Generate",
@@ -49,7 +51,6 @@
         "connection": "Connection",
         "connectionDescription": "REST, WebSocket, and image requests all use this URL. Saving reloads the app.",
         "readSettingsError": "Could not read Desktop settings: {{message}}",
-        "retryReadSettings": "Retry reading settings",
         "localServerUrl": "Local Server URL",
         "localServerUrlHint": "Use http://127.0.0.1:<port>. Saving reloads the app.",
         "testing": "Testing...",

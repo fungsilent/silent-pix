@@ -29,7 +29,6 @@ export type TaskInfoData = {
 export type TaskInfoCreateData = TaskInfoData & {
     draft: Accessor<boolean>
     imageCount: Accessor<number>
-    renameError: Accessor<string | undefined>
     renamePending: Accessor<boolean>
     deletePending: Accessor<boolean>
 }
@@ -67,7 +66,6 @@ export function TaskInfo(props: TaskInfoProps) {
         && !props.loading()
         && props.data.status() !== undefined
     const renamePending = () => props.mode === 'create' ? props.data.renamePending() : false
-    const renameError = () => props.mode === 'create' ? props.data.renameError() : undefined
     const deletePending = () => props.mode === 'create' ? props.data.deletePending() : false
     const imageCount = () => props.mode === 'create' ? props.data.imageCount() : 0
 
@@ -139,9 +137,6 @@ export function TaskInfo(props: TaskInfoProps) {
                                 : { root: 'w-full' }}
                         />
                     </Loading.Mask>
-                    <Show when={isCreate() && renameError()}>
-                        <FieldHint tone='danger'>{renameError()}</FieldHint>
-                    </Show>
                 </div>
             </DetailRow>
 

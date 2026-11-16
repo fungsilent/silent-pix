@@ -19,7 +19,9 @@
         "untitled": "未命名",
         "showAll": "顯示全部",
         "collapse": "收合",
-        "expand": "展開"
+        "expand": "展開",
+        "dismiss": "關閉",
+        "reload": "重新載入"
     },
     "header": {
         "generate": "生成",
@@ -49,7 +51,6 @@
         "connection": "連線",
         "connectionDescription": "REST、WebSocket 和圖片請求都使用此 URL。儲存後會重新載入應用程式。",
         "readSettingsError": "無法讀取 Desktop 設定：{{message}}",
-        "retryReadSettings": "重新讀取設定",
         "localServerUrl": "本機 Server URL",
         "localServerUrlHint": "請使用 http://127.0.0.1:<port>。儲存後會重新載入應用程式。",
         "testing": "測試中…",

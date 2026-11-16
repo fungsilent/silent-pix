@@ -3,8 +3,8 @@ import { createEffect, createSignal, on, onCleanup } from 'solid-js'
 import { TaskDetail } from '#/components/task/detail/TaskDetail'
 import { useDeleteTaskMutation, useLoraListQuery, useRenameTaskMutation, useSamplerListQuery } from '#/features/task/task.query'
 import { useWorkflowListQuery } from '#/features/workflow/workflow.query'
-import { toErrorMessage } from '#/lib/error'
 import { t } from '#/lib/i18n'
+import { toFailureIssue, useIssueSource } from '#/lib/issue'
 import { useGenerateDetail } from '#/pages/generate/detail'
 import {
     referencePreviewUrl,
@@ -32,7 +32,8 @@ export function GenerateTaskDetail() {
     const [imagePickerOpen, setImagePickerOpen] = createSignal(false)
     const [loraPickerOpen, setLoraPickerOpen] = createSignal(false)
     const [referenceError, setReferenceError] = createSignal<() => string>()
-    const [renameError, setRenameError] = createSignal<() => string>()
+    const [renameError, setRenameError] = createSignal<unknown>()
+    useIssueSource(() => toFailureIssue('task-rename', () => t('common.detail'), renameError(), () => setRenameError()))
     const loraQuery = useLoraListQuery(loraPickerOpen)
 
     const name = form.useSelector(({ values }) => values.name)
@@ -210,7 +211,7 @@ export function GenerateTaskDetail() {
             })
         }
         catch (cause) {
-            setRenameError(() => () => toErrorMessage(cause))
+            setRenameError(() => cause)
         }
     }
 
@@ -265,7 +266,6 @@ export function GenerateTaskDetail() {
         createdAt: () => detail.task()?.createdAt,
         draft: detail.draft,
         imageCount: () => detail.task()?.images.length ?? 0,
-        renameError: () => renameError()?.(),
         renamePending: () => renameMutation.isPending,
         deletePending: () => deleteMutation.isPending,
     }

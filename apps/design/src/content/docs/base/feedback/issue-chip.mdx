@@ -26,7 +26,7 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 <Rule component="issue-chip" id="tint">染色容器 `border-*/25 bg-*/12 text-*-fg`，hover 加深為 `bg-*/[0.18]`。沒有 issue 時整個 chip 不出現，不留空位。</Rule>
 <Rule component="issue-chip" id="label">chip 只顯示問題數量：警告三角形、粗體數字（`font-semibold tabular-nums`）與 ▾，不顯示訊息內容，一則時也一樣；訊息一律在展開的清單裡看。寬度因此固定，不隨訊息變長。開啟時 chevron 轉 180°。</Rule>
 <Rule component="issue-chip" id="popover">清單是 `w-80` 的 [Popover](/base/container/popover/)，靠 chip 右緣（bottom-end）。每則：來源（mono 大寫 overline，例如 Detail、Workflow、Tasks）、訊息、右側一個動作：能重試的是 soft Retry（`h-6`），操作失敗是 `size-6` 的 ✕ 關閉鈕，前置檢查沒有動作（條件解除時自動消失）；各則以 `border-line-subtle` 分隔。</Rule>
-<Rule component="issue-chip" id="lifetime">操作失敗在同一個操作下次成功或按 ✕ 時移除，換頁不清除；前置檢查只在條件成立時存在。同一句訊息只列一次。Server 斷線造成的失敗不另外列出，由 Header 的服務狀態表示。</Rule>
+<Rule component="issue-chip" id="lifetime">操作失敗在同一個操作下次成功或按 ✕ 時移除；問題屬於某一頁或面板，離開那一頁時一併移除。前置檢查只在條件成立時存在。同一句訊息只列一次。Server 斷線造成的失敗不另外列出，由 Header 的服務狀態表示。</Rule>
 <Rule component="issue-chip" id="message">訊息要交代「怎麼辦」，不直接顯示錯誤代碼或原始例外。</Rule>
 </ul>
 

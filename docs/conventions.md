@@ -478,6 +478,17 @@ Rules:
 
 ## Web UI
 
+Errors follow one placement model. The Header renders the app's only Issue
+chip; pages and panels register issue sources with `useIssueSource()` from
+`lib/issue.ts` while mounted, so their issues leave with them. Pre-flight
+checks (why a primary action is blocked) and operation failures both go there,
+with a source label; operation failures use `toFailureIssue()`, carry a dismiss
+action, and are skipped when the Server is unreachable because the service
+status already says so. Field errors stay as a danger `FieldHint` replacing the
+field's hint, dialog failures stay at the left of the dialog footer, and an
+area that cannot load (including app startup) shows a `StatusMessage`. There
+are no toasts.
+
 The design system in `apps/design` is the blueprint for Web UI. It is a separate
 app built with `packages/blueprint` (Astro + Starlight) and has its own token stylesheet; run it with
 `pnpm dev:design`. Web and the blueprint never import each other. Design or
@@ -579,7 +590,7 @@ terminates the active Worker, and
 callbacks check that Worker identity before updating the page. Preview URLs are
 created only after byte-format validation and revoked when replaced or disposed.
 Copy failures and a multi-file drop over an open file appear as warnings in the
-Issue chip and keep the current result; a multi-file drop on the opening screen
+Header Issue chip and keep the current result; a multi-file drop on the opening screen
 shows the error there. The Generation tab shows processed data in order: Prompt cards, Nodes, then the
 Workflow (API) and Workflow JSON groups; absent groups are hidden. The API graph
 stored under the `prompt` key yields one Prompt card per text-encoder text field,
@@ -660,7 +671,7 @@ components/base/Dialog.tsx
     Modal primitive. Takes children and footer so each caller composes its own body.
 
 components/base/IssueChip.tsx
-    Shared issue chip (count only) with its issue list in a Popover. Consumers pass `AppIssue[]` from `lib/issue.ts`.
+    Issue chip (count only) with its issue list in a Popover. The Header renders the only instance.
 
 components/base/Popover.tsx
     Ark Popover with the shared L0 Popover surface; callers style their trigger.
@@ -679,10 +690,10 @@ lib/*
     theme.ts owns which tokens combine into a role, so components do not each keep a copy.
 
 pages/generate/form.ts, pages/generate/store.ts, pages/generate/issue.ts
-    Generate-page-wide form/controller logic and the issue model feeding the issue chip.
+    Generate-page-wide form/controller logic and the issue model registered with the Header issue chip.
 
 pages/workflow/form.ts, pages/workflow/store.ts, pages/workflow/issue.ts
-    Workflow-page-wide form/controller logic and the issue model feeding the issue chip.
+    Workflow-page-wide form/controller logic and the issue model registered with the Header issue chip.
 
 pages/generate/components/task/*
     Generate-page-only task list and task item UI.

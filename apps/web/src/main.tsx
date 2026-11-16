@@ -3,6 +3,7 @@ import { render } from 'solid-js/web'
 
 import { initializeApiClient } from '#/api/api.client'
 import { App } from '#/App'
+import { StatusMessage } from '#/components/base/StatusMessage'
 import { shouldRetryQuery } from '#/lib/error'
 import { i18nReady, t } from '#/lib/i18n'
 import { initializePlatform } from '#/lib/platform'
@@ -48,8 +49,13 @@ async function startApp(): Promise<void> {
     catch (error) {
         const message = error instanceof Error ? error.message : t('errors.startup')
         render(() => (
-            <main class='flex h-dvh items-center justify-center bg-canvas p-6 text-sm text-danger-fg'>
-                {message}
+            <main class='flex h-dvh items-center justify-center bg-canvas p-6'>
+                <StatusMessage
+                    kind='load-error'
+                    message={message}
+                    retryLabel={t('common.reload')}
+                    onRetry={() => window.location.reload()}
+                />
             </main>
         ), root)
     }

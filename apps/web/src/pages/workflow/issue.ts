@@ -2,6 +2,7 @@ import { ApiError } from '#/api/api.client'
 import { WorkflowMappingApiError } from '#/api/workflow'
 import { toErrorMessage, toIssueMessage } from '#/lib/error'
 import { t } from '#/lib/i18n'
+import { toFailureIssue } from '#/lib/issue'
 
 import type { Comfy } from '@silent-pix/shared'
 import type { ZodIssue } from '#/lib/error'
@@ -121,6 +122,7 @@ export function toLoadIssues(error: unknown): AppIssue[] {
 export function toSaveIssues(input: {
     conflict: boolean
     error: unknown
+    onDismiss: () => void
 }): AppIssue[] {
     if (input.conflict) {
         return [{
@@ -148,10 +150,10 @@ export function toSaveIssues(input: {
         return toMappingIssues(input.error.issues)
     }
 
-    return [{
-        id: 'save-failed',
-        tone: 'error',
-        field: () => t('common.save'),
-        message: () => toErrorMessage(input.error),
-    }]
+    return toFailureIssue(
+        'save-failed',
+        () => t('common.save'),
+        input.error,
+        input.onDismiss
+    )
 }

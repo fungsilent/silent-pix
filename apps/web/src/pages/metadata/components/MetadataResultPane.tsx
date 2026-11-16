@@ -3,7 +3,6 @@ import { createMemo, createSignal, For, Match, onCleanup, Show, Switch } from 's
 
 import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
-import { IssueChip } from '#/components/base/IssueChip'
 import { Loading } from '#/components/base/Loading'
 import { SegmentGroup } from '#/components/base/SegmentGroup'
 import { StatusMessage } from '#/components/base/StatusMessage'
@@ -12,7 +11,6 @@ import { t } from '#/lib/i18n'
 import { formatJsonText } from '#/lib/json'
 
 import type { SegmentGroupOption } from '#/components/base/SegmentGroup'
-import type { AppIssue } from '#/lib/issue'
 import type { MetadataEntry, MetadataNode, MetadataNodeValue } from '#/pages/metadata/metadata.parse'
 import type { JSX } from 'solid-js'
 
@@ -46,11 +44,8 @@ type ResultPaneProps = {
     tab: MetadataTab
     entries: MetadataEntry[]
     loading: boolean
-    issues: AppIssue[]
-    issueOpen: boolean
     copiedId: string | undefined
     onTabChange: (tab: MetadataTab) => void
-    onIssueOpenChange: (open: boolean) => void
     onCopy: (id: string, text: string) => void
 }
 
@@ -65,13 +60,6 @@ export function MetadataResultPane(props: ResultPaneProps) {
                     options={tabOptions}
                     onChange={props.onTabChange}
                 />
-                <Bar.Actions>
-                    <IssueChip
-                        issues={props.issues}
-                        open={props.issueOpen}
-                        onOpenChange={props.onIssueOpenChange}
-                    />
-                </Bar.Actions>
             </Bar.Root>
 
             <Switch>

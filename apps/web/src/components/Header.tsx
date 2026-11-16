@@ -1,12 +1,14 @@
 import { ChevronDown, Columns2, FileImage, Minus, RefreshCw, Settings, Sparkles, Square, Workflow, X } from 'lucide-solid'
-import { createMemo, For, Show } from 'solid-js'
+import { createEffect, createMemo, For, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
+import { IssueChip } from '#/components/base/IssueChip'
 import { Menu, MenuItem } from '#/components/base/Menu'
 import { Popover } from '#/components/base/Popover'
 import { useHealthQuery } from '#/features/app/app.query'
 import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
+import { appIssues, issueList } from '#/lib/issue'
 import { currentWindow, getPlatform, isMacDesktop } from '#/lib/platform'
 import { appStore, serviceHealth } from '#/store/app'
 
@@ -36,6 +38,11 @@ export function Header() {
     /* 在 Tools 或 Settings 頁時，模式選單仍顯示最後使用的模式 */
     const currentMode = createMemo<(typeof modes)[number]>(previous => pageMode() ?? previous, modes[0]!)
     const onMode = () => pageMode() !== undefined
+
+    /* 問題清空時把展開狀態也收掉，否則下次冒出問題會直接彈開 */
+    createEffect(() => {
+        if (appIssues().length === 0) issueList.setOpen(false)
+    })
 
     return (
         <header
@@ -113,6 +120,11 @@ export function Header() {
                 class='h-full min-w-6 flex-1'
             />
 
+            <IssueChip
+                issues={appIssues()}
+                open={issueList.open()}
+                onOpenChange={issueList.setOpen}
+            />
             <Show when={platform.endpoint}>
                 <ServiceStatus />
             </Show>

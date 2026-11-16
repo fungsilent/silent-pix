@@ -1,13 +1,13 @@
 import { FolderOpen, ImagePlus } from 'lucide-solid'
-import { createMemo, createSignal, onCleanup, onMount, Show } from 'solid-js'
+import { createSignal, onCleanup, onMount, Show } from 'solid-js'
 
 import { StatusMessage } from '#/components/base/StatusMessage'
 import { t } from '#/lib/i18n'
+import { useIssueSource } from '#/lib/issue'
 import { MetadataFilePanel } from '#/pages/metadata/components/MetadataFilePanel'
 import { MetadataResultPane } from '#/pages/metadata/components/MetadataResultPane'
 import MetadataWorker from '#/pages/metadata/metadata.worker?worker'
 
-import type { AppIssue } from '#/lib/issue'
 import type { MetadataTab } from '#/pages/metadata/components/MetadataResultPane'
 import type { ImageMetadata, MetadataOutcome } from '#/pages/metadata/metadata.parse'
 
@@ -33,7 +33,6 @@ export function MetadataPage() {
     const [copiedId, setCopiedId] = createSignal<string>()
     const [copyFailed, setCopyFailed] = createSignal(false)
     const [tooManyFiles, setTooManyFiles] = createSignal(false)
-    const [issueOpen, setIssueOpen] = createSignal(false)
     let input: HTMLInputElement | undefined
     let worker: Worker | undefined
     let timeout: number | undefined
@@ -65,7 +64,6 @@ export function MetadataPage() {
         setCopiedId()
         setCopyFailed(false)
         setTooManyFiles(false)
-        setIssueOpen(false)
     }
 
     const fail = (code: PageError) => {
@@ -112,7 +110,7 @@ export function MetadataPage() {
     const openFiles = (files: FileList | null | undefined) => {
         if (!files || files.length === 0) return
         if (files.length > 1) {
-            /* 已開檔時保留目前結果，只在 Issue chip 提示；開啟畫面才顯示錯誤 */
+            /* 已開檔時保留目前結果，只在 Header 的 Issue chip 提示；開啟畫面才顯示錯誤 */
             if (file()) setTooManyFiles(true)
             else fail('TOO_MANY_FILES')
             return
@@ -181,15 +179,16 @@ export function MetadataPage() {
         }
     }
 
-    const issues = createMemo<AppIssue[]>(() => [
+    const field = () => t('metadata.title')
+    useIssueSource(() => [
         ...(result()?.incomplete
-            ? [{ id: 'incomplete', tone: 'warning' as const, message: () => t('metadata.incomplete') }]
+            ? [{ id: 'incomplete', tone: 'warning' as const, field, message: () => t('metadata.incomplete') }]
             : []),
         ...(copyFailed()
-            ? [{ id: 'copy-failed', tone: 'warning' as const, message: () => t('metadata.copyFailed') }]
+            ? [{ id: 'copy-failed', tone: 'warning' as const, field, message: () => t('metadata.copyFailed'), onDismiss: () => setCopyFailed(false) }]
             : []),
         ...(tooManyFiles()
-            ? [{ id: 'too-many-files', tone: 'warning' as const, message: () => t('metadata.errors.TOO_MANY_FILES') }]
+            ? [{ id: 'too-many-files', tone: 'warning' as const, field, message: () => t('metadata.errors.TOO_MANY_FILES'), onDismiss: () => setTooManyFiles(false) }]
             : []),
     ])
 
@@ -239,11 +238,8 @@ export function MetadataPage() {
                             tab={activeTab()}
                             entries={result()?.entries ?? []}
                             loading={loading()}
-                            issues={issues()}
-                            issueOpen={issueOpen()}
                             copiedId={copiedId()}
                             onTabChange={setActiveTab}
-                            onIssueOpenChange={setIssueOpen}
                             onCopy={(id, text) => void copy(id, text)}
                         />
                         <Show when={dragging()}>

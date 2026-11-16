@@ -1,12 +1,12 @@
 import { Sparkles } from 'lucide-solid'
-import { createEffect, createSignal, on, Show } from 'solid-js'
+import { createEffect, on, Show } from 'solid-js'
 
 import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
-import { IssueChip } from '#/components/base/IssueChip'
 import { Loading } from '#/components/base/Loading'
 import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
+import { issueList, useIssueSource } from '#/lib/issue'
 import { promptDefaultHeight, promptMinHeight } from '#/pages/generate/components/workspace/generate/prompt/prompt.theme'
 import { PromptEditor } from '#/pages/generate/components/workspace/generate/prompt/PromptEditor'
 import { useGenerateDetail } from '#/pages/generate/detail'
@@ -30,28 +30,21 @@ export function PromptPanel() {
     const form = store.form
     const isSubmitting = form.useSelector(state => state.isSubmitting)
     const runtimeIssues = useRuntimeIssues()
-    const [issuesOpen, setIssuesOpen] = createSignal(false)
     const issues = () => [...runtimeIssues(), ...store.state.submitIssues]
+    useIssueSource(issues)
     /*
-     * 只有「剛按下 Generate」才自動展開。常駐來源（選項載入失敗）會讓計數在
-     * 使用者什麼都沒做時變動，那時候彈開等於無故打擾。
+     * 只有「剛按下 Generate」才自動展開 Header 的清單。常駐來源（選項載入失敗）會讓計數在
+     * 使用者什麼都沒做時變動，那時候彈開等於無故打擾。chip 只顯示數字，所以一則也展開。
      */
     createEffect(on(
         () => store.state.submitToken,
         token => {
-            if (token > 0) {
-                setIssuesOpen(issues().length > 1)
+            if (token > 0 && issues().length > 0) {
+                issueList.setOpen(true)
             }
         },
         { defer: true },
     ))
-
-    /* 問題清空時把展開狀態也收掉，否則下次冒出問題會直接彈開 */
-    createEffect(() => {
-        if (issues().length === 0) {
-            setIssuesOpen(false)
-        }
-    })
 
     const visible = (kind: PromptKind) => store.state.promptVisible[kind]
     const openCount = () => (visible('positive') ? 1 : 0) + (visible('negative') ? 1 : 0)
@@ -82,11 +75,6 @@ export function PromptPanel() {
                 </Bar.Group>
 
                 <Bar.Actions>
-                    <IssueChip
-                        issues={issues()}
-                        open={issuesOpen()}
-                        onOpenChange={setIssuesOpen}
-                    />
                     <Button
                         size='bar'
                         type='submit'

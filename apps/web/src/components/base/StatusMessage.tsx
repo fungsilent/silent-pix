@@ -39,6 +39,8 @@ type StatusMessageProps = {
     | {
         kind: 'load-error'
         message: string
+        /* 預設是 Retry；App 啟動失敗時是 Reload */
+        retryLabel?: string
         onRetry: () => void
     }
     | {
@@ -60,7 +62,7 @@ export function StatusMessage(props: StatusMessageProps) {
             const onRetry = props.onRetry
 
             return {
-                label: t('common.retry'),
+                label: props.retryLabel ?? t('common.retry'),
                 icon: (
                     <RefreshCw
                         size={compact() ? 13 : 14}

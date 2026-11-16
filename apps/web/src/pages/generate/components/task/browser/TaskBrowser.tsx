@@ -6,8 +6,8 @@ import {
     useTaskFeedQuery,
     useTaskFlagMutation,
 } from '#/features/task/task.query'
-import { toErrorMessage } from '#/lib/error'
 import { t } from '#/lib/i18n'
+import { toFailureIssue, useIssueSource } from '#/lib/issue'
 import { TaskBatchDeleteDialog } from '#/pages/generate/components/task/browser/TaskBatchDeleteDialog'
 import { TaskBrowserGrid } from '#/pages/generate/components/task/browser/TaskBrowserGrid'
 import { TaskBrowserToolbar } from '#/pages/generate/components/task/browser/TaskBrowserToolbar'
@@ -30,13 +30,9 @@ export function TaskBrowser() {
     const [batchDeleteOpen, setBatchDeleteOpen] = createSignal(false)
     const [batchDeleteScope, setBatchDeleteScope] = createSignal<'selected' | 'discard'>('selected')
     const [selectionLimitWarning, setSelectionLimitWarning] = createSignal(false)
-    const [issuesOpen, setIssuesOpen] = createSignal(false)
     const tasks = createMemo(() => taskFeedQuery.data?.pages.flatMap(page => page.items) ?? [])
     const taskById = createMemo(() => new Map(tasks().map(task => [task.id, task])))
     const taskIds = createMemo(() => tasks().map(task => task.id))
-    const flagError = createMemo(() => flagMutation.error
-        ? toErrorMessage(flagMutation.error)
-        : undefined)
     const issues = createMemo<AppIssue[]>(() => {
         const next: AppIssue[] = []
 
@@ -49,18 +45,11 @@ export function TaskBrowser() {
             })
         }
 
-        const error = flagError()
-        if (error) {
-            next.push({
-                id: 'task-flag-error',
-                tone: 'error',
-                field: () => t('task.title'),
-                message: () => error,
-            })
-        }
+        next.push(...toFailureIssue('task-flag-error', () => t('task.title'), flagMutation.error, () => flagMutation.reset()))
 
         return next
     })
+    useIssueSource(issues)
 
     /* Search/filter can make a selected card leave the loaded view. */
     createEffect(() => {
@@ -75,10 +64,6 @@ export function TaskBrowser() {
     createEffect(() => {
         if (selectedTaskIds().length < taskSelectionLimit) {
             setSelectionLimitWarning(false)
-        }
-
-        if (issues().length === 0) {
-            setIssuesOpen(false)
         }
     })
 
@@ -198,15 +183,12 @@ export function TaskBrowser() {
                 taskFlags={taskStore.state.feedTaskFlags}
                 search={taskStore.state.feedSearch}
                 selectedCount={selectedTaskIds().length}
-                issues={issues()}
-                issuesOpen={issuesOpen()}
                 onSearchChange={changeSearch}
                 onTaskFlagsChange={changeFilter}
                 onClearSelection={() => {
                     setSelectedTaskIds([])
                     setSelectionLimitWarning(false)
                 }}
-                onIssuesOpenChange={setIssuesOpen}
                 onSetFlags={setSelectedFlags}
                 flagPending={flagMutation.isPending}
                 onDeleteSelected={() => openBatchDelete('selected')}

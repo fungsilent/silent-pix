@@ -1,13 +1,13 @@
 import { Save, Workflow } from 'lucide-solid'
-import { createMemo, createSignal, Show } from 'solid-js'
+import { createMemo, Show } from 'solid-js'
 
 import { ApiError } from '#/api/api.client'
 import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
-import { IssueChip } from '#/components/base/IssueChip'
 import { Line } from '#/components/base/Line'
 import { StatusMessage } from '#/components/base/StatusMessage'
 import { t } from '#/lib/i18n'
+import { issueList, useIssueSource } from '#/lib/issue'
 import { WorkflowInfo } from '#/pages/workflow/components/config/WorkflowInfo'
 import { WorkflowMapping } from '#/pages/workflow/components/config/WorkflowMapping'
 import {
@@ -25,7 +25,6 @@ import { useWorkflowStore } from '#/pages/workflow/store'
  */
 export function WorkflowDetail() {
     const store = useWorkflowStore()
-    const [issuesOpen, setIssuesOpen] = createSignal(false)
     const detailQuery = store.detailQuery
 
     const issues = createMemo(() => [
@@ -44,11 +43,17 @@ export function WorkflowDetail() {
             error: store.selection().isNew
                 ? store.createMutation.error
                 : store.updateMutation.error,
+            onDismiss: () => {
+                store.createMutation.reset()
+                store.updateMutation.reset()
+            },
         }),
     ])
 
     const isSaving = store.isSubmitting
     const loadFailed = () => store.hasSelection() && detailQuery.isError && !detailQuery.data
+    /* 沒有選取或整個讀取失敗時，畫面上沒有可存的東西，問題也不列 */
+    useIssueSource(() => store.hasSelection() && !loadFailed() ? issues() : [])
 
     const canSave = () => {
         const selection = store.selection()
@@ -83,6 +88,9 @@ export function WorkflowDetail() {
                 store.refreshWorkflowList()
             }
         }
+
+        /* 按下 Save 被擋或失敗時展開 Header 的清單 */
+        if (issues().length > 0) issueList.setOpen(true)
     }
 
     return (
@@ -96,12 +104,6 @@ export function WorkflowDetail() {
                 </Bar.Group>
                 <Show when={store.hasSelection() && !loadFailed()}>
                     <Bar.Actions classes={{ root: 'flex-1 justify-end' }}>
-                        <IssueChip
-                            issues={issues()}
-                            open={issuesOpen()}
-                            onOpenChange={setIssuesOpen}
-                        />
-
                         <Show
                             when={!store.selection().isArchived}
                             fallback={
