@@ -14,6 +14,7 @@ export default defineConfig(
             '**/.turbo/**',
             '**/node_modules/**',
             'apps/design/.astro/**',
+            'temp/**',
             'apps/server/src/archive/**',
             'eslint.config.mjs',
             'pnpm-lock.yaml',

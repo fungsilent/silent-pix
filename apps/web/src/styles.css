@@ -454,10 +454,11 @@ body {
     display: none;
 }
 
-/* thumb 比 line 重，因為它多半疊在 bg-active 上，10% 幾乎看不見 */
-.scrollbar-thin {
-    scrollbar-width: thin;
-    scrollbar-color: var(--sp-scroll-thumb) transparent;
+@supports not selector(::-webkit-scrollbar) {
+    .scrollbar-thin {
+        scrollbar-width: thin;
+        scrollbar-color: var(--sp-scroll-thumb) transparent;
+    }
 }
 
 .scrollbar-thin::-webkit-scrollbar {

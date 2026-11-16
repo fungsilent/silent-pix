@@ -444,10 +444,15 @@
     display: none;
 }
 
-/* thumb 比 line 重，因為它多半疊在 bg-active 上，10% 幾乎看不見 */
-.scrollbar-thin {
-    scrollbar-width: thin;
-    scrollbar-color: var(--sp-scroll-thumb) transparent;
+/*
+ * thumb 比 line 重，因為它多半疊在 bg-active 上，10% 幾乎看不見。
+ * 標準屬性只給不支援 ::-webkit-scrollbar 的瀏覽器：Chromium／WebView2 遇到它會改用系統細捲軸（Windows 上有箭頭）。
+ */
+@supports not selector(::-webkit-scrollbar) {
+    .scrollbar-thin {
+        scrollbar-width: thin;
+        scrollbar-color: var(--sp-scroll-thumb) transparent;
+    }
 }
 
 .scrollbar-thin::-webkit-scrollbar {
