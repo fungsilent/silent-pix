@@ -1,952 +1,316 @@
 # Architecture
 
-Silent Pix is a local-first desktop/web app. The backend owns task state, persistence, and ComfyUI communication.
+Silent Pix is a local-first desktop/web app for ComfyUI workflows. The backend
+owns durable task state, persistence, and ComfyUI communication.
 
-This document describes current architecture and explicitly labels known gaps.
-Implementation constraints live in `../AGENTS.md`; detailed conventions live in
-`conventions.md`. Keep all three aligned.
-
----
+This document explains system boundaries, cross-boundary flows, their guarantees,
+and known gaps. Implementation constraints live in [AGENTS.md](../AGENTS.md);
+reusable implementation practices live in [conventions.md](conventions.md).
+Document update rules are owned by AGENTS.md's Documentation Scope section.
+UI specifications live in [apps/design](../apps/design), and setup and operation
+belong in the relevant README. Schemas and code own exact fields and algorithms.
 
 ## Source of Truth
 
-```txt
-SQLite     = durable state and metadata
-Filesystem = image bytes, addressed by content hash
-Memory     = active runtime state only
-REST       = actions and queries
-Realtime   = validated cache-update snapshots
-Frontend   = UI/form state and caches of backend data; no durable authority
-ComfyUI    = execution backend only
-```
-
-Rules:
-
-- Backend is the source of truth.
-- Frontend must not invent task lifecycle state.
-- WebSocket events must not be required to recover state.
-- Client refresh + REST query must always recover the current state.
-
----
-
-Development runs workspace TypeScript sources through the `development` export
-condition; production package resolution uses built `dist` outputs. Database
-commands and Web/Server development do not require a prior build.
-
-## App Boundaries
-
-### `apps/web`
-
-Owns the shared UI, typed backend API client, and the narrow Desktop startup bridge.
-The bridge selects the active Server endpoint and invokes only the native settings
-commands; native persistence and input validation remain in `apps/desktop`.
-
-Allowed:
-
-```txt
-- SolidJS UI
-- Tailwind CSS styling
-- frontend state
-- backend API calls
-- local WebSocket event client
-- static/mock UI data for layout shaping
-```
-
-Forbidden:
-
-```txt
-- ComfyUI calls
-- SQLite access
-- filesystem policy
-- task lifecycle authority
-- durable task/image state
-```
-
-Current web structure:
-
-```txt
-apps/web/src/
-    App.tsx                 app shell, Header composition, event feature lifecycle hook
-    api/                    Eden REST wrappers
-    features/<domain>/      Query hooks, keys, cache updates, event handling
-    components/
-        Header.tsx          app-level header
-        base/               shared low-level primitives
-        field/              shared form/control primitives
-        detail/             shared detail-panel composition
-        task/               shared TaskStatus and task detail UI
-        image/, viewer/     shared image picker and viewing UI
-    pages/generate/         generation form, task list/browser, page adapters
-    pages/workflow/         graph/mapping editor and Workflow management
-    pages/compare/          image comparison workspace
-    pages/settings/         shared Settings and runtime Dev Settings
-    pages/metadata/         local image metadata Tool, parser, and Worker
-    i18n/                   English/Traditional Chinese i18next resources and type augmentation
-    store/                  shared UI choices and connection state
-    lib/                    shared browser utilities
-```
-
-Source imports use `#/`; see `conventions.md` for the shared-package exception.
-Component-specific editor logic may stay beside the component. Temporary working
-assets belong in repo-root `temp/`, not a required Web source folder.
-
-Eden wrappers in `apps/web/src/api` keep each route's inferred success and
-declared error types. `unwrap` maps declared `{ status, value.error }` bodies
-directly to `ApiError`; transport failures and malformed runtime values remain
-separate fallbacks. Workflow mutation mapping errors retain their `issues`
-evidence for the page's existing issue projection.
-
-Web copy uses one module-private i18next instance in `lib/i18n.ts`. Its typed
-`t` proxy tracks Solid locale reads, and `localeStore` switches bundled English
-(`en`, default) and Traditional Chinese (`zh-TW`) resources without reloading.
-Settings uses the shared Select; the choice is validated and persisted under
-`silent-pix.locale` in localStorage and reflected in the document language.
-Unavailable storage keeps session switching usable. Resources initialize
-synchronously, and `main.tsx` awaits `i18nReady` before platform initialization
-and rendering. `i18n/i18next.d.ts` derives resource key types from the English
-JSON. JSON values do not preserve literal interpolation types; runtime
-self-checks cover resource parity and parameter substitution. Stable caption
-functions and deferred error messages update without replacing editable state.
-CodeMirror reconfigures its placeholder and updates operation titles in place.
-
-Current coverage is Header, Settings, startup and Desktop bridge messages,
-shared validation/error messages, IssueChip, Task/Generate, shared image pickers
-and zoom controls, Prompt group defaults and operation titles, Workflow and
-Graph editor copy, and Compare. Remaining literals include brand names, technical
-format markers, keyboard keys, canonical field IDs, initial prompt content, and
-developer or external diagnostics; these remain outside the catalog.
-
-`lib/error.ts` obtains its code-to-message map through i18next `returnObjects`;
-the resource keys are the API codes, so there is no parallel code list. Known
-codes display frontend messages; unknown codes retain `ApiError.message` as
-fallback. Eden wrappers preserve raw status, code, message and mapping issues,
-and do not import i18next. Interpolation results are rendered as text or normal
-attributes, with no HTML translation rendering.
-
-`pages/metadata/metadata.parse.ts` reads user-selected PNG, JPEG, and WebP bytes
-locally through ExifReader. Its one-shot Worker accepts a `File` and returns a
-typed result or error code; it makes no Server/ComfyUI calls and writes no storage.
-PNG text and EXIF generation fields retain their original text, with a payload
-offset for prefixed EXIF fields, Prompt/Workflow classification, and for an API
-graph its extracted prompts and node list.
-Large seeds are never serialized from parsed JSON. File size, decompressed text,
-returned text, and entry count are bounded; skipped/unsupported text is marked
-incomplete. `MetadataPage` owns the selected File, preview Object URL, result,
-tabs, and one active Worker. Replacement, clear, departure, completion, or a
-five-second timeout terminates the Worker; preview URLs are revoked on release.
-Copy preserves original payload text and does not serialize parsed JSON.
-The viewer indents validated JSON by changing whitespace outside strings, with
-a display-size cap; numeric tokens and escaped strings retain their spelling.
-Page-local `components/MetadataFilePanel.tsx` owns the file sidebar display;
-`components/MetadataResultPane.tsx` owns Generation/Raw rendering, group state,
-and node navigation. File and browser resource lifecycles remain in the page.
-`lib/json.ts` owns text-preserving JSON indentation, object/array text detection,
-unsafe-integer parsing/display, and named-property line lookup. Formatting defaults
-to metadata's existing 4 MiB display cap; Workflow explicitly opts into uncapped
-formatting after graph validation to retain the indentation required by line marks.
-Property lookup reads two-space JSON, decodes keys, and replaces duplicate property
-subtrees so line lookup follows JSON's last-value behavior. Workflow owns the
-node/inputs projection and mapping rules. Its object parsing and REST serialization
-retain their existing JavaScript number behavior.
-The Header Tools menu opens this Tool without a Server endpoint. Header and Settings remain
-available when Desktop settings are empty; generation workspaces stay disabled,
-and health queries/Server events start only when an endpoint exists. Web can use
-the Tool after its assets load; this does not add offline asset caching. Windows
-native file selection, drag/drop, and Clipboard still require packaged
-runtime validation.
-
-Generate uses real Task APIs, TanStack Query for server data, and page-scoped
-TanStack Form for editable values. The default draft supplies initial form
-values; it is not a backend task. Task lifecycle authority stays in the server.
-The Generate detail adapter owns draft default Workflow selection outside the
-collapsible detail content, so collapsing the panel does not suspend form
-initialization. Shared TaskConfig only displays values and reports user changes.
-
-The LoRA picker dialog owns its search text and temporary selection, resetting
-both when opened and returning selected names only on Apply. Generate retains
-the committed form values, open state, and options query; closing without Apply
-does not change the form.
-
-Web state:
-
-```txt
-- apps/web uses Solid native stores through `apps/web/src/lib/store.ts`
-- the local store wrapper exposes native `state` and `set` with flattened domain actions
-- domain actions live on returned store objects, not inside reactive state
-- stores must preserve Solid fine-grained reactivity and native `set` path syntax
-- `apps/web/src/store/dev.ts` owns the in-memory runtime `normal | dev` mode and loading preview; reload starts at `normal` with preview off
-- `SettingsPage` reads the Dev store and passes accessors and callbacks to its local Dev Settings component
-- `appStore.page` includes Settings; the Header Menu opens it and the business-page tabs remain available to leave it
-- the shared Header exposes Settings in Browser and Desktop UI; loading preview stays scoped to existing business-page loading consumers
-```
-
-Theme runtime:
-
-```txt
-- Theme is `light | dark`; missing or invalid values default to dark
-- `apps/web/index.html` synchronously reads `silent-pix.theme` before first paint and sets `data-theme`
-- `apps/web/src/store/theme.ts` owns runtime theme state, DOM updates, and best-effort localStorage persistence
-- Settings Appearance card switches Dark/Light; the Header has no theme toggle
-- `styles.css` owns token values and mappings; `lib/theme.ts` owns reusable class recipes
-- inline ImageStage follows theme (near-black in dark, near-white in light; the empty state moves one step toward canvas)
-- the full-screen viewer backdrop and every glass control stay fixed transparent black with white icons in both themes; content drawn directly on a stage uses `stage-fg`
-- Prompt and Graph editors use theme factories with per-view Compartments; reconfiguration does not rebuild views or lose history
-```
-
-Workflow editor graph derivations read field-specific TanStack Form selectors.
-Parsing and node options depend only on graph text; mapping diagnostics and
-line marks also depend on the mapping schema. The combined selection remains
-a UI projection: name and selection metadata changes do not trigger graph
-work, and mapping edits reuse the parsed graph and node options.
-
-Workflow list ordering is a precise exception to the general backend-owned
-database semantics rule. Server and Web use the same `name` then opaque `id`
-keys: the Server query declares SQLite ordering, while the Web realtime cache
-uses a file-local JavaScript ordinal comparator. It removes any cached summary
-with the same ID, appends the incoming summary, and sorts a new options array
-after save, archive, or `workflow.changed` without mutating the existing cache
-array. Unicode edge ordering may differ between a realtime upsert and a later
-refetch; membership, collation, and `LIKE` semantics for other domains remain
-server-owned.
-
----
-
-### `apps/design`
-
-Owns the design system content: the blueprint that new and changed Web UI is
-built from. It is independent of `apps/web`; neither imports the other. It holds
-only content — pages, state fragments, its own copy of the token stylesheet, and
-the site title and sidebar — and is built with the framework in
-`packages/blueprint`; it reads no root env and needs no Server.
-`pnpm dev:design` runs the Astro dev server (live reload and search included);
-`pnpm build:design` builds the static site and validates every page;
-`pnpm check:design` builds, opens each page in headless Chromium at three window
-widths, and reports clipped or squeezed previews.
-
-```txt
-- astro.config.mjs                title, sidebar, and the style entry passed to the blueprint integration
-- src/content/docs/foundations/   Tokens page: color, typography, icon, size and spacing, radius and elevation, interaction state, motion, and the App model rules
-- src/content/docs/base/<group>/  base components (action, input, feedback, container, media), one page each
-- src/content/docs/pages/         one page per product page (App, Generate, Compare, Workflow, Settings, Image Metadata): a `##` section per part, then `## Screen`
-- src/blueprint/<component>/      one HTML fragment per state; fragments may embed other parts with `data-ds-slot`
-- src/styles/tokens.css           blueprint copy of the tokens; blueprint.css imports the framework styles, then the tokens
-- public/                         sample assets referenced by fragments
-- AGENTS.md                       content format and authoring rules
-```
-
-Every state is written once as a fragment and shown by `<State>` on the page of
-the part that owns it, together with that part's `<Rules>`. A product page's
-`## Screen` composes the same fragments into the whole page. States, rules, and
-screen combinations have stable addresses (page path plus anchor) that can be
-copied and pasted to an agent.
-
-Fragments are plain markup with Tailwind classes and inline lucide SVG, and
-rules describe the design only: the blueprint names no implementation file and
-imports no app component, fixture, API client, or i18n resource. It is never
-part of the Web build; Web implements from the blueprint rather than importing it.
-
-### `apps/server`
-
-Owns the backend entrypoint and domain services under `src/module/<domain>`.
-Domain services own their domain queries, business rules, and lifecycle
-operations. Within the task domain, `taskExecution` is a sibling to
-`taskService` that owns generation orchestration and its generation-only
-completion transaction; this is a cohesive task-domain split, not a generic
-new layer.
-
-Allowed:
-
-```txt
-- Elysia app
-- REST routes
-- config/env
-- server lifecycle
-- local WebSocket event endpoint
-- calling services/use-cases
-```
-
-Forbidden:
-
-```txt
-- large domain logic inside routes
-- direct DB queries inside routes
-- UI logic
-```
-
-Preferred flow:
-
-```txt
-route -> service -> Drizzle -> SQLite
-```
-
-Realtime ownership is split by boundary:
-
-```txt
-packages/event/src/server.ts
-    generic EventServer: key/clientId/socket records, parser injection, validated publish/send with optional clientId exclusion
-apps/server/src/module/event/event.route.ts
-    Functional Elysia /api/event route plugin; parent app supplies @elysiajs/node node(), Origin/Host handshake, query validation, open/close hooks
-apps/server/src/module/workflow/workflow.model.ts
-    Reused WorkflowModel -> WorkflowSummary projection
-apps/server/src/app.store.ts
-    long-lived EventServer and type-keyed publishEvent alias
-apps/server/src/module/app/app.health.ts
-    health snapshot payload and timer/initial-send composition
-```
-
-Synchronous REST mutations use one shared header contract and route-owned
-publication metadata:
-
-| Mutation | Header schema | Event | Recipients |
-|---|---|---|---|
-| Task create | `appApi.clientHeaders` | `task.created` | all except matching `clientId` |
-| Task rename / flags | `appApi.clientHeaders` | `task.changed` per snapshot | all except matching `clientId` |
-| Task batch / single delete | `appApi.clientHeaders` | one `task.removed` | all except matching `clientId` |
-| Workflow create / update / archive | `appApi.clientHeaders` | `workflow.changed` | all except matching `clientId` |
-| Workflow true delete | `appApi.clientHeaders` | `workflow.removed` | all except matching `clientId` |
-
-The actor applies the REST response and remote clients apply the event. Missing
-or invalid headers fail before the mutation handler and cannot publish. Empty
-batch deletion publishes nothing. Async task lifecycle and health events do
-not pass routing options and still reach every connected socket.
-
-Elysia database context follows the same boundary:
-
-```txt
-databaseMiddleware
-    └ databaseClient: DatabaseClient
-
-route
-    ├ domain -> service(databaseClient.database, ...)
-    └ health -> databaseClient.check()
-```
-
-Domain services query `Database` directly and own transaction/batch boundaries.
-
-Workflow mutation ownership is explicit:
-
-```txt
-POST/PUT /workflow
-    └ workflowService.create/update
-       ├ mapping invalid → service failure with issues; no write or event
-       └ success → load response → publish workflow.changed → return HTTP response
-```
-
-`update()` validates mapping before lookup, archive, or revision checks, so its
-422 mapping failure precedence remains stable. The route owns only HTTP status
-selection and the existing mapping-error response shape.
-
-Transaction-compatible leaf capabilities accept only their precise narrow
-`Pick<Database, ...>` capability. The server does not add a repository layer or
-use raw SQLite/Drizzle `sql` outside the database client.
-
----
-
-### `apps/desktop`
-
-Owns the desktop shell, startup configuration, and native local-Server settings.
-
-Current implementation is a Tauri window hosting the Web UI. Development uses
-Vite for UI assets and HMR while REST, WebSocket, and image traffic goes directly
-to the native saved Server URL; the shell does not start the backend or ComfyUI.
-Tauri's native drag/drop handler is disabled so the shared Web UI receives
-HTML5 file-drop events, including reference-image drops on Windows WebView2.
-The OS title bar is replaced by the shared Web Header: Windows/Linux use
-`decorations: false` and the Header draws minimize/maximize/close through the
-fixed current-window controls in `lib/platform.ts`; `tauri.macos.conf.json`
-keeps the native traffic lights with an Overlay title bar. Header blank areas
-carry `data-tauri-drag-region` (drag, double-click maximize). Capabilities
-grant only those window permissions. Windows Snap Layouts on the custom
-maximize button and Linux edge resizing are not verified from this workspace.
-
-The repository-root `.env` is the shared development endpoint source:
-`WEB_HOST` and `WEB_PORT` configure Browser Vite, Desktop Vite desktop mode,
-and Tauri's development URL. `apps/desktop/script/dev.ts` validates and
-combines those values before injecting the endpoint through a Tauri `--config`
-merge. The normal Tauri `beforeDevCommand` remains in `tauri.conf.json`; WSL
-linked development uses the wrapper's `--external-frontend` override instead
-of generating a second config file. The wrapper runs from the local Desktop
-cwd but resolves the linked `tauri.conf.json` realpath to find the WSL source
-repository `.env`; duplicate Windows endpoint variables are not required. This
-setup does not promise simultaneous independent Vite instances.
-
-The single-host deployment uses `deploy/compose.yaml` and `deploy/Dockerfile`
-to build separate Server and Caddy/Web images. Caddy serves the bundled Web UI
-and proxies `/api` (including WebSocket upgrades) over the Compose network.
-Caddy publishes the root `.env`'s `CADDY_PORT` on host loopback; ComfyUI also
-publishes loopback port 8188. Server has no published port. The same Compose
-project optionally owns ComfyUI with NVIDIA GPU access when
-`COMPOSE_PROFILES=comfyui`, preserving its image, init process,
-and persisted models, user/custom nodes, Python packages, caches, and pre-start
-scripts under the fixed repository path `.data/comfyui`. `COMFYUI_OUTPUT_DIR` mounts the same output
-files into ComfyUI and Server. Existing standalone ComfyUI data must be moved there with both services stopped.
-
-Compose fixes production mode and Server's container bind address. ComfyUI URL, reference directory, storage root,
-and output path remain root `.env` settings in every mode.
-For the integrated service use `http://comfyui:8188`; ComfyUI receives a
-read-only bind of `APP_STORAGE_DIR` at the absolute container path selected by
-`COMFYUI_REFERENCE_DIR`. The envfile is never baked
-into images. Integrated services share the project default network. With an empty
-profile, only Server and Web start; a host-gateway mapping permits external host
-ComfyUI. Server has no startup dependency on the optional service; its output
-bind creates missing source directories and parents before mounting them, so a
-fresh deployment does not require a preexisting `.data` directory.
-Native `pnpm dev`/Desktop development does not start Compose services and can
-continue using ComfyUI Desktop's own URL and filesystem paths. Changing a profile
-does not stop an already-running integrated ComfyUI container; stop it explicitly.
-The Docker Server entrypoint checks that SQLite lives
-inside the persistent `APP_DATA_DIR` mount. One Server writer per database/storage
-pair remains required.
-
-`deploy/script/start.sh` builds images, stops the project, runs database
-migrations in a temporary Server container, then recreates services;
-`stop.sh` stops services while retaining containers and network; `down.sh` removes
-containers and its default network.
-All three retain bind-mounted data and images.
-Cloudflare Tunnel remains independently managed. Database
-migration runs during deploy start with project writers stopped; failure leaves
-services stopped. Native development still runs migrations explicitly. Desktop
-remains a separate native build.
-
-Caddy waits for Server database health. Startup waits up to 300 seconds for
-Server health and, when enabled, ComfyUI health using `/system_stats`.
-External ComfyUI health does not block Compose startup. Server can serve stored tasks while ComfyUI
-loads. Acceptance does not submit generation jobs. Migration from the standalone
-ComfyUI project requires stopping its container before starting the integrated
-service; two ComfyUI instances must not share the GPU/port/data concurrently.
-
-`deploy/ansible/deploy.yml` provides local/SSH preflight and calls those same
-Compose scripts against an existing target checkout. It neither generates a
-second service configuration nor installs Docker, transfers secrets, or migrates
-data. Check mode runs only the read-only preflight.
-
-Every Tauri window reads and writes one validated local Server URL through
-native commands and stores it under the OS app config directory. The Settings
-UI can optionally probe the candidate; Save validates and persists the URL,
-then reloads after a successful save. The backend remains a separate process.
-
-Development still loads the UI from the Vite `devUrl`, but `isTauri()` selects
-the same Desktop platform identity and native settings used by a packaged app.
-Vite therefore supplies UI assets and HMR only; REST, WebSocket, and image
-traffic goes directly to the saved Server URL. A formal Desktop build against a
-non-development Server validates the packaged origin, CORS/WebSocket boundary,
-bundling, installer, and release profile. Remote connectivity/authentication and
-automatic Desktop production path overrides remain future work. See `../apps/desktop/README.md`.
-
-Forbidden:
-
-```txt
-- task lifecycle
-- DB schema
-- ComfyUI workflow logic
-```
-
-Desktop mode is a first-class target.
-
----
-
-### `packages/blueprint`
-
-Owns the reusable blueprint framework and no Silent Pix content. Its default
-export is an Astro integration that configures Starlight for a blueprint site
-(custom search instead of Pagefind, no pagination, a table of contents built
-from each section's states and rules, its own page title, search, and theme
-toggle) and injects the search index route and Tailwind. A blueprint project
-passes only its title, sidebar, and style entry, re-exports the docs collection
-from `@silent-pix/blueprint/content`, and depends on `astro` and
-`@astrojs/starlight` directly.
-
-```txt
-- src/index.ts             Astro integration
-- src/components/          State, Gallery, Rules/Rule, Screen, Slot, Fixed, Switch/Case, Address, Search, ThemeToggle, PageTitle, TokenValues
-- src/blueprint.ts         fragment loading from the project's /src/blueprint (nested slots resolved at build time), docs entries, state labels
-- src/route-data.ts        right-hand table of contents per `##` section
-- src/search-index.ts      search index built from the project's source files (works under the dev server)
-- src/content.ts           Starlight docs collection
-- src/styles/global.css    chrome styles mapped onto the project's `--sp-*` tokens
-- script/check-layout.mjs  `blueprint-check`, the layout check run from a blueprint project
-- AGENTS.md                component API and framework behavior
-```
-
-The framework reads the project's tokens through the `--sp-*` custom properties
-listed in its `AGENTS.md`; content such as tokens, fragments, and pages always
-lives in the project.
-
-### `packages/shared`
-
-Owns canonical domain values and shared validation used by REST and WebSocket
-contracts, plus the transport contracts themselves. Domain definitions belong
-under `src/contract`; REST under `src/api`; events under `src/event`.
-
-Workflow canonical definitions are grouped under
-`src/contract/workflow/{resource,graph,config}.ts`. The Workflow editor option
-projection belongs to `apps/web/src/pages/workflow/node-option.ts`, where
-`toNodeOptions()` owns the Web-only view model and uses the shared
-`comfy.isGraphLink()` predicate.
-
-Event contracts live under `packages/shared/src/event/<module>.ts`, divided by domain module. The aggregate `event.serverEvent` schema is the runtime source of truth for outbound server events.
-
-Allowed:
-
-```txt
-- canonical domain values and pure shared validation
-- enums
-- schemas
-- shared API types
-- server-to-web WebSocket event Zod schemas and inferred types
-```
-
-Forbidden:
-
-```txt
-- Node-only code
-- browser-only code
-- DB access
-- filesystem access
-- Elysia logic
-```
-
----
-
-### `packages/event`
-
-Owns generic WebSocket transport helpers only.
-
-Allowed:
-
-```txt
-- browser WebSocket client helper with JSON decoding and reconnect lifecycle
-- Node WebSocket server helper with typed connection records and JSON broadcast
-```
-
-`createEventServer()` is generic over client identity and the aggregate event
-union. The caller injects `parseEvent`; the package does not import Zod, Shared,
-or Elysia. `connect()` records `{ key, clientId, socket }`, while `publish()`
-and `send()` derive the payload from the event type and validate the assembled
-envelope once before serializing it. `publish()` may exclude every matching
-`clientId` record; `send()` remains point-to-point and ignores routing options.
-
-Forbidden:
-
-```txt
-- DB access
-- Elysia routes
-- ComfyUI client
-- task lifecycle logic
-- durable state
-```
-
----
-
-### `packages/db`
-
-Persistence layer.
-
-Allowed:
-
-```txt
-- Drizzle schema
-- migrations
-- SQLite client creation
-- DB init helpers
-- maintenance scripts (migrate, seed, reset)
-```
-
-Forbidden:
-
-```txt
-- Elysia routes
-- UI code
-- ComfyUI client
-- desktop shell code
-```
-
----
-
-### `packages/env`
-
-Owns Node-only base env loading and repo-relative path resolution shared by the
-server and DB scripts. Server-specific ComfyUI/HTTP config remains in
-`apps/server/src/config.ts`. Web must not import this package.
-
-Configuration has one runtime path:
+| Owner | Responsibility |
+|---|---|
+| SQLite | Durable state and metadata |
+| Filesystem | Image bytes addressed by content hash |
+| Server memory | Active runtime state |
+| REST | Authoritative queries and mutation results; initial and recovery synchronization |
+| WebSocket | Validated snapshots for live cache updates |
+| Frontend | UI/form state and caches of backend data |
+| ComfyUI | Generation execution |
+
+Refreshing a client and querying REST recovers durable state without depending
+on previously received events. Frontend choices and cached projections never
+become task lifecycle authority.
+
+## Package Boundaries
+
+| Package | Owns |
+|---|---|
+| `apps/web` | SolidJS UI, typed Server API client, and a narrow Desktop bridge for fixed native settings and current-window controls |
+| `apps/server` | Elysia on Node.js, HTTP/WebSocket adapters, domain services, runtime configuration, and lifecycle |
+| `apps/desktop` | Tauri shell, startup, and validated native local Server settings |
+| `apps/design` | Silent Pix design blueprint content and tokens, independent of Web |
+| `packages/blueprint` | Reusable Astro/Starlight blueprint framework, without Silent Pix content |
+| `packages/shared` | Canonical domain values/validation and REST/event contracts |
+| `packages/event` | Generic browser WebSocket client and type-keyed EventServer transport |
+| `packages/db` | SQLite client, Drizzle schema/migrations, and maintenance scripts |
+| `packages/env` | Node-only base env loading and path resolution for Server and database scripts |
+
+Web uses Eden Treaty through its API modules. The composed Server `Api` is a
+type-only dependency; Server runtime code and backend-only configuration do not
+enter the browser. Web never accesses SQLite or ComfyUI directly. Its native
+bridge exposes no arbitrary commands or filesystem paths; Desktop owns native
+settings persistence and validation.
+
+Shared canonical contracts have no transport dependencies. REST and event
+contracts build on them; database row/storage types remain DB-owned. Web-only
+projections and Server-only integration clients stay with their consumers.
+
+The Event package has no Shared, Zod, or Elysia dependency. Server injects the
+shared aggregate event parser into EventServer; the Server event route owns the
+Elysia adapter, handshake, and connection hooks. Domain projections stay in their
+domain, while health composition supplies initial-send and timer behavior.
+
+Design and Web never import each other. Web implements the blueprint; blueprint
+authoring and framework behavior are documented in
+[apps/design/README.md](../apps/design/README.md) and
+[packages/blueprint/README.md](../packages/blueprint/README.md).
+
+## Backend and Task Lifecycle
 
 ```text
-process.env / .env
-  └─ packages/env base config
-      ├─ packages/db config ──→ database client ──→ LibSQL
-      └─ apps/server config
-          ├─ server entrypoint ──→ Elysia listen
-          ├─ ComfyClient ────────→ ComfyUI HTTP/WebSocket
-          ├─ image store ────────→ Silent Pix storage filesystem
-          └─ Comfy path/output ──→ ComfyUI-visible filesystems
+REST route -> domain service -> Drizzle -> SQLite
+                 |
+Task create -> taskExecution -> ComfyClient -> ComfyUI
+                 |
+           image ingest -> reference commit -> snapshot publication -> Comfy cleanup
 ```
 
-The capability that owns the side effect loads its env-backed value directly.
-Project-owned constructors and helpers do not accept database paths, base URLs,
-storage roots, or ComfyUI filesystem roots from callers. This prevents a second
-configuration channel from disagreeing with the canonical env value.
+Routes own transport validation, HTTP status selection, and synchronous mutation
+publication. Services own domain queries, business validation, and atomic writes;
+there is no repository layer. Database membership, collation, and search semantics
+are Server-owned.
 
-Resolved values still cross into third-party calls at the owning boundary—for
-example Elysia `listen`, LibSQL `createClient`, and Drizzle migration options.
-The server lifecycle owns a `DatabaseClient` instance named `databaseClient`;
-its `database` property is the Drizzle `Database`, while `check` and `close`
-remain lifecycle capabilities. Domain/dependency inputs such as `Database`,
-image ID, relative image path, GC grace period, or clock value are not env
-configuration and remain explicit arguments.
+Server lifecycle owns `databaseClient`. Middleware supplies it to routes, which
+pass its Drizzle `database` to services. Startup, health, and shutdown alone use
+the client's lifecycle methods. Transaction-compatible leaf capabilities take
+only the database operations they need.
 
-Isolated validation changes configuration through process env before importing
-the owning module; runtime option objects do not provide config overrides.
+Within the Task domain, `taskService` owns resource queries, business operations,
+startup recovery, snapshots, and options. `taskExecution` owns generation and its
+completion transaction and may use `taskService`; the dependency never reverses.
+REST routes and execution call sites load canonical snapshots for publication.
+The Workflow domain owns the reused Workflow summary projection.
 
----
+Task creation loads one complete Workflow model, persists its ID and revision,
+and passes that same model into generation. A later Workflow update cannot change
+the prompt for the created Task. The model is process-local; legacy revision-zero
+tasks remain of unknown revision and are not backfilled by this flow.
 
-## Backend
+Workflow mapping validation runs inside create/update before writes. Update
+validates before lookup, archive, and revision checks, preserving mapping-error
+precedence. Failed validation produces no mutation event.
 
-Use:
+Generation status helpers return guarded-write outcomes; execution publishes only
+successful state changes, including preflight failures. On completion, image
+references commit before the snapshot is published, and publication precedes
+successful Comfy output cleanup. A post-commit cleanup error is logged without
+changing the committed Task outcome.
 
-```txt
-Elysia on Node.js
-```
+At startup, after opening SQLite and before starting ComfyUI communication,
+Server marks persisted queued/running tasks as failed with `SERVER_RESTARTED`.
+It does not resume them or publish recovery events before clients connect;
+subsequent REST synchronization returns the recovered state. Shutdown limitations
+are listed under Known Gaps.
 
-Do not introduce:
+## Image Storage and Consistency
 
-```txt
-- Encore.ts
-- NestJS
-- tRPC
-- Bun as required runtime
-```
+SQLite stores metadata; image bytes live at
+`APP_STORAGE_DIR/images/<sha256>.<png|jpg>`. Stored paths are relative to the
+storage root. `images` owns content; `task_images` owns a Task's use of that
+content, including role and position. One stored image can serve multiple tasks.
 
-Routes must stay thin. Domain logic belongs in services.
+The unique content-hash index enforces deduplication. Files publish through a
+temporary write followed by rename: immutable content-addressed reads must never
+observe a partial file. Type and dimensions come from the bytes, not client MIME
+or filenames. JPEG dimensions account for orientation without transcoding bytes.
 
-Current task generation starts when the create route launches
-`taskExecution.generate()` as a detached, untracked Promise. Its preflight
-installs callbacks through `ComfyClient.execute(): void`; Comfy lifecycle and
-output finalization continue as detached, untracked callbacks. Shutdown does
-not await this work before closing the DB; this detached-generation lifecycle
-gap remains unsupported. On startup, after the DB is opened and before the
-first ComfyUI start, `createApp()` awaits
-`taskService.failInterruptedTasks()`, which changes persisted `queued` and
-`running` tasks to `failed` with `errorCode = SERVER_RESTARTED`. Recovery does
-not resume generation or publish events before clients connect; clients obtain
-the recovered task state through subsequent REST initial/recovery
-synchronization. This startup operation is the recovery guarantee, not
-shutdown draining.
+An image row and file are removed only after their last reference disappears.
+Foreign keys protect referenced rows, and the database commits before filesystem
+unlink. An unlink failure can leave an orphan for later GC. Neither guarantee
+alone prevents cleanup racing with new ingest or reference creation.
 
-Task creation reads one Workflow through `workflowService.findWorkflow()`, which
-already converts the DB row to the complete `WorkflowModel` with
-`castWorkflowModel()`. The insert records that model's `id` and `revision`, and
-the create route passes the same model to the background generation call, so an
-update to the Workflow after creation cannot change the prompt for that task.
-This model remains in process memory only; legacy tasks with
-`workflowRevision = 0` remain an unknown revision and are not backfilled.
+The process-local `withImageMutation` mutex therefore covers lookup/ingest through
+reference commit, or guarded orphan deletion through unlink. The caller owns the
+whole lock boundary; helpers never reacquire it. Comfy execution/downloads and
+read-only requests remain outside it. Output completion locks only ingest,
+reference commit, and orphan rollback.
 
-`taskExecution.generate()` owns the ComfyUI flow it starts, including prompt
-construction, callback installation, output ingestion and its completion
-transaction, failure mutation, canonical snapshots, event publication, and
-ComfyUI cleanup. Lifecycle status helpers return their outcomes; `generate()`
-owns publication after successful guarded updates, including preflight failures.
-Its completion callback publishes the committed snapshot before ComfyUI cleanup;
-cleanup rejections reach ComfyClient's existing callback error logger and cannot
-change the committed Task outcome. `ComfyClient.execute(): void` leaves the lifecycle
-callbacks and output finalization untracked; the route and client do not provide
-execution tracking, cancellation, or shutdown draining. It may call
-`taskService` for task reads and writes; `task.service.ts` does not import the
-execution module. Resource queries, startup recovery, snapshots, and public
-option methods remain owned by `task.service.ts`.
+Task cleanup and GC share `imageCleanup.removeUnreferenced()`: it deduplicates and
+chunks candidates, rechecks absence of references during row deletion, returns
+deleted paths, and reports individual unlink outcomes. Cleanup cannot unlink
+content another operation has referenced or republished.
 
----
+Online GC runs in the Server image domain under the same mutex and applies its
+grace period to orphan rows, recognized stray files, and temporary writes. The
+normal GC CLI is only an HTTP trigger and never falls back to direct storage
+access. Offline GC explicitly requires a stopped Server. Both use canonical
+storage configuration with no storage-root override.
 
-## Database
-
-Use:
-
-```txt
-SQLite + Drizzle
-```
-
-Do not use:
-
-```txt
-- PostgreSQL
-- Prisma
-- Redis
-- cloud database services
-```
-
-SQLite stores metadata and durable state only. Image binary data stays on filesystem.
-
-The database client shape is:
-
-```ts
-type DatabaseClient = {
-    database: Database
-    check: () => Promise<boolean>
-    close: () => void
-}
-```
-
-The database client explicitly initializes:
-
-```sql
-PRAGMA foreign_keys = ON;
-```
-
-It does not explicitly configure WAL or `busy_timeout`. Any future policy for
-those settings belongs in the database client and requires runtime validation.
-
----
-
-## Storage
-
-Images are content-addressed. One file per distinct sha256, no matter how many
-tasks reference it.
-
-```txt
-storage/
-    images/
-        <sha256>.<png|jpg>
-```
-
-Rules:
-
-- The DB stores the relative path (`images/ab12….png`), never an absolute one.
-- Files are published with temp + rename. Readers trust the content address
-  absolutely, so a half-written file is a permanently poisoned entry, not a
-  retryable failure.
-- The mime type comes from sniffing the bytes. Never from the client's
-  `Content-Type` and never from a filename.
-- Stored JPEG width/height account for EXIF orientations that swap axes. Bytes
-  are not transcoded; agreement with browser and ComfyUI decoding must be
-  checked with orientation-bearing images.
-
-Ownership lives in `task_images`, a join carrying the role (`input` / `output`,
-with `mask` / `control` reserved) and the batch position:
-
-- `images.hash` is UNIQUE. That index, not application code, is what enforces
-  "the same image is never stored twice".
-- `task_images.image_id` is `ON DELETE RESTRICT`, protecting referenced image
-  rows from deletion. This does not protect filesystem operations.
-- An image row and its file are deleted only when the last reference is gone.
-- The database commits before the filesystem unlinks. An unlink failure may
-  leave an orphan file for the server-owned image garbage collection route.
-  This ordering alone does not make deletion safe against concurrent ingest or
-  reference creation.
-- `imageCleanup.removeUnreferenced()` is the shared guarded row-delete and
-  unlink capability. It deduplicates/chunks candidate IDs, rechecks
-  `NOT EXISTS(task_images)`, returns each `DELETE RETURNING id/path` row with
-  its unlink outcome, and is called by task cleanup and GC while the caller
-  owns the image mutation lock.
-- Required invariant: cleanup must not unlink content another operation has
-  referenced or republished. Within one server process, the image-domain
-  `withImageMutation` mutex serializes lookup/ingest through reference commit
-  and orphan deletion through unlink. ComfyUI execution/downloads stay outside
-  this lock; read-only requests do not acquire it.
-- Task output completion keeps image download outside the lock and holds the
-  lock only for ingest, output-reference commit, and orphan rollback. The
-  committed completion snapshot/event is published before successful Comfy
-  output unlink; skipped tasks leave those Comfy outputs for the existing
-  history/cleanup semantics.
-- Online image garbage collection runs in the server image domain under the
-  same mutex and applies its grace period to orphan rows, recognized stray
-  files, and recognized temporary writes. The normal `pnpm image:gc` command is
-  only an HTTP trigger; it never opens the database or storage and never falls
-  back when the server is unavailable.
-- Runtime image cleanup and GC filesystem sweeps resolve from canonical
-  `config.appStorageDir`; the offline recovery command has no storage-root
-  override.
-- The mutex is process-local. The supported deployment has one server writer
-  per database/storage pair; a second server or writer sharing either is
-  unsupported. `pnpm image:gc:offline -- --confirm-server-stopped` is an
-  explicit stopped-server recovery command and still requires the operator to
-  confirm that all writers have stopped.
-
-Production data must live in an OS app-data directory. Dev data may use
-`./.local/data`. Paths are configurable today; automatic Desktop production
-path overrides are not implemented.
-
----
+This coordination supports one Server writer per database/storage pair. A second
+writer sharing either is unsupported. Operational commands are in the root
+[README](../README.md).
 
 ## REST and Realtime
 
-REST:
+A mutation's actor applies the authoritative HTTP response immediately; other
+clients receive the corresponding event. Async Task lifecycle changes reach all
+clients independently of the original request. SQLite and REST recover
+missed state; events are not durable.
 
-```txt
-- return authoritative backend state
-- expose health, Task list/detail/create/rename/delete/flags/options, Image list/bytes, and Workflow management
-```
+One page-scoped `clientId` is shared by the Web API fetcher and event connection.
+Synchronous Task/Workflow mutations validate the shared client-header contract
+before their handlers and exclude every socket with that identity from successful
+publication. Failure and empty-batch branches publish nothing. The identity is
+routing metadata, not authentication.
 
-Task create uses a shared no-upload/upload union at the HTTP boundary:
+EventServer derives payload types from the event type and validates the assembled
+envelope once before publication or point-to-point send. Server outbound events
+and Web inbound events use the shared aggregate contract. Exact event payloads
+are owned by `packages/shared/src/event`.
 
-| Request variant | `payload.referenceImageId` | Top-level `referenceImage` |
-| --- | --- | --- |
-| txt2img | omitted or `null` | absent |
-| stored image img2img | UUID | absent |
-| uploaded image img2img | omitted or `null` | `File` |
+The Web event feature owns URL construction, connection lifecycle, parsing,
+connection status, reconnect recovery, and exhaustive dispatch. App startup only
+starts and cleans up that feature. Domain features own their cache handlers.
+Task creation seeds the actor's feed/detail caches; remote creation events seed
+other clients. Reconnection invalidates Task, Workflow, and Image list queries.
 
-UUID plus `File` is rejected by schema validation before `taskService.create()`;
-an omitted `referenceImageId` becomes `null` after validation. The payload/File
-transport positions remain unchanged for Eden multipart.
+Mutation and event updates share idempotent cache operations. Complete payloads
+can patch caches; insufficient projections require invalidation and a Server
+refetch. Dependent domains matter: Task changes can alter Image list results.
+Image lists are Server-owned projections of content and matching uses, so Web
+does not infer their filter membership from Task events.
 
-WebSocket foundation:
+Health snapshots provide service state and liveness. Only valid events refresh
+the client's liveness evidence; lost connections make health unknown. Client and
+Server timers derive from the shared heartbeat policy.
 
-```txt
-- endpoint: GET /api/event
-- Browser uses the same-origin development proxy; Desktop development connects directly to its native saved Server URL
-- The Web API client module (`apps/web/src/api/api.client.ts`) exports one module-load UUID `clientId` per page; App puts it in the `clientId` query
-- server validates `clientId` and requires `Origin` and `Host`; in `ENV=development`, any canonical HTTP(S) Origin is accepted without comparing its host to `Host`; outside development, parsed `Origin.host` (including port) must match `Host`, with exact `http://tauri.localhost` and `tauri://localhost` exceptions for canonical `Host: 127.0.0.1:<port>` (1–65535 except default port 80); `ws.data.query.clientId` is passed to the generic EventServer, while `ws.raw` remains the connection key
-- REST CORS echoes any canonical HTTP(S) development Origin; outside development it is limited to `/api/` requests with one of the exact packaged Origins and a loopback Host; it allows only required methods and `client-id, content-type` headers, with no wildcard origin or credentials; every `/api/` response sends `Vary` whether or not it matched
-- the shared Web API client fetcher sends the exported `clientId` as the `client-id` header; every event-producing synchronous Task/Workflow route validates `appApi.clientHeaders`
-- a Cloudflare Tunnel must leave `httpHostHeader` unset so the external host remains available for same-origin validation
-- authentication is not implemented
-- client identity is transport metadata only; synchronous Task/Workflow route publications exclude every matching `clientId` record, while async task lifecycle and health publications remain broadcasts
-- server events only
-- current events: `task.created`, `task.changed`, `task.removed`,
-  `workflow.changed`, `workflow.removed`, and `health.snapshot`
-- the server adapter passes type-keyed payloads to EventServer; its injected `event.serverEvent.parse()` validates every assembled event before broadcast or initial point-to-point send
-- connection state comes from WebSocket open, close, and reconnect lifecycle callbacks
-```
+### Origin Boundary
 
-Image byte responses use native `Response`:
+The event endpoint requires both Origin and Host; missing or `null` Origin is
+rejected. Development accepts canonical HTTP(S) origins for localhost and LAN
+workflows. Outside development, parsed Origin host, including port, must match
+Host. The only cross-origin exceptions are packaged Desktop origins
+`http://tauri.localhost` and `tauri://localhost` against canonical
+`127.0.0.1:<port>`, with ports 1–65535 except implicit HTTP default 80.
 
-| Status | Body | Headers / condition |
-| --- | --- | --- |
-| 200 | Stored PNG/JPEG bytes | Sniffed Content-Type, Content-Length, quoted sha256 ETag, `Cache-Control: public, max-age=31536000, immutable` |
-| 304 | No body | Matching `If-None-Match`; cache metadata headers |
-| 404 | Shared JSON error | Image row or file not found |
-
-Realtime is not durable; SQLite remains authoritative and REST restores missed state.
-
-Current frontend event usage:
-
-```txt
-- `apps/web/src/features/event/event.client.ts` owns URL/client identity, browser connection lifecycle, shared-schema parsing, connection status, reconnect recovery, and exhaustive `Event.ServerEvent` dispatch
-- `App.tsx` only starts and cleans up `startServerEvents(queryClient)`
-- a successful `POST /api/task` response seeds the local feed and detail caches before task selection
-- `task.created` inserts feed entries; `task.changed` patches feed/detail; `task.removed` carries `taskIds`
-- Workflow events update summaries and invalidate detail when its payload is insufficient
-- a WebSocket reconnection invalidates task, image, and workflow queries to recover missed events
-- Header displays connection and service health
-- generate task UI initializes from REST and applies server-validated realtime snapshots
-```
-
----
-
-Image list queries are server-owned projections. Task created/changed/removed
-events and successful local task create/rename/flag/delete mutations invalidate
-`imageKeys.lists()`; active lists refetch and inactive lists become stale for
-the next open. WebSocket reconnect uses `invalidateImageLists()` to invalidate
-`imageKeys.lists()`, alongside the task and workflow roots, to recover missed
-events. The server keeps one item per image, ordered by its earliest use. It
-returns that earliest `origin` and the earliest `matchedUsage` satisfying
-search, type, and task-flag filters together. Task flags match Output usages
-only; Input usages have no displayed flag.
-
-Task feed updates share a module-local item patcher that preserves unchanged
-item/page references. Batch flag responses build an ID lookup and patch loaded
-items in one pass per feed. Missing tasks are inserted only when a cached
-snapshot/detail supplies the complete list item; otherwise matching feeds are
-invalidated. Search membership and incomplete-page insertion still recover
-through REST.
-
-Task detail REST responses and realtime snapshots include nullable `errorCode`
-and `errorMessage` from storage. Shared TaskInfo displays a failed task's localized
-reason beneath its status, with collapsible stored diagnostics in the detail
-panel. Unknown codes use a generic reason; missing diagnostics are
-explicit. Generate keeps the central "No image" state. Failure details follow the
-existing panel's collapse and narrow-viewport visibility. List items remain unchanged.
-
-Task detail snapshots project `name`, `status`, `errorCode`, `errorMessage`,
-`pin`, `discard`, and `images` with referential equality when all projected
-values are unchanged. Generate
-coordinates the Query-owned task detail with its page-scoped TanStack Form:
-changing task identity loads the full task, while a same-task server rename only
-updates the form `name` when it still equals the previous server name (`null`
-maps to the form boundary value `''`). Local Name, prompt, and config edits are
-preserved.
-
-Compare selections are frontend-owned UI state: a picker selection keeps its
-`matchedUsage` as the selected `usage`, so its label and detail refer to the
-same task shown by the picker. Local rename responses and remote `task.changed`
-events patch `usage.taskName` for matching selections. Replaying the same name
-returns the existing Compare array and entry references. This narrow UI-state
-patch is separate from Image list invalidation.
+REST CORS echoes accepted development origins or the packaged Desktop loopback
+exceptions. It uses explicit method/header allowlists without wildcard origins
+or credentials, and every `/api/` response varies on Origin. Preflight also
+varies on requested method and headers. Cloudflare Tunnel must preserve the
+external Host by leaving `httpHostHeader` unset.
 
 ## ComfyUI Boundary
 
-Only backend talks to ComfyUI.
+Only Server speaks the ComfyUI protocol. Workflow UI edits shared graph/mapping
+values through Silent Pix APIs without knowing connection or execution details.
 
-Frontend must not connect to ComfyUI or know its server connection config or
-execution protocol. Workflow UI may read and edit the shared API graph format,
-node IDs, and mappings through Silent Pix APIs.
+```text
+submit prompt (REST)
+  -> lifecycle and node outputs (ComfyUI WebSocket)
+  -> download output bytes (REST)
+  -> commit Task/images
+  -> remove successful outputs and history
 
-Backend translates Silent Pix tasks into ComfyUI execution.
-
-`ComfyClient` uses the ComfyUI WebSocket as the normal execution source and
-dispatches terminal lifecycle through required `onCompleted`/`onFailed`
-callbacks. Its `execute()` returns `void`: callbacks are invoked in lifecycle
-order without awaiting one another, while callback throws/rejections are
-logged and never reclassified as another Comfy failure. REST prompt submission
-is the acceptance boundary; an ambiguous submission transport failure is
-accepted only when the matching WebSocket has already supplied execution
-evidence.
-
-```txt
-POST /prompt (REST)
-    -> execution_start / executed / execution_success (ComfyUI WebSocket)
-    -> task lifecycle and output result
-    -> GET /view (REST) for image bytes
-    -> POST /history (REST) for history cleanup
-
-pending prompt's socket disconnects
-    -> reconnect
-    -> GET /history/:promptId (REST) for authoritative recovery outputs
+pending prompt loses its socket
+  -> reconnect
+  -> recover authoritative outputs from REST history
 ```
 
-Only a pending prompt whose socket disconnected uses history recovery. The
-recovery result replaces any partial WebSocket outputs; normal completion does
-not query history. This is an internal backend integration boundary, not a
-`packages/event` or shared server-to-web event contract.
+`ComfyClient.execute()` returns `void` and requires terminal completion/failure
+callbacks. Callbacks run in lifecycle order without awaiting one another;
+callback exceptions/rejections are logged without changing the Comfy outcome or
+recursively reporting another failure. Explicit prompt rejection fails; ambiguous
+submission transport failure continues only when the matching socket has already
+supplied execution evidence.
 
-Reference images are handed over as an absolute path, not as bytes. ComfyUI
-opens the file directly out of Silent Pix storage. Silent Pix does not upload
-reference bytes or create a separate reference copy for ComfyUI.
+Only pending prompts whose socket disconnected use history recovery. Recovery
+replaces partial WebSocket outputs; normal completion does not query history.
+This protocol stays in the Server Comfy adapter, outside shared event transport.
 
-Server checks the local reference with the image store's `absolutePath()`,
-using canonical `APP_STORAGE_DIR`. It separately builds the workflow path from
-`COMFYUI_REFERENCE_DIR`, the absolute path to those same files as seen by ComfyUI.
-The two roots may differ: Docker mounts storage at the configured container path,
-and Windows Desktop can open a WSL storage directory through a Windows UNC path.
-The conversion preserves Windows separators even when Server runs on Linux.
-Missing local references are rejected before prompt submission; inaccessible
-ComfyUI-side paths fail in its loader. Neither path creates a separate copy.
+The adapter validates untrusted HTTP and WebSocket envelopes. Malformed HTTP
+responses become integration errors; invalid or unrelated socket events do not
+advance pending execution.
 
-`ComfyClient` owns permissive Zod schemas for ComfyUI's prompt, history, and
-WebSocket envelopes. Its JSON readers return `unknown`; HTTP payloads are
-validated before generation logic and malformed responses become
-`COMFY_INVALID_RESPONSE`. WebSocket JSON that cannot satisfy the envelope is
-ignored, as are valid events unrelated to a pending prompt. Sampler and LoRA
-option responses keep their existing local shape checks.
+Reference images are absolute paths to existing Silent Pix storage, without
+uploading bytes or creating a second copy. Server checks files under its storage
+root, then converts the relative path using the root visible to ComfyUI. Docker
+mounts or Windows/WSL paths can give the same bytes different absolute roots;
+path conversion preserves the target platform's separators. A missing local
+reference fails before submission; inaccessible Comfy-side paths fail in its
+loader. The graph selects txt2img/img2img from the supplied reference path.
 
-The graph decides txt2img versus img2img by itself - an empty path takes the
-empty-latent branch, a real path takes the encode branch - so the server sets one
-string and there is no mode flag to keep in sync.
+## Web State
 
----
+TanStack Query owns Server data, loading/errors, and pagination. Solid stores own
+UI choices and connection state without copying Query data. Page-scoped TanStack
+Form owns editable Generate/Workflow values. Server refreshes preserve unrelated
+local edits; changing theme/language does not rebuild editors or reset input.
 
-## Technical Debt Rules
+Local image metadata inspection runs entirely in the browser, with no Server,
+ComfyUI, or durable storage dependency. The page owns File, Worker, preview URL,
+and result lifetimes; resource release and stale-result protection stay with that
+owner. External bytes and decompressed data are bounded and validated. Copy
+preserves original payload text, including unsafe integers; parsed projections
+do not replace the original. Parser limits and rendering behavior live in code
+and the design blueprint.
 
-Forbidden shortcuts:
+Header, Settings, and local tools remain available without a configured endpoint.
+Server health queries and events start only when an endpoint exists. Local tools
+work after Web assets load; this does not imply offline asset caching.
 
-```txt
-- frontend calls ComfyUI
-- frontend accesses SQLite
-- task state exists only in memory
-- image binary stored in SQLite
-- production DB stored in repo
-- route handlers contain large business logic
-- cross-package relative imports
-- feature code before ownership is clear
-```
+## Configuration and Runtime Targets
 
-If architecture is unclear, update docs before implementation.
+Environment variables are the runtime override boundary. Node base loading/path
+resolution belongs to Env; database and Server-specific config belong to their
+owners. Each side-effect capability reads its own canonical configuration, so
+callers cannot introduce competing database URLs, storage roots, or Comfy roots.
+Operation inputs such as IDs, Database capabilities, grace periods, and clocks
+remain explicit. Data, database, and storage paths are independently configured;
+the data directory does not derive the other two. Runtime paths do not assume
+repository-root cwd.
+
+The root `.env` supplies the shared Browser/Desktop Vite endpoint. Browser uses
+the same-origin API proxy. Every Tauri webview, including development, uses the
+Desktop identity and native saved Server URL for API, images, and events; Vite
+provides assets and HMR only. Desktop's dev wrapper merges the validated endpoint
+into Tauri and resolves linked configuration back to the source repository.
+This does not promise simultaneous independent Vite instances.
+
+Desktop hosts Web and does not start Server or ComfyUI. Native settings persist
+one validated local Server URL. Fixed current-window controls support the shared
+Header title bar; Web's native bridge remains narrow. Development setup and
+packaged acceptance belong in [apps/desktop/README.md](../apps/desktop/README.md).
+
+Workspace development resolves TypeScript sources through the development export
+condition; production resolves built outputs. Development and database commands
+do not require a prior build.
+
+### Deployment
+
+Single-host Compose builds Server and Caddy/Web separately. Caddy serves Web and
+proxies API/WebSocket traffic over the private network; Server has no published
+port. Optional integrated ComfyUI shares storage/output mounts with Server, or
+Server uses an externally managed instance. Published Caddy/ComfyUI ports bind
+to host loopback. Cloudflare Tunnel is independently managed.
+
+Deploy start stops project writers before migrations and recreates services only
+after migration success; failure leaves services stopped. Stop/down retain
+bind-mounted data. Ansible delegates to the same scripts. SQLite must remain
+inside the persistent data mount; native/other manually started writers must be
+stopped separately. Setup, migration, health checks, and operation are owned by
+[deploy/README.md](../deploy/README.md).
+
+## Known Gaps
+
+- Generation and output finalization are detached and untracked. Graceful
+  shutdown does not drain them; late finalization against a closed database is
+  unsupported. Startup recovery marks interrupted tasks failed and does not resume
+  execution or provide cancellation.
+- Authentication and packaged Desktop remote connectivity remain unimplemented.
+  Client identity and origin checks do not provide authentication.
+- Storage paths are configurable, but automatic Desktop production app-data
+  overrides are unimplemented; production must explicitly configure persistent
+  paths outside the repository.
+- Windows native behavior, packaged file selection/drop/Clipboard, custom-title-bar
+  Snap Layouts, Linux edge resizing, and macOS Overlay traffic-light placement
+  are not verified from this workspace.
+  Development HMR does not validate packaged origins, installers, or release builds.
+- The database client enables foreign keys but does not explicitly configure WAL
+  or `busy_timeout`; changes require runtime validation at that owner.
+- JPEG orientation metadata is handled without transcoding; agreement with browser
+  and ComfyUI decoding still requires orientation-bearing runtime checks.

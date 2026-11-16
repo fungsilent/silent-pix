@@ -7,7 +7,7 @@ Silent Pix is designed for long-term personal use:
 - PC desktop mode as the main long-running client.
 - Phone/browser web mode connecting to the local backend.
 
-This repo is a clean rebuild. The goal is to define stable architecture first, then let agents implement features safely.
+Architecture boundaries and implementation constraints are documented so humans and agents can change features safely.
 
 ---
 
@@ -27,32 +27,17 @@ This repo is a clean rebuild. The goal is to define stable architecture first, t
 | Formatting | ESLint + @stylistic |
 | Prettier | Not used |
 | Runtime files | Filesystem |
-| Production data | OS app data directory |
-| Dev data | `./.local/data` |
+| Production data | Explicitly configured paths outside the repository |
+| Dev data | `./.data` |
 
 ---
 
 ## Architecture Summary
 
-```txt
-Desktop / Web client
-    ??REST
-Backend server
-    ??
-SQLite + filesystem
-    ??
-ComfyUI
-```
-
-Rules:
-
-- Backend is the source of truth.
-- Frontend must not call ComfyUI directly.
-- Frontend must not access SQLite directly.
-- SQLite stores durable state and metadata.
-- Filesystem stores images, thumbnails, uploads, and workflow snapshots.
-- Validated WebSocket task snapshots update frontend query caches in realtime; REST restores state after refresh or reconnection.
-- `apps/server/src/module/event` owns only the `/api/event` Elysia route; the Workflow domain owns the canonical summary projection, and REST/task execution call sites own Task snapshot publication. All synchronous Task/Workflow mutation routes require `appApi.clientHeaders` and exclude matching sockets from their event publication; async task lifecycle and health events remain broadcasts. `packages/event` owns generic connection records and type-keyed validated publication. The Web event feature owns URL/client identity, parsing, reconnect recovery, and aggregate dispatch while domain features own cache handlers.
+Desktop and Browser share the Web UI and communicate with Server through REST
+and WebSocket. Server owns durable state in SQLite, image bytes on the filesystem,
+and ComfyUI execution. See [Architecture](docs/architecture.md) for package
+boundaries, consistency guarantees, runtime targets, and known gaps.
 
 ---
 
@@ -60,14 +45,17 @@ Rules:
 
 ```txt
 apps/
-    web/        SolidJS frontend and UI foundation
+    web/        shared SolidJS UI
     server/     Elysia backend
-    desktop/    desktop shell placeholder
+    desktop/    Tauri shell and native Server settings
+    design/     independent design blueprint content
 
 packages/
-    shared/     shared DTOs, schemas, enums, types
+    shared/     canonical domain values and REST/event contracts
     event/      browser WebSocket client and generic type-keyed WS server helper
-    db/         SQLite / Drizzle schema, client, migrations, repositories
+    db/         SQLite / Drizzle schema, client, migrations, maintenance
+    env/        Node-only base env loading and path resolution
+    blueprint/  reusable design blueprint framework
 
 docs/
     architecture.md
@@ -81,18 +69,15 @@ docs/
 Development:
 
 ```txt
-.local/data/
+.data/
     silent-pix.sqlite
     storage/
         images/
-        thumbnails/
-        uploads/
-        workflows/
 ```
 
-Production desktop mode must use the OS app data directory, not the repo.
-
-Examples:
+Production must explicitly configure persistent paths outside the repository.
+Automatic Desktop app-data path overrides are not implemented. OS app-data
+directory examples:
 
 ```txt
 Windows: %APPDATA%/Silent Pix/
@@ -106,25 +91,8 @@ SQLite records should prefer relative paths.
 
 ## Environment
 
-Copy `.env.example` to `.env`.
-
-```env
-ENV=development
-
-SERVER_HOST=127.0.0.1
-SERVER_PORT=3070
-WEB_HOST=127.0.0.1
-WEB_PORT=5173
-CADDY_PORT=8080
-
-COMFYUI_BASE_URL=http://127.0.0.1:8188
-COMFYUI_REFERENCE_DIR=/absolute/path/as-seen-by-comfyui/storage
-COMFYUI_OUTPUT_DIR=/absolute/path/as-seen-by-server/comfyui/output
-
-APP_DATA_DIR=./.local/data
-DATABASE_PATH=./.local/data/silent-pix.sqlite
-APP_STORAGE_DIR=./.local/data/storage
-```
+Copy `.env.example` to `.env`; it lists every variable with its development
+default.
 
 ComfyUI connection and filesystem values are backend-only. Runtime capabilities
 read their env-backed configuration directly; callers pass domain inputs, not
@@ -209,66 +177,15 @@ The snapshot is read-only in practice; writes there never reach the real databas
 
 ---
 
-## Current Phase
-
-Foundation only.
-
-Allowed now:
-
-```txt
-- monorepo setup
-- TypeScript setup
-- ESLint setup
-- Elysia base server
-- SolidJS base app
-- Tailwind-based web UI foundation
-- shared web UI primitives
-- static/mock generate page shell
-- local REST / WebSocket event foundation
-- SQLite / Drizzle foundation
-- docs and AGENTS.md
-```
-
-Not allowed yet:
-
-```txt
-- task queue
-- ComfyUI integration
-- feature realtime channels beyond foundation server events
-- functional image generation workflow UI
-- workflow editor
-- auth
-- cloud sync
-- multi-user system
-```
-
-Current web UI status:
-
-```txt
-apps/web/src/
-    components/
-        Header.tsx              app-level header
-        base/                   shared low-level UI primitives
-        field/                  shared Ark UI-based form/control primitives
-    pages/generate/             generate workspace shell
-    pages/generate/components/
-        task/                   generate-page task list and item UI
-        config/                 generate-page detail/config mock UI
-    temp/                       temporary mock visual data
-```
-
-The generate page is a layout and interaction foundation only. It may use mock task/config data, LoRA stack placeholders, and temporary images for UI shaping, but it must not create task lifecycle authority, call ComfyUI, or treat mock data as durable state.
-
----
-
 ## Docs
 
-Read before feature work:
+Read the implementation constraints and the documentation relevant to the change:
 
-```txt
-docs/architecture.md
-docs/conventions.md
-AGENTS.md
-```
+- [AGENTS.md](AGENTS.md): implementation constraints and document update rules.
+- [Architecture](docs/architecture.md): system boundaries, flows, guarantees, and known gaps.
+- [Conventions](docs/conventions.md): reusable implementation practices.
+- [Design blueprint](apps/design/README.md) and [framework](packages/blueprint/README.md): authoring, component API, and validation; run the blueprint with `pnpm dev:design`.
+- [Desktop](apps/desktop/README.md) and [Deployment](deploy/README.md): setup and operation.
 
-Docs are the architecture contract. Do not bypass them for quick MVP implementation.
+Each document owns its explanation. Update it when that explanation changes;
+ordinary implementation changes do not require editing every document.

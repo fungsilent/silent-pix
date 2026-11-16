@@ -1,370 +1,147 @@
 # Conventions
 
-Repo conventions for humans and agents. `architecture.md` describes current
-structure and known gaps; `../AGENTS.md` contains implementation constraints.
-Keep these documents aligned; label current exceptions rather than inventing
-parallel rules.
+Reusable implementation practices for humans and agents. System ownership,
+cross-boundary flows, guarantees, and known gaps belong in
+[architecture.md](architecture.md); implementation constraints and document
+update rules belong in [AGENTS.md](../AGENTS.md).
 
-The root `devEngines.packageManager` declares pnpm `^12.16.1`; Turbo 2.11+
-reads that version range. The standalone linked Desktop package declares the
-same range in `engines.pnpm`, which its Windows prerequisite checker reads.
-Use caret ranges for third-party dependencies and keep exact resolved versions
-in `pnpm-lock.yaml`. `pnpm-workspace.yaml` allows only esbuild's dependency build
-scripts.
-ExifReader uses its published implementation; its optional custom-build
-postinstall is explicitly disabled with `allowBuilds.exifreader: false`.
-The pinned `i18next@27.1.0` release has a package-specific
-`minimumReleaseAgeExclude` entry added by pnpm when installing that version.
+This document explains how to make recurring implementation decisions. Feature
+specifications, progress, file inventories, schema fields, numeric limits, and
+installed versions stay with their owning blueprint, code, config, or README.
 
----
+## TypeScript and Dependencies
 
-## TypeScript
+Use strict TypeScript. Prefer inference inside implementations and public types
+at package boundaries. Avoid `any`; untrusted values begin as `unknown` and are
+validated before use. Keep the official compiler and ESLint compatibility alias
+roles specified in AGENTS.md; do not use `baseUrl`, and write explicit `./`
+targets in TypeScript `paths`.
 
-Rules:
+Third-party dependencies use explicit caret ranges; workspace dependencies use
+`workspace:*`. Package/config files own version requirements, build permissions,
+and installation exceptions; the lockfile owns resolved versions.
 
-```txt
-- strict TypeScript
-- avoid any
-- use unknown for untrusted values
-- validate external input
-- explicit types at package boundaries
-- inferred types allowed inside local implementation
-```
+Formatting is ESLint plus `@stylistic`, without Prettier. Use four spaces, single
+quotes, no semicolons, and strict spacing. Prefix intentionally unused arguments,
+variables, and caught errors with `_`. The ESLint config owns exact lint rules.
 
----
+## Types and Trust Boundaries
 
-## Types and Contracts
+Find the existing definition before adding a type. Use a library's public types
+at its boundary and inferred Zod output types for shared REST/event contracts.
+Do not copy those definitions into competing hand-written contracts. A child
+component's narrow props describe its own UI contract, even when some fields
+overlap a transport type.
 
-Find the existing definition before writing a type. Library boundaries use the
-library's public types; shared REST/event boundaries use inferred Zod output
-types. Do not copy those contracts into competing hand-written definitions.
-A component may define its own narrow props contract. Shared fields do not make
-that independent UI contract an invalid duplicate.
+Internal Eden APIs preserve route-derived success and declared error types.
+Narrow errors by HTTP status and construct application errors from
+`(status, code, message)` without re-parsing typed requests or responses. Preserve
+domain evidence when its consumer needs it, such as validation issues.
 
-For internal Eden APIs, preserve route-derived types and narrow declared errors
-by status. Construct application errors from `(status, code, message)` without
-re-parsing typed inputs, successes, or declared error bodies. Preserve domain
-error evidence when its consumer needs it.
+Transport failures and unexpected response shapes have separate handling from
+declared route errors. Do not widen a typed union to `unknown` just to parse it
+again. Likewise, retain factory-derived types for trusted internal state and
+cache keys when a library presents them as `unknown`.
 
-Transport failures and unexpected response shapes need separate handling. They
-are not declared route outcomes. Validate untrusted data at that boundary when
-needed; do not widen every internal error to `unknown` to justify parsing again.
-ComfyUI responses, imported files, and other external inputs require runtime
-validation. Server-only integration schemas stay with their adapter.
+ComfyUI responses, imported files, native command results, and other untrusted
+inputs still require runtime validation. Integration schemas stay at their
+adapter; pure reusable domain validation belongs in Shared. Preserve error
+handling and validation when moving or merging code.
 
-In `apps/web/src/api/api.client.ts`, `unwrap` receives the request-inferred
-Eden error union and reads declared error fields directly. Its optional mapper
-is for domain evidence such as the Workflow mapping `issues`; it does not copy
-or re-parse a route union. In `apps/server/src/lib/comfy/comfy.client.ts`,
-`readJson` and `parseJson` return `unknown`, and the adapter's local Zod schemas
-validate prompt/history HTTP values and WebSocket envelopes before use.
-Normal ComfyUI execution lifecycle and node outputs come from validated
-ComfyUI WebSocket events. REST `history/:promptId` is queried only to recover a
-pending prompt whose socket disconnected; prompt submission, image download,
-and history deletion remain REST. This protocol stays inside the backend
-Comfy adapter and is not a `packages/event` or shared event contract.
-`ComfyClient.execute()` requires `onCompleted` and `onFailed` terminal callbacks
-and returns `void`: callbacks are invoked in lifecycle order without awaiting
-one another. Callback errors are logged without changing lifecycle state or
-recursively dispatching `onFailed`; explicit REST rejection fails, while an
-ambiguous submission transport failure continues when matching WebSocket
-evidence exists.
+## Responsibility and Change Scope
 
----
+Before changing a responsibility, trace the operation through its callers, state
+owners, validation, side effects, commit, publication, and cleanup. Choose the
+owner and dependency direction before extracting helpers. Related lifecycle
+decisions belong with the owner that can enforce the whole guarantee; separate
+owners are useful when they protect distinct trust boundaries or lifetimes.
 
-## Formatting
+Judge a refactor by the knowledge and coordinated edits it removes in a current
+maintenance case. Fewer lines, files, or parameters alone do not prove improvement.
+Reuse shared semantic rules; keep small duplication when sharing would couple
+unrelated domains. Do not add layers or flexibility for hypothetical consumers.
+Preserve transaction-time guards, lock boundaries, error handling, and effect
+ordering; describe any behavior change separately from structural cleanup.
 
-No Prettier.
+## Imports and Public Contracts
 
-Use ESLint + `@stylistic/eslint-plugin`.
-
-Style:
-
-```txt
-- 4-space indent
-- single quotes
-- no semicolons
-- strict spacing
-- ignored args/vars/caught errors start with _
-```
-
----
-
-## Accessibility Scope
-
-Dedicated accessibility support is not part of Silent Pix's product scope.
-
-Rules:
-
-```txt
-- do not add repo-owned aria-* attributes
-- do not add role or tabIndex solely for assistive technology or keyboard accessibility
-- do not add screen-reader-only content, including sr-only labels
-- do not add live regions, accessibility-specific copy, dependencies, lint rules, or tests
-- keep ordinary interaction behavior and markup required by browser or component APIs
-- do not replace Ark UI or remove accessibility behavior generated internally by third-party components solely to enforce this scope
-```
-
-The restriction applies to code owned by this repository. Accessibility behavior
-inside transitive dependencies is not a supported product feature and does not need
-to be removed.
-
----
-
-## Imports
-
-Use workspace package imports.
-
-Correct:
+Use workspace imports across packages and source aliases within packages:
 
 ```ts
 import type { TaskApi } from '@silent-pix/shared'
-
-type Status = TaskApi.TaskStatus
-```
-
-Wrong:
-
-```ts
-import type { TaskApi } from '../../packages/shared/src'
-```
-
-Inside `apps/web/src`, use the web source alias:
-
-```ts
 import { Button } from '#/components/base/Button'
-import { TaskList } from '#/pages/generate/components/task/list/TaskList'
 ```
 
-Do not use relative imports inside `apps/web/src`:
+Source aliases are `#/` except within Shared, which uses `#shared/` to avoid the
+current tsx path-resolution collision. Do not use cross-package relative imports,
+another package's `src` path, `@/`, or relative source imports. Avoid circular
+dependencies.
 
-```ts
-import { Button } from '../../../components/base/Button'
+Organize Shared by domain:
+
+```text
+contract/   canonical reusable values/resources and pure validation
+api/        REST query coercion, params, requests, and responses
+event/      WebSocket envelopes
 ```
 
-Rules:
-
-```txt
-- no cross-package relative imports
-- no relative imports inside `apps/web/src`; use `#/`
-- no importing another package's src directly
-- avoid circular package dependencies
-```
-
----
-
-## Package Ownership
-
-```txt
-apps/web
-    Shared UI, typed backend API client, and a narrow Desktop startup bridge that invokes only native settings commands.
-    App-level chrome lives in `apps/web/src/components`.
-    Shared low-level UI primitives live in `apps/web/src/components/base`.
-    Shared form/control primitives live in `apps/web/src/components/field`.
-    Page-specific UI lives under that page folder, e.g. `apps/web/src/pages/generate/components`.
-
-apps/design
-    Design system blueprint content: pages, state fragments, and its own token stylesheet. Never imports or is imported by apps/web.
-
-apps/server
-    Elysia app, middleware, domain routes/services, server env, lifecycle.
-
-apps/desktop
-    desktop shell, startup model, and validated native local-Server settings; `script/dev.ts` owns the Tauri dev URL merge from shared Web endpoint env.
-
-packages/shared
-    Canonical domain values/validation under `contract/`; REST under `api/`; events under `event/`.
-    Workflow definitions live under `contract/workflow/{resource,graph,config}.ts`.
-
-packages/event
-    Generic browser client and type-keyed EventServer transport helpers only; the
-    Elysia /api/event adapter belongs in apps/server/src/module/event; domain events belong in shared, and Workflow projections belong in the Workflow module.
-
-packages/db
-    SQLite client, Drizzle schema/migrations, maintenance scripts.
-
-packages/env
-    Node-only base env and path resolution for server and DB scripts.
-
-packages/blueprint
-    Reusable design-system blueprint framework (Astro + Starlight integration, page components, search, chrome styles, layout check). No Silent Pix content.
-```
-
-Do not mix ownership.
-
-### Shared module layout
-
-```txt
-packages/shared/src/
-    contract/<domain>.ts or contract/<domain>/*
-                           canonical reusable values/resources and validation
-    api/<domain>...       REST query coercion, params, requests, responses
-    api/app.ts            WebSocket handshake query contract (`clientId`)
-    event/<domain>.ts     server-to-web envelopes
-    index.ts             explicit public catalogs/type exports
-```
-
-API and event modules may reference canonical contracts; canonical contracts
-must not depend on transport modules. Group by domain, not schema role, and do
-not extract fragments merely because two Zod expressions look alike.
-
-Workflow graph, mapping, and resource definitions currently live under
-`contract/workflow/{resource,graph,config}.ts`, grouped by domain while keeping
-their distinct responsibilities; this layout does not prescribe file splits
-for other domains.
-Database columns may use a canonical value type when the JSON shape matches
-exactly; DB row/storage types remain DB-owned.
+Keep canonical contracts independent of transport. Extract reusable fragments
+for domain meaning, not syntactic similarity between schemas. Database row and
+storage types remain DB-owned; a column may use a canonical value type only when
+the stored JSON shape matches it exactly. An endpoint response may alias another
+endpoint response with formal domain meaning without inventing a generic contract.
 
 REST schemas use explicit `xxxApi` catalogs and types use `XxxApi` namespaces.
-Canonical values may be exposed through a consuming API catalog when externally
-needed; that exposure does not transfer domain ownership. Avoid duplicate aliases.
-Existing `Comfy`/`config` catalogs and flat `ConfigSchema`, `GeneratorField`, and
-`Mapping` exports remain explicit compatibility exceptions. Do not add parallel
-exports or rename public contracts merely to make every module look alike.
+Canonical/event catalogs also list their public schemas explicitly; do not
+spread or export-star runtime schemas. A symbol is public only when another
+package consumes it, not merely because it is exported across local files.
+Preserve the compatibility exceptions named in AGENTS.md without adding aliases.
 
-Only externally consumed symbols belong in the public surface. List catalog
-members explicitly; do not spread or export-star runtime schemas. Keep schema
-and logic sections before inferred types, using the shared comment categories
-specified in AGENTS.md.
-
-Workspace packages expose `src` under the `development` export condition and
-`dist` by default. Source-running Node scripts enable `--conditions=development`;
-Vite development uses its built-in development condition. Database commands and
-`pnpm dev` do not require a prior build.
-
-Source aliases are `#/` except within shared, which uses `#shared/`. The distinct
-shared prefix avoids a known collision when tsx applies the entry package's
-paths to loaded shared files. Preserve it until an alternative is validated
-across development, typechecking, and production package resolution.
-
----
+Schemas and logic precede inferred output types, grouped at the end of each
+Shared file. Use the fixed Shared comment categories in AGENTS.md. These comment
+rules do not impose the same section structure on other packages.
 
 ## Backend Pattern
 
-Use:
+Routes handle transport validation, service calls, status selection, and response
+publication. Domain services own business rules and atomic writes. Put validation
+that protects every caller inside the owning service; route-only validation
+cannot enforce that invariant. Preserve documented error precedence.
 
-```txt
-route -> service -> Drizzle -> database
-```
+Services query Drizzle directly. Use its typed builders, operators, and subqueries;
+do not add a repository layer or use raw SQL/Drizzle `sql` in Server domain code.
+Use a transaction or atomic statement batch for writes that must succeed together.
+One all-or-none user batch action uses one batch API, not independent requests
+with client-side partial-success reconciliation.
 
-Route handles:
+Pass `databaseClient.database` from routes to services. Leaf helpers that also
+work within transactions accept a precise `Pick<Database, ...>` capability rather
+than requiring lifecycle access. Keep configuration internal to its owner as
+described under Configuration.
 
-```txt
-- params/body
-- validation
-- service call
-- HTTP response
-```
+A model module is optional. It can own cohesive DB-row conversions, domain types,
+or resource projections. Keep small mappings local; do not introduce generic
+mapper layers or split files just to match another domain.
 
-Service handles:
-
-```txt
-- business rules
-- orchestration
-- lifecycle decisions
-```
-
-Services query Drizzle directly and own transaction/batch boundaries. Do not
-add a repository layer. Keep related operations in their domain; split only
-for a distinct responsibility or isolated complexity.
-
-Workflow mapping validation is a service invariant. A module-local
-`checkMapping()` runs inside `workflowService.create()` and
-`workflowService.update()` before any Drizzle write; update performs it before
-lookup, archive, and revision checks so an invalid mapping keeps its 422
-precedence. The route passes request data to the mutation, maps the service
-failure's `issues` to the existing 422 response, and publishes
-`workflow.changed` only after the mutation and response load succeed.
-
-The server lifecycle owns a `DatabaseClient` instance named `databaseClient`.
-It exposes the Drizzle `Database` as `databaseClient.database`, plus `check`
-and `close`; only startup, health, and shutdown use those lifecycle methods.
-`databaseMiddleware` injects `databaseClient` into Elysia route context. Domain
-routes pass `databaseClient.database` to services, and transaction-compatible
-leaf capabilities accept only their precise narrow `Pick<Database, ...>`
-capability. Do not use raw SQLite or Drizzle `sql` in server domain code.
-
-Task creation uses the complete `WorkflowModel` returned by
-`workflowService.findWorkflow()`, whose existing `castWorkflowModel()` call is
-the DB row-to-domain conversion boundary. The task stores that model's `id` and
-`revision`, and the same model must flow into generation; generation must not
-re-read the current Workflow. This protects the task's recorded revision from a
-Workflow update between create and execution. The model is process-local, so
-legacy `workflowRevision = 0` rows remain unknown rather than being backfilled.
-
-`taskExecution.generate()` owns task generation's ComfyUI orchestration,
-callback wiring, output ingest and rollback, Task status/error mapping, its
-generation-only completion transaction, and lifecycle publication. It loads a
-canonical snapshot and publishes its lifecycle event directly at the call site.
-Lifecycle status helpers return their outcomes; `generate()` owns publication
-after successful guarded updates, including preflight failures, and subsequent
-ComfyUI cleanup. Completion publishes before cleanup;
-post-commit cleanup rejections reach ComfyClient's existing callback error logger
-without changing the Task outcome.
-Keep the dependency one-way:
-`task.service.ts` owns resource queries, business operations, startup recovery,
-snapshots, and public options and must not import the execution module.
-The route launches generation as a detached, untracked Promise. Its
-`ComfyClient.execute(): void` call installs lifecycle callbacks, and their
-output finalization is likewise detached, untracked, and not drained by
-shutdown; tracking and cancellation are not part of this boundary.
-
-At startup, `createApp()` awaits `taskService.failInterruptedTasks()` after
-`serverStore.init()` opens SQLite and before the first `ComfyClient.start()`.
-The single guarded update changes persisted `queued` and `running` tasks to
-`failed` with `errorCode = SERVER_RESTARTED` and an explanatory message. It does
-not resume tasks or publish recovery events; clients obtain the durable result
-through subsequent REST initial/recovery synchronization. The route-launched
-generation Promise and the callbacks started by `execute(): void` remain
-untracked, so graceful shutdown does not drain them and late finalization
-against a closed DB remains a known unsupported lifecycle case.
-
-Task detail responses and realtime snapshots carry nullable `errorCode` and
-`errorMessage` from storage. Keep both fields in detail-cache projection and
-equality checks. Shared TaskInfo's failure section translates known codes, uses a
-generic reason for unknown codes, and renders stored diagnostics as text. Do
-not attribute generic generation failures to ComfyUI.
-
-An optional model module can own:
-
-```txt
-- DB row -> domain model conversion
-- domain types and cohesive resource projections
-```
-
-A model file is optional. It may parse persisted JSON with a canonical contract
-and own cohesive domain conversions, including resource projections when that
-is its explicit responsibility. `image.model.ts` currently owns image resource
-projection. Keep mappings local or domain-owned; avoid a generic mapper layer.
-
-### Response shaping
+### Response Shaping
 
 The domain service owns response data and query semantics; the route selects
-HTTP statuses. Choose the smallest response path that supplies the required
-fields:
+HTTP statuses. Choose the smallest path that supplies the required fields:
 
-- Return/project the mutation result when it already contains the response.
-- Use a domain `get<X>Response` read when joined or computed fields are needed.
-- Share a domain projection when it has the same semantic responsibility across
-  callers; do not duplicate it merely because it has only two consumers.
+- Project the mutation result when it already contains the response.
+- Use a domain response read when joined/computed fields are needed.
+- Share projections when callers have the same semantic responsibility.
 
 A separate read is not mandatory and does not guarantee an atomic snapshot with
 the mutation. Decide which state the response represents when concurrent writes
-matter. Related detail/event/mutation projections must stay consistent, but
-need not have identical fields. Do not add a generic mapper or repository layer.
-
----
+matter. Related detail/event/mutation projections must stay consistent without
+necessarily exposing identical fields.
 
 ## API Shape
 
-Success returns the resource itself. No envelope.
-
-```json
-{ "id": "...", "name": "...", "status": "done" }
-```
-
-The HTTP status carries success or failure. Errors carry a code the client can
-branch on:
+REST resource paths are singular. Successful responses return raw resources;
+HTTP status determines success. Expected non-2xx outcomes use Elysia
+`return status(...)`. Errors have this shape:
 
 ```json
 {
@@ -375,588 +152,211 @@ branch on:
 }
 ```
 
-Declare Zod schemas for request inputs and each supported JSON response status.
-Binary image 200 and bodyless 304 responses use native `Response`; document
-Content-Type, cache headers, sha256 ETag, and body semantics rather than invent
-a JSON envelope/schema for bytes. JSON error responses still use shared schemas.
-Do not leak raw internal errors.
+Declare shared Zod schemas for request inputs and each supported JSON response
+status. Use validated output types with `XxxQuery`, `XxxRequest`, and
+`XxxResponse` naming; coercible input types containing `unknown` do not belong in
+public API types. Unexpected/framework errors go through error middleware,
+preserving meaningful status, logging internals server-side, and exposing no raw
+Error objects.
+
+Binary image responses use native `Response` rather than JSON schemas:
+
+| Status | Body and headers |
+|---|---|
+| 200 | Stored bytes; sniffed Content-Type, Content-Length, quoted sha256 ETag, and `Cache-Control: public, max-age=31536000, immutable` |
+| 304 | No body on matching If-None-Match; cache metadata headers |
+| 404 | Shared JSON error when the image row or file is missing |
+
+Eden Treaty is used only in Web API modules. Import Server's `Api` through
+`@silent-pix/server/api` with `import type`; annotate exported clients with public
+`Treaty.Create<Api>` when portable declarations require it. Keep client/Server
+Elysia versions compatible so inference stays typed. Retain `parseDate: false`
+for ISO strings and `throwHttpError: false` for status-based narrowing.
 
 ### Multipart
 
-A request that may carry a file keeps every other field inside one object.
-The following illustrates the transport shape, not the complete validation:
+When a request may carry a File, group all other fields in one `payload` object
+and keep only the File at the top level. Eden serializes that object whole;
+top-level primitive FormData fields can lose empty arrays and stringify null or
+numbers individually. The current Eden/Elysia integration parses the JSON object
+before the handler, so declare an object schema without manual JSON parsing.
 
-```ts
-z.object({
-    payload: createTaskPayload,
-    referenceImage: z.file().optional(),
-})
-```
+Keep mutually exclusive variants in the shared boundary schema. Task creation's
+stored-reference/upload alternatives are one request, not client-coordinated
+operations. Exact fields belong to the shared API contract.
 
-Task create must accept exactly three cases: no reference, stored image id, or
-uploaded File. The shared union schema rejects id plus File before the service
-boundary. Web sends `name: null`; it does not inherit the source task name.
+## Query Caches and Events
 
-Eden switches to `FormData` as soon as it sees a `File`, and `FormData` values
-are strings. Primitive arrays are appended element by element, so an empty
-one appends nothing and the field disappears; `null` and numbers arrive as `"null"` and
-`"0"`. A single object is stringified whole, so everything inside it survives.
-Only the file belongs at the top level.
+API wrappers expose plain Promise functions without Solid or TanStack Query.
+Domain features own Query hooks, keys, pagination, and cache updates. Components
+consume hooks. Hooks read needed store state directly; do not thread store values
+through callers solely to reach a hook. Request construction belongs in the
+owning query module.
 
-With the current Eden/Elysia integration, the JSON-encoded `payload` is parsed
-back into an object before the handler sees it. Declare it as one - a
-`z.string()` will fail validation, and no manual parsing is needed.
+Mutation `onSuccess` and the matching event handler call the same idempotent
+cache operation. Applying an already-applied result is a no-op. Preserve unchanged
+item/page references so unrelated updates do not reset focused or editable UI.
+An actor never waits for a WebSocket echo to apply its HTTP result.
 
----
+Patch only when payload fields determine the result. Otherwise invalidate and
+let Server refetch, including uncertain search membership, incomplete pages,
+summary-only detail changes, and dependent domains. Reconnection recovers queries
+that missed events. Do not reproduce database membership, collation, or `LIKE`
+semantics in Web.
 
-## Events
+Workflow list ordering is the explicit exception: Server and Web use `name` then
+opaque `id`; Server declares SQLite ordering and Web uses a file-local ordinal
+comparator for realtime upserts. Unicode edge ordering can differ after refetch.
+This exception does not transfer filter or other domain query semantics to Web.
 
-Use `packages/shared/src/event/<module>.ts` for server-to-web event contracts and `packages/event` for generic WebSocket transport helpers. The Elysia `/api/event` adapter belongs to `apps/server/src/module/event`; Workflow projections remain in the Workflow domain.
-
-### REST is the source of truth; the socket syncs everyone else
-
-A mutation applies its own outcome from the HTTP response. It never waits for
-the event to travel back, because a socket that is down while HTTP still works
-is a state this app models — under the naive design the server would succeed and
-the UI would sit frozen.
-
-So both paths exist and both run:
-
-```ts
-// the acting client, from the response it already has
-onSuccess: result => applyTasksRemoved(queryClient, [result.id])
-
-// every other client, from the broadcast
-case 'task.removed': applyTasksRemoved(queryClient, event.taskIds)
-```
-
-They call the same function, and that function is written to be idempotent —
-clearing absent cache entries is a no-op, and filtering a list that lacks the
-item returns it unchanged.
-
-This does not make the socket optional. It carries what no response can: a task
-moving through queued, running and done long after the POST returned. That is
-new information rather than the echo of an action, and replacing a poll with it
-is the point of having a socket at all. The distinction is the rule — if the
-acting client could already know, do not make it wait to be told.
-
-Rules:
-
-```txt
-- aggregate outbound events through `event.serverEvent`
-- server validates every outbound event before broadcast
-- the WebSocket handshake query contract (`clientId`) lives in `packages/shared/src/api/app.ts`; event envelopes remain under `packages/shared/src/event`
-- the Web API client module (`apps/web/src/api/api.client.ts`) exports one per-page UUID `clientId`; its shared fetcher supplies it as `client-id`, while App uses it for the WebSocket `clientId` query, and identity is transport metadata only
-- WebSocket handshakes require `Origin` and `Host`; in `ENV=development`, accept any canonical HTTP(S) Origin without requiring its host to match `Host`; outside development, safely parse `Origin` and strictly compare parsed `Origin.host` (including port) with `Host`, with exact `http://tauri.localhost` and `tauri://localhost` exceptions for canonical `Host: 127.0.0.1:<port>` (1–65535 except default port 80)
-- REST CORS echoes any canonical HTTP(S) Origin in development; outside development it applies only to `/api/` requests with one of those exact packaged origins and a loopback Host; allow only `GET, POST, PUT, PATCH, DELETE` and `client-id, content-type`, with no wildcard origin or credentials; send `Vary` on every `/api/` response
-- the connection registry remains keyed by `ws.raw`; every synchronous Task/Workflow mutation publication excludes all records matching its validated request `clientId`, while async task lifecycle and health publications remain broadcast
-- Cloudflare Tunnel configuration must leave `httpHostHeader` unset so the external host remains available for same-origin validation
-- browser connection helpers live in `packages/event/src/client.ts`
-- Node WebSocket server helpers live in `packages/event/src/server.ts`; the functional Elysia `/api/event` route plugin in `apps/server/src/module/event/event.route.ts` uses the parent app's `@elysiajs/node` `node()` adapter, and the reused Workflow projection lives in `apps/server/src/module/workflow/workflow.model.ts`
-- `apps/web/src/features/event/event.client.ts` owns URL/client identity, connection lifecycle, shared-schema parsing, reconnect recovery, and exhaustive aggregate dispatch; domain cache handlers remain in their existing feature `*.event.ts` files
-- `appApi.clientHeaders` is the single shared REST identity schema. Event-producing synchronous routes use it before their handlers: Task create → `task.created`, rename/flags → `task.changed`, batch/single delete → `task.removed`, Workflow create/update/archive → `workflow.changed`, and Workflow true delete → `workflow.removed`; each excludes all matching `clientId` records. Actor caches use REST responses, remote caches use events, and async task lifecycle/health remain unfiltered broadcasts.
-- an event carries the fields needed for its supported cache updates; incomplete projections use invalidation
-- patch when the payload determines the result; otherwise invalidate affected queries
-- database membership/collation/search semantics stay server-owned; invalidate when fields cannot decide membership. Workflow list ordering is the precise exception in which Server and Web use the same `name` then `id` keys: Server declares SQLite ordering, while Web's realtime cache uses a file-local JavaScript ordinal comparator. Unicode edge ordering may differ between realtime upserts and a later refetch; this does not loosen server ownership of membership, collation, or `LIKE` semantics in other domains.
-- consider dependent domains: task changes can affect Image queries as well as Task queries
-- for a Workflow detail, invalidate when its summary shows it is behind; the event has no graph
-- a mutation applies its own result in `onSuccess`; never rely on the round trip
-- the event handler and the mutation share one idempotent function per outcome
-- reconnecting invalidates what went stale while the socket was gone
-- application events must not exist purely for transport; a heartbeat must carry user-visible state
-- `health.snapshot` doubles as the liveness signal; the client treats silence of *valid* events as connection loss
-- the client must validate every inbound event; an event that fails validation is not evidence the connection is alive
-- the heartbeat interval lives in `packages/shared`; both sides derive their timers from it
-- when the connection is lost the client must treat health as unknown, never reuse the last snapshot
-- no DB or Elysia imports in shared event contracts or generic transport helpers
-- validated WebSocket snapshots update query caches directly; REST `/health` remains for bootstrap and external checks
-- the acting client applies its HTTP outcome immediately; other clients receive the same change through events
-- asynchronous lifecycle changes also arrive through events; SQLite/REST remain the recovery source
-```
-
----
+Domain event handlers stay beside their cache logic. Shared event schemas and
+generic transport helpers have no DB/Elysia imports. Publication, identity,
+origin validation, and recovery flows are explained in
+[REST and Realtime](architecture.md#rest-and-realtime).
 
 ## Web UI
 
-Errors follow one placement model. The Header renders the app's only Issue
-chip; pages and panels register issue sources with `useIssueSource()` from
-`lib/issue.ts` while mounted, so their issues leave with them. Pre-flight
-checks (why a primary action is blocked) and operation failures both go there,
-with a source label; operation failures use `toFailureIssue()`, carry a dismiss
-action, and are skipped when the Server is unreachable because the service
-status already says so. Field errors stay as a danger `FieldHint` replacing the
-field's hint, dialog failures stay at the left of the dialog footer, and an
-area that cannot load (including app startup) shows a `StatusMessage`. There
-are no toasts.
+Use SolidJS, Ark UI, Tailwind utilities, `clsx`, and `lucide-solid`; prefer flex
+layout. Build from the independent design blueprint first or in the same change.
+Token changes update both blueprint and Web token stylesheets. Blueprint content
+format and framework APIs are owned by their respective READMEs, linked
+from [Package Boundaries](architecture.md#package-boundaries).
 
-The design system in `apps/design` is the blueprint for Web UI. It is a separate
-app built with `packages/blueprint` (Astro + Starlight) and has its own token stylesheet; run it with
-`pnpm dev:design`. Web and the blueprint never import each other. Design or
-change UI on the blueprint first (or in the same change), then build it in Web
-from the blueprint. A token change updates both `apps/design/src/styles/tokens.css`
-and `apps/web/src/styles.css`.
+UI appearance, placements, and interaction states belong to the blueprint. Keep
+global engineering conventions here rather than duplicating each screen's rules.
+Dedicated accessibility work is outside the scope defined in root AGENTS.md;
+ordinary browser/component markup and third-party behavior remain intact.
 
-The sidebar lists Tokens, then base components (one page each), then one page
-per product page. A product page has a `##` section per part, ordered from the
-outside in and top to bottom, and ends with `## Screen`, the whole page. A part
-shows only itself: each state is one HTML fragment in
-`src/blueprint/<component>/<state>.html`, shown with `<State>`, followed by the
-part's `<Rules>`. Small pieces such as rows and cards are shown through the
-states of the part that contains them; a piece with many states and rules of
-its own gets its own section. A part goes on the App page only when several
-product pages use the same UI. Embed another part in a fragment with
-`data-ds-slot` instead of copying its markup; screens compose fragments with
-`<Slot>`, `<Fixed>`, and `<Switch>`/`<Case>`. Rules are written for agents, once,
-in the section that owns them, with a stable `id`, and describe design only — no
-implementation file names. Use inline lucide SVG markup for icons and fixed
-sample copy instead of i18n keys. The content format is in `apps/design/AGENTS.md`; the components and behavior come from the reusable framework in `packages/blueprint` (see its `AGENTS.md`), which holds no Silent Pix content.
-Run `pnpm build:design` and `pnpm check:design` after changes.
+### Ownership and Reactive State
 
-Use:
+App composes app-level chrome such as Header. Shared primitives live under
+`components`; page-specific components stay under their page. Shared fields stay
+generic; domain grouping and actions belong to domain UI. Component-specific
+logic stays beside its component, page-wide logic at the page root, and browser
+utilities move to `lib` only for a clear shared responsibility.
 
-```txt
-- SolidJS components
-- Tailwind CSS utilities
-- clsx for conditional class composition
-- lucide-solid for icons
-- flex layout as the default layout primitive
-```
+Keep short single-consumer components, helpers, types, and fixtures local. Split
+for reuse, distinct responsibility, or isolated complexity, not file length or
+symmetry. Shared Task detail UI and page-specific adapters retain the ownership
+boundaries in AGENTS.md rather than making generic fields domain-aware.
 
-Rules:
+The component acquiring query/store data owns that access and passes narrow
+props to children. Children define their contracts and do not read the same
+parent-owned source again. A hook that itself needs shared store state reads it
+directly.
 
-```txt
-- shared low-level primitives go in `apps/web/src/components/base`
-- shared form/control primitives go in `apps/web/src/components/field`
-- shared detail-panel primitives go in `apps/web/src/components/detail`
-- shared class recipes live in `apps/web/src/lib/theme.ts` beside `cn.ts`; tokens stay in `styles.css`
-- theme runtime is owned by `apps/web/src/store/theme.ts`; the startup bootstrap sets `data-theme` before first paint
-- UI copy uses reactive, natively typed `t()` from `apps/web/src/lib/i18n.ts`; English and Traditional Chinese resources live in `apps/web/src/i18n/en.json` and `zh-TW.json`, with resource keys derived by `i18next.d.ts`
-- keep translated captions reactive: call `t()` in reactive rendering or explicit label functions on stable option objects; store error values or message resolvers rather than translated snapshots
-- resources contain strings with i18next interpolation and plural forms, not formatting functions; keep canonical values and user content unchanged
-- brand names, technical format markers, keyboard keys, canonical field IDs, initial prompt content, and developer or external diagnostics stay outside the translation catalog
-- the i18next instance initializes bundled resources synchronously; `main.tsx` awaits `i18nReady` before platform initialization and rendering
-- API wrappers keep raw status/code/message without translation; `lib/error.ts` maps known codes from the i18next resource table, then falls back to the original message for unknown codes
-- translation results are text or normal attributes; no `innerHTML`; Settings switches English (`en`, default) and Traditional Chinese (`zh-TW`) without reloading; `localeStore` persists the validated selection in `silent-pix.locale` and updates the document language. Disabled storage keeps the choice for this session
-- `Button` variants describe visual weight (`ghost`, `soft`, `solid`); tones describe semantic color (`neutral`, `accent`, `danger`)
-- inline image stages follow the theme; the full-screen viewer backdrop and glass controls stay fixed in both themes, and content drawn directly on a stage uses `stage-fg`
-- Prompt and Graph editor themes come from factories and per-view Compartments; theme changes must not rebuild views or lose history
-- app-level chrome such as `Header` lives in `apps/web/src/components` and is used from `App.tsx`
-- page-specific components go in `apps/web/src/pages/<page>/components`
-- component-specific non-component logic may live beside its component, including editor documents, commands, and decorations
-- page-wide logic sits at the page root; keep narrow single-consumer logic with its owner
-- move browser utilities to `lib` for a clear shared responsibility, not merely because they could be generic
-- generate task-list components live in `apps/web/src/pages/generate/components/task`
-- Generate-specific detail/config adapters live in `pages/generate/components/config`; cross-page task detail UI lives in `components/task/detail`
-- page components should not own app-level header layout
-- generate page mock data may exist only as UI placeholder data
-- mock UI data must not become backend state or task lifecycle authority
-- web state uses Solid native stores through `apps/web/src/lib/store.ts`
-- store consumers read native Solid store proxies directly from `store.state`
-- `apps/web/src/store/dev.ts` is the single owner of runtime `normal | dev` mode and Loading preview; selecting Normal clears preview in the same state update, and reload starts at Normal/Off
-- `SettingsPage` owns Dev store access and passes narrow accessors and callbacks to its local Dev Settings component; the Header reads app page state and does not own preview state
-- domain actions may be flattened onto returned stores but must not live inside reactive state
-- Generate and Workflow page editor state uses page-scoped TanStack Form through context
-- the Generate detail adapter owns draft default Workflow selection outside the collapsible detail content; shared TaskConfig only displays values and reports user changes
-- Form validators are pure submit-boundary Zod checks; invalid issues flow through the page's existing issue pipeline
-- Solid stores own UI/query lifecycle state only, not duplicated form values
-- Form-level reactive state uses `form.useSelector()` or `<form.Subscribe>`; direct `form.state` reads are imperative snapshots only
-- Do not add a generic form abstraction
-- prefer `classes`/named class slots for reusable components when one `class` string is too vague
-- composition vs configuration: children whose structure varies take `children`; components where only values vary take props
-- choose composition when consumers vary structure; slot/consumer counts are not fixed refactor thresholds
-```
+Read Solid store state through `store.state`, with actions flattened on the
+returned store. Use page-scoped TanStack Form for editable values, with reactive
+`form.useSelector()` or `<form.Subscribe>` reads; direct `form.state` reads are
+imperative snapshots. Do not duplicate form values in a store or add a generic
+form abstraction. Submit validation uses Zod; domain diagnostics can remain live.
 
-### Local image metadata
+Solid `<For>` keys by item reference. When mapped objects can be recreated,
+iterate stable primitive IDs and resolve the latest item reactively so normal
+updates do not remount controls. Preserve user edits across background updates,
+locale/theme changes, and collapsible rendering. Initialization that must remain
+active belongs outside content that can unmount.
 
-The page-owned metadata parser validates magic bytes rather than trusting a
-filename or MIME hint. It accepts files up to 32 MiB, limits decompressed text
-and returned raw UTF-8 text to 2 MiB, and returns at most 512 complete entries.
-Unknown compression/encoding and skipped data produce `incomplete: true`;
-oversized fields are omitted whole, never returned as truncated JSON. A
-conservative 255-PNG-block guard covers ExifReader's silent compressed-chunk
-cap. Preserve original text and EXIF payload offsets for copy; parsed
-JSON is only for validated graph classification and the prompt/node
-projection; integers beyond the safe range are protected before parsing so node
-values keep their original spelling.
-These are local Tool types, not shared REST contracts or changes to the image
-upload allowlist. Worker messages return codes for the page to translate.
+Pair temporary browser resources with cleanup at their owner: Workers, Object
+URLs, event listeners, and issue-source registrations. Cancel superseded work
+and reject callbacks from outdated work. Bound untrusted file processing and
+preserve original payload text when copy fidelity matters; exact parser limits
+stay in the owning code.
 
-`MetadataPage` owns its selected File, result, and Worker lifecycle locally;
-neither stores nor Query cache duplicate them. Open buttons use a hidden native
-file input; window-level drag/drop opens or replaces one file. Reset the input
-after selection so the same file can be selected again. Parser code stays in a
-Vite Worker bundle. A new selection, clear, departure, or five-second deadline
-terminates the active Worker, and
-callbacks check that Worker identity before updating the page. Preview URLs are
-created only after byte-format validation and revoked when replaced or disposed.
-Copy failures and a multi-file drop over an open file appear as warnings in the
-Header Issue chip and keep the current result; a multi-file drop on the opening screen
-shows the error there. The Generation tab shows processed data in order: Prompt cards, Nodes, then the
-Workflow (API) and Workflow JSON groups; absent groups are hidden. The API graph
-stored under the `prompt` key yields one Prompt card per text-encoder text field,
-following links to the node holding the text and listing each source once; a
-Prompt or parameters field that is not an API graph is one whole card. Node
-inputs show links by source node title and ID (output index only when not 0);
-clicking one expands Nodes, scrolls to that node and highlights it briefly.
-String inputs that parse as a JSON object or array are shown indented. Raw lists
-every field unprocessed under its original key. Prompt, API and Workflow copy use the original payload
-after any EXIF prefix; Raw copy retains the entire field. Incomplete results
-show a warning without manufacturing a missing Workflow. The Tools menu and Settings
-remain reachable without a configured endpoint; health and events stay guarded.
-Valid JSON is displayed with two-space indentation by changing whitespace
-outside strings only; copy retains the original text, including large
-numeric tokens and escaped strings.
-Keep custom JSON parsing, formatting, integer-display, container detection, and
-property-line lookup in `lib/json.ts`; EXIF, graph validation, and mapping rules
-remain domain-owned. Formatting accepts already-validated JSON text and defaults
-to the existing 4 MiB display-output limit, returning the original above it.
-Workflow paste validates the graph first, then explicitly formats without that
-display limit so its line-mark indentation remains available. Generic property
-lookup reads two-space JSON, decodes escaped keys, and replaces duplicate property
-subtrees; Workflow projects node/inputs locations from that tree. Object-to-JSON
-conversion continues to use `JSON.stringify` directly; protected integer display
-uses the paired helpers in `lib/json.ts`.
+### Composition or Configuration
 
-### Composition or configuration
+Ark UI wrappers narrow its API rather than republishing compound parts. Prefer
+configuration when only values vary, and composition (`children`, render props,
+or subcomponents) when consumers vary structure. Expose named `classes` slots
+when one generic class string cannot describe the intended styling surface.
 
-Ark UI already ships compound components. A wrapper over one exists to
-**narrow** that API, not to republish it, so wrapping `Select` in five named
-parts buys nothing and lets every call site drift.
+Review props when they obscure input/layout relationships; no fixed number of
+consumers or slots requires or prohibits composition. Dot-notation exports alone
+are not composition; use flat named exports unless parts share context.
 
-Decide per component by asking what varies:
+### Translation and Errors
 
-```txt
-structure of the children varies  → composition (children / render prop / sub-components)
-only values vary                  → configuration (flat props + classes slots)
-```
+Web-owned copy uses the reactive typed `t()` from `lib/i18n.ts`. Resources use
+i18next interpolation and plural forms, with keys inferred from the English JSON.
+Keep user content, canonical IDs, brand names, technical format markers, keyboard
+keys, initial prompt content, and developer/external diagnostics out of resources.
 
-Applied to what exists today:
+Call translations in reactive rendering or explicit caption/message functions;
+do not store translated snapshots that go stale. Keep option identity and edits
+stable across locale changes. Render results as text or normal attributes,
+without HTML injection. Language persistence is best-effort so unavailable browser
+storage does not prevent session switching.
 
-```txt
-field/Select, field/Number, field/Slider   values only          → configuration
-base/Dialog                                body differs per use → children + footer
-base/Panel                                 collapsed swaps all  → render prop
-detail/*                                   rows/groups/grids    → composition
-```
+API wrappers retain raw status/code/message and never translate transport errors.
+`lib/error.ts` maps known codes through resources and falls back to the original
+message for unknown codes. Stored diagnostics render as text; do not infer a
+specific integration failure from a generic generation error.
 
-Review a configuration component when its props obscure the relationship
-between inputs and layout. Use composition when consumer structures actually
-differ. A single-consumer prop or several class slots can be appropriate; no
-fixed number of slots or consumers triggers or blocks a refactor.
+Mounted pages/panels register reactive issue sources through `useIssueSource()`;
+cleanup removes them on unmount. Use `toFailureIssue()` for dismissible operation
+failures with a translated source label. It suppresses Server-unreachable failures,
+which the service status already shows. Error placement is specified by the blueprint.
 
-Dot-notation namespaces (`Detail.Row`) are export ergonomics, not composition.
-Flat named exports through a folder barrel are the default; introduce a
-namespace only once the parts also share context.
+### Browser Utilities
 
-Current component roles:
+Tokens live in `styles.css`; shared class recipes live in `lib/theme.ts`.
+CodeMirror theme/locale updates reconfigure existing views rather than destroying
+history or editable state.
 
-```txt
-components/Header.tsx
-    App-level header and Desktop title bar: mode menu, Tools menu, drag region,
-    service status light with a Popover, Settings button, and window controls.
+Custom JSON text parsing, formatting, integer display, and property-line lookup
+belong in `lib/json.ts`; EXIF parsing, graph validation, and mapping rules remain
+domain-owned. Consumers validate before formatting. Preserve original numeric
+tokens and escaped strings where text fidelity matters; ordinary object
+serialization continues to use `JSON.stringify`.
 
-components/base/Button.tsx
-    Base button primitive.
+## Configuration
 
-components/base/Line.tsx
-    Shared line/separator primitive.
-
-components/base/Panel.tsx
-    Collapsible panel and scrollable panel-content primitives. Panel owns collapsed state and passes state/actions to children.
-
-components/base/Badge.tsx
-    Small badge/tag primitive.
-
-components/base/Dialog.tsx
-    Modal primitive. Takes children and footer so each caller composes its own body.
-
-components/base/IssueChip.tsx
-    Issue chip (count only) with its issue list in a Popover. The Header renders the only instance.
-
-components/base/Popover.tsx
-    Ark Popover with the shared L0 Popover surface; callers style their trigger.
-
-components/detail/*
-    Detail-panel composition primitives: DetailTitle, DetailSection, DetailGroup,
-    DetailRow, DetailLabel. Every detail panel is built from these so labels,
-    section spacing, and title hierarchy match across pages.
-
-components/field/*
-    Shared form/control primitives. Keep domain label groups and rows in their page or shared domain component, not in generic fields.
-
-lib/*
-    Non-component browser logic with no page-specific knowledge: class merging, stores, error mapping, image zoom/pan.
-    lib/theme.ts is the exception that is not logic: shared class recipes such as the disabled field look. styles.css owns the tokens;
-    theme.ts owns which tokens combine into a role, so components do not each keep a copy.
-
-pages/generate/form.ts, pages/generate/store.ts, pages/generate/issue.ts
-    Generate-page-wide form/controller logic and the issue model registered with the Header issue chip.
-
-pages/workflow/form.ts, pages/workflow/store.ts, pages/workflow/issue.ts
-    Workflow-page-wide form/controller logic and the issue model registered with the Header issue chip.
-
-pages/generate/components/task/*
-    Generate-page-only task list and task item UI.
-
-pages/generate/components/config/*
-    Generate-specific form/query adapters for shared task detail UI.
-
-components/task/detail/*
-    Task detail/config/LoRA UI shared by Generate and Compare.
-
-components/task/TaskStatus.tsx
-    Shared task status display.
-```
-
----
-
-## Env
-
-Development configuration example (replace absolute path placeholders):
-
-```env
-ENV=development
-
-SERVER_HOST=127.0.0.1
-SERVER_PORT=3070
-WEB_HOST=127.0.0.1
-WEB_PORT=5173
-CADDY_PORT=8080
-
-COMFYUI_BASE_URL=http://127.0.0.1:8188
-COMFYUI_REFERENCE_DIR=/absolute/path/as-seen-by-comfyui/storage
-COMFYUI_OUTPUT_DIR=/absolute/path/as-seen-by-server/comfyui/output
-
-APP_DATA_DIR=./.local/data
-DATABASE_PATH=./.local/data/silent-pix.sqlite
-APP_STORAGE_DIR=./.local/data/storage
-```
-
-Rules:
-
-```txt
-- COMFYUI_BASE_URL is backend-only
-- frontend env must not expose ComfyUI connection/storage configuration
-- COMFYUI_REFERENCE_DIR points to the same storage directory as APP_STORAGE_DIR, spelled as ComfyUI sees it; Server uses it to build workflow reference paths
-- COMFYUI_OUTPUT_DIR points to ComfyUI output as seen by the server
-- DATABASE_PATH and APP_STORAGE_DIR are configured independently; APP_DATA_DIR does not derive them
-- production must supply OS app-data paths; automatic Desktop production path overrides are not implemented
-- do not assume cwd is repo root
-- env is the only runtime configuration override channel
-- the capability that owns the side effect loads its env-backed value directly
-- project-owned APIs do not receive env-backed values as arguments or options
-- isolated validation sets env before importing the owning module
-- the repository-root `.env` is the sole development endpoint source for Browser Vite and Desktop Tauri
-- `CADDY_PORT` in root `.env` configures the Docker Compose Caddy listener and loopback host publication; deploy scripts never source `.env` as shell code
-- `deploy/script` delegates start/stop/down to the same Docker Compose project; start builds, stops the project, runs pending database migrations, then recreates containers in the background, stop retains containers/network, and down removes containers/network. All retain bind-mounted data and images; migration failure leaves services stopped; reset/seed are never automatic, and manually started writers must be stopped separately
-- Docker Compose owns Server and Web/Caddy, plus optional ComfyUI under `COMPOSE_PROFILES=comfyui`. It fixes production mode and Server bind address; ComfyUI URL, reference directory, and output path always come from root `.env`. Integrated ComfyUI uses `http://comfyui:8188`, mounts `APP_STORAGE_DIR` read-only at `COMFYUI_REFERENCE_DIR`, persists data under the fixed repo path `./.data/comfyui`, and shares `COMFYUI_OUTPUT_DIR` with Server. Move existing standalone ComfyUI data there only with both services stopped; SQLite stays inside `APP_DATA_DIR`
-- Ansible delegates deployment to the existing Compose scripts on a prepared target checkout; check mode performs read-only preflight, and root `.env` remains the only application configuration source
-- Enabled services share the project default network. Caddy and optional ComfyUI publish loopback ports; Server has no published port or startup dependency on ComfyUI. Its output bind creates missing source directories and parents, including `.data` on first deployment. Empty `COMPOSE_PROFILES` uses external ComfyUI; the host-gateway mapping supports a host service. Native development never starts Compose and supports ComfyUI Desktop through env. Stop an existing integrated ComfyUI explicitly before disabling its profile
-- Deploy start waits up to 300 seconds for Server database health and, if enabled, the ComfyUI `/system_stats` healthcheck. Server can serve stored tasks while ComfyUI loads or is offline. The optional container healthcheck replaces the external API preflight; external ComfyUI health is reported at runtime and does not block deployment. Acceptance does not submit generation jobs
-- `apps/web/vite.config.ts` explicitly loads the repository-root `.env` with `loadEnv()`; external process env values override it
-- `apps/desktop/script/dev.ts` runs from the local Desktop cwd, resolves the linked `tauri.conf.json` realpath to load the source repository root `.env`, validates `WEB_HOST`/`WEB_PORT`, and always merges their Vite endpoint into Tauri at runtime; process env overrides dotenv, `--external-frontend` only removes the normal `beforeDevCommand`, and linked WSL does not require duplicate Windows endpoint variables
-- every Tauri webview uses the Desktop platform identity and native saved Server URL while Vite supplies development UI assets and HMR; `dev-window.bat` passes `--external-frontend` and forwards Tauri arguments; packaged-origin validation uses a formal Desktop build
-- package scripts, `tauri.conf.json`, and `dev-window.bat` must not duplicate development host/port literals or promise simultaneous independent Vite instances
-- the Desktop webview disables Tauri's native drag/drop handler so shared HTML5 file drop remains available, including on Windows WebView2
-- `SERVER_URL` is an optional process-environment override for the Browser Vite `/api` proxy and is not required in `.env.example`; Tauri uses its native saved Server URL instead
-- packaged Desktop supports one locally configured Server URL through native settings; remote connectivity and authentication are not implemented, and Windows native runtime behavior is not verified from this Linux workspace
-```
-
-Ownership mapping:
-
-| Env-backed value | Direct owner | Project-owned API shape |
-|---|---|---|
-| `DATABASE_PATH` | `packages/db/src/client.ts` | `createDatabaseClient()` |
-| `SERVER_HOST`, `SERVER_PORT` | server/CLI entrypoint that binds or probes HTTP | no reusable server-address option |
-| `WEB_HOST`, `WEB_PORT` | `apps/web/vite.config.ts`, `apps/desktop/script/dev.ts` | Browser/Desktop Vite and Tauri `--config` merge use the same explicitly loaded root env |
-| `CADDY_PORT` | `deploy/compose.yaml`, `deploy/Caddyfile` | Root env configures the container listener and loopback host port |
-| `SERVER_URL`, `SERVER_HOST`, `SERVER_PORT` | `apps/web/vite.config.ts`, server/CLI entrypoint | optional proxy override or server bind/probe configuration |
-| `COMFYUI_BASE_URL` | `ComfyClient` | `new ComfyClient()` |
-| `APP_STORAGE_DIR` | image store; GC owns only its directory sweep | `readContent(path)`, `writeContent(path, bytes)`, `unlinkContent(path)` |
-| `COMFYUI_REFERENCE_DIR` | reference-path conversion owner | conversion accepts only the relative image path |
-| `COMFYUI_OUTPUT_DIR` | Comfy output cleanup owner | cleanup accepts only the `ComfyImage` |
+Read env-backed values directly at the owning side-effect boundary. A project
+constructor/helper does not receive a database path, base URL, storage root, or
+Comfy filesystem root already owned by config. Passing resolved config from that
+owner into a third-party API is expected:
 
 ```ts
-// Project-owned capability: canonical config is internal.
-export async function createDatabaseClient() {
-    const { databasePath } = loadConfig()
-    return createClient({ url: `file:${databasePath}` })
-}
+// The capability loads its own canonical configuration.
+const databaseClient = await createDatabaseClient()
 
-await createDatabaseClient()
-
-// Do not create a second config channel.
-await createDatabaseClient(config.databasePath)
-await imageGarbageCollection.collect(database, { storageRoot: config.appStorageDir })
-```
-
-Passing config to a third-party API is required at the owner boundary and is
-allowed:
-
-```ts
-const config = loadConfig()
+// The owning entrypoint supplies the third-party bind options.
 app.listen({ hostname: config.serverHost, port: config.serverPort })
 ```
 
-Keep non-config inputs explicit. `Database`, IDs, relative paths, request
-payloads, GC `graceMs`, and an injected `now` value describe an operation; they
-are not alternative env sources. The lifecycle `DatabaseClient` is owned by
-`databaseClient` at startup, health, and shutdown boundaries.
+Keep operation inputs such as Database, IDs, relative paths, grace periods, and
+clock values explicit. Isolated validation sets environment variables before
+importing the owner; it does not add runtime option overrides for config.
 
----
+Load the root env explicitly for Vite/Desktop development and let process env
+override dotenv. Avoid duplicate endpoint literals and cwd assumptions. Backend
+ComfyUI/storage configuration never becomes frontend env. Exact variables and
+setup belong to [.env.example](../.env.example) and runtime-specific READMEs;
+ownership and deployment assumptions are in
+[Configuration and Runtime Targets](architecture.md#configuration-and-runtime-targets).
 
-## Database
-
-Use SQLite + Drizzle.
-
-Rules:
-
-```txt
-- migrations for schema changes
-- services query Drizzle directly; there is no repository layer
-- server queries use typed Drizzle query builders, operators, and subqueries; do not use raw SQL or Drizzle's `sql` tagged template in `apps/server`
-- transactions or atomic statement batches for multi-write consistency
-- no image binary in DB
-- no Prisma
-- no PostgreSQL
-- no Redis in base architecture
-```
-
----
-
-## File Storage
-
-Filesystem stores image bytes, addressed by content hash. Nothing else.
-
-```txt
-storage/images/<sha256>.<png|jpg>
-```
-
-SQLite splits it in two, because content and ownership are different facts:
-
-```txt
-images        id, hash (UNIQUE), relative path, mime, width, height, size bytes, created at
-task_images   id, task id, image id, type, sort index, created at
-```
-
-Rules:
-
-```txt
-- store image paths relative to APP_STORAGE_DIR
-- the same bytes are stored once, whoever they came from
-- an image row and its file are deleted only when the last reference is gone
-- the database commits before the filesystem unlinks, never the reverse
-- image metadata is sniffed from the bytes, never trusted from the client
-- coordinate ingest/reference/delete/GC so cleanup cannot unlink newly referenced or republished content
-- DB foreign keys and commit-before-unlink do not by themselves protect filesystem concurrency
-- server mutations share the image-domain async mutex from lookup/ingest through reference commit or cleanup unlink
-- callers own the complete lock boundary; image mutation helpers do not acquire it again
-- `imageCleanup.removeUnreferenced()` owns deduplication, 500-ID chunks, guarded `DELETE ... NOT EXISTS(task_images) RETURNING id/path`, and per-item unlink outcomes; task cleanup and GC reuse its result
-- ComfyUI execution/downloads stay outside the image lock
-- task output completion holds the image lock only through ingest/reference commit/orphan rollback; controller snapshot/event publication precedes successful Comfy output unlink
-- online GC is owned by the server image domain and runs through `withImageMutation`; `pnpm image:gc` only triggers `POST /api/image/garbage-collection`
-- the supported deployment has one server writer for each database/storage pair; sharing either with another writer is unsupported
-- `pnpm image:gc:offline -- --confirm-server-stopped` is explicit stopped-server recovery; normal GC never falls back to direct cleanup
-- image cleanup and GC filesystem sweeps use canonical `config.appStorageDir`; GC has no storage-root override
-```
-
-`images` knows nothing about tasks. `task_images` carries what a task does with a
-picture - the role and the position in a batch - which is why the same file can
-be one task's output and another's input without being copied.
-
----
+Image helpers use relative paths and canonical storage config. Preserve the
+locking, guarded deletion, and commit/unlink ordering explained in
+[Image Storage and Consistency](architecture.md#image-storage-and-consistency).
 
 ## Naming
 
-Use clear names:
+Use domain names that reveal responsibility and side effects, such as `taskId`,
+`workflowId`, `createdAt`, and `relativePath`. Familiar abbreviations such as
+`id`, `url`, `api`, `db`, `dto`, and `env` are fine.
 
-```txt
-taskId
-imageId
-workflowId
-createdAt
-updatedAt
-startedAt
-finishedAt
-errorMessage
-relativePath
-```
+File names describe the responsibility when a separate owner is justified:
 
-Allowed abbreviations:
-
-```txt
-id
-url
-api
-db
-dto
-env
-```
-
----
-
-## File Naming
-
-Suggested patterns:
-
-```txt
+```text
 <domain>.route.ts
 <domain>.service.ts
-<domain>.model.ts       when cohesive conversions/types need a separate owner
-<domain>.event.ts
+<domain>.model.ts
 <domain>.query.ts
-<domain>.cache.ts       when cache behavior warrants separation
-<domain>.key.ts         when query/cache/event consumers share keys
+<domain>.key.ts
+<domain>.cache.ts
+<domain>.event.ts
 <integration>.client.ts
 ```
 
-These are naming patterns, not a checklist of files to create. Keep short,
-single-use schemas, types, and helpers local. Split by responsibility rather
-than line count; avoid speculative layers and generic dumping grounds.
-
-Avoid vague files:
-
-```txt
-utils.ts
-helpers.ts
-common.ts
-misc.ts
-```
-
----
-
-## Docs Update Rule
-
-Update docs when changing:
-
-```txt
-- package ownership
-- data flow
-- task lifecycle
-- persistence model
-- env policy
-- realtime strategy
-- desktop startup model
-- ComfyUI boundary
-```
-
-If it affects AI implementation behavior, also update `AGENTS.md`.
-
----
-
-## Forbidden Shortcuts
-
-```txt
-- frontend calls ComfyUI
-- frontend accesses SQLite
-- route handlers contain large business logic
-- task state stored only in memory
-- image binary stored in SQLite
-- production data stored in repo
-- Prettier added
-- Prisma added
-- PostgreSQL added
-- Redis added
-- cross-package relative imports
-- hand-written copies of library types or shared schemas
-```
+These are patterns, not a checklist of files to create. Avoid generic dumping
+grounds such as `utils.ts`, `helpers.ts`, `common.ts`, and `misc.ts`.

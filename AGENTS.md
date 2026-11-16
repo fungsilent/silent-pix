@@ -1,6 +1,16 @@
 # Silent Pix Agent Rules
 
-These are implementation constraints. `docs/architecture.md` describes current structure and known gaps; `docs/conventions.md` explains the conventions. Keep the three aligned. An implementation gap does not relax an invariant.
+These are implementation constraints. `docs/architecture.md` explains system boundaries, cross-boundary flows, guarantees, and known gaps; `docs/conventions.md` explains reusable implementation practices. An implementation gap does not relax an invariant.
+
+## Documentation Scope
+
+- Update a document only when a change makes its existing explanation inaccurate or introduces a lasting decision within its scope. Check consistency; do not edit all three files merely because implementation changed.
+- Update `AGENTS.md` when an implementation constraint changes, architecture when ownership, dependency direction, cross-boundary flow, consistency guarantees, or supported deployment assumptions change, and conventions when a reusable implementation practice changes.
+- Local refactors, bug fixes that restore documented behavior, copy/style changes, schema fields, constants, and dependency upgrades do not by themselves require architecture or conventions updates. Correct an existing statement if it becomes false.
+- Keep detailed explanations with one owner and link to them. UI specifications belong in `apps/design`; setup and operation belong in the relevant README; schemas, code, and package/config files own exact fields, algorithms, limits, and versions. Do not mirror them in these two docs or record feature progress, validation history, or commit summaries there.
+- Implementation plans remain in `temp/` under the Plan Documents and PHASE rules below. Documentation cleanup does not remove or weaken implementation constraints or known safety limits.
+
+## Base
 
 - Keep package ownership strict:
     - `apps/web`: SolidJS UI and backend API client, plus the single narrow Tauri command bridge in `src/lib/platform.ts`. The bridge may detect Tauri, call fixed Desktop settings commands, and call the fixed current-window controls (start dragging, minimize, toggle maximize, close) for the custom title bar; native storage and validation remain in `apps/desktop`. It must not expose arbitrary native commands or paths. Shared UI primitives live in `apps/web/src/components`; page-specific UI lives under that page folder.
@@ -73,7 +83,8 @@ These are implementation constraints. `docs/architecture.md` describes current s
 
 ## Web UI and State
 
-- The design system lives in `apps/design`, built with the framework in `packages/blueprint`: Tokens under `src/content/docs/foundations`, base components under `src/content/docs/base/<group>/`, and one page per product page under `src/content/docs/pages/`, whose `##` sections are its parts and whose final `## Screen` composes the whole page. Each state is one fragment in `src/blueprint/<component>/<state>.html` shown by `<State>`; screens compose fragments with `<Slot>`, `<Fixed>`, and `<Switch>`/`<Case>`. Run it with `pnpm dev:design`; after changing it run `pnpm build:design` and `pnpm check:design`. Content rules are in `apps/design/AGENTS.md`; framework components and behavior are in `packages/blueprint/AGENTS.md`, and Silent Pix content never goes into the framework.
+- Before changing blueprint content or framework behavior, read and follow `apps/design/README.md` for authoring and `packages/blueprint/README.md` for framework contracts. Silent Pix content belongs in `apps/design`, never in the reusable framework; keep component usage, addresses, and style boundaries compatible with those guides.
+- After changing blueprint pages, fragments, tokens, or framework runtime code, run `pnpm build:design` and `pnpm check:design`. For page moves or rewrites, create and build the replacement successfully before removing the old page; do not combine conversion and deletion in one command. Report affected pages/states with clickable links. Follow the documented Astro lifecycle commands and clean up servers started for validation.
 - The blueprint is independent and leads: Web implements from it and never imports it, and the blueprint never references the implementation (no `data-source`, file names, or i18n keys). Design or change UI appearance on the blueprint first or in the same change; a token change updates both `apps/design/src/styles/tokens.css` and `apps/web/src/styles.css`. Each rule is written once at the level that owns it and describes design only. Boards must not invent dialogs, menu entries, or workflows the product does not intend; Task name editing uses the existing inline Editable, not a rename popup.
 - Accessibility support is explicitly out of scope. Do not add repo-owned `aria-*` attributes, accessibility-only `role` or `tabIndex` values, screen-reader-only content such as `sr-only`, live regions, accessibility-specific copy, dependencies, lint rules, or tests.
 - Ordinary UI behavior and markup required by the browser or component API may remain. Do not replace Ark UI or strip accessibility behavior generated internally by third-party components solely to enforce this scope; the restriction applies to code owned by this repository.
