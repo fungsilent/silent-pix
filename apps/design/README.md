@@ -64,8 +64,10 @@ Each part preview shows only that part; whole-page composition belongs in Screen
 Place previews on their actual background and size them for the part. A content
 panel might use `max-w-[760px]`, while a full-width Task browser or picker needs
 its design `min-width`; the stage can then scroll horizontally. Small pieces
-can use `w-fit`, but full-width children and positioned menus/popovers need enough
-frame space to avoid clipping.
+use `w-max`, not `w-fit`: `w-fit` shrinks with a narrow documentation column and
+wraps labels, while `w-max` keeps the natural width and lets the stage scroll.
+Full-width children and positioned menus/popovers need enough frame space to
+avoid clipping.
 
 Remove separators that only make sense in the full page from isolated previews.
 When Screen uses the same fragment, apply the override through State's `frame`,

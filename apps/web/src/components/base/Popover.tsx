@@ -36,7 +36,7 @@ export function Popover(props: PopoverProps) {
                 <ArkPopover.Positioner class='z-50'>
                     <ArkPopover.Content
                         class={cn(
-                            'issue-popover flex max-w-[calc(100vw-2rem)] flex-col rounded-md border border-line bg-elevated p-1 shadow-popover outline-none',
+                            'popover flex max-w-[calc(100vw-2rem)] flex-col rounded-md border border-line bg-elevated p-1 shadow-popover outline-none',
                             props.classes?.content,
                         )}
                     >

@@ -14,13 +14,13 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 
 只有圖示的方形按鈕：一般 28px、附在列或縮圖上的 24px 兩種尺寸，ghost 與 soft 兩種重量。
 
-<Gallery min="300px">
-<State component="icon-button" state="bar" label="bar · 28px ghost" frame="w-fit overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
-<State component="icon-button" state="field" label="beside field · 28px" frame="w-fit overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
-<State component="icon-button" state="inline" label="inline · 24px remove" frame="w-fit overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
-<State component="icon-button" state="hover" label="hover" frame="w-fit overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
-<State component="icon-button" state="open" label="open · menu shown" frame="w-fit overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
-<State component="icon-button" state="focus" label="focus-visible" frame="w-fit overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<Gallery min="430px">
+<State component="icon-button" state="bar" label="bar · 28px ghost" frame="w-max overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="icon-button" state="field" label="beside field · 28px" frame="w-max overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="icon-button" state="inline" label="inline · 24px remove" frame="w-max overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="icon-button" state="hover" label="hover" frame="w-max overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="icon-button" state="open" label="open · menu shown" frame="w-max overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="icon-button" state="focus" label="focus-visible" frame="w-max overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
 </Gallery>
 
 <Rules component="icon-button">
@@ -31,7 +31,7 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 <Rule component="icon-button" id="collapse-theme">面板收合鈕是這一型的固定用法，規則見 L0 collapse-button。</Rule>
 <Rule component="icon-button" id="soft-on-elevated">Dialog 右上關閉與欄位旁的 reset 用 soft，讓它在 elevated 表面上仍看得到範圍；欄位旁的編輯（筆形）用 ghost，hover 才把圖示提亮到 `text-fg`。</Rule>
 <Rule component="icon-button" id="row-remove">清單列內的移除鈕平時是 ghost neutral，hover 才轉 `bg-danger/15 text-danger-fg`，不在靜止時搶眼。</Rule>
-<Rule component="icon-button" id="menu-trigger">Menu trigger 開啟期間維持選取態（`bg-selected text-fg`），關閉後回到 ghost。</Rule>
+<Rule component="icon-button" id="menu-trigger">Menu trigger 開啟期間的按下狀態照 L0 Popover，關閉後回到 ghost。</Rule>
 </ul>
 
 </Rules>

@@ -31,7 +31,7 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 <Rule component="text-field" id="control">Control 一律 `h-7`、`rounded-md`、`px-3 text-xs`、`bg-field` 加 `border-field-border`；placeholder 用 `text-fg-muted`。所有欄位（text、number、select、editable）與欄位 loading 骨架共用這個高度，也跟 L0 Button 同高，改高度要一起改。</Rule>
 <Rule component="text-field" id="focus-disabled">Focus：`border-accent ring-2 ring-accent/40`。停用：`bg-disabled border-line-subtle text-fg-muted`、游標 default，不用 opacity。</Rule>
 <Rule component="text-field" id="leading-icon">前置圖示 14px 放在 `left-3`，文字內縮到 `pl-9`。</Rule>
-<Rule component="text-field" id="error">錯誤不改 control 外觀（不加紅框），只在欄位下方（`gap-1`）加一行 L0 field-hint danger；一般說明用 field-hint muted。</Rule>
+<Rule component="text-field" id="error">錯誤不改 control 外觀（不加紅框），只在欄位下方（`gap-1`）加一行 L0 field-hint danger；一般說明用 field-hint muted。欄位下方原本有說明時，錯誤取代說明，不另加一行。</Rule>
 <Rule component="text-field" id="width">欄位寬度跟隨容器；在 detail panel 中是內容寬 318px。</Rule>
 </ul>
 
@@ -42,8 +42,8 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 欄位下方或 footer 內的一行說明或錯誤。
 
 <Gallery min="300px">
-<State component="field-hint" state="muted" label="muted · default" frame="w-fit flex rounded-lg border border-line-subtle bg-surface p-4" />
-<State component="field-hint" state="danger" label="danger" frame="w-fit flex rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="field-hint" state="muted" label="muted · default" frame="w-max flex rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="field-hint" state="danger" label="danger" frame="w-max flex rounded-lg border border-line-subtle bg-surface p-4" />
 </Gallery>
 
 <Rules component="field-hint">

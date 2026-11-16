@@ -23,8 +23,8 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 <Rule component="popover" id="surface">外框 `rounded-md border border-line bg-elevated p-1 shadow-popover`，寬度依內容固定（例如 Menu 212px、狀態清單 `w-60`、訊息清單 `w-80`），不隨內容伸縮；超過視窗時 `max-w-[calc(100vw-2rem)]`。</Rule>
 <Rule component="popover" id="placement">對齊觸發鈕下緣、間距 4px：觸發鈕在左半部時左緣對齊（bottom-start），在右半部時右緣對齊（bottom-end）。浮在所有面板之上，不被面板裁切。</Rule>
 <Rule component="popover" id="trigger">開啟期間觸發鈕停在按下狀態 `bg-selected text-fg`；再按一次觸發鈕、按 Esc 或點外面就關閉。同時只開一個 Popover。</Rule>
-<Rule component="popover" id="content">內容是一列列 `h-8 px-2 text-xs` 的列：左側名稱 `text-fg-secondary`，右側值 `text-fg-muted`。分段用 `my-1 border-t border-line-subtle`；動作放最下方靠右，用 `h-6` soft 按鈕。不放標題列或關閉鈕，也不放需要捲動的長內容（那是 Dialog）。</Rule>
-<Rule component="popover" id="motion">開啟時用 `issue-popover` 的進場動畫（見 Tokens 的 Motion）。</Rule>
+<Rule component="popover" id="content">預設內容是一列列 `h-8 px-2 text-xs` 的列（清單類內容由使用處定義，例如 Issue chip 的問題清單）：左側名稱 `text-fg-secondary`，右側值 `text-fg-muted`。分段用 `my-1 border-t border-line-subtle`；動作放最下方靠右，用 `h-6` soft 按鈕。不放標題列或關閉鈕，也不放需要捲動的長內容（那是 Dialog）。</Rule>
+<Rule component="popover" id="motion">開啟時用 `popover` 的進場動畫（見 Tokens 的 Motion）。</Rule>
 </ul>
 
 </Rules>

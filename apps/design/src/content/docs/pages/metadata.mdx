@@ -38,9 +38,9 @@ import Fixed from '@silent-pix/blueprint/components/Fixed.astro'
 開檔後左側的檔案面板：預覽與檔案資訊。
 
 <Gallery min="320px">
-<State component="metadata-file-panel" state="file" label="已開檔" frame="flex h-[560px] w-fit overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="metadata-file-panel" state="loading" label="讀取中" frame="flex h-[560px] w-fit overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="metadata-file-panel" state="preview-failed" label="預覽無法顯示" description="檔案仍可讀取，只是預覽失敗。" frame="flex h-[560px] w-fit overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="metadata-file-panel" state="file" label="已開檔" frame="flex h-[560px] w-max overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="metadata-file-panel" state="loading" label="讀取中" frame="flex h-[560px] w-max overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="metadata-file-panel" state="preview-failed" label="預覽無法顯示" description="檔案仍可讀取，只是預覽失敗。" frame="flex h-[560px] w-max overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 </Gallery>
 
 <Rules component="metadata-file-panel">

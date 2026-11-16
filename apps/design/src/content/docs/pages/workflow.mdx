@@ -18,13 +18,13 @@ import Fixed from '@silent-pix/blueprint/components/Fixed.astro'
 Workflow 頁最左欄：Bar（標題＋新增）與 workflow-item 列，封存的 workflow 收在分隔線下。
 
 <Gallery min="300px">
-<State component="workflow-list" state="default" label="default · selected + archived" frame="*:border-r-0 w-fit flex h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="workflow-list" state="modified" label="selected has unsaved edits" frame="*:border-r-0 w-fit flex h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="workflow-list" state="creating" label="create draft on top" frame="*:border-r-0 w-fit flex h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="workflow-list" state="archived-selected" label="archived workflow selected" frame="*:border-r-0 w-fit flex h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="workflow-list" state="loading" label="loading" frame="*:border-r-0 w-fit flex h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="workflow-list" state="empty" label="empty · no workflows" frame="*:border-r-0 w-fit flex h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="workflow-list" state="error" label="load error" frame="*:border-r-0 w-fit flex h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="workflow-list" state="default" label="default · selected + archived" frame="*:border-r-0 w-max flex h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="workflow-list" state="modified" label="selected has unsaved edits" frame="*:border-r-0 w-max flex h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="workflow-list" state="creating" label="create draft on top" frame="*:border-r-0 w-max flex h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="workflow-list" state="archived-selected" label="archived workflow selected" frame="*:border-r-0 w-max flex h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="workflow-list" state="loading" label="loading" frame="*:border-r-0 w-max flex h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="workflow-list" state="empty" label="empty · no workflows" frame="*:border-r-0 w-max flex h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="workflow-list" state="error" label="load error" frame="*:border-r-0 w-max flex h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 </Gallery>
 
 <Rules component="workflow-list">
@@ -84,19 +84,19 @@ Workflow 頁中欄：ComfyUI API JSON 文字編輯器，含行號、mapping fiel
 Workflow 頁最右欄：Bar 的 Save，下面依序是 workflow-info 與 workflow-mapping；沒有選取時是引導訊息。
 
 <Gallery min="700px">
-<State component="workflow-detail" state="no-selection" label="no selection" frame="w-fit flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="workflow-detail" state="saved" label="saved · nothing to save" frame="w-fit flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="workflow-detail" state="unused" label="saved · no task uses it" description="沒有 task 使用時，破壞性按鈕是 Delete。" frame="w-fit flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="workflow-detail" state="modified" label="modified · Save enabled" frame="w-fit flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="workflow-detail" state="saving" label="saving" frame="w-fit flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="workflow-detail" state="issues" label="modified · mapping issues" frame="w-fit flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="workflow-detail" state="new" label="create draft" frame="w-fit flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="workflow-detail" state="archived" label="archived · read-only" frame="w-fit flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="workflow-detail" state="loading" label="loading" frame="w-fit flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="workflow-detail" state="load-error" label="detail load error" frame="w-fit flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="workflow-detail" state="unavailable" label="Server unavailable · read-only" frame="w-fit flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="workflow-detail" state="pending" label="archive/delete pending" frame="w-fit flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="workflow-detail" state="node-open" label="mapping · node menu open" frame="w-fit flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="workflow-detail" state="no-selection" label="no selection" frame="w-max flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="workflow-detail" state="saved" label="saved · nothing to save" frame="w-max flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="workflow-detail" state="unused" label="saved · no task uses it" description="沒有 task 使用時，破壞性按鈕是 Delete。" frame="w-max flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="workflow-detail" state="modified" label="modified · Save enabled" frame="w-max flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="workflow-detail" state="saving" label="saving" frame="w-max flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="workflow-detail" state="issues" label="modified · mapping issues" frame="w-max flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="workflow-detail" state="new" label="create draft" frame="w-max flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="workflow-detail" state="archived" label="archived · read-only" frame="w-max flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="workflow-detail" state="loading" label="loading" frame="w-max flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="workflow-detail" state="load-error" label="detail load error" frame="w-max flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="workflow-detail" state="unavailable" label="Server unavailable · read-only" frame="w-max flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="workflow-detail" state="pending" label="archive/delete pending" frame="w-max flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="workflow-detail" state="node-open" label="mapping · node menu open" frame="w-max flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 </Gallery>
 
 <Rules component="workflow-detail">

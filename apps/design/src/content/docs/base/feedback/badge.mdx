@@ -15,12 +15,12 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 短字的語意標記：狀態、選項標記、未儲存提示。五種 tone，外加載入中的空殼。
 
 <Gallery min="220px">
-<State component="badge" state="neutral" label="neutral" frame="w-fit flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
-<State component="badge" state="info" label="info" frame="w-fit flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
-<State component="badge" state="success" label="success" frame="w-fit flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
-<State component="badge" state="warning" label="warning" frame="w-fit flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
-<State component="badge" state="danger" label="danger" frame="w-fit flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
-<State component="badge" state="loading" label="loading · empty shell" frame="w-fit flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="badge" state="neutral" label="neutral" frame="w-max flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="badge" state="info" label="info" frame="w-max flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="badge" state="success" label="success" frame="w-max flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="badge" state="warning" label="warning" frame="w-max flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="badge" state="danger" label="danger" frame="w-max flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="badge" state="loading" label="loading · empty shell" frame="w-max flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
 </Gallery>
 
 <Rules component="badge">
@@ -39,11 +39,11 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 Task 生命週期狀態的 Badge。所有顯示 task 狀態的地方都用它。
 
 <Gallery min="200px">
-<State component="task-status" state="draft" label="draft" frame="w-fit flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
-<State component="task-status" state="queued" label="queued" frame="w-fit flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
-<State component="task-status" state="running" label="running" frame="w-fit flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
-<State component="task-status" state="done" label="done" frame="w-fit flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
-<State component="task-status" state="failed" label="failed" frame="w-fit flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="task-status" state="draft" label="draft" frame="w-max flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="task-status" state="queued" label="queued" frame="w-max flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="task-status" state="running" label="running" frame="w-max flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="task-status" state="done" label="done" frame="w-max flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="task-status" state="failed" label="failed" frame="w-max flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
 </Gallery>
 
 <Rules component="task-status">

@@ -20,17 +20,17 @@ import Case from '@silent-pix/blueprint/components/Case.astro'
 Generate 左側可收合的 task 面板：頂端 Bar（標題 Tasks、展開到 Task browser、收合鈕）、icon 版 flag 篩選、可捲動的 task item 清單。
 
 <Gallery min="320px">
-<State component="task-list" state="default" label="default · 8 tasks" frame="w-fit *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="task-list" state="collapsed" label="collapsed · thumbnail only" frame="w-fit *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="task-list" state="empty" label="empty · no tasks yet" frame="w-fit *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="task-list" state="empty-pin" label="empty · Pin filter" frame="w-fit *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="task-list" state="empty-filter" label="empty · Unflag + Discard filter" frame="w-fit *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="task-list" state="loading" label="loading · skeleton rows" frame="w-fit *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="task-list" state="error" label="load error" frame="w-fit *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="task-list" state="loading-more" label="loading next page" frame="w-fit *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="task-list" state="page-error" label="next page failed · rows kept" frame="w-fit *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="task-list" state="collapsed-loading" label="collapsed · loading" frame="w-fit *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="task-list" state="collapsed-empty" label="collapsed · empty (blank)" frame="w-fit *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-list" state="default" label="default · 8 tasks" frame="w-max *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-list" state="collapsed" label="collapsed · thumbnail only" frame="w-max *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-list" state="empty" label="empty · no tasks yet" frame="w-max *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-list" state="empty-pin" label="empty · Pin filter" frame="w-max *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-list" state="empty-filter" label="empty · Unflag + Discard filter" frame="w-max *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-list" state="loading" label="loading · skeleton rows" frame="w-max *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-list" state="error" label="load error" frame="w-max *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-list" state="loading-more" label="loading next page" frame="w-max *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-list" state="page-error" label="next page failed · rows kept" frame="w-max *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-list" state="collapsed-loading" label="collapsed · loading" frame="w-max *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-list" state="collapsed-empty" label="collapsed · empty (blank)" frame="w-max *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 </Gallery>
 
 <Rules component="task-list">
@@ -181,10 +181,10 @@ Generate 工作區頂端的 prompt 編輯區：Positive／Negative 兩段 editor
 Prompt editor gutter 中的 group 名稱格。
 
 <Gallery min="240px">
-<State component="prompt-group-cell" state="enabled" label="enabled" frame="w-fit overflow-hidden rounded-lg border border-line-subtle bg-canvas font-[ui-monospace,SFMono-Regular,Consolas,monospace] text-[12px] leading-[24px] text-fg-muted" />
-<State component="prompt-group-cell" state="disabled" label="disabled" frame="w-fit overflow-hidden rounded-lg border border-line-subtle bg-canvas font-[ui-monospace,SFMono-Regular,Consolas,monospace] text-[12px] leading-[24px] text-fg-muted" />
-<State component="prompt-group-cell" state="hover" label="hover · remove visible" frame="w-fit overflow-hidden rounded-lg border border-line-subtle bg-canvas font-[ui-monospace,SFMono-Regular,Consolas,monospace] text-[12px] leading-[24px] text-fg-muted" />
-<State component="prompt-group-cell" state="renaming" label="renaming" frame="w-fit overflow-hidden rounded-lg border border-line-subtle bg-canvas font-[ui-monospace,SFMono-Regular,Consolas,monospace] text-[12px] leading-[24px] text-fg-muted" />
+<State component="prompt-group-cell" state="enabled" label="enabled" frame="w-max overflow-hidden rounded-lg border border-line-subtle bg-canvas font-[ui-monospace,SFMono-Regular,Consolas,monospace] text-[12px] leading-[24px] text-fg-muted" />
+<State component="prompt-group-cell" state="disabled" label="disabled" frame="w-max overflow-hidden rounded-lg border border-line-subtle bg-canvas font-[ui-monospace,SFMono-Regular,Consolas,monospace] text-[12px] leading-[24px] text-fg-muted" />
+<State component="prompt-group-cell" state="hover" label="hover · remove visible" frame="w-max overflow-hidden rounded-lg border border-line-subtle bg-canvas font-[ui-monospace,SFMono-Regular,Consolas,monospace] text-[12px] leading-[24px] text-fg-muted" />
+<State component="prompt-group-cell" state="renaming" label="renaming" frame="w-max overflow-hidden rounded-lg border border-line-subtle bg-canvas font-[ui-monospace,SFMono-Regular,Consolas,monospace] text-[12px] leading-[24px] text-fg-muted" />
 </Gallery>
 
 <Rules component="prompt-group-cell">
@@ -226,13 +226,13 @@ Generate 工作區中央的成品展示區：目前選取 task 的大圖、右�
 Generate 與 Compare 頁右側的 task 詳細面板，由 task-info、reference-image、task-config、task-lora 組成；版面照基礎元件 [Detail layout](/base/container/detail-layout/)。
 
 <Gallery min="440px">
-<State component="task-detail" state="view" label="existing task" frame="w-fit *:border-l-0 flex h-[760px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="task-detail" state="draft" label="draft" frame="w-fit *:border-l-0 flex h-[760px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="task-detail" state="loading" label="loading (cold)" frame="w-fit *:border-l-0 flex h-[760px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="task-detail" state="error" label="load error" frame="w-fit *:border-l-0 flex h-[360px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="task-detail" state="collapsed" label="collapsed" frame="w-fit *:border-l-0 flex h-[360px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="task-detail" state="failed" label="failed task" frame="w-fit *:border-l-0 flex h-[760px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="task-detail" state="read-only" label="read-only (Compare)" frame="w-fit *:border-l-0 flex h-[760px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-detail" state="view" label="existing task" frame="w-max *:border-l-0 flex h-[760px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-detail" state="draft" label="draft" frame="w-max *:border-l-0 flex h-[760px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-detail" state="loading" label="loading (cold)" frame="w-max *:border-l-0 flex h-[760px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-detail" state="error" label="load error" frame="w-max *:border-l-0 flex h-[360px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-detail" state="collapsed" label="collapsed" frame="w-max *:border-l-0 flex h-[360px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-detail" state="failed" label="failed task" frame="w-max *:border-l-0 flex h-[760px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-detail" state="read-only" label="read-only (Compare)" frame="w-max *:border-l-0 flex h-[760px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 </Gallery>
 
 <Rules component="task-detail">

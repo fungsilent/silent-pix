@@ -21,7 +21,7 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 <Rules component="menu">
 
 <ul class="ds-rules">
-<Rule component="menu" id="trigger">Trigger 是 `size-7` 圖示鈕，或選單列的文字鈕（`h-7 px-2.5 text-xs font-medium`，文字後加 12px ▾）；開啟時的按下狀態照 Popover；hover 時 `bg-hover`；關閉後回到 `text-fg-secondary`。</Rule>
+<Rule component="menu" id="trigger">Trigger 是 `size-7` 圖示鈕，或選單列的文字鈕（`h-7 px-2.5 text-xs font-medium`，文字後加 12px ▾）；開啟時的按下狀態照 Popover；hover 時 `bg-hover`；關閉後回到觸發鈕原本的顏色：圖示鈕 `text-fg-secondary`，選單列文字鈕由使用處決定（例如 Header 依目前頁面）。</Rule>
 <Rule component="menu" id="surface">外框、位置與開關照 [Popover](/base/container/popover/)；選單寬 212px、靠觸發鈕左緣（bottom-start）。</Rule>
 <Rule component="menu" id="item">項目 `h-8 gap-2 rounded px-2 text-xs text-fg`，icon 14、`text-fg-muted`，文字單行 truncate；hover 或鍵盤高亮只加 `bg-hover`。代表目前所在頁的項目用 `bg-selected` 並把 icon 提亮為 `text-fg`；這一項 hover 時仍維持 `bg-selected`，不換成 `bg-hover`。</Rule>
 <Rule component="menu" id="item-content">項目只放 icon + 文字，不放勾選、快捷鍵或子選單；項目少時不分組、不加分隔線。</Rule>
