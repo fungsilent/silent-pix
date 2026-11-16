@@ -12,10 +12,12 @@
   },
   "scripts": {
     "dev": "turbo run dev --parallel --filter=@silent-pix/server --filter=@silent-pix/web",
+    "dev:design": "pnpm --filter @silent-pix/design dev",
     "dev:web": "pnpm --filter @silent-pix/web dev",
     "dev:server": "pnpm --filter @silent-pix/server dev",
     "dev:desktop": "pnpm --filter @silent-pix/desktop dev",
     "build:web": "turbo run build --filter=@silent-pix/web",
+    "build:design": "pnpm --filter @silent-pix/design build",
     "build:desktop": "pnpm --filter @silent-pix/desktop build:desktop",
     "deploy:start": "bash deploy/script/start.sh",
     "deploy:stop": "bash deploy/script/stop.sh",
@@ -24,14 +26,15 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "check": "pnpm typecheck && pnpm lint",
+    "check:design": "pnpm --filter @silent-pix/design check",
     "clean": "git clean -fdX",
-    "db:generate": "pnpm --filter @silent-pix/db db:generate",
-    "db:migrate": "pnpm --filter @silent-pix/db db:migrate",
     "db:studio": "pnpm --filter @silent-pix/db db:studio",
-    "image:gc": "pnpm --filter @silent-pix/server image:gc",
-    "image:gc:offline": "pnpm --filter @silent-pix/server image:gc:offline",
+    "db:generate": "pnpm --filter @silent-pix/db db:generate",
     "db:seed": "pnpm --filter @silent-pix/db db:seed",
-    "db:reset": "pnpm --filter @silent-pix/db db:reset"
+    "db:migrate": "pnpm --filter @silent-pix/db db:migrate",
+    "db:reset": "pnpm --filter @silent-pix/db db:reset",
+    "image:gc": "pnpm --filter @silent-pix/server image:gc",
+    "image:gc:offline": "pnpm --filter @silent-pix/server image:gc:offline"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

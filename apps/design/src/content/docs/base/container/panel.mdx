@@ -1,0 +1,74 @@
+---
+title: Panel
+description: 頁面左右兩側的可收合面板、區塊頂端的 Bar（面板與頁面主區共用），以及面板的收合鈕。
+sidebar:
+    order: 1
+---
+
+import State from '@silent-pix/blueprint/components/State.astro'
+import Gallery from '@silent-pix/blueprint/components/Gallery.astro'
+import Rule from '@silent-pix/blueprint/components/Rule.astro'
+import Rules from '@silent-pix/blueprint/components/Rules.astro'
+
+## Panel
+
+面板本體：左右側欄的寬度、內容捲動與收合後的窄欄。
+
+<Gallery min="440px">
+<State component="panel" state="open-left" label="open · left · 250px" frame="flex h-[360px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="panel" state="open-right" label="open · right · 350px" frame="flex h-[360px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="panel" state="collapsed" label="collapsed · w-10 collapsed bar" frame="flex h-[200px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+</Gallery>
+
+<Rules component="panel">
+
+<ul class="ds-rules">
+<Rule component="panel" id="side-panel">Panel 是 `flex-none overflow-hidden bg-surface` 的側欄，與工作區之間只用一條 `border-line` 分隔：左側 `border-r`、右側 `border-l`。展開與收合各自決定寬度。</Rule>
+<Rule component="panel" id="width">寬度：左側清單面板 `w-[250px]`；右側詳細面板 `w-[350px]`（36 字元 UUID 能完整顯示的最小寬度）。</Rule>
+<Rule component="panel" id="collapsed">**collapsed**：右側詳細面板收成 `w-10`，只留一條 `h-12` 的 collapsed bar，中間是展開狀態的 Collapse button。左側清單面板有自己的收合樣貌（只留縮圖），由該 L1 元件定義，不用 collapsed bar。</Rule>
+<Rule component="panel" id="scroll">內容區佔滿剩餘高度並自行捲動：原生捲軸隱藏，改疊一條 `w-1.5` 的 `bg-scroll-thumb` 圓角捲軸（`top-1 right-1 bottom-1`）。一般清單內距 `gap-2 p-2 pr-3`；詳細內容用 Detail layout 的內距。</Rule>
+<Rule component="panel" id="narrow-window">窄視窗下面板直接隱藏而不是擠壓工作區：左側清單在 720px 以下、右側詳細面板在 980px 以下隱藏。</Rule>
+<Rule component="panel" id="empty-error">面板內容的空狀態與載入失敗用 L0 Status message compact；載入中用 Skeleton。</Rule>
+</ul>
+
+</Rules>
+
+## Bar
+
+區塊頂端 48px 的標題列：左邊標題（可帶 meta），右邊動作。
+
+<Gallery min="640px">
+<State component="bar" state="page-title" label="page · title only" />
+<State component="bar" state="page-full" label="page · title + meta + actions" />
+<State component="bar" state="panel" label="in panel · title + icon actions" />
+</Gallery>
+
+<Rules component="bar">
+
+<ul class="ds-rules">
+<Rule component="bar" id="layout">固定 `h-12 items-center gap-3 bg-surface`。左群組 `gap-2`：標題 `text-[13px] font-semibold leading-none text-fg`、單行 truncate；meta 緊接標題，`text-[11.5px] text-fg-muted`，數字用 `tabular-nums`。右群組 `ml-auto gap-2` 放動作。</Rule>
+<Rule component="bar" id="page-bar">page：頁面主區的 Bar 用 `px-4` 並自帶底線 `border-b border-line-subtle`。in panel：面板內的 Bar 用 `px-2` 讓 28px 圖示鈕貼齊面板邊緣，不畫底線（面板內容自己接在下面）；純圖示動作之間可收緊為 `gap-1`。</Rule>
+<Rule component="bar" id="buttons">Bar 內按鈕：文字鈕用 L0 Button bar（`h-7 px-3 text-xs`），圖示鈕用 L0 Icon button `size-7` ghost。整條 Bar 最多一顆 solid accent 主要動作，放最右。</Rule>
+<Rule component="bar" id="issue-chip">問題摘要（L0 Issue chip）放在右群組、主要動作的左邊。</Rule>
+</ul>
+
+</Rules>
+
+## Collapse button
+
+面板 Bar 最右邊的收合／展開鈕。
+
+<Gallery min="240px">
+<State component="collapse-button" state="expanded" label="expanded · collapse" frame="flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="collapse-button" state="collapsed" label="collapsed · expand" frame="flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="collapse-button" state="hover" label="hover" frame="flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
+</Gallery>
+
+<Rules component="collapse-button">
+
+<ul class="ds-rules">
+<Rule component="collapse-button" id="icon">28px ghost 圖示鈕（`size-7 p-0`），icon 16／stroke 1.8：展開中顯示 ChevronsLeft、收合中顯示 ChevronsRight，左右面板一致，不依面板位置翻轉方向。</Rule>
+<Rule component="collapse-button" id="hover-position">hover 只加 `bg-hover`，不改 icon 顏色。永遠放在面板 Bar 的最右邊，或 collapsed bar 的正中。</Rule>
+</ul>
+
+</Rules>

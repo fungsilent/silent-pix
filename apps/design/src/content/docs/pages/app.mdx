@@ -1,0 +1,104 @@
+---
+title: App
+description: 所有頁面共用的整體版面：頂端的 Header 與 App menu 導覽。
+sidebar:
+    order: 1
+---
+
+import State from '@silent-pix/blueprint/components/State.astro'
+import Gallery from '@silent-pix/blueprint/components/Gallery.astro'
+import Rule from '@silent-pix/blueprint/components/Rule.astro'
+import Rules from '@silent-pix/blueprint/components/Rules.astro'
+import Screen from '@silent-pix/blueprint/components/Screen.astro'
+import Slot from '@silent-pix/blueprint/components/Slot.astro'
+import Switch from '@silent-pix/blueprint/components/Switch.astro'
+import Case from '@silent-pix/blueprint/components/Case.astro'
+
+## Header · 目前頁面
+
+App 最上方 48px 的全域列：App menu、品牌名、三個模式分頁、主題切換與服務狀態。所有頁面共用同一條，頁面本身不畫 header。目前所在的頁面以中間的模式分頁表示。
+
+<Gallery min="900px">
+<State component="app-header" state="generate" label="generate active · all up" />
+<State component="app-header" state="compare" label="compare active" />
+<State component="app-header" state="workflow" label="workflow active" />
+<State component="app-header" state="other-page" label="metadata / settings · no tab active" />
+</Gallery>
+
+<Rules component="app-header" part="pages">
+
+<ul class="ds-rules">
+<Rule component="app-header" id="layout-order">左到右固定順序：App menu（見 **app-menu**）→ 品牌名 → 模式分頁 → 彈性空白 → 主題切換 → 服務狀態。列高 48px，左 10px／右 12px 內距，底線 `border-line-subtle`。視窗太窄時整列橫向捲動，不換行、不收合。</Rule>
+<Rule component="app-header" id="mode-tabs">模式分頁是 `bg-elevated` 底的 segment group，內含三顆 24px 高的 ghost 鈕；目前模式用 selected 樣式（`bg-selected text-fg`），其餘 `text-fg-muted`。目前頁面是 Image Metadata 或 Settings 時三個分頁都不亮。</Rule>
+<Rule component="app-header" id="theme-toggle">主題切換顯示「切換後」的圖示：深色主題顯示 Sun、淺色主題顯示 Moon；hover 只加 ghost 底色。</Rule>
+</ul>
+
+</Rules>
+
+## Header · 服務狀態
+
+右側的服務狀態列：Server、DB、Comfy 各一段；全部正常的樣子見上一節。
+
+<Gallery min="900px">
+<State component="app-header" state="comfy-down" label="service · Comfy down" />
+<State component="app-header" state="server-down" label="service · Server down · others unknown" />
+<State component="app-header" state="connecting" label="service · unknown (never connected)" />
+</Gallery>
+
+<Rules component="app-header" part="service">
+
+<ul class="ds-rules">
+<Rule component="app-header" id="service-status">服務狀態是一顆 soft 按鈕（點擊重新檢查），內含 Server／DB／Comfy 三段，以 `bg-line` 細線分隔。狀態點 6px：up 為 `bg-success` 帶光暈；down 為 `bg-danger` 帶光暈，並把該段染成 `bg-danger/12 text-danger-fg`；unknown 為 `bg-fg-muted` 無光暈。</Rule>
+<Rule component="app-header" id="status-source">Server 跟即時連線走。DB／Comfy 在即時連線首次建立前先用一次查詢結果墊著，之後只認即時狀態；斷線時 DB／Comfy 一律轉 unknown，不沿用最後一份結果。從未連上過時三段都是 unknown。</Rule>
+</ul>
+
+</Rules>
+
+## Header · 未設定 Server
+
+還沒設定 Server 時，模式分頁停用、服務狀態隱藏。
+
+<Gallery min="900px">
+<State component="app-header" state="no-endpoint" label="no endpoint · tabs disabled · status hidden" />
+</Gallery>
+
+<Rules component="app-header" part="no-endpoint">
+
+<ul class="ds-rules">
+<Rule component="app-header" id="no-endpoint">尚未設定 Server endpoint 時三個分頁停用（照 L0 Segment group 停用），服務狀態整個不顯示；原本的目前模式仍保留 selected 外觀，只是一起變淡。App menu 與主題切換照常可用，讓使用者能進 Settings 設定 endpoint。</Rule>
+</ul>
+
+</Rules>
+
+## App menu
+
+Header 最左的漢堡選單，放不屬於三個模式分頁的 app 層頁面：Image Metadata 與 Settings。外觀、hover 與鍵盤操作照基礎元件 [Menu](/base/container/menu/)，這裡只列它自己的項目與「目前所在頁」的樣子。
+
+<Gallery min="360px">
+<State component="app-menu" state="open" label="open · current page is a mode" frame="relative h-[132px] overflow-hidden rounded-lg border border-line-subtle bg-surface pl-2.5 pt-2" />
+<State component="app-menu" state="open-metadata" label="open · current = Image Metadata" frame="relative h-[132px] overflow-hidden rounded-lg border border-line-subtle bg-surface pl-2.5 pt-2" />
+<State component="app-menu" state="open-settings" label="open · current = Settings" frame="relative h-[132px] overflow-hidden rounded-lg border border-line-subtle bg-surface pl-2.5 pt-2" />
+</Gallery>
+
+<Rules component="app-menu">
+
+<ul class="ds-rules">
+<Rule component="app-menu" id="entries">只有 Image Metadata 與 Settings 兩項，沒有分組或分隔線。新增 app 層頁面才加項目；三個模式分頁不放進選單。</Rule>
+</ul>
+
+</Rules>
+
+## Screen
+
+<Screen>
+    <Slot name="header" component="app-header" states="generate,compare,workflow,other-page,no-endpoint,comfy-down,server-down,connecting" />
+    <div class="min-h-0 flex-1 bg-canvas"></div>
+    <Switch name="overlay">
+        <Case state="none" label="none" />
+        <Case state="menu" label="App menu open">
+            <div class="absolute left-0 top-0 z-40 pl-2.5 pt-[9.5px]">
+                <Slot name="menu" component="app-menu" states="open,open-metadata,open-settings" />
+            </div>
+        </Case>
+    </Switch>
+</Screen>

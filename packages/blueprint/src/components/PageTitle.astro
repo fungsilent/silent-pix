@@ -1,0 +1,8 @@
+---
+const { title, description } = Astro.locals.starlightRoute.entry.data
+---
+
+<div class="ds-page-heading">
+    <h1 id="_top">{title}</h1>
+    {description && <p>{description}</p>}
+</div>

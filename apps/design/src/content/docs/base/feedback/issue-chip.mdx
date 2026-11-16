@@ -1,0 +1,33 @@
+---
+title: Issue chip
+description: Bar 右側的問題摘要。一則時直接顯示訊息，多則時顯示計數；點開列出全部問題與可用的 Retry。
+sidebar:
+    order: 5
+---
+
+import State from '@silent-pix/blueprint/components/State.astro'
+import Gallery from '@silent-pix/blueprint/components/Gallery.astro'
+import Rule from '@silent-pix/blueprint/components/Rule.astro'
+import Rules from '@silent-pix/blueprint/components/Rules.astro'
+
+## Examples
+
+<Gallery min="440px">
+<State component="issue-chip" state="error" label="closed · error · 1 issue" frame="flex rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="issue-chip" state="warning" label="closed · warning · 1 issue" frame="flex rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="issue-chip" state="hover" label="hover · error" frame="flex rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="issue-chip" state="count-only" label="narrow window · count only" frame="flex rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="issue-chip" state="open" label="open · 2 issues (error + warning)" frame="relative h-[220px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
+</Gallery>
+
+<Rules component="issue-chip">
+
+<ul class="ds-rules">
+<Rule component="issue-chip" id="tones">Tone 只有兩種：**error** 擋住送出、**warning** 降級但仍可送出。只要有一則 error，整個 chip 就是紅的；popover 內 error 排在 warning 前，同 tone 維持原順序。</Rule>
+<Rule component="issue-chip" id="tint">染色容器 `border-*/25 bg-*/12 text-*-fg`，hover 加深為 `bg-*/[0.18]`。沒有 issue 時整個 chip 不出現，不留空位。</Rule>
+<Rule component="issue-chip" id="label">一則時標籤是該則訊息、多則時是「N issues」；視窗窄於 980px 時只留粗體計數。開啟時 chevron 轉 180°。</Rule>
+<Rule component="issue-chip" id="popover">Popover 對齊 chip 右下（bottom-end）、間距 6px，浮在所有面板之上，不被面板裁切。每則：field 名（mono 大寫 overline，可省略）、訊息、可選的 soft Retry（`h-6`）；各則以 `border-line-subtle` 分隔。</Rule>
+<Rule component="issue-chip" id="message">訊息要交代「怎麼辦」，不直接顯示錯誤代碼或原始例外。</Rule>
+</ul>
+
+</Rules>

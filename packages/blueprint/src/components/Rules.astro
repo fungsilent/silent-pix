@@ -1,0 +1,29 @@
+---
+/*
+ * 一個部件的規則，預設收合；一頁可有多組，錨點 <component>/rules。規則直連時自動展開。
+ * 同一個元件的規則分到幾個章節時，用 part 區分錨點：<component>/rules/<part>。
+ */
+type Props = { component: string, part?: string }
+const { component, part } = Astro.props
+const anchor = part ? `${component}/rules/${part}` : `${component}/rules`
+---
+<details data-ds-rules class="ds-rules-panel">
+    <summary>
+        <svg class="ds-rules-chevron" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        <h3 id={anchor}>Rules <span>Agent 規格</span></h3>
+    </summary>
+    <div class="ds-rule-book"><slot /></div>
+</details>
+
+<script>
+    function revealRule() {
+        const target = document.querySelector<HTMLElement>(':target')
+        const rules = target?.closest<HTMLDetailsElement>('[data-ds-rules]')
+        if (!rules || !target) return
+        rules.open = true
+        requestAnimationFrame(() => target.scrollIntoView({ block: 'start' }))
+    }
+
+    window.addEventListener('hashchange', revealRule)
+    revealRule()
+</script>

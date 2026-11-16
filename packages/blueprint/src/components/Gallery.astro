@@ -1,0 +1,6 @@
+---
+/* 一個部件的狀態並排成格子；min 是每格最小寬度，依部件大小設定，容器夠寬時自動多欄 */
+type Props = { min?: string }
+const { min = '480px' } = Astro.props
+---
+<div class="ds-gallery not-content" style={`--ds-min: ${min}`}><slot /></div>

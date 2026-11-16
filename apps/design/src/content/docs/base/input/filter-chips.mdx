@@ -1,0 +1,35 @@
+---
+title: Filter chips
+description: 清單篩選列：All 加上可多選的選項，有 icon 與 label 兩種呈現。
+sidebar:
+    order: 6
+---
+
+import State from '@silent-pix/blueprint/components/State.astro'
+import Gallery from '@silent-pix/blueprint/components/Gallery.astro'
+import Rule from '@silent-pix/blueprint/components/Rule.astro'
+import Rules from '@silent-pix/blueprint/components/Rules.astro'
+
+## Examples
+
+<Gallery min="300px">
+<State component="filter-chips" state="icon-all" label="icon · All" frame="w-fit overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="filter-chips" state="icon-single" label="icon · one value" frame="w-fit overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="filter-chips" state="icon-multiple" label="icon · two values" frame="w-fit overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="filter-chips" state="label-all" label="label · All" frame="w-fit overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="filter-chips" state="label-single" label="label · one value" frame="w-fit overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="filter-chips" state="label-multiple" label="label · two values" frame="w-fit overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="filter-chips" state="hover" label="label · hover third" frame="w-fit overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+</Gallery>
+
+<Rules component="filter-chips">
+
+<ul class="ds-rules">
+<Rule component="filter-chips" id="row">一列篩選鈕：最前面是「All」，其後是各選項。每顆 `h-7 rounded-md px-2 text-[11px] font-medium`、icon 13px，彼此 `gap-1`；只有 icon 的版本是 `w-7 px-0` 的正方形。選中用共用選取態 `bg-selected text-fg`，未選中 `text-fg-muted`、hover `bg-hover`。</Rule>
+<Rule component="filter-chips" id="variants">兩種呈現：label（icon + 文字，寬裕的工具列）與 icon（只有圖示，名稱放 hover tooltip，用在窄面板）。兩者狀態規則相同。</Rule>
+<Rule component="filter-chips" id="all">All 表示「不篩選」，此時只有 All 亮。多選模式下點選項會切換該項；結果為空或全部選項都選時自動回到 All，所以畫面上不會出現「全部選項同時亮」。也有單選模式：再點已選的項目不會取消。</Rule>
+<Rule component="filter-chips" id="order">選項順序固定，不因選取順序改變。</Rule>
+<Rule component="filter-chips" id="vs-segment-group">與 L0 segment group 的差別：filter chips 沒有外框槽、可多選、有 All 語意；切換單一設定值用 segment group。</Rule>
+</ul>
+
+</Rules>

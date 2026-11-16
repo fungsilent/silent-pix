@@ -1,0 +1,35 @@
+---
+title: Dialog
+description: 置中的 modal 外框：header（標題、說明、關閉鈕）、body、可選的 footer。確認、選取等 dialog 的內容由各 L1 元件填入。
+sidebar:
+    order: 5
+---
+
+import State from '@silent-pix/blueprint/components/State.astro'
+import Gallery from '@silent-pix/blueprint/components/Gallery.astro'
+import Rule from '@silent-pix/blueprint/components/Rule.astro'
+import Rules from '@silent-pix/blueprint/components/Rules.astro'
+
+## Examples
+
+<Gallery min="480px">
+<State component="dialog" state="default" label="default · max-w-lg · accent confirm" frame="relative h-[300px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="dialog" state="danger" label="confirm · 420px · danger" frame="relative h-[300px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="dialog" state="error" label="confirm · footer error" frame="relative h-[300px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="dialog" state="pending" label="confirm · pending" frame="relative h-[300px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="dialog" state="picker" label="picker · 600px · list body" frame="relative h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+</Gallery>
+
+<Rules component="dialog">
+
+<ul class="ds-rules">
+<Rule component="dialog" id="frame">外框 `rounded-lg border border-line bg-surface shadow-2xl`，下方鋪 `bg-backdrop` 全畫面遮罩；dialog 置中、與視窗保留 16px，最高不超過視窗、超出時只捲 body。</Rule>
+<Rule component="dialog" id="header">**header**：`px-4 py-3 border-b border-line-subtle`，標題 `text-base font-bold leading-tight text-fg`，說明（可省）`mt-1 text-xs leading-5 text-fg-muted`，右上固定一顆 `size-7` soft 關閉鈕（X 15）。**body**：`p-4`，受影響對象的名稱用 `font-mono text-xs`。**footer**（可省）：`px-4 py-3 border-t border-line-subtle`，按鈕靠右。</Rule>
+<Rule component="dialog" id="width">寬度：預設 `max-w-lg`；刪除／封存等確認 `w-[420px]`；清單選取器 `w-[600px]`、最高 70% 視窗、圓角 10px；圖片選取器 `w-[1200px]`、滿高。都加 `max-w-full` 防溢出。</Rule>
+<Rule component="dialog" id="footer">footer 按鈕用 L0 Button dialog（`h-7 min-w-20 text-xs`）：Cancel 為中性 soft，確認鈕依性質選 tone——破壞性用 danger soft、一般用 solid accent。每個 dialog 只有一顆確認鈕。</Rule>
+<Rule component="dialog" id="picker">**picker**：從清單挑項目再按 Apply 的 dialog，footer 左側用 `text-xs text-fg-muted tabular-nums` 顯示目前選取（數量或尺寸），Apply 用 solid accent。</Rule>
+<Rule component="dialog" id="error">**error**：失敗時 dialog 保持開啟，footer 左側放 danger Field hint，按鈕仍靠右；成功才關閉。</Rule>
+<Rule component="dialog" id="pending">**pending**：進行中兩顆按鈕都用 L0 Button 停用樣式，確認鈕文案依 L0 Button pending 改成進行式（「Deleting...」）；會造成不一致的操作進行中也擋住關閉，此時右上關閉鈕一併停用。</Rule>
+</ul>
+
+</Rules>

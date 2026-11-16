@@ -1,0 +1,6 @@
+---
+/* <Switch> 的一個選項；state 是寫在網址的值，label 是選單上的名稱 */
+type Props = { state: string, label: string }
+const { state, label } = Astro.props
+---
+<div data-ds-variant={state} data-ds-label={label} hidden class="contents"><slot /></div>

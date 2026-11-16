@@ -1,0 +1,28 @@
+<section class="flex shrink-0 flex-col overflow-hidden border-b border-line-subtle bg-surface">
+                            <div class="flex h-12 shrink-0 items-center gap-3 bg-surface px-4">
+                                <div class="flex min-w-0 items-center gap-2">
+                                    <h2 class="m-0 min-w-0 truncate text-[13px] font-semibold leading-none text-fg">Prompt</h2>
+                                    <span class="flex h-7 items-center justify-center gap-1.5 rounded-md border border-transparent bg-accent/15 px-3 py-0 text-xs leading-none text-accent-fg outline outline-1 outline-offset-0 outline-accent/40 hover:bg-accent/25 focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40"><span class="size-[5px] shrink-0 rounded-full bg-current opacity-45"></span>Positive</span>
+                                    <span class="flex h-7 items-center justify-center gap-1.5 rounded-md border border-transparent bg-accent/15 px-3 py-0 text-xs leading-none text-accent-fg outline outline-1 outline-offset-0 outline-accent/40 hover:bg-accent/25 focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40"><span class="size-[5px] shrink-0 rounded-full bg-current opacity-45"></span>Negative</span>
+                                </div>
+                                <div class="ml-auto flex min-w-0 items-center gap-2">
+                                    <button type="button" disabled class="flex h-7 shrink-0 items-center justify-center gap-2 rounded-md border border-transparent bg-accent px-3 py-0 text-xs font-semibold text-on-stage outline-none hover:bg-accent-hover focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-60"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg>Generate</button>
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-1" inert>
+                                <section class="flex flex-col px-4 pb-2">
+                                    <span class="pb-1.5 text-xs leading-none text-fg-muted">Positive</span>
+                                    <div class="relative overflow-hidden rounded-md border border-transparent bg-elevated">
+                                        <div class="resizer-hidden block w-full resize-y overflow-hidden" style="height: 108px; min-height: 36px;"></div>
+                                        <span class="skeleton pointer-events-none absolute inset-0 block rounded-md"></span>
+                                    </div>
+                                </section>
+                                <section class="flex flex-col px-4 pb-2">
+                                    <span class="pb-1.5 text-xs leading-none text-fg-muted">Negative</span>
+                                    <div class="relative overflow-hidden rounded-md border border-transparent bg-elevated">
+                                        <div class="resizer-hidden block w-full resize-y overflow-hidden" style="height: 108px; min-height: 36px;"></div>
+                                        <span class="skeleton pointer-events-none absolute inset-0 block rounded-md"></span>
+                                    </div>
+                                </section>
+                            </div>
+                        </section>

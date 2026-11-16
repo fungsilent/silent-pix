@@ -1,0 +1,34 @@
+---
+/*
+ * 一個元件狀態（Ark UI 文件的 Example）：卡片上方一列是標題與位址複製鈕，中間是帶點陣底的舞台（元件放在中間），
+ * 選填說明放在舞台下方當圖說（最多兩行，只解釋圖中條件）；標題列高度一致，並排時舞台對齊。標題的 id 是穩定錨點 <component>/state/<state>，右側目錄由 route-data.ts 產生。
+ * HTML 片段放在 src/blueprint/<component>/<state>.html，原樣插入。預設跟著 Starlight 的主題；themes="both" 時 Dark / Light 並列。
+ */
+import Address from '#/components/Address.astro'
+import { fragment } from '#/blueprint'
+
+type Props = { component: string, state: string, label: string, description?: string, frame?: string, themes?: 'page' | 'both' }
+
+const { component, state, label, description, frame = 'overflow-hidden rounded-lg border border-line-subtle bg-canvas', themes = 'page' } = Astro.props
+const markup = fragment(component, state)
+const id = `${component}/state/${state}`
+---
+<section class="ds-example ds-target not-content">
+    <header class="ds-example-head">
+        <h3 id={id} class="ds-example-title">{label}</h3>
+        <Address id={id} />
+    </header>
+    {themes === 'both'
+        ? (
+            <div class="ds-stage ds-stage-themes grid grid-cols-1 gap-4 xl:grid-cols-2">
+                {['dark', 'light'].map(theme => (
+                    <div data-theme={theme} class="ds-frame flex min-w-0 flex-col overflow-hidden rounded-lg border border-line bg-canvas text-fg">
+                        <div class="flex h-8 shrink-0 items-center border-b border-line-subtle px-3 text-[10px] font-semibold uppercase tracking-wide text-fg-muted">{theme}</div>
+                        <div class="@container"><div class={frame} set:html={markup} /></div>
+                    </div>
+                ))}
+            </div>
+        )
+        : <div class="ds-stage"><div class="ds-frame @container"><div class={frame} set:html={markup} /></div></div>}
+    {description && <p class="ds-example-description">{description}</p>}
+</section>

@@ -1,0 +1,62 @@
+---
+title: Icon button
+description: 只有圖示的方形按鈕；疊在圖片上時改用玻璃質感的 stage button。
+sidebar:
+    order: 2
+---
+
+import State from '@silent-pix/blueprint/components/State.astro'
+import Gallery from '@silent-pix/blueprint/components/Gallery.astro'
+import Rule from '@silent-pix/blueprint/components/Rule.astro'
+import Rules from '@silent-pix/blueprint/components/Rules.astro'
+
+## Icon button
+
+只有圖示的方形按鈕：一般 28px、附在列或縮圖上的 24px 兩種尺寸，ghost 與 soft 兩種重量。
+
+<Gallery min="300px">
+<State component="icon-button" state="bar" label="bar · 28px ghost" frame="w-fit overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="icon-button" state="field" label="beside field · 28px" frame="w-fit overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="icon-button" state="inline" label="inline · 24px remove" frame="w-fit overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="icon-button" state="hover" label="hover" frame="w-fit overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="icon-button" state="open" label="open · menu shown" frame="w-fit overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="icon-button" state="focus" label="focus-visible" frame="w-fit overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+</Gallery>
+
+<Rules component="icon-button">
+
+<ul class="ds-rules">
+<Rule component="icon-button" id="when-to-use">只有圖示、沒有文字的方形按鈕。看圖示猜不出用途的（收合／展開、放大成 browser、送到 Compare、設為參考圖、還原 seed）用 hover 提示（title）寫出名稱；關閉、上下一張、新增、移除這類一看就懂的不加。外形與 L0 button 同一套 variant：ghost 透明底、soft `bg-elevated`；不做 solid。</Rule>
+<Rule component="icon-button" id="size">尺寸只有兩種，而且永遠是正方形：一般 `size-7`（28px，跟同列的按鈕、欄位同高），圖示 13–16px；附在清單列或縮圖上的 `size-6`（24px），圖示 13px。不另外為 bar、欄位旁或 dialog 做不同尺寸。</Rule>
+<Rule component="icon-button" id="collapse-theme">面板收合鈕是這一型的固定用法，規則見 L0 collapse-button。主題切換顯示「切換後」的圖示（Dark 顯示 Sun、Light 顯示 Moon），用 `text-fg-secondary`。</Rule>
+<Rule component="icon-button" id="soft-on-elevated">Dialog 右上關閉與欄位旁的 reset 用 soft，讓它在 elevated 表面上仍看得到範圍；欄位旁的編輯（筆形）用 ghost，hover 才把圖示提亮到 `text-fg`。</Rule>
+<Rule component="icon-button" id="row-remove">清單列內的移除鈕平時是 ghost neutral，hover 才轉 `bg-danger/15 text-danger-fg`，不在靜止時搶眼。</Rule>
+<Rule component="icon-button" id="menu-trigger">Menu trigger 開啟期間維持選取態（`bg-selected text-fg`），關閉後回到 ghost。</Rule>
+</ul>
+
+</Rules>
+
+## Stage button
+
+疊在圖片與 stage 上的玻璃圖示鈕：工具列、viewer 動作、翻頁與縮圖移除。
+
+<Gallery min="420px">
+<State component="stage-button" state="default" label="toolbar · 32px" frame="overflow-hidden rounded-lg border border-line-subtle bg-stage" />
+<State component="stage-button" state="hover" label="hover · expand" frame="overflow-hidden rounded-lg border border-line-subtle bg-stage" />
+<State component="stage-button" state="large" label="viewer close and paging · 32px" frame="overflow-hidden rounded-lg border border-line-subtle bg-stage" />
+<State component="stage-button" state="thumb" label="thumbnail · 24px remove" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface" />
+</Gallery>
+
+<Rules component="stage-button">
+
+<ul class="ds-rules">
+<Rule component="stage-button" id="glass">疊在圖片上的「玻璃」圖示鈕：`bg-stage-control` 半透明暗底、`border-stage-line`、`backdrop-blur-[8px]`、`text-on-stage`。Stage 色在兩個 theme 同值，因為底下永遠是照片。</Rule>
+<Rule component="stage-button" id="size">尺寸一律 `size-8`（32px，icon 15–18），包括 stage 工具列、全螢幕 viewer 的關閉與左右翻頁（翻頁垂直置中貼左右）。多顆並排 `gap-2`。</Rule>
+<Rule component="stage-button" id="hover">Hover 換 `bg-stage-control-hover`；移除鈕 hover 時圖示另轉 `text-stage-danger`，平時與其他鈕同色。</Rule>
+<Rule component="stage-button" id="tooltip">Hover 提示的規則同 L0 Icon button。</Rule>
+<Rule component="stage-button" id="disabled">停用用 `cursor-not-allowed opacity-30`：玻璃底本身已經半透明，60% 在照片上看不出差別。這是 L0 停用樣式唯一的例外。</Rule>
+<Rule component="stage-button" id="thumb-remove">縮圖上的移除鈕更小更輕：`size-6`、無邊框、`backdrop-blur-[3px]`，hover 轉 `bg-danger/35`，放在縮圖右上 `right-1.5 top-1.5`。</Rule>
+<Rule component="stage-button" id="not-on-photos">不要把 L0 button／icon-button 直接放到照片上——它們的底色依 theme 變化，在亮照片上會消失。</Rule>
+</ul>
+
+</Rules>

@@ -1,0 +1,56 @@
+---
+title: Text field
+description: 單行文字輸入，以及欄位下方的說明或錯誤提示。
+sidebar:
+    order: 1
+---
+
+import State from '@silent-pix/blueprint/components/State.astro'
+import Gallery from '@silent-pix/blueprint/components/Gallery.astro'
+import Rule from '@silent-pix/blueprint/components/Rule.astro'
+import Rules from '@silent-pix/blueprint/components/Rules.astro'
+
+## Text field
+
+單行文字輸入：label 在上、28px control，含 placeholder、focus、停用、前置圖示與 hint。
+
+<Gallery min="300px">
+<State component="text-field" state="placeholder" label="empty · placeholder" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="text-field" state="filled" label="filled" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="text-field" state="focus" label="focus" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="text-field" state="disabled" label="disabled" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="text-field" state="search" label="leading icon · label hidden" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="text-field" state="hint" label="with hint" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="text-field" state="error" label="error hint" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+</Gallery>
+
+<Rules component="text-field">
+
+<ul class="ds-rules">
+<Rule component="text-field" id="label">Label 在 control 上方：`text-xs leading-none text-fg-muted`，與 control 間距 `gap-1.5`（6px）。這個間距要明顯小於欄位與欄位之間的距離（兩欄格子 8px、上下排列 12px），label 才看得出屬於哪個 control。不顯示 label 的位置（工具列搜尋）仍保留 label 文字，只是隱藏，靠 placeholder 與圖示說明用途。</Rule>
+<Rule component="text-field" id="control">Control 一律 `h-7`、`rounded-md`、`px-3 text-xs`、`bg-field` 加 `border-field-border`；placeholder 用 `text-fg-muted`。所有欄位（text、number、select、editable）與欄位 loading 骨架共用這個高度，也跟 L0 Button 同高，改高度要一起改。</Rule>
+<Rule component="text-field" id="focus-disabled">Focus：`border-accent ring-2 ring-accent/40`。停用：`bg-disabled border-line-subtle text-fg-muted`、游標 default，不用 opacity。</Rule>
+<Rule component="text-field" id="leading-icon">前置圖示 14px 放在 `left-3`，文字內縮到 `pl-9`。</Rule>
+<Rule component="text-field" id="error">錯誤不改 control 外觀（不加紅框），只在欄位下方（`gap-1`）加一行 L0 field-hint danger；一般說明用 field-hint muted。</Rule>
+<Rule component="text-field" id="width">欄位寬度跟隨容器；在 detail panel 中是內容寬 318px。</Rule>
+</ul>
+
+</Rules>
+
+## Field hint
+
+欄位下方或 footer 內的一行說明或錯誤。
+
+<Gallery min="300px">
+<State component="field-hint" state="muted" label="muted · default" frame="w-fit flex rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="field-hint" state="danger" label="danger" frame="w-fit flex rounded-lg border border-line-subtle bg-surface p-4" />
+</Gallery>
+
+<Rules component="field-hint">
+
+<ul class="ds-rules">
+<Rule component="field-hint" id="tones">只有 muted 與 danger 兩種 tone，`text-xs` 單行 `truncate`，不加 icon。</Rule>
+<Rule component="field-hint" id="field-error">欄位錯誤不改輸入框外觀，改在欄位下方放 danger hint；Dialog footer 左側的錯誤也用 danger hint。</Rule>
+</ul>
+
+</Rules>

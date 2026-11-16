@@ -13,6 +13,7 @@ export default defineConfig(
             '**/.vite/**',
             '**/.turbo/**',
             '**/node_modules/**',
+            'apps/design/.astro/**',
             'apps/server/src/archive/**',
             'eslint.config.mjs',
             'pnpm-lock.yaml',
@@ -23,7 +24,7 @@ export default defineConfig(
     ...tseslint.configs.recommendedTypeChecked,
 
     {
-        files: ['deploy/script/*.mjs'],
+        files: ['deploy/script/*.mjs', 'apps/design/astro.config.mjs', 'packages/blueprint/script/*.mjs'],
         extends: [tseslint.configs.disableTypeChecked],
         languageOptions: { globals: globals.node },
     },

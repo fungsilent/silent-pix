@@ -1,0 +1,11 @@
+---
+/* 一條規則，位址 <component>/rule/<id>；id 由作者給定，插入新規則不會讓舊位址失效 */
+import Address from '#/components/Address.astro'
+
+type Props = { component: string, id: string }
+const { component, id } = Astro.props
+const anchor = `${component}/rule/${id}`
+---
+<li id={anchor} class="ds-target">
+    <slot /> <Address id={anchor} />
+</li>

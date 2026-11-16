@@ -1,0 +1,12 @@
+---
+title: Silent Pix Blueprint
+description: Silent Pix 的設計系統藍圖：Web UI 照這裡實作。
+---
+
+- **選單**：先是 Tokens 與基礎元件，再是產品頁面；每個產品頁面一頁，依序列出部件，最後是整頁 Screen。
+- **看圖**：每個狀態一張卡片，右側目錄可直接定位；Screen 用控制列切換狀態，上下鍵換狀態、左右鍵換選單。
+- **搜尋**：按 `/` 或 Ctrl+K，預設找畫面與元件；選擇 Rules 才搜尋 agent 規格。開發模式也能搜尋。
+- **回饋**：狀態卡片、規則與 Screen 控制列的複製鈕會複製位址，可直接貼給 agent；agent 修改後也應回覆受影響狀態的連結。
+- **Rules**：預設收合，從規則連結進入時自動展開並定位。
+
+例如先看 [Generate](/pages/generate/)：依序是各部件，最後是 [整頁示範](/pages/generate/#screen)。

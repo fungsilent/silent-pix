@@ -1,0 +1,53 @@
+---
+title: Number field
+description: 數字輸入，以及永遠與 compact number field 併排的 slider。
+sidebar:
+    order: 2
+---
+
+import State from '@silent-pix/blueprint/components/State.astro'
+import Gallery from '@silent-pix/blueprint/components/Gallery.astro'
+import Rule from '@silent-pix/blueprint/components/Rule.astro'
+import Rules from '@silent-pix/blueprint/components/Rules.astro'
+
+## Number field
+
+數字輸入：標準 28px 與 slider 旁的 compact 版。
+
+<Gallery min="300px">
+<State component="number-field" state="default" label="default · pair" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="number-field" state="focus" label="focus" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="number-field" state="disabled" label="disabled" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="number-field" state="compact" label="compact · beside a slider" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+</Gallery>
+
+<Rules component="number-field">
+
+<ul class="ds-rules">
+<Rule component="number-field" id="same-as-text">外觀與 text-field 相同（`h-7`、label 在上、同一組 focus／停用），差在數字輸入；瀏覽器的上下箭頭隱藏，只靠鍵入與鍵盤上下鍵調整。</Rule>
+<Rule component="number-field" id="pairs">成對的數值（Steps／CFG、Width／Height）用兩欄 `grid-cols-2 gap-2` 併排，不各佔一列。</Rule>
+<Rule component="number-field" id="compact">Compact 只用在 slider 旁：`w-16 h-6 px-2 text-center`，label 隱藏（由 slider 那列的 label 說明）。</Rule>
+</ul>
+
+</Rules>
+
+## Slider
+
+連續數值的拖曳控制，永遠與 compact number-field 併排。
+
+<Gallery min="300px">
+<State component="slider" state="default" label="default · with compact number" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="slider" state="focus" label="thumb focus" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="slider" state="min" label="minimum value" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="slider" state="disabled" label="disabled" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+</Gallery>
+
+<Rules component="slider">
+
+<ul class="ds-rules">
+<Rule component="slider" id="track">Track `h-2 rounded-full bg-track`，已填範圍與 thumb 都是 `bg-accent`；thumb `size-4` 圓形，focus 時 `ring-2 ring-accent/40`。整個控制區高 `h-5`。</Rule>
+<Rule component="slider" id="with-number">Slider 永遠與 compact number-field 併排（`gap-2.5`），數字可直接鍵入精確值；label 只在上方出現一次。</Rule>
+<Rule component="slider" id="disabled">停用時整個 slider 降為 `opacity-60`（不是 field 的停用底色），旁邊的 number 走 field 停用樣式。</Rule>
+</ul>
+
+</Rules>

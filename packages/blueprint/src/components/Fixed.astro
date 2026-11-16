@@ -1,0 +1,8 @@
+---
+/* L2 裡固定狀態的區塊（不出現在控制列） */
+import { fragment } from '#/blueprint'
+
+type Props = { component: string, state: string }
+const { component, state } = Astro.props
+---
+<div class="contents" set:html={fragment(component, state)} />

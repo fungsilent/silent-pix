@@ -1,0 +1,36 @@
+{
+    "name": "@silent-pix/blueprint",
+    "private": true,
+    "version": "0.1.0",
+    "type": "module",
+    "exports": {
+        ".": "./src/index.ts",
+        "./components/*": "./src/components/*",
+        "./global.css": "./src/styles/global.css",
+        "./route-data": "./src/route-data.ts",
+        "./search-index": "./src/search-index.ts",
+        "./content": "./src/content.ts"
+    },
+    "imports": {
+        "#/blueprint": "./src/blueprint.ts",
+        "#/components/*": "./src/components/*"
+    },
+    "bin": {
+        "blueprint-check": "./script/check-layout.mjs"
+    },
+    "peerDependencies": {
+        "astro": "^7.4.4",
+        "@astrojs/starlight": "^0.42.8"
+    },
+    "dependencies": {
+        "@fontsource-variable/manrope": "^5.3.0",
+        "@fontsource-variable/noto-sans-tc": "^5.3.1",
+        "@tailwindcss/vite": "^4.3.3",
+        "playwright-core": "^1.64.1",
+        "tailwindcss": "^4.3.3"
+    },
+    "devDependencies": {
+        "@astrojs/starlight": "^0.42.8",
+        "astro": "^7.4.4"
+    }
+}

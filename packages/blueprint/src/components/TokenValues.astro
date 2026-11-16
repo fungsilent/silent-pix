@@ -1,0 +1,8 @@
+---
+/* Token 頁：[data-ds-value="<name>"] 標上它所在主題下 --sp-<name> 的實際值（Dark／Light 欄各自計算） */
+---
+<script>
+    for (const node of document.querySelectorAll<HTMLElement>('[data-ds-value]')) {
+        node.textContent = getComputedStyle(node).getPropertyValue(`--sp-${node.dataset.dsValue}`).trim() || '—'
+    }
+</script>

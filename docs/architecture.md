@@ -211,6 +211,40 @@ server-owned.
 
 ---
 
+### `apps/design`
+
+Owns the design system content: the blueprint that new and changed Web UI is
+built from. It is independent of `apps/web`; neither imports the other. It holds
+only content — pages, state fragments, its own copy of the token stylesheet, and
+the site title and sidebar — and is built with the framework in
+`packages/blueprint`; it reads no root env and needs no Server.
+`pnpm dev:design` runs the Astro dev server (live reload and search included);
+`pnpm build:design` builds the static site and validates every page;
+`pnpm check:design` builds, opens each page in headless Chromium at three window
+widths, and reports clipped or squeezed previews.
+
+```txt
+- astro.config.mjs                title, sidebar, and the style entry passed to the blueprint integration
+- src/content/docs/foundations/   Tokens page: color, typography, icon, size and spacing, radius and elevation, interaction state, motion, and the App model rules
+- src/content/docs/base/<group>/  base components (action, input, feedback, container, media), one page each
+- src/content/docs/pages/         one page per product page (App, Generate, Compare, Workflow, Settings, Image Metadata): a `##` section per part, then `## Screen`
+- src/blueprint/<component>/      one HTML fragment per state; fragments may embed other parts with `data-ds-slot`
+- src/styles/tokens.css           blueprint copy of the tokens; blueprint.css imports the framework styles, then the tokens
+- public/                         sample assets referenced by fragments
+- AGENTS.md                       content format and authoring rules
+```
+
+Every state is written once as a fragment and shown by `<State>` on the page of
+the part that owns it, together with that part's `<Rules>`. A product page's
+`## Screen` composes the same fragments into the whole page. States, rules, and
+screen combinations have stable addresses (page path plus anchor) that can be
+copied and pasted to an agent.
+
+Fragments are plain markup with Tailwind classes and inline lucide SVG, and
+rules describe the design only: the blueprint names no implementation file and
+imports no app component, fixture, API client, or i18n resource. It is never
+part of the Web build; Web implements from the blueprint rather than importing it.
+
 ### `apps/server`
 
 Owns the backend entrypoint and domain services under `src/module/<domain>`.
@@ -403,6 +437,33 @@ Forbidden:
 Desktop mode is a first-class target.
 
 ---
+
+### `packages/blueprint`
+
+Owns the reusable blueprint framework and no Silent Pix content. Its default
+export is an Astro integration that configures Starlight for a blueprint site
+(custom search instead of Pagefind, no pagination, a table of contents built
+from each section's states and rules, its own page title, search, and theme
+toggle) and injects the search index route and Tailwind. A blueprint project
+passes only its title, sidebar, and style entry, re-exports the docs collection
+from `@silent-pix/blueprint/content`, and depends on `astro` and
+`@astrojs/starlight` directly.
+
+```txt
+- src/index.ts             Astro integration
+- src/components/          State, Gallery, Rules/Rule, Screen, Slot, Fixed, Switch/Case, Address, Search, ThemeToggle, PageTitle, TokenValues
+- src/blueprint.ts         fragment loading from the project's /src/blueprint (nested slots resolved at build time), docs entries, state labels
+- src/route-data.ts        right-hand table of contents per `##` section
+- src/search-index.ts      search index built from the project's source files (works under the dev server)
+- src/content.ts           Starlight docs collection
+- src/styles/global.css    chrome styles mapped onto the project's `--sp-*` tokens
+- script/check-layout.mjs  `blueprint-check`, the layout check run from a blueprint project
+- AGENTS.md                component API and framework behavior
+```
+
+The framework reads the project's tokens through the `--sp-*` custom properties
+listed in its `AGENTS.md`; content such as tokens, fragments, and pages always
+lives in the project.
 
 ### `packages/shared`
 

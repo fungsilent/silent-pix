@@ -1,0 +1,77 @@
+<div class="overflow-x-auto">
+                                    <table class="w-full border-collapse text-left">
+                                        <thead>
+                                            <tr class="text-[10px] font-semibold uppercase tracking-wide text-fg-muted">
+                                                <th class="pb-2 pr-3 font-semibold"></th>
+                                                <th class="pb-2 pr-3 font-semibold">base</th>
+                                                <th class="pb-2 pr-3 font-semibold">hover</th>
+                                                <th class="pb-2 pr-3 font-semibold">fg</th>
+                                                <th class="pb-2 font-semibold">soft</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="text-[11px]">
+                                            <tr>
+                                                <td class="py-1.5 pr-3"><code class="font-mono font-medium text-fg">accent</code></td>
+                                                <td class="py-1.5 pr-3"><span class="block h-7 w-12 rounded-md bg-accent"></span></td>
+                                                <td class="py-1.5 pr-3"><span class="block h-7 w-12 rounded-md bg-accent-hover"></span></td>
+                                                <td class="py-1.5 pr-3"><span class="font-semibold text-accent-fg">Aa 字</span></td>
+                                                <td class="py-1.5"><span class="block h-7 w-12 rounded-md bg-accent/15"></span></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="py-1.5 pr-3"><code class="font-mono font-medium text-fg">info</code></td>
+                                                <td class="py-1.5 pr-3"><span class="block h-7 w-12 rounded-md bg-info"></span></td>
+                                                <td class="py-1.5 pr-3"><span class="block h-7 w-12 rounded-md bg-info-hover"></span></td>
+                                                <td class="py-1.5 pr-3"><span class="font-semibold text-info-fg">Aa 字</span></td>
+                                                <td class="py-1.5"><span class="block h-7 w-12 rounded-md bg-info-soft"></span></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="py-1.5 pr-3"><code class="font-mono font-medium text-fg">success</code></td>
+                                                <td class="py-1.5 pr-3"><span class="block h-7 w-12 rounded-md bg-success"></span></td>
+                                                <td class="py-1.5 pr-3"><span class="block h-7 w-12 rounded-md bg-success-hover"></span></td>
+                                                <td class="py-1.5 pr-3"><span class="font-semibold text-success-fg">Aa 字</span></td>
+                                                <td class="py-1.5"><span class="block h-7 w-12 rounded-md bg-success-soft"></span></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="py-1.5 pr-3"><code class="font-mono font-medium text-fg">warning</code></td>
+                                                <td class="py-1.5 pr-3"><span class="block h-7 w-12 rounded-md bg-warning"></span></td>
+                                                <td class="py-1.5 pr-3"><span class="block h-7 w-12 rounded-md bg-warning-hover"></span></td>
+                                                <td class="py-1.5 pr-3"><span class="font-semibold text-warning-fg">Aa 字</span></td>
+                                                <td class="py-1.5"><span class="block h-7 w-12 rounded-md bg-warning-soft"></span></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="py-1.5 pr-3"><code class="font-mono font-medium text-fg">danger</code></td>
+                                                <td class="py-1.5 pr-3"><span class="block h-7 w-12 rounded-md bg-danger"></span></td>
+                                                <td class="py-1.5 pr-3"><span class="block h-7 w-12 rounded-md bg-danger-hover"></span></td>
+                                                <td class="py-1.5 pr-3"><span class="font-semibold text-danger-fg">Aa 字</span></td>
+                                                <td class="py-1.5"><span class="block h-7 w-12 rounded-md bg-danger-soft"></span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- 實際用法 -->
+                                <div class="flex flex-col gap-2">
+                                    <span class="text-[10px] font-semibold uppercase tracking-wide text-fg-muted">Badge</span>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="flex h-5 shrink-0 items-center justify-center rounded-md bg-line px-2 text-[0.72rem] font-medium text-fg-secondary">neutral</span>
+                                        <span class="flex h-5 shrink-0 items-center justify-center rounded-md bg-info-soft px-2 text-[0.72rem] font-medium text-info-fg">info</span>
+                                        <span class="flex h-5 shrink-0 items-center justify-center rounded-md bg-success-soft px-2 text-[0.72rem] font-medium text-success-fg">success</span>
+                                        <span class="flex h-5 shrink-0 items-center justify-center rounded-md bg-warning-soft px-2 text-[0.72rem] font-medium text-warning-fg">warning</span>
+                                        <span class="flex h-5 shrink-0 items-center justify-center rounded-md bg-danger-soft px-2 text-[0.72rem] font-medium text-danger-fg">danger</span>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <span class="text-[10px] font-semibold uppercase tracking-wide text-fg-muted">Button · variant × tone</span>
+                                    <div class="grid w-fit grid-cols-3 gap-2">
+                                        <span class="flex items-center justify-center rounded-md border border-transparent bg-accent px-3 py-[5px] text-xs text-on-stage">solid</span>
+                                        <span class="flex items-center justify-center rounded-md border border-transparent bg-danger px-3 py-[5px] text-xs text-on-stage">solid</span>
+                                        <span class="flex items-center justify-center rounded-md border border-transparent bg-fg-secondary px-3 py-[5px] text-xs text-surface">solid</span>
+                                        <span class="flex items-center justify-center rounded-md border border-transparent bg-accent/15 px-3 py-[5px] text-xs text-accent-fg">soft</span>
+                                        <span class="flex items-center justify-center rounded-md border border-transparent bg-danger/15 px-3 py-[5px] text-xs text-danger-fg">soft</span>
+                                        <span class="flex items-center justify-center rounded-md border border-transparent bg-elevated px-3 py-[5px] text-xs text-fg-secondary">soft</span>
+                                        <span class="flex items-center justify-center rounded-md border border-transparent bg-transparent px-3 py-[5px] text-xs text-accent-fg">ghost</span>
+                                        <span class="flex items-center justify-center rounded-md border border-transparent bg-transparent px-3 py-[5px] text-xs text-danger-fg">ghost</span>
+                                        <span class="flex items-center justify-center rounded-md border border-transparent bg-transparent px-3 py-[5px] text-xs text-fg-muted">ghost</span>
+                                    </div>
+                                    <span class="text-[11px] text-fg-muted">欄：accent · danger · neutral</span>
+                                </div>

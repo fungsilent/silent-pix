@@ -1,0 +1,126 @@
+---
+title: Settings
+description: 應用程式設定：語言、開發設定，以及 Desktop 的 Server 連線。
+sidebar:
+    order: 5
+---
+
+import State from '@silent-pix/blueprint/components/State.astro'
+import Gallery from '@silent-pix/blueprint/components/Gallery.astro'
+import Rule from '@silent-pix/blueprint/components/Rule.astro'
+import Rules from '@silent-pix/blueprint/components/Rules.astro'
+import Screen from '@silent-pix/blueprint/components/Screen.astro'
+import Slot from '@silent-pix/blueprint/components/Slot.astro'
+import Fixed from '@silent-pix/blueprint/components/Fixed.astro'
+
+## Setting card
+
+設定頁的卡片：標題＋說明，下方以分隔線切出欄位區或設定列。
+
+<Gallery min="560px">
+<State component="setting-card" state="language" label="Language · select" frame="w-full max-w-[520px]" />
+</Gallery>
+
+<Rules component="setting-card" part="card">
+
+<ul class="ds-rules">
+<Rule component="setting-card" id="layout">Settings 頁的單位；頁面內容單欄、最寬 520px，卡片間距 `gap-3.5`。卡片 `rounded-lg border border-line-subtle bg-surface`。</Rule>
+<Rule component="setting-card" id="header">卡頭：標題 13px semibold，可接一個 `bg-elevated` 底的大寫小 tag（目前只有 Connection 帶「Desktop」）；下方一行 11.5px muted 說明。卡頭以下每一區都以 `border-t border-line-subtle px-3.5` 起頭。</Rule>
+<Rule component="setting-card" id="blocks">區塊兩種：欄位區（`py-3`，放 L0 Select／Text 等欄位與說明）與設定列（`min-h-14 justify-between`，左側標題＋提示、右側控制項）。</Rule>
+<Rule component="setting-card" id="row-control">設定列的控制項是 segment group：`h-7` `bg-elevated` 容器，選中項用 L0 selected 樣式，未選中為 ghost `text-fg-muted`。</Rule>
+</ul>
+
+</Rules>
+
+## Dev Settings
+
+開發用設定：模式與載入預覽。
+
+<Gallery min="560px">
+<State component="setting-card" state="dev-normal" label="Dev Settings · Normal" frame="w-full max-w-[520px]" />
+<State component="setting-card" state="dev-preview-off" label="Dev Settings · Dev · preview off" frame="w-full max-w-[520px]" />
+<State component="setting-card" state="dev-preview-on" label="Dev Settings · Dev · preview on" frame="w-full max-w-[520px]" />
+</Gallery>
+
+<Rules component="setting-card" part="dev">
+
+<ul class="ds-rules">
+<Rule component="setting-card" id="dev-preview-row">Dev Settings 的「Loading preview」列只在 mode 為 Dev 時出現；切回 Normal 會同時關掉 preview。</Rule>
+</ul>
+
+</Rules>
+
+## Connection
+
+Desktop 才有的 Server 連線設定：輸入、測試、儲存。
+
+<Gallery min="560px">
+<State component="setting-card" state="connection-unset" label="Connection · not configured" frame="w-full max-w-[520px]" />
+<State component="setting-card" state="connection-read-error" label="Connection · settings read failed" frame="w-full max-w-[520px]" />
+<State component="setting-card" state="connection-testing" label="Connection · testing" frame="w-full max-w-[520px]" />
+<State component="setting-card" state="connection-connected" label="Connection · connected" frame="w-full max-w-[520px]" />
+<State component="setting-card" state="connection-failed" label="Connection · check failed" frame="w-full max-w-[520px]" />
+<State component="setting-card" state="connection-invalid" label="Connection · invalid URL" frame="w-full max-w-[520px]" />
+<State component="setting-card" state="connection-saving" label="Connection · saving" frame="w-full max-w-[520px]" />
+</Gallery>
+
+<Rules component="setting-card" part="connection">
+
+<ul class="ds-rules">
+<Rule component="setting-card" id="connection-desktop-only">Connection 卡只在 Desktop 平台出現。已有儲存的 URL 時主按鈕是「Save and reload」，否則「Save and connect」；改到不同 Server 時先開確認 dialog。</Rule>
+<Rule component="setting-card" id="test-result">測試結果只有 Connected／Connection check failed 兩種，尚未測試時不顯示；修改輸入即清除結果與錯誤。狀態與錯誤一律用 1.5 的圓點加語意 fg 色文字，不用 badge。</Rule>
+<Rule component="setting-card" id="read-error">設定讀取失敗時在欄位區上方多一區：danger 圓點訊息 ＋ ghost「Retry reading settings」。</Rule>
+<Rule component="setting-card" id="button-states">URL 為空、測試中或儲存中兩顆按鈕都用 L0 Button 停用樣式；進行中的那顆依 L0 pending 換成「Testing...」／「Saving...」。</Rule>
+</ul>
+
+</Rules>
+
+## Confirm dialog
+
+儲存 Server 位址並重新載入前的確認。
+
+<Gallery min="520px">
+<State component="settings-confirm-dialog" state="server-save" label="server · save" frame="relative h-[300px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="settings-confirm-dialog" state="server-saving" label="server · saving" frame="relative h-[300px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+</Gallery>
+
+<Rules component="settings-confirm-dialog">
+
+<ul class="ds-rules">
+<Rule component="settings-confirm-dialog" id="structure">結構固定：header（`text-base font-bold` 標題 + `text-xs leading-5 text-fg-muted` 說明 + 右上 soft 關閉鈕 `size-7`）、body（受影響的對象，名稱用 `font-mono`）、footer（`border-t`）。</Rule>
+<Rule component="settings-confirm-dialog" id="backdrop">Backdrop `bg-backdrop`；dialog 置中，`rounded-lg border-line bg-surface shadow-2xl`。板上以 `absolute` 畫在固定高度的框內。</Rule>
+<Rule component="settings-confirm-dialog" id="pending">確認進行中依 L0 Dialog pending：兩顆按鈕都用 L0 Button 停用樣式，確認鈕文案換成「Saving...」；進行中也擋掉關閉，右上關閉鈕一併停用。</Rule>
+<Rule component="settings-confirm-dialog" id="server-save">Server 儲存 dialog 寬 `max-w-lg`，確認鈕是 solid accent「Save and reload」（不是破壞性操作），body 顯示完整 URL（`break-all`）；錯誤顯示在 Settings 頁上而不是 dialog 內。</Rule>
+</ul>
+
+</Rules>
+
+## Screen
+
+<Screen>
+    <Slot name="header" component="app-header" states="other-page,no-endpoint" />
+    <section class="flex min-h-0 flex-1 flex-col">
+        <div class="flex h-12 shrink-0 items-center gap-3 border-b border-line-subtle bg-surface px-4">
+            <h2 class="m-0 min-w-0 truncate text-[13px] font-semibold leading-none text-fg">Settings</h2>
+        </div>
+        <div class="scrollbar-thin min-h-0 flex-1 overflow-y-auto px-4 py-[18px]">
+            <div class="mx-auto flex w-full max-w-[520px] flex-col gap-3.5">
+                <Fixed component="setting-card" state="language" />
+                <Slot name="dev" component="setting-card" states="dev-normal,dev-preview-off,dev-preview-on" />
+                <Slot name="connection" component="setting-card" states="connection-connected,connection-unset,connection-testing,connection-failed,connection-invalid,connection-saving,connection-read-error" empty="browser · no Connection card" />
+            </div>
+        </div>
+    </section>
+    <Slot name="overlay" component="settings-confirm-dialog" states="none,server-save,server-saving" empty="none" />
+</Screen>
+
+<Rules component="settings-screen">
+
+<ul class="ds-rules">
+<Rule component="settings-screen" id="title-bar">標題列高 48px、`border-b border-line-subtle`；內容區獨立捲動，`px-4 py-[18px]`，卡片間距 `gap-3.5`。</Rule>
+<Rule component="settings-screen" id="card-order">卡片順序固定：Language、Dev Settings、Connection（僅 Desktop）。</Rule>
+<Rule component="settings-screen" id="no-endpoint">Desktop 尚未設定 Server（no endpoint）時一律顯示本頁；Header 的分頁全部停用（依 L0 Segment group disabled）、服務狀態隱藏，選單與主題切換照常；Connection 卡為未設定狀態。</Rule>
+<Rule component="settings-screen" id="server-switch">改到不同 Server 時先開確認 dialog，蓋住整個視窗（含 Header）；儲存後整個 app 重新載入。</Rule>
+</ul>
+
+</Rules>

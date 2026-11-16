@@ -1,0 +1,544 @@
+/* Starlight 自己的樣式在 starlight layer；Tailwind preflight 放最底層，藍圖畫面的 utilities 放最上層 */
+@layer base, starlight, theme, components, utilities;
+
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css' layer(base);
+@import 'tailwindcss/utilities.css' layer(utilities);
+@import '@fontsource-variable/manrope';
+@import '@fontsource-variable/noto-sans-tc/wght.css';
+/* 這個套件的元件不在藍圖專案裡，Tailwind 不會自動掃到 */
+@source "..";
+
+/*
+ * 文件外框套用產品的設計語言：Starlight 的顏色變數對應到 --sp-* token（token 依 data-theme 切換，Dark／Light 自動跟著換），
+ * 字級、高度、圓角用 App 的緊湊尺度。寬畫面：狀態框需要桌面寬度。
+ */
+:root {
+    --sl-content-width: 96rem;
+    --sl-sidebar-width: 13rem;
+    --sl-font: 'Manrope Variable', 'Noto Sans TC Variable', sans-serif;
+
+    --sl-color-white: var(--sp-fg-title);
+    --sl-color-gray-1: var(--sp-fg);
+    --sl-color-gray-2: var(--sp-fg-secondary);
+    --sl-color-gray-3: var(--sp-fg-muted);
+    --sl-color-gray-4: var(--sp-fg-muted);
+    --sl-color-gray-5: var(--sp-line);
+    --sl-color-gray-6: var(--sp-elevated);
+    --sl-color-gray-7: var(--sp-surface);
+    --sl-color-black: var(--sp-canvas);
+    --sl-color-accent-low: color-mix(in srgb, var(--sp-accent) 20%, transparent);
+    --sl-color-accent: var(--sp-accent);
+    --sl-color-accent-high: var(--sp-accent-fg);
+    --sl-color-text: var(--sp-fg-secondary);
+    --sl-color-text-accent: var(--sp-accent-fg);
+    --sl-color-text-invert: var(--sp-on-stage);
+    --sl-color-bg: var(--sp-canvas);
+    --sl-color-bg-nav: var(--sp-surface);
+    --sl-color-bg-sidebar: var(--sp-surface);
+    --sl-color-bg-inline-code: var(--sp-elevated);
+    --sl-color-bg-accent: var(--sp-accent);
+    --sl-color-hairline-light: var(--sp-line);
+    --sl-color-hairline: var(--sp-line-subtle);
+    --sl-color-hairline-shade: var(--sp-line-subtle);
+    --sl-color-backdrop-overlay: var(--sp-backdrop);
+
+    --sl-text-body: 0.8125rem;
+    --sl-text-body-sm: 0.75rem;
+    --sl-text-code: 0.75rem;
+    --sl-text-code-sm: 0.6875rem;
+    --sl-line-height: 1.7;
+    --sl-nav-height: 3rem;
+    --sl-nav-pad-y: 0.5rem;
+}
+
+/* 側欄：App 的清單樣式，選中用半透明底而不是 accent 實底 */
+.sidebar-content a {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    color: var(--sp-fg-secondary);
+    font-size: 0.75rem;
+}
+
+.sidebar-content a:hover {
+    background: var(--sp-hover);
+    color: var(--sp-fg);
+}
+
+.sidebar-content a[aria-current='page'],
+.sidebar-content a[aria-current='page']:hover {
+    background: var(--sp-selected);
+    color: var(--sp-fg);
+    font-weight: 500;
+}
+
+.sidebar-content .group-label .large {
+    color: var(--sp-fg-muted);
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+/* 標題列：App 的 Bar（48px、surface、line-subtle 分隔） */
+/* Starlight 的標題列本身已有一條全寬底線（hairline-shade = line-subtle）；社群圖示的分隔線不需要 */
+.header .social-icons::after {
+    display: none;
+}
+
+.site-title {
+    color: var(--sp-fg);
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+/* 右側目錄：App 的區塊標題與清單 */
+starlight-toc h2,
+mobile-starlight-toc h2 {
+    color: var(--sp-fg-muted);
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+starlight-toc a,
+mobile-starlight-toc a {
+    padding-block: 0.1875rem;
+    color: var(--sp-fg-secondary);
+    font-size: 0.75rem;
+    line-height: 1.4;
+}
+
+starlight-toc ul ul a {
+    color: var(--sp-fg-muted);
+    font-size: 0.6875rem;
+}
+
+starlight-toc a:hover {
+    color: var(--sp-fg);
+}
+
+starlight-toc a[aria-current='true'] {
+    color: var(--sp-accent-fg);
+}
+
+/* 桌面 App：可點的控制維持箭頭游標；捲軸用 App 的細捲軸 */
+summary,
+button {
+    cursor: default;
+}
+
+/* 只用 ::-webkit-scrollbar：Chromium 遇到 scrollbar-width／color 會改用系統的細捲軸（Windows 上有箭頭） */
+:where(:not(.ds-frame, .ds-frame *))::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+:where(:not(.ds-frame, .ds-frame *))::-webkit-scrollbar-track,
+:where(:not(.ds-frame, .ds-frame *))::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+:where(:not(.ds-frame, .ds-frame *))::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 4px;
+    background: var(--sp-scroll-thumb) content-box;
+}
+
+:where(:not(.ds-frame, .ds-frame *))::-webkit-scrollbar-thumb:hover {
+    background: var(--sp-scroll-hover, var(--sp-scroll-thumb)) content-box;
+}
+
+@supports not selector(::-webkit-scrollbar) {
+    :where(:not(.ds-frame, .ds-frame *)) {
+        scrollbar-width: thin;
+        scrollbar-color: var(--sp-scroll-thumb) transparent;
+    }
+}
+
+/*
+ * 頁首：標題＋一行簡介，不加分隔帶。
+ * 文件文字樣式不套用到 .not-content 內的 UI 預覽。
+ */
+.content-panel:has(.ds-page-heading) {
+    border-top: 0;
+}
+
+.content-panel + .content-panel {
+    border-top: 0;
+    padding-top: 0;
+}
+
+.content-panel:has(.ds-page-heading) {
+    padding-bottom: 1.5rem;
+}
+
+.ds-page-heading h1 {
+    margin: 0;
+    color: var(--sl-color-white);
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.ds-page-heading p {
+    max-width: 68ch;
+    margin-top: 0.375rem;
+    color: var(--sp-fg-muted);
+    font-size: 0.8125rem;
+    line-height: 1.6;
+}
+
+/* 部件章節：標題與一行說明，下方是狀態格子 */
+.sl-markdown-content > .sl-heading-wrapper.level-h2 {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--sp-line-subtle);
+}
+
+.sl-markdown-content > .sl-heading-wrapper.level-h2:first-child {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+}
+
+/* 錨點圖示以外層 wrapper 的字級（em）定位，字級要設在 wrapper 上，標題本身繼承 */
+.sl-markdown-content > .sl-heading-wrapper.level-h2 {
+    font-size: 0.9375rem;
+}
+
+.sl-markdown-content .ds-rule-book > .sl-heading-wrapper {
+    font-size: 0.75rem;
+}
+
+.sl-markdown-content h2:not(:where(.not-content *)) {
+    color: var(--sp-fg-title);
+    font-size: inherit;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.sl-markdown-content > .sl-heading-wrapper.level-h2 + p {
+    margin-top: 0.25rem;
+}
+
+.sl-markdown-content > p {
+    max-width: 68ch;
+    color: var(--sp-fg-muted);
+    font-size: 0.75rem;
+    line-height: 1.6;
+}
+
+/* 狀態格子：容器夠寬時並排，方便比較 */
+.ds-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(var(--ds-min), 100%), 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+    align-items: start;
+}
+
+/* 一個狀態：上方標題列，下方點陣舞台 */
+.ds-example {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--sp-line-subtle);
+    border-radius: 0.5rem;
+    background: var(--sp-surface);
+}
+
+.sl-markdown-content > .ds-example {
+    margin-top: 1rem;
+}
+
+.ds-example-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 2.25rem;
+    padding: 0 0.375rem 0 0.75rem;
+    border-bottom: 1px solid var(--sp-line-subtle);
+}
+
+.ds-example-title {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    color: var(--sp-fg);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ds-example-description {
+    margin: 0;
+    padding: 0.5rem 0.75rem;
+    border-top: 1px solid var(--sp-line-subtle);
+    color: var(--sp-fg-muted);
+    font-size: 0.6875rem;
+    line-height: 1.5;
+}
+
+.ds-stage {
+    overflow-x: auto;
+    padding: 1.5rem;
+    background-color: var(--sp-canvas);
+    background-image: radial-gradient(var(--sp-line) 1px, transparent 1px);
+    background-size: 16px 16px;
+    background-position: -1px -1px;
+}
+
+/* 部件放在舞台中間；有固定寬度的（側欄、max-w 卡片）置中，其他撐滿 */
+.ds-stage:not(.ds-stage-themes) > .ds-frame > * {
+    margin-inline: auto;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 12%), 0 4px 16px rgb(0 0 0 / 10%);
+}
+
+/* Rules：章節末尾一列可展開的規格，平常只佔一行 */
+.ds-rules-panel,
+.sl-markdown-content .ds-rules-panel,
+.sl-markdown-content .ds-rules-panel:hover,
+.sl-markdown-content .ds-rules-panel:has(> summary:hover) {
+    margin-top: 1rem;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--sp-line-subtle);
+    border-radius: 0.5rem;
+    background: var(--sp-surface);
+}
+
+.ds-rules-panel > summary,
+.sl-markdown-content .ds-rules-panel > summary,
+.sl-markdown-content .ds-rules-panel[open] > summary {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 2.25rem;
+    padding-inline: 0.75rem;
+    list-style: none;
+}
+
+.ds-rules-panel > summary::-webkit-details-marker {
+    display: none;
+}
+
+/* Starlight 在 markdown 的 details 上加了自己的箭頭，這裡已有 chevron */
+.sl-markdown-content .ds-rules-panel > summary::before,
+.sl-markdown-content .ds-rules-panel > summary::marker {
+    display: none;
+    content: none;
+}
+
+.ds-rules-chevron {
+    flex-shrink: 0;
+    color: var(--sp-fg-muted);
+    transition: transform 0.12s;
+}
+
+.ds-rules-panel[open] .ds-rules-chevron {
+    transform: rotate(90deg);
+}
+
+.ds-rules-panel > summary:hover {
+    background: var(--sp-hover);
+}
+
+.ds-rules-panel > summary h3 {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin: 0;
+    color: var(--sp-fg);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.ds-rules-panel > summary span {
+    color: var(--sp-fg-muted);
+    font-size: 0.6875rem;
+    font-weight: 400;
+}
+
+.ds-rules-panel > .ds-rule-book {
+    margin: 0;
+    padding: 0.5rem 0.75rem 0.75rem;
+    border-top: 1px solid var(--sp-line-subtle);
+}
+
+.ds-rule-book > ul:first-child,
+.ds-rule-book > h4:first-child {
+    margin-top: 0;
+}
+
+/* 分類標題：蓋掉 Starlight 給 markdown 標題的大間距 */
+.sl-markdown-content .ds-rule-book > * {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.sl-markdown-content .ds-rule-book > .sl-heading-wrapper {
+    margin-top: 1rem;
+}
+
+.sl-markdown-content .ds-rule-book > .sl-heading-wrapper:first-child {
+    margin-top: 0.25rem;
+}
+
+.sl-markdown-content .ds-rule-book h4 {
+    margin: 0;
+    color: var(--sp-fg);
+    font-size: inherit;
+    font-weight: 600;
+}
+
+/* 帶位址的網址開啟時，捲到該處並短暫標亮，之後不留框 */
+/*
+ * 帶位址的網址開啟時，捲到該處並短暫標亮，之後不留痕跡：
+ * 狀態卡片與整組 Rules 閃一次外框（跟卡片同圓角）；單條規則只淡淡亮一下底色，不畫框。
+ */
+.ds-target,
+.ds-example-title,
+.ds-rules-panel h3 {
+    scroll-margin-top: calc(var(--sl-nav-height) + 1.5rem);
+}
+
+.ds-example:has(.ds-example-title:target),
+.ds-rules-panel:has(> summary :target) {
+    animation: ds-flash 1.6s ease-out;
+}
+
+.ds-rule-book li:target {
+    border-radius: 0.25rem;
+    animation: ds-tint 1.8s ease-out;
+}
+
+@keyframes ds-flash {
+    0%, 40% { box-shadow: 0 0 0 2px var(--sp-accent); }
+    100% { box-shadow: 0 0 0 2px transparent; }
+}
+
+@keyframes ds-tint {
+    0%, 35% { background: color-mix(in srgb, var(--sp-accent) 18%, transparent); box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--sp-accent) 18%, transparent); }
+    100% { background: transparent; box-shadow: 0 0 0 0.25rem transparent; }
+}
+
+/* 跳轉後瀏覽器把焦點移到目標，不顯示焦點框（標亮已經表示位置） */
+.ds-target:focus,
+.ds-rules-panel h3:focus,
+.ds-example-title:focus {
+    outline: none;
+}
+
+/* 位址複製鈕：滑過所在的狀態／規則才出現；L2 控制列上一直顯示 */
+.ds-copy {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin: 0;
+    padding: 0;
+    vertical-align: middle;
+    border: 0;
+    border-radius: 0.375rem;
+    background: transparent;
+    color: var(--sp-fg-muted);
+    opacity: 0;
+}
+
+.ds-copy:hover {
+    background: var(--sp-hover);
+    color: var(--sp-fg);
+}
+
+.ds-target:hover .ds-copy,
+.ds-copy-visible .ds-copy,
+.ds-copy:focus-visible {
+    opacity: 1;
+}
+
+/* L2：點到畫面上不能點的地方時，短暫標出可以點的位置（類似原型工具） */
+.ds-hint [data-ds-go] {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 1px;
+}
+
+/*
+ * 規則是寫給 agent 的規格：精簡條列、自動編號（分類.條目，例如 3.6），方便對話中引用。
+ * 編號只供閱讀，會隨插入而變；固定的引用用位址（複製鈕）。
+ */
+.ds-rule-book {
+    counter-reset: ds-group;
+    font-size: 0.75rem;
+    line-height: 1.7;
+}
+
+.ds-rule-book h4 {
+    counter-increment: ds-group;
+    margin-top: 1rem;
+    font-size: 0.75rem;
+}
+
+.ds-rule-book h4::before {
+    content: counter(ds-group) ". ";
+    font-family: var(--sl-font-mono);
+    color: var(--sl-color-gray-3);
+}
+
+.ds-rule-book ul {
+    counter-reset: ds-rule;
+    margin-top: 0.25rem;
+    padding-left: 0;
+    list-style: none;
+}
+
+/* 沒有分類標題的頁面（只有一組規則）時，編號只寫條目 */
+.ds-rule-book:not(:has(h4)) li::before {
+    content: counter(ds-rule);
+}
+
+.ds-rule-book li {
+    position: relative;
+    counter-increment: ds-rule;
+    margin-top: 0.375rem;
+    padding-left: 2rem;
+    color: var(--sl-color-gray-2);
+}
+
+/* 編號跟規則文字放在同一行、以基線對齊（絕對定位時兩種字型各自置中，基線會錯開） */
+.ds-rule-book li::before {
+    content: counter(ds-group) "." counter(ds-rule);
+    display: inline-block;
+    width: 2rem;
+    margin-left: -2rem;
+    font-family: var(--sl-font-mono);
+    font-size: 0.6875rem;
+    color: var(--sl-color-gray-3);
+}
+
+/* 標題的錨點圖示：跟位址複製鈕一致，14px、muted 色，滑過變亮 */
+.sl-markdown-content .sl-heading-wrapper {
+    --sl-anchor-icon-size: 0.875rem;
+    --sl-anchor-icon-gap: 0.375rem;
+}
+
+.sl-markdown-content .sl-anchor-link {
+    color: var(--sp-fg-muted);
+}
+
+.sl-markdown-content .sl-anchor-link:hover {
+    color: var(--sp-fg);
+}
+
+/* Starlight 把點擊區往左右各外擴 8px，左側會蓋到標題最後幾個字、擋住選取；左側不外擴 */
+.sl-markdown-content .sl-anchor-link::after {
+    inset: -0.25rem -0.5rem -0.25rem 0;
+}

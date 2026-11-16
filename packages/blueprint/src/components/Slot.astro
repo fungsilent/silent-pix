@@ -1,0 +1,30 @@
+---
+/*
+ * L2 的一個區塊：列出的每個狀態都先產生，只顯示目前選中的一個；切換由 Screen 的腳本處理。
+ * 片段裡 data-ds-go="<state>" 的元素被點時切到該狀態；指向不存在或沒列出的狀態會直接報錯。
+ * empty="<標籤>" 會多一個不顯示任何東西的狀態 none（例如瀏覽器版沒有 Connection 卡、沒有開啟的 dialog）；
+ * 在 states 裡寫 none 決定它的位置（覆蓋層通常放第一個，讓預設是沒有 dialog），沒寫就排在最後；
+ * 不做 slot 裡再切 slot 的巢狀選單，攤平成同一層。
+ */
+import { fragment, stateLabels } from '#/blueprint'
+
+type Props = { name: string, component: string, states: string, empty?: string }
+
+const { name, component, empty } = Astro.props
+const listed = Astro.props.states.split(',').map(value => value.trim()).filter(Boolean)
+const states = empty === undefined || listed.includes('none') ? listed : [...listed, 'none']
+const labels = await stateLabels()
+const variants = states.map(state => {
+    if (state === 'none' && empty !== undefined) return { state, label: empty, markup: '' }
+    const markup = fragment(component, state)
+    for (const [, target = ''] of markup.matchAll(/data-ds-go="([^"]+)"/g)) {
+        if (!states.includes(target)) throw new Error(`${component}/${state}: data-ds-go="${target}" is not a state of slot "${name}"`)
+    }
+    return { state, label: labels.get(`${component}/${state}`) ?? state, markup }
+})
+---
+<div data-ds-slot={name} data-ds-states={states.join(',')} class="contents">
+    {variants.map((variant, index) => (
+        <div data-ds-variant={variant.state} data-ds-label={variant.label} hidden={index > 0} class="contents" set:html={variant.markup} />
+    ))}
+</div>

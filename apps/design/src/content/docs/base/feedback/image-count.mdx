@@ -1,0 +1,29 @@
+---
+title: Image count
+description: 疊在圖片上的數字膠囊：task 卡片右下角的輸出張數、比較清單縮圖左上角的序號。
+sidebar:
+    order: 4
+---
+
+import State from '@silent-pix/blueprint/components/State.astro'
+import Gallery from '@silent-pix/blueprint/components/Gallery.astro'
+import Rule from '@silent-pix/blueprint/components/Rule.astro'
+import Rules from '@silent-pix/blueprint/components/Rules.astro'
+
+## Examples
+
+<Gallery min="300px">
+<State component="image-count" state="output-count" label="output count · bottom-right" frame="w-fit flex rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="image-count" state="index" label="index · top-left" frame="w-fit flex rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="image-count" state="index-hidden" label="index · image hidden" frame="w-fit flex rounded-lg border border-line-subtle bg-surface p-4" />
+</Gallery>
+
+<Rules component="image-count">
+
+<ul class="ds-rules">
+<Rule component="image-count" id="pill">膠囊用 stage overlay 系列 token（`bg-stage-overlay text-stage-overlay-label ring-stage-ring`）加 `backdrop-blur-[3px]`，在任何圖片上都讀得到；`px-2 py-1 text-[10px] font-semibold tabular-nums`，與 Badge 同樣以 cap 高度光學置中。</Rule>
+<Rule component="image-count" id="position">輸出張數貼 `bottom-1 right-1`（左上角留給 flag 三角）；比較序號貼 `left-1.5 top-1.5`（底部留給檔名漸層），圖片被隱藏時序號改成 `—`。</Rule>
+<Rule component="image-count" id="content">只放數字或破折號，不放單位或其他文字。</Rule>
+</ul>
+
+</Rules>

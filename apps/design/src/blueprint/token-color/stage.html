@@ -1,0 +1,30 @@
+<div class="grid grid-cols-1 gap-x-6 gap-y-4 @md:grid-cols-2">
+                                    <div class="flex items-center gap-3">
+                                        <span class="size-10 shrink-0 overflow-hidden rounded-md border border-line-subtle bg-surface"><span class="block size-full bg-stage"></span></span>
+                                        <div class="flex min-w-0 flex-col gap-0.5"><code class="font-mono text-[11px] font-medium text-fg">stage</code><span class="text-[11px] text-fg-muted">有圖時的影像襯底</span><code class="font-mono text-[10px] text-fg-muted" data-ds-value="stage"></code></div>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <span class="size-10 shrink-0 overflow-hidden rounded-md border border-line-subtle bg-surface"><span class="block size-full bg-stage-empty"></span></span>
+                                        <div class="flex min-w-0 flex-col gap-0.5"><code class="font-mono text-[11px] font-medium text-fg">stage-empty</code><span class="text-[11px] text-fg-muted">沒有圖時的大片背景，往 canvas 靠</span><code class="font-mono text-[10px] text-fg-muted" data-ds-value="stage-empty"></code></div>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <span class="size-10 shrink-0 overflow-hidden rounded-md border border-line-subtle bg-surface"><span class="block size-full bg-stage-strip"></span></span>
+                                        <div class="flex min-w-0 flex-col gap-0.5"><code class="font-mono text-[11px] font-medium text-fg">stage-strip</code><span class="text-[11px] text-fg-muted">縮圖列底</span><code class="font-mono text-[10px] text-fg-muted" data-ds-value="stage-strip"></code></div>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <span class="flex size-10 shrink-0 items-center justify-center rounded-md bg-stage"><span class="text-xs font-semibold text-stage-fg">Aa</span></span>
+                                        <div class="flex min-w-0 flex-col gap-0.5"><code class="font-mono text-[11px] font-medium text-fg">stage-fg</code><span class="text-[11px] text-fg-muted">直接畫在 stage／strip 上的字與框</span><code class="font-mono text-[10px] text-fg-muted" data-ds-value="stage-fg"></code></div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <span class="text-[10px] font-semibold uppercase tracking-wide text-fg-muted">疊在圖片上</span>
+                                    <div class="relative h-40 overflow-hidden rounded-lg bg-[linear-gradient(135deg,#7aa7c7_0%,#c9d8c5_45%,#e9d8a6_70%,#8a6e4b_100%)]">
+                                        <div class="absolute left-3 top-3 flex items-center gap-2">
+                                            <span class="flex h-[30px] items-center gap-1.5 rounded-md border border-stage-line bg-stage-control px-2.5 text-xs text-on-stage backdrop-blur-[8px]">stage-control</span>
+                                            <span class="flex h-[30px] items-center gap-1.5 rounded-md border border-stage-line bg-stage-control-hover px-2.5 text-xs text-on-stage backdrop-blur-[8px]">hover</span>
+                                        </div>
+                                        <div class="absolute inset-x-0 bottom-0 flex items-end bg-gradient-to-t from-stage-gradient to-transparent px-3 pb-2.5 pt-8">
+                                            <span class="text-xs font-medium text-stage-overlay-label">stage-gradient · stage-overlay-label</span>
+                                        </div>
+                                    </div>
+                                </div>

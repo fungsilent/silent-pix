@@ -1,0 +1,604 @@
+/* 藍圖的 token；變動時同步更新 apps/web/src/styles.css。不放 :root／*／body 這類全域規則（字型與文字色只套在 .ds-frame），避免影響 Starlight 外框 */
+
+/* MARK: palette → semantic tokens — dark */
+:root,
+[data-theme='dark'] {
+    color-scheme: dark;
+
+    --sp-blue-base: #2563eb;
+    --sp-blue-hover: #3b82f6;
+    --sp-blue-fg: #60a5fa;
+    --sp-amber-base: #f59e0b;
+    --sp-amber-hover: #fbbf24;
+    --sp-amber-fg: #fcd34d;
+    --sp-red-base: #dc2626;
+    --sp-red-hover: #ef4444;
+    --sp-red-fg: #fca5a5;
+    --sp-green-base: #22c55e;
+    --sp-green-hover: #4ade80;
+    --sp-green-fg: #86efac;
+    --sp-sky-base: #0ea5e9;
+    --sp-sky-hover: #38bdf8;
+    --sp-sky-fg: #7dd3fc;
+
+    /*
+     * flag 專用。base / hover / ink 三個 theme 同值——它們疊在圖片上，
+     * 而圖片不會因為 theme 改變；只有疊在 chrome 上的 fg 跟著 theme 走。
+     */
+    --sp-gold-base: #e8b04b;
+    --sp-gold-hover: #f2c268;
+    --sp-gold-ink: #402c06;
+    --sp-gold-fg: #f0c674;
+    --sp-mist-base: #98b8dd;
+    --sp-mist-hover: #afc9e7;
+    --sp-mist-ink: #1e2b38;
+    --sp-mist-fg: #b6cce6;
+
+    --sp-canvas: #0a0a0a;
+    --sp-surface: #171717;
+    --sp-elevated: #262626;
+    --sp-active: #2e2e2e;
+    /*
+     * 疊加層用 alpha 而非固定值：疊在什麼底上就相對加深多少。
+     * Dark 的比例一律比 Light 大——暗底把階差吃掉了，要更強才看得見。
+     */
+    --sp-hover: rgb(255 255 255 / 9%);
+    /* 選取態也是疊加層，比 hover 深一階：滑過其他項目時仍分得出哪個是選中的 */
+    --sp-selected: rgb(255 255 255 / 13%);
+    /* 底本來就是 elevated 的（soft button、Dialog 關閉鈕、prompt 移除鈕）需要實色，
+       因為 bg-* 是替換不是疊加，alpha 疊到 parent 上等於沒變 */
+    --sp-elevated-hover: #333333;
+    /* 輸入框底與「選取態」是兩個角色，兩個 theme 要的方向也不同，所以拆開 */
+    --sp-field: var(--sp-active);
+    --sp-field-border: transparent;
+    /* 襯底各自貼著自己 theme 的那一端：Dark 近黑、Light 淺灰 */
+    --sp-stage: #050505;
+
+    --sp-line-subtle: rgb(255 255 255 / 8%);
+    --sp-line: rgb(255 255 255 / 14%);
+
+    --sp-fg: #e5e5e5;
+    --sp-fg-title: #d4d4d4;
+    --sp-fg-secondary: #a3a3a3;
+    --sp-fg-muted: #8a8a8a;
+
+    --sp-accent: var(--sp-blue-base);
+    --sp-accent-hover: var(--sp-blue-hover);
+    --sp-accent-fg: var(--sp-blue-fg);
+
+    /*
+     * base 用在角摺與實心鈕，fg 只用在疊於 chrome 上的 soft chip。
+     * gold / mist 都是淺色，實心底上的 icon 必須吃 ink 而不是 --sp-on-stage 的白。
+     */
+    --sp-pin: var(--sp-gold-base);
+    --sp-pin-hover: var(--sp-gold-hover);
+    --sp-pin-ink: var(--sp-gold-ink);
+    --sp-pin-fg: var(--sp-gold-fg);
+
+    --sp-discard: var(--sp-mist-base);
+    --sp-discard-hover: var(--sp-mist-hover);
+    --sp-discard-ink: var(--sp-mist-ink);
+    --sp-discard-fg: var(--sp-mist-fg);
+    /* discard 專用的黑幕：壓暗照片本身，角摺才不會被亮照片吃掉。壓的是照片，所以兩個 theme 同值 */
+    --sp-discard-dim: rgb(0 0 0 / 45%);
+
+    --sp-info: var(--sp-sky-base);
+    --sp-info-hover: var(--sp-sky-hover);
+    --sp-info-fg: var(--sp-sky-fg);
+    --sp-success: var(--sp-green-base);
+    --sp-success-hover: var(--sp-green-hover);
+    --sp-success-fg: var(--sp-green-fg);
+    --sp-warning: var(--sp-amber-base);
+    --sp-warning-hover: var(--sp-amber-hover);
+    --sp-warning-fg: var(--sp-amber-fg);
+    --sp-danger: var(--sp-red-base);
+    --sp-danger-hover: var(--sp-red-hover);
+    --sp-danger-fg: var(--sp-red-fg);
+
+    /* badge 的染色底。比例要隨 theme 變，寫死在 class 裡的 /15 做不到 */
+    --sp-info-soft: color-mix(in srgb, var(--sp-info) 15%, transparent);
+    --sp-success-soft: color-mix(in srgb, var(--sp-success) 15%, transparent);
+    --sp-warning-soft: color-mix(in srgb, var(--sp-warning) 15%, transparent);
+    --sp-danger-soft: color-mix(in srgb, var(--sp-danger) 15%, transparent);
+
+    /* Slider 軌道：凹陷感要在任何父層上都成立，所以是相對疊加不是固定色 */
+    --sp-track: rgb(255 255 255 / 12%);
+    --sp-disabled: rgb(255 255 255 / 6%);
+    --sp-scroll-thumb: rgb(255 255 255 / 28%);
+    --sp-scroll-hover: rgb(255 255 255 / 40%);
+    --sp-shadow: rgb(0 0 0 / 55%);
+
+    /*
+     * Backdrop：蓋住整個 app 的遮罩，dialog 與全螢幕 viewer 共用。
+     * 兩個 theme 同值——它的用途是把後面壓掉，跟 theme 無關。
+     * muted 給疊在既有 dialog 之上的第二層（例如 LoRA picker）。
+     */
+    --sp-backdrop: rgb(0 0 0 / 72%);
+    --sp-backdrop-muted: rgb(0 0 0 / 55%);
+    --sp-health-up-shadow: 0 0 0 3px color-mix(in srgb, var(--sp-success) 14%, transparent);
+    --sp-health-down-shadow: 0 0 0 3px color-mix(in srgb, var(--sp-danger) 14%, transparent);
+
+    --sp-stage-control: rgb(0 0 0 / 60%);
+    --sp-stage-control-muted: rgb(0 0 0 / 55%);
+    --sp-stage-control-hover: rgb(0 0 0 / 80%);
+    --sp-on-stage: #ffffff;
+    /* 直接畫在 stage／strip 底上的字與框；on-stage 是「疊在飽和色或玻璃上」的白 */
+    --sp-stage-fg: #ffffff;
+    --sp-stage-danger: #fca5a5;
+    --sp-stage-strip: #101010;
+    /*
+     * 沒有圖的時候 stage 不是影像襯底，而是一大片背景，所以往 canvas 靠
+     * 一階（不跟 --sp-stage 走），前景也改吃 fg-muted 而不是 on-stage。
+     */
+    --sp-stage-empty: #0d0d0d;
+    --sp-stage-overlay: rgb(0 0 0 / 75%);
+    --sp-stage-overlay-muted: rgb(0 0 0 / 40%);
+    --sp-stage-overlay-soft: rgb(0 0 0 / 25%);
+    --sp-stage-overlay-label: rgb(255 255 255 / 90%);
+    --sp-stage-overlay-text: rgb(255 255 255 / 80%);
+    --sp-stage-line: rgb(255 255 255 / 9%);
+    --sp-stage-line-subtle: rgb(255 255 255 / 7%);
+    --sp-stage-ring: rgb(255 255 255 / 10%);
+    --sp-stage-gradient: rgb(0 0 0 / 90%);
+    --sp-stage-gradient-soft: rgb(0 0 0 / 85%);
+
+    --sp-code-string: #86efac;
+    --sp-code-number: #fcd34d;
+    --sp-code-literal: #e879f9;
+    --sp-workflow-bound-soft: color-mix(in srgb, var(--sp-green-base) 10%, transparent);
+    --sp-workflow-broken-soft: color-mix(in srgb, var(--sp-red-hover) 12%, transparent);
+    --sp-prompt-hatch-low: rgb(255 255 255 / 1.5%);
+    --sp-prompt-hatch-high: rgb(255 255 255 / 6.5%);
+
+    --sp-skeleton: #252525;
+    --sp-skeleton-highlight: #303030;
+}
+
+/* MARK: palette → semantic tokens — light */
+[data-theme='light'] {
+    color-scheme: light;
+
+    /*
+     * base 的門檻來自它承載的 on-stage 白字，與 theme 無關，
+     * 所以 blue / red 與 dark 同值；amber / pink / green / sky 的 dark base 太亮，
+     * 壓到 600 才不會在白底上炫光。hover 與 fg 再各往暗走一階。
+     */
+    --sp-blue-base: #2563eb;
+    --sp-blue-hover: #1d4ed8;
+    --sp-blue-fg: #1e40af;
+    --sp-amber-base: #d97706;
+    --sp-amber-hover: #b45309;
+    --sp-amber-fg: #92400e;
+    --sp-red-base: #dc2626;
+    --sp-red-hover: #b91c1c;
+    --sp-red-fg: #991b1b;
+    --sp-green-base: #16a34a;
+    --sp-green-hover: #15803d;
+    --sp-green-fg: #166534;
+    --sp-sky-base: #0284c7;
+    --sp-sky-hover: #0369a1;
+    --sp-sky-fg: #075985;
+
+    /* base / hover 不分岔：flag 疊在圖片上，圖片不會因為 theme 改變 */
+    --sp-gold-base: #e8b04b;
+    --sp-gold-hover: #f2c268;
+    --sp-gold-ink: #402c06;
+    --sp-gold-fg: #8a5b12;
+    --sp-mist-base: #98b8dd;
+    --sp-mist-hover: #afc9e7;
+    --sp-mist-ink: #1e2b38;
+    --sp-mist-fg: #35506b;
+
+    /*
+     * 純 neutral，跟 dark 同一族（不用 zinc）：這是影像工具，
+     * chrome 帶色溫會影響對圖片顏色的判斷。
+     *
+     * surface 是白＝凸起的那一端，canvas 往下退、互動態往下壓，
+     * 所以 canvas 與 elevated 不在同一條軸上，兩者靠近不算衝突。
+     *   surface → elevated  14   （dark 是 15）
+     *   elevated → active   13   （dark 是 8）
+     *   active → hover      10   （dark 是 5）
+     *   canvas → surface    23   （dark 是 13；近白端要更大才看得出來）
+     */
+    --sp-canvas: #e8e8e8;
+    --sp-surface: #ffffff;
+    --sp-elevated: #f1f1f1;
+    --sp-active: #e4e4e4;
+    /* 亮底本來就看得清楚，疊加層一律比 Dark 弱一半左右 */
+    --sp-hover: rgb(0 0 0 / 4%);
+    --sp-selected: rgb(0 0 0 / 7%);
+    --sp-elevated-hover: #e8e8e8;
+    /*
+     * 輸入框直接到白，界定完全交給 border。這也讓 disabled（4% 黑）重新站得住：
+     * 它變成比啟用態暗，而不是像 #f4f4f4 時那樣跟它撞在一起。
+     */
+    --sp-field: #ffffff;
+    /* 輸入框的框是白底上唯一的界定，屬於「真正要突出」那一類，不跟著 line 收斂 */
+    --sp-field-border: rgb(0 0 0 / 14%);
+    --sp-stage: #d8d8d8;
+
+    /* dark 的 5.5% / 10% 白換算到白底約是 5% / 9%，近白端再補一點才看得見 */
+    --sp-line-subtle: rgb(0 0 0 / 5%);
+    --sp-line: rgb(0 0 0 / 9%);
+
+    /*
+     * 由 dark 對 #171717 的對比度反解白底上的同對比灰：
+     *   fg 13.96 → #2b2b2b   fg-title 11.87 → #383838
+     *   fg-secondary 6.97 → #5a5a5a   fg-muted 5.10 → #6e6e6e
+     * 四階因此不會塌，placeholder 在 active 底上的對比也與 dark 一致（4.0）。
+     */
+    --sp-fg: #2b2b2b;
+    --sp-fg-title: #383838;
+    --sp-fg-secondary: #5a5a5a;
+    --sp-fg-muted: #6e6e6e;
+
+    --sp-accent: var(--sp-blue-base);
+    --sp-accent-hover: var(--sp-blue-hover);
+    --sp-accent-fg: var(--sp-blue-fg);
+
+    /*
+     * base 用在角摺與實心鈕，fg 只用在疊於 chrome 上的 soft chip。
+     * gold / mist 都是淺色，實心底上的 icon 必須吃 ink 而不是 --sp-on-stage 的白。
+     */
+    --sp-pin: var(--sp-gold-base);
+    --sp-pin-hover: var(--sp-gold-hover);
+    --sp-pin-ink: var(--sp-gold-ink);
+    --sp-pin-fg: var(--sp-gold-fg);
+
+    --sp-discard: var(--sp-mist-base);
+    --sp-discard-hover: var(--sp-mist-hover);
+    --sp-discard-ink: var(--sp-mist-ink);
+    --sp-discard-fg: var(--sp-mist-fg);
+    /* discard 專用的黑幕：壓暗照片本身，角摺才不會被亮照片吃掉。壓的是照片，所以兩個 theme 同值 */
+    --sp-discard-dim: rgb(0 0 0 / 45%);
+
+    --sp-info: var(--sp-sky-base);
+    --sp-info-hover: var(--sp-sky-hover);
+    --sp-info-fg: var(--sp-sky-fg);
+    --sp-success: var(--sp-green-base);
+    --sp-success-hover: var(--sp-green-hover);
+    --sp-success-fg: var(--sp-green-fg);
+    --sp-warning: var(--sp-amber-base);
+    --sp-warning-hover: var(--sp-amber-hover);
+    --sp-warning-fg: var(--sp-amber-fg);
+    --sp-danger: var(--sp-red-base);
+    --sp-danger-hover: var(--sp-red-hover);
+    --sp-danger-fg: var(--sp-red-fg);
+
+    /* 白底上 15% 太淡，提到 22%；文字維持 800，對比保持 5.85 */
+    --sp-info-soft: color-mix(in srgb, var(--sp-info) 22%, transparent);
+    --sp-success-soft: color-mix(in srgb, var(--sp-success) 22%, transparent);
+    --sp-warning-soft: color-mix(in srgb, var(--sp-warning) 22%, transparent);
+    --sp-danger-soft: color-mix(in srgb, var(--sp-danger) 22%, transparent);
+
+    /* 白底反射比黑底強，scrim 與陰影都比 dark 收斂一階 */
+    --sp-track: rgb(0 0 0 / 8%);
+    --sp-disabled: rgb(0 0 0 / 4%);
+    --sp-scroll-thumb: rgb(0 0 0 / 20%);
+    --sp-scroll-hover: rgb(0 0 0 / 30%);
+    --sp-shadow: rgb(0 0 0 / 16%);
+
+    /* 與 dark 同值，見上方說明 */
+    --sp-backdrop: rgb(0 0 0 / 72%);
+    --sp-backdrop-muted: rgb(0 0 0 / 55%);
+    --sp-health-up-shadow: 0 0 0 3px color-mix(in srgb, var(--sp-success) 14%, transparent);
+    --sp-health-down-shadow: 0 0 0 3px color-mix(in srgb, var(--sp-danger) 14%, transparent);
+
+    /*
+     * inline 襯底跟著 theme（Light 用淺工作灰）。玻璃控制項維持透明黑＋白
+     * icon（它們疊在圖片上）；只有直接畫在 inline 襯底上的字與框要翻面，
+     * 所以有 --sp-stage-fg。全螢幕 viewer 走 --sp-backdrop，不在這一組。
+     */
+    --sp-stage-control: rgb(0 0 0 / 60%);
+    --sp-stage-control-muted: rgb(0 0 0 / 55%);
+    --sp-stage-control-hover: rgb(0 0 0 / 80%);
+    --sp-on-stage: #ffffff;
+    --sp-stage-fg: #2b2b2b;
+    --sp-stage-danger: #fca5a5;
+    --sp-stage-strip: #e2e2e2;
+    /* 同樣往 canvas 靠一階，方向相反 */
+    --sp-stage-empty: #e3e3e3;
+    --sp-stage-overlay: rgb(0 0 0 / 75%);
+    --sp-stage-overlay-muted: rgb(0 0 0 / 40%);
+    --sp-stage-overlay-soft: rgb(0 0 0 / 25%);
+    --sp-stage-overlay-label: rgb(255 255 255 / 90%);
+    --sp-stage-overlay-text: rgb(255 255 255 / 80%);
+    --sp-stage-line: rgb(255 255 255 / 9%);
+    --sp-stage-line-subtle: rgb(0 0 0 / 10%);
+    --sp-stage-ring: rgb(255 255 255 / 10%);
+    --sp-stage-gradient: rgb(0 0 0 / 90%);
+    --sp-stage-gradient-soft: rgb(0 0 0 / 85%);
+
+    /* 三個 syntax 色都取到 editor 底（elevated）上 ≥ 6:1；700 只有 4.4，不夠 */
+    --sp-code-string: #166534;
+    --sp-code-number: #92400e;
+    --sp-code-literal: #86198f;
+    --sp-workflow-bound-soft: color-mix(in srgb, var(--sp-green-base) 16%, transparent);
+    --sp-workflow-broken-soft: color-mix(in srgb, var(--sp-red-base) 16%, transparent);
+    --sp-prompt-hatch-low: rgb(0 0 0 / 2%);
+    --sp-prompt-hatch-high: rgb(0 0 0 / 7%);
+
+    /* 兩階都比 surface 與 elevated 暗，骨架才浮得出來；兩階皆不透明 */
+    --sp-skeleton: #e2e2e2;
+    --sp-skeleton-highlight: #eeeeee;
+}
+
+@theme inline {
+    --color-canvas: var(--sp-canvas);
+    --color-surface: var(--sp-surface);
+    --color-elevated: var(--sp-elevated);
+    --color-active: var(--sp-active);
+    --color-field: var(--sp-field);
+    --color-field-border: var(--sp-field-border);
+    --color-hover: var(--sp-hover);
+    --color-selected: var(--sp-selected);
+    --color-elevated-hover: var(--sp-elevated-hover);
+    --color-stage: var(--sp-stage);
+    --color-stage-empty: var(--sp-stage-empty);
+
+    --color-line: var(--sp-line);
+    --color-line-subtle: var(--sp-line-subtle);
+
+    --color-fg: var(--sp-fg);
+    --color-fg-title: var(--sp-fg-title);
+    --color-fg-secondary: var(--sp-fg-secondary);
+    --color-fg-muted: var(--sp-fg-muted);
+
+    --color-accent: var(--sp-accent);
+    --color-accent-hover: var(--sp-accent-hover);
+    --color-accent-fg: var(--sp-accent-fg);
+
+    --color-pin: var(--sp-pin);
+    --color-pin-hover: var(--sp-pin-hover);
+    --color-pin-ink: var(--sp-pin-ink);
+    --color-pin-fg: var(--sp-pin-fg);
+
+    --color-discard: var(--sp-discard);
+    --color-discard-hover: var(--sp-discard-hover);
+    --color-discard-ink: var(--sp-discard-ink);
+    --color-discard-fg: var(--sp-discard-fg);
+    --color-discard-dim: var(--sp-discard-dim);
+
+    --color-info: var(--sp-info);
+    --color-info-hover: var(--sp-info-hover);
+    --color-info-fg: var(--sp-info-fg);
+    --color-success: var(--sp-success);
+    --color-success-hover: var(--sp-success-hover);
+    --color-success-fg: var(--sp-success-fg);
+    --color-warning: var(--sp-warning);
+    --color-warning-hover: var(--sp-warning-hover);
+    --color-warning-fg: var(--sp-warning-fg);
+
+    --color-info-soft: var(--sp-info-soft);
+    --color-success-soft: var(--sp-success-soft);
+    --color-warning-soft: var(--sp-warning-soft);
+    --color-danger-soft: var(--sp-danger-soft);
+
+    --color-danger: var(--sp-danger);
+    --color-danger-hover: var(--sp-danger-hover);
+    --color-danger-fg: var(--sp-danger-fg);
+
+    --color-backdrop: var(--sp-backdrop);
+    --color-backdrop-muted: var(--sp-backdrop-muted);
+    --color-disabled: var(--sp-disabled);
+    --color-track: var(--sp-track);
+    --color-scroll-thumb: var(--sp-scroll-thumb);
+    --color-scroll-hover: var(--sp-scroll-hover);
+    --color-stage-control: var(--sp-stage-control);
+    --color-stage-control-muted: var(--sp-stage-control-muted);
+    --color-stage-control-hover: var(--sp-stage-control-hover);
+    --color-on-stage: var(--sp-on-stage);
+    --color-stage-fg: var(--sp-stage-fg);
+    --color-stage-danger: var(--sp-stage-danger);
+    --color-stage-strip: var(--sp-stage-strip);
+    --color-stage-overlay: var(--sp-stage-overlay);
+    --color-stage-overlay-muted: var(--sp-stage-overlay-muted);
+    --color-stage-overlay-soft: var(--sp-stage-overlay-soft);
+    --color-stage-overlay-label: var(--sp-stage-overlay-label);
+    --color-stage-overlay-text: var(--sp-stage-overlay-text);
+    --color-stage-line: var(--sp-stage-line);
+    --color-stage-line-subtle: var(--sp-stage-line-subtle);
+    --color-stage-ring: var(--sp-stage-ring);
+    --color-stage-gradient: var(--sp-stage-gradient);
+    --color-stage-gradient-soft: var(--sp-stage-gradient-soft);
+    --color-code-string: var(--sp-code-string);
+    --color-code-number: var(--sp-code-number);
+    --color-code-literal: var(--sp-code-literal);
+    --color-workflow-bound-soft: var(--sp-workflow-bound-soft);
+    --color-workflow-broken-soft: var(--sp-workflow-broken-soft);
+    --color-prompt-hatch-low: var(--sp-prompt-hatch-low);
+    --color-prompt-hatch-high: var(--sp-prompt-hatch-high);
+
+    --shadow-popover: 0 12px 32px var(--sp-shadow);
+    --shadow-health-up: var(--sp-health-up-shadow);
+    --shadow-health-down: var(--sp-health-down-shadow);
+}
+
+.ds-frame {
+    color: var(--sp-fg);
+    font-family:
+        "Manrope Variable",
+        "Noto Sans TC Variable",
+        "Noto Sans TC",
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        "PingFang TC",
+        "Microsoft JhengHei",
+        sans-serif;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+
+
+
+.scrollbar-hidden {
+    scrollbar-width: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+}
+
+/* thumb 比 line 重，因為它多半疊在 bg-active 上，10% 幾乎看不見 */
+.scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--sp-scroll-thumb) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 4px;
+    background: var(--sp-scroll-thumb);
+    background-clip: content-box;
+}
+
+/* 藏掉原生的斜線把手，拖拉縮放仍然可用 */
+.resizer-hidden::-webkit-resizer {
+    display: none;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: var(--sp-scroll-hover);
+    background-clip: content-box;
+}
+
+@keyframes backdrop-in {
+    from { opacity: 0 }
+    to { opacity: 1 }
+}
+
+@keyframes viewer-image-in {
+    from { opacity: 0; scale: 0.98 }
+    to { opacity: 1; scale: 1 }
+}
+
+.backdrop {
+    animation: backdrop-in 140ms ease-out;
+}
+
+.viewer-image {
+    animation: viewer-image-in 140ms ease-out;
+}
+
+/*
+ * 動 background-color 而不是 opacity：pulse 到一半時若變半透明，
+ * 底下還沒換掉的舊 task 資料會透出來。兩個色階都是不透明的。
+ */
+@keyframes skeleton-pulse {
+    0%,
+    100% {
+        background-color: var(--sp-skeleton);
+    }
+
+    50% {
+        background-color: var(--sp-skeleton-highlight);
+    }
+}
+
+.skeleton {
+    background-color: var(--sp-skeleton);
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes issue-chip-in {
+    from { opacity: 0; translate: 0 -3px }
+    to { opacity: 1; translate: none }
+}
+
+@keyframes issue-popover-in {
+    from { opacity: 0; translate: 0 -4px }
+    to { opacity: 1; translate: none }
+}
+
+.issue-chip {
+    animation: issue-chip-in 140ms ease-out;
+}
+
+.issue-popover {
+    animation: issue-popover-in 140ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .backdrop,
+    .viewer-image,
+    .issue-chip,
+    .issue-popover {
+        animation-duration: 0.01ms;
+    }
+
+    .skeleton {
+        animation: none;
+    }
+}
+
+.number-input {
+    appearance: textfield;
+}
+
+.number-input::-webkit-inner-spin-button,
+.number-input::-webkit-outer-spin-button {
+    margin: 0;
+    appearance: none;
+}
+
+/* Prompt editor 的 group drag ghost 掛在 body 上，不能待在 CodeMirror theme 裡 */
+.cm-prompt-drag-ghost {
+    position: fixed;
+    z-index: 60;
+    display: flex;
+    gap: 7px;
+    align-items: center;
+    padding: 3px 9px;
+    border: 1px solid color-mix(in srgb, var(--sp-accent-hover) 65%, transparent);
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--sp-surface) 94%, transparent);
+    box-shadow: 0 6px 16px rgb(0 0 0 / 62%);
+    color: var(--sp-fg);
+    font-size: 11px;
+    pointer-events: none;
+}
+
+.cm-prompt-drag-ghost .cm-prompt-group-dot {
+    display: block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--sp-success);
+}
+
+/* 跟 gutter 的 dot 同一套：關閉是空心灰環，不是灰實心 */
+.cm-prompt-drag-ghost .cm-prompt-group-dot[data-enabled='false'] {
+    width: 7px;
+    height: 7px;
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px var(--sp-fg-muted);
+}
+
+/* Token drag ghost，同樣掛在 body 上 */
+.cm-prompt-token-ghost {
+    position: fixed;
+    z-index: 60;
+    padding: 1px 7px;
+    border: 1px solid color-mix(in srgb, var(--sp-accent-hover) 65%, transparent);
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--sp-surface) 94%, transparent);
+    box-shadow: 0 6px 16px rgb(0 0 0 / 62%);
+    color: var(--sp-fg);
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    font-size: 11px;
+    pointer-events: none;
+}

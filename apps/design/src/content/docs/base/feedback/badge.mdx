@@ -1,0 +1,56 @@
+---
+title: Badge
+description: 短字的語意標記：狀態、選項標記、未儲存提示，以及 task 生命週期狀態。
+sidebar:
+    order: 1
+---
+
+import State from '@silent-pix/blueprint/components/State.astro'
+import Gallery from '@silent-pix/blueprint/components/Gallery.astro'
+import Rule from '@silent-pix/blueprint/components/Rule.astro'
+import Rules from '@silent-pix/blueprint/components/Rules.astro'
+
+## Badge
+
+短字的語意標記：狀態、選項標記、未儲存提示。五種 tone，外加載入中的空殼。
+
+<Gallery min="220px">
+<State component="badge" state="neutral" label="neutral" frame="w-fit flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="badge" state="info" label="info" frame="w-fit flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="badge" state="success" label="success" frame="w-fit flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="badge" state="warning" label="warning" frame="w-fit flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="badge" state="danger" label="danger" frame="w-fit flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="badge" state="loading" label="loading · empty shell" frame="w-fit flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
+</Gallery>
+
+<Rules component="badge">
+
+<ul class="ds-rules">
+<Rule component="badge" id="frame">外框固定 `h-5 rounded-md px-2 text-[0.72rem] font-medium`，底色用該 tone 的 soft 染色（`bg-*-soft text-*-fg`）；neutral 用 `bg-line text-fg-secondary`。</Rule>
+<Rule component="badge" id="tones">Tone 只表達語意：neutral 未送出／未儲存、info 進行中、success 完成、warning 降級或封存、danger 失敗。語意色只用在 badge、issue、flag，其餘 chrome 維持中性。</Rule>
+<Rule component="badge" id="cap-trim">文字以 cap 高度裁切上下留白（`[text-box:trim-both_cap_alphabetic]`），短字在固定高度膠囊裡光學置中；與 Image count 共用同一手法。</Rule>
+<Rule component="badge" id="loading">值還在載入時保留 `h-5` 空殼並以 Skeleton mask 蓋住，不顯示任何 tone，也不冒充 Draft。</Rule>
+</ul>
+
+</Rules>
+
+## Task status
+
+Task 生命週期狀態的 Badge。所有顯示 task 狀態的地方都用它。
+
+<Gallery min="200px">
+<State component="task-status" state="draft" label="draft" frame="w-fit flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="task-status" state="queued" label="queued" frame="w-fit flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="task-status" state="running" label="running" frame="w-fit flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="task-status" state="done" label="done" frame="w-fit flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="task-status" state="failed" label="failed" frame="w-fit flex items-center rounded-lg border border-line-subtle bg-surface p-4" />
+</Gallery>
+
+<Rules component="task-status">
+
+<ul class="ds-rules">
+<Rule component="task-status" id="tones">狀態固定對應 Badge tone：queued → warning、running → info、done → success、failed → danger；尚未送出的草稿 Draft → neutral。不要在別處另配狀態色。</Rule>
+<Rule component="task-status" id="copy">文案固定用這五個詞，不加 icon、不加計數。</Rule>
+</ul>
+
+</Rules>

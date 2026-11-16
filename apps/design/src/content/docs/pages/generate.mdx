@@ -1,0 +1,493 @@
+---
+title: Generate
+description: 生成圖片的主畫面：左側 task 清單、中間 prompt 與圖片、右側 task 詳細面板；清單可展開成全寬的 Task browser。
+sidebar:
+    order: 2
+---
+
+import State from '@silent-pix/blueprint/components/State.astro'
+import Gallery from '@silent-pix/blueprint/components/Gallery.astro'
+import Rule from '@silent-pix/blueprint/components/Rule.astro'
+import Rules from '@silent-pix/blueprint/components/Rules.astro'
+import Screen from '@silent-pix/blueprint/components/Screen.astro'
+import Slot from '@silent-pix/blueprint/components/Slot.astro'
+import Fixed from '@silent-pix/blueprint/components/Fixed.astro'
+import Switch from '@silent-pix/blueprint/components/Switch.astro'
+import Case from '@silent-pix/blueprint/components/Case.astro'
+
+## Task list
+
+Generate 左側可收合的 task 面板：頂端 Bar（標題 Tasks、展開到 Task browser、收合鈕）、icon 版 flag 篩選、可捲動的 task item 清單。
+
+<Gallery min="320px">
+<State component="task-list" state="default" label="default · 8 tasks" frame="w-fit *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-list" state="collapsed" label="collapsed · thumbnail only" frame="w-fit *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-list" state="empty" label="empty · no tasks yet" frame="w-fit *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-list" state="empty-pin" label="empty · Pin filter" frame="w-fit *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-list" state="empty-filter" label="empty · Unflag + Discard filter" frame="w-fit *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-list" state="loading" label="loading · skeleton rows" frame="w-fit *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-list" state="error" label="load error" frame="w-fit *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-list" state="loading-more" label="loading next page" frame="w-fit *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-list" state="page-error" label="next page failed · rows kept" frame="w-fit *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-list" state="flag-error" label="flag update failed" frame="w-fit *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-list" state="collapsed-loading" label="collapsed · loading" frame="w-fit *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-list" state="collapsed-empty" label="collapsed · empty (blank)" frame="w-fit *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+</Gallery>
+
+<Rules component="task-list">
+
+<ul class="ds-rules">
+<Rule component="task-list" id="panel">面板展開寬 250px、右側 `border-r border-line`、`bg-surface`。頂端 Bar 高 48px、左右內距 8px 讓圖示鈕貼邊；右側依序是 Expand（打開 **task-browser**，15px icon）與收合鈕（展開時 ChevronsLeft、收合時 ChevronsRight），兩顆都是 28px ghost 圖示鈕。</Rule>
+<Rule component="task-list" id="filter">Bar 下方是 icon 版 flag 篩選（All／Unflag／Pin／Discard，見 **task-toolbar** 的篩選規則），名稱只在 hover 時以提示顯示；左右 8px、下 4px 內距。清單內距 8px（右側 12px 讓出捲軸），列距 4px，捲軸平常隱藏。</Rule>
+<Rule component="task-list" id="collapsed">收合時面板寬度改為由內容決定（w-max），Bar 保留標題、Expand 與收合鈕，篩選列隱藏，清單只剩縮圖列。收合時不顯示空狀態與載入失敗提示，清單維持空白（同 collapsed-empty）；展開後才顯示對應的訊息。</Rule>
+<Rule component="task-list" id="empty-error">空狀態與載入失敗用 L0 StatusMessage compact：沒有 task 時是「No tasks yet」＋說明；只篩一個 flag 時各有專屬標題與說明（如 No pinned tasks）；多個 flag 篩選無結果時是「No matching tasks / Try a different task filter.」。載入失敗只有一句 muted 訊息＋預設 Retry 按鈕，不用紅色。</Rule>
+<Rule component="task-list" id="loading">首次載入用 6 列骨架整組替換清單（收合時用只有縮圖的骨架）。捲到底載入下一頁時，清單尾端出現置中的 12px muted「Loading...」純文字，不用骨架。已有資料時下一頁失敗，錯誤訊息＋Retry 附加在清單尾端，既有的列保留。</Rule>
+<Rule component="task-list" id="flag-error">單列 flag 變更失敗時，在篩選列下方顯示一行 danger 提示（12px、單行截斷），下次操作成功後消失。</Rule>
+<Rule component="task-list" id="narrow">視窗寬度小於 720px 時整個面板隱藏。</Rule>
+</ul>
+
+</Rules>
+
+## Task item
+
+Generate 左側 task 清單的單列：72px 縮圖＋名稱／狀態／建立時間三行，flag 操作鈕浮在右上角。清單收合時只剩縮圖。
+
+<Gallery min="300px">
+<State component="task-item" state="done" label="done" frame="w-[250px] overflow-hidden rounded-lg border border-line-subtle bg-surface p-2 pr-3" />
+<State component="task-item" state="selected" label="selected" frame="w-[250px] overflow-hidden rounded-lg border border-line-subtle bg-surface p-2 pr-3" />
+<State component="task-item" state="hover" label="hover · flag actions shown" frame="w-[250px] overflow-hidden rounded-lg border border-line-subtle bg-surface p-2 pr-3" />
+<State component="task-item" state="hover-pin" label="hover · pin active" frame="w-[250px] overflow-hidden rounded-lg border border-line-subtle bg-surface p-2 pr-3" />
+<State component="task-item" state="flag-pending" label="flag update pending · flag buttons disabled" frame="w-[250px] overflow-hidden rounded-lg border border-line-subtle bg-surface p-2 pr-3" />
+<State component="task-item" state="running" label="running · untitled" frame="w-[250px] overflow-hidden rounded-lg border border-line-subtle bg-surface p-2 pr-3" />
+<State component="task-item" state="queued" label="queued · untitled" frame="w-[250px] overflow-hidden rounded-lg border border-line-subtle bg-surface p-2 pr-3" />
+<State component="task-item" state="failed" label="failed" frame="w-[250px] overflow-hidden rounded-lg border border-line-subtle bg-surface p-2 pr-3" />
+<State component="task-item" state="no-thumbnail" label="done · no thumbnail" frame="w-[250px] overflow-hidden rounded-lg border border-line-subtle bg-surface p-2 pr-3" />
+<State component="task-item" state="pin" label="pin" frame="w-[250px] overflow-hidden rounded-lg border border-line-subtle bg-surface p-2 pr-3" />
+<State component="task-item" state="discard" label="discard · dimmed" frame="w-[250px] overflow-hidden rounded-lg border border-line-subtle bg-surface p-2 pr-3" />
+<State component="task-item" state="discard-no-thumbnail" label="discard · placeholder not dimmed" frame="w-[250px] overflow-hidden rounded-lg border border-line-subtle bg-surface p-2 pr-3" />
+<State component="task-item" state="skeleton" label="loading skeleton" frame="w-[250px] overflow-hidden rounded-lg border border-line-subtle bg-surface p-2 pr-3" />
+<State component="task-item" state="thumb-done" label="thumbnail only · done" frame="w-max overflow-hidden rounded-lg border border-line-subtle bg-surface p-2 pr-3" />
+<State component="task-item" state="thumb-selected" label="thumbnail only · selected" frame="w-max overflow-hidden rounded-lg border border-line-subtle bg-surface p-2 pr-3" />
+<State component="task-item" state="thumb-running" label="thumbnail only · running" frame="w-max overflow-hidden rounded-lg border border-line-subtle bg-surface p-2 pr-3" />
+<State component="task-item" state="thumb-queued" label="thumbnail only · queued" frame="w-max overflow-hidden rounded-lg border border-line-subtle bg-surface p-2 pr-3" />
+<State component="task-item" state="thumb-failed" label="thumbnail only · failed" frame="w-max overflow-hidden rounded-lg border border-line-subtle bg-surface p-2 pr-3" />
+<State component="task-item" state="thumb-no-thumbnail" label="thumbnail only · done, no thumbnail" frame="w-max overflow-hidden rounded-lg border border-line-subtle bg-surface p-2 pr-3" />
+<State component="task-item" state="thumb-pin" label="thumbnail only · pin" frame="w-max overflow-hidden rounded-lg border border-line-subtle bg-surface p-2 pr-3" />
+<State component="task-item" state="thumb-discard" label="thumbnail only · discard" frame="w-max overflow-hidden rounded-lg border border-line-subtle bg-surface p-2 pr-3" />
+<State component="task-item" state="thumb-discard-no-thumbnail" label="thumbnail only · discard, placeholder" frame="w-max overflow-hidden rounded-lg border border-line-subtle bg-surface p-2 pr-3" />
+<State component="task-item" state="thumb-skeleton" label="thumbnail only · skeleton" frame="w-max overflow-hidden rounded-lg border border-line-subtle bg-surface p-2 pr-3" />
+</Gallery>
+
+<Rules component="task-item">
+
+<ul class="ds-rules">
+<Rule component="task-item" id="button">整列是一顆 ghost 按鈕，圓角 8px、內距 6px，縮圖與文字間距 10px。未選取時 hover 加 `bg-elevated`；選取（目前顯示在 detail 的 task）用 selected 樣式 `bg-selected`，文字提亮為 `text-fg`。</Rule>
+<Rule component="task-item" id="text-rows">三行文字對 72px 縮圖垂直置中：名稱（12px medium，單行截斷）、狀態 badge、建立時間（11px muted，24 小時制，格式依語系）。沒有名稱時顯示 ID 前 8 碼並改用等寬字。</Rule>
+<Rule component="task-item" id="flag-actions">Flag 操作鈕（Pin、Discard，各 28px）不佔文字行，浮在列的右上角（距邊 8px）；只在 hover 或列內有焦點時一起出現。已標記的那顆用該 flag 的實心色（pin／discard 底色＋ink 字色），另一顆維持 ghost。</Rule>
+<Rule component="task-item" id="flag-pending">任何一筆 flag 更新進行中時，整個清單所有列的 flag 操作鈕一律停用（外觀依 L0 Button disabled），完成後恢復；task-card 在格狀檢視中同此規則。</Rule>
+<Rule component="task-item" id="placeholder">沒有縮圖時依狀態顯示 placeholder：done 為 muted Image、queued 為 warning Hourglass、running 為 info LoaderCircle、failed 為 danger CircleX，icon 22px、stroke 1.6。Placeholder 的 icon 與色調是固定對應，不隨場合更換。</Rule>
+<Rule component="task-item" id="corner-fold">已標記的 task 在縮圖左上角有常駐的角摺（列表 22px，pin／discard 色），不可點；未標記時不畫。Discard 只在有真實縮圖時再壓一層 discard 暗化，placeholder 不壓暗。</Rule>
+<Rule component="task-item" id="thumb-only">只有縮圖的變體（清單收合時）不畫文字與 flag 操作鈕，角摺成為唯一的 flag 訊號，不另加 badge；選取狀態照樣用 selected 底色。</Rule>
+<Rule component="task-item" id="skeleton">載入中骨架沿用真實列的外框與尺寸（72px 方塊＋三條 12px 灰條，寬 3/4、1/2、2/3），換回真資料時版面不跳；收合時骨架也只剩方塊。灰條規則見 L0 Skeleton。</Rule>
+</ul>
+
+</Rules>
+
+## Task browser
+
+從 task 清單展開的全寬瀏覽檢視：上方 task-toolbar，下方固定 8 欄的 task-card 格狀清單，可勾選、拖曳框選與批次操作。
+
+<Gallery min="100%">
+<State component="task-browser" state="default" label="default · 16 tasks" frame="min-w-[1120px] flex h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-browser" state="selection" label="selection · 4 checked" frame="min-w-[1120px] flex h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-browser" state="marquee" label="drag selecting" frame="min-w-[1120px] flex h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-browser" state="search" label="search · 5 matches" frame="min-w-[1120px] flex h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-browser" state="filter-unflag" label="filter Unflag" frame="min-w-[1120px] flex h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-browser" state="filter-pin" label="filter Pin" frame="min-w-[1120px] flex h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-browser" state="filter-multi" label="filter Unflag + Pin" frame="min-w-[1120px] flex h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-browser" state="filter-discard" label="filter Discard · permanent delete" frame="min-w-[1120px] flex h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-browser" state="discard-selection" label="filter Discard · selection" frame="min-w-[1120px] flex h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-browser" state="selection-limit" label="selection limit · warning issue" frame="min-w-[1120px] flex h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-browser" state="flag-error" label="flag update failed · error issue" frame="min-w-[1120px] flex h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-browser" state="empty" label="empty · no tasks yet" frame="min-w-[1120px] flex h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-browser" state="no-match" label="empty · search no match" frame="min-w-[1120px] flex h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-browser" state="empty-discard" label="empty · Discard filter" frame="min-w-[1120px] flex h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-browser" state="empty-unflag" label="empty · Unflag filter" frame="min-w-[1120px] flex h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-browser" state="empty-pin" label="empty · Pin filter" frame="min-w-[1120px] flex h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-browser" state="empty-filter" label="empty · Unflag + Pin filter" frame="min-w-[1120px] flex h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-browser" state="loading" label="loading · skeleton cards" frame="min-w-[1120px] flex h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-browser" state="error" label="load error" frame="min-w-[1120px] flex h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-browser" state="loading-more" label="loading next page" frame="min-w-[1120px] flex h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-browser" state="page-error" label="next page failed · cards kept" frame="min-w-[1120px] flex h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-browser" state="selection-one" label="selection · one task" frame="min-w-[1120px] flex h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-browser" state="card-hover" label="card · hover" frame="min-w-[1120px] flex h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-browser" state="card-hover-checked" label="card · hover checked" frame="min-w-[1120px] flex h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-browser" state="card-hover-pin" label="card · hover pinned" frame="min-w-[1120px] flex h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-browser" state="card-hover-discard" label="card · hover discarded" frame="min-w-[1120px] flex h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-browser" state="card-flag-pending" label="card · flag update pending" description="任何一筆 flag 更新進行中時，所有卡片的 flag 操作停用。" frame="min-w-[1120px] flex h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+</Gallery>
+
+<Rules component="task-browser">
+
+#### Browser
+
+<ul class="ds-rules">
+<Rule component="task-browser" id="layout">整塊 `bg-surface`、填滿可用寬高。工具列固定在上方，下方格狀區獨立捲動（細捲軸）；格子固定 8 欄、間距 12px、內距 8px，不依寬度改欄數。</Rule>
+<Rule component="task-browser" id="marquee">在格狀區空白處按下拖曳會畫出框選矩形（`border-accent bg-accent/15`），框到的卡片即時變成 checked；拖曳期間不選取文字。從勾選鈕或 flag 鈕起手不會開始框選。</Rule>
+<Rule component="task-browser" id="selection-reset">搜尋或篩選變更時清空勾選；勾選中的 task 因搜尋／篩選離開目前結果時，自動從勾選移除。</Rule>
+<Rule component="task-browser" id="empty-error">空狀態與載入失敗用 L0 StatusMessage regular，在格狀區置中：完全沒有 task 是「No tasks yet / Generated tasks will appear here.」；有搜尋文字而無結果是「No matching tasks / Try another search or filter.」；沒有搜尋、只篩一個 flag 時用該 flag 的專屬文案；沒有搜尋、多個 flag 篩選無結果是「No matching tasks / Try a different task filter.」。空狀態不放按鈕。</Rule>
+<Rule component="task-browser" id="loading">首次載入以 16 張骨架卡整組替換格子。捲到底載入下一頁時格子尾端出現跨 8 欄的「Loading...」純文字。已有資料時下一頁失敗，在格子尾端附加 regular 載入失敗訊息＋Retry，既有卡片保留；沒有資料時失敗則整個格狀區換成置中的失敗訊息。</Rule>
+<Rule component="task-browser" id="overlays">點縮圖開啟的大圖檢視與刪除確認 dialog 疊在本檢視之上，各自見對應元件。</Rule>
+</ul>
+
+#### 工具列
+
+<ul class="ds-rules">
+<Rule component="task-toolbar" id="bar">第一列是 48px Bar（左右 8px）：標題 Tasks、撐滿剩餘寬度的搜尋框（28px 高、左側 14px Search icon，只靠 placeholder「task name or task ID...」說明，不顯示 label），最右是 Minimize2 收回鈕（28px ghost）。第二列左右 8px、下 4px，可換行；整個工具列底部 `border-b border-line-subtle`。</Rule>
+<Rule component="task-toolbar" id="filter-buttons">Flag 篩選每顆是 28px 高的 ghost 鈕（11px medium、13px icon），選中用 selected 樣式，未選中 `text-fg-muted`。可多選；全部取消或三項全選都回到 All（不篩選），所以畫面上不會同時亮三個 flag。順序固定 All、Unflag、Pin、Discard。工具列用 icon＋文字版；**task-list** 用只有 icon 的版本。</Rule>
+<Rule component="task-toolbar" id="actions">右側群組靠右，只在有勾選、有提示或篩選恰好只剩 Discard 時出現。批次操作順序固定：計數、Clear、Unflag（ghost）、Pin／Discard（各自 flag 的 soft 色）、刪除（soft danger）；所有按鈕 28px 高、11px 字。</Rule>
+<Rule component="task-toolbar" id="limit">一次最多勾選 200 筆：超出的部分不會被勾入（框選會截斷到 200），同時出現 warning 提示 chip；勾選數降回上限以下時提示自動消失。批次 flag 更新失敗時出現 error 提示 chip。提示 chip 規則見 L0 IssueChip。</Rule>
+<Rule component="task-toolbar" id="delete-discarded">「Delete discarded...」只在篩選恰好為 Discard 時出現；與批次操作或提示同時存在時，前面加一條 20px 高的 `bg-line-subtle` 直線分隔。</Rule>
+<Rule component="task-toolbar" id="confirm-dialogs">文字帶刪節號（...）的按鈕會先開確認 dialog。執行中按鈕停用，外觀依 L0 Button disabled。</Rule>
+</ul>
+
+</Rules>
+
+## Prompt panel
+
+Generate 工作區頂端的 prompt 編輯區：Positive／Negative 兩段 editor 與 Generate 按鈕。
+
+<Gallery min="100%">
+<State component="prompt-panel" state="default" label="both open · 2 groups" frame="*:border-b-0 w-full overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="prompt-panel" state="submitting" label="submitting · negative hidden" frame="*:border-b-0 w-full overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="prompt-panel" state="loading" label="loading" frame="*:border-b-0 w-full overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="prompt-panel" state="issues" label="with issue" frame="*:border-b-0 w-full overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+</Gallery>
+
+<Rules component="prompt-panel">
+
+<ul class="ds-rules">
+<Rule component="prompt-panel" id="bar">Generate 工作區頂端的 prompt 區：48px Bar（標題「Prompt」、Positive／Negative 切換、issue chip、Generate）加上每段一個 prompt editor。整塊 `bg-surface`，底部 `border-line-subtle` 與下方 image-stage 分開。</Rule>
+<Rule component="prompt-panel" id="toggles">Positive／Negative 是顯示切換，不是 tab，可同時開：開著用 accent soft 加 accent 外框線，收起用 neutral soft、muted 文字與 `line-subtle` 外框線。收起只隱藏該段，內容與捲動位置保留。</Rule>
+<Rule component="prompt-panel" id="generate">Generate 是這一欄唯一的 accent solid 按鈕；送出中改為「Creating...」並停用，detail 載入中也停用，停用時半透明。</Rule>
+<Rule component="prompt-panel" id="issues">有問題時 Generate 左邊出現 issue chip（規則見 L0 issue chip）；只有剛按下 Generate 且問題多於一則時才自動展開清單。</Rule>
+<Rule component="prompt-panel" id="editor-height">Editor 預設高 108px（4 行 × 24px 加上下 6px），可拖曳調整，最小 1 行；最大高度依開著的段數平分剩餘視窗高度，但不低於預設高度。文字區是 `elevated`，gutter 降到 `surface`，兩區才分得開。</Rule>
+<Rule component="prompt-panel" id="gutter">Gutter 由左而右是行號（42px，往下拖曳可把多行建成新 group）與 group 名稱欄（128px，規則見 prompt-group-cell）。</Rule>
+<Rule component="prompt-panel" id="disabled-group">停用的 group：行文字降為 `fg-secondary`，並由一整塊跨行的斜線紋蓋住。停用的 token：`fg-muted` 加 1px 實線底線（offset 4px），無背景；在停用 group 裡文字色跟隨整組，底線保留。</Rule>
+<Rule component="prompt-panel" id="loading">Loading 時每段 editor 整塊蓋 skeleton，整個內容區不可互動，Bar 保留。</Rule>
+</ul>
+
+</Rules>
+
+## Prompt group cell
+
+Prompt editor gutter 中的 group 名稱格。
+
+<Gallery min="240px">
+<State component="prompt-group-cell" state="enabled" label="enabled" frame="w-fit overflow-hidden rounded-lg border border-line-subtle bg-canvas font-[ui-monospace,SFMono-Regular,Consolas,monospace] text-[12px] leading-[24px] text-fg-muted" />
+<State component="prompt-group-cell" state="disabled" label="disabled" frame="w-fit overflow-hidden rounded-lg border border-line-subtle bg-canvas font-[ui-monospace,SFMono-Regular,Consolas,monospace] text-[12px] leading-[24px] text-fg-muted" />
+<State component="prompt-group-cell" state="hover" label="hover · remove visible" frame="w-fit overflow-hidden rounded-lg border border-line-subtle bg-canvas font-[ui-monospace,SFMono-Regular,Consolas,monospace] text-[12px] leading-[24px] text-fg-muted" />
+<State component="prompt-group-cell" state="renaming" label="renaming" frame="w-fit overflow-hidden rounded-lg border border-line-subtle bg-canvas font-[ui-monospace,SFMono-Regular,Consolas,monospace] text-[12px] leading-[24px] text-fg-muted" />
+</Gallery>
+
+<Rules component="prompt-group-cell">
+
+<ul class="ds-rules">
+<Rule component="prompt-group-cell" id="cell">Prompt editor gutter 中的一格 group 名稱，對齊該 group 的第一行；高 24px，其餘行留空格。</Rule>
+<Rule component="prompt-group-cell" id="dot">Group dot：開啟＝6px success 實心圓，關閉＝7px 空心灰環，顏色與形狀同時承載狀態；點 dot 切換開關。停用 group 的名稱降為 `fg-muted`。</Rule>
+<Rule component="prompt-group-cell" id="drag-rename">格子本身是拖曳把手（grab 游標），hover 換 `bg-active`；雙擊進入改名，輸入框貼齊格子、accent 外框。</Rule>
+<Rule component="prompt-group-cell" id="remove">只有超過一個 group 時才有右側「−」移除鈕，hover 格子才出現。</Rule>
+</ul>
+
+</Rules>
+
+## Image stage
+
+Generate 工作區中央的成品展示區：目前選取 task 的大圖、右上 glass 操作，多張時左右切換與底部縮圖列。
+
+<Gallery min="560px">
+<State component="image-stage" state="multiple" label="multiple · 2 / 3" frame="flex h-80 overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="image-stage" state="single" label="single" frame="flex h-80 overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="image-stage" state="empty" label="empty · No image" frame="flex h-64 overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="image-stage" state="loading" label="loading" frame="flex h-64 overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+</Gallery>
+
+<Rules component="image-stage">
+
+<ul class="ds-rules">
+<Rule component="image-stage" id="background">有圖時底色 `bg-stage`，沒圖時換 `bg-stage-empty`；圖片 `h-full w-full object-contain`，點圖等同 expand（開 image-viewer）。</Rule>
+<Rule component="image-stage" id="actions">右上三顆依序是 expand、compare（加入比較）、use as reference（設為參考圖），全部 size-8 L0 glass recipe、icon 15／stroke 1.8。</Rule>
+<Rule component="image-stage" id="paging-strip">左右切換（`size-8` glass、icon 18）與縮圖列只在 2 張以上出現。縮圖列 `h-20 bg-stage-strip`，選取縮圖 `opacity-100 ring-2 ring-stage-fg`，其他 `opacity-60 hover:opacity-100`，右端 `n / total`。鍵盤 ←／→ 循環切換，焦點在輸入框時不攔。</Rule>
+<Rule component="image-stage" id="loading">Loading 時不鋪 skeleton、也不說 No image（還不知道有沒有圖）：只留底色，右上控制項 invisible 保留位置，整區不可互動。</Rule>
+<Rule component="image-stage" id="empty">沒圖但不是 loading 時，置中放 L0 StatusMessage regular empty（只有標題「No image」、不放按鈕）；右上控制項仍然在，不隨 empty 隱藏。</Rule>
+</ul>
+
+</Rules>
+
+## Task detail
+
+Generate 與 Compare 頁右側的 task 詳細面板，由 task-info、reference-image、task-config、task-lora 組成；版面照基礎元件 [Detail layout](/base/container/detail-layout/)。
+
+<Gallery min="440px">
+<State component="task-detail" state="view" label="existing task" frame="w-fit *:border-l-0 flex h-[760px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-detail" state="draft" label="draft" frame="w-fit *:border-l-0 flex h-[760px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-detail" state="loading" label="loading (cold)" frame="w-fit *:border-l-0 flex h-[760px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-detail" state="error" label="load error" frame="w-fit *:border-l-0 flex h-[360px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-detail" state="collapsed" label="collapsed" frame="w-fit *:border-l-0 flex h-[360px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-detail" state="failed" label="failed task" frame="w-fit *:border-l-0 flex h-[760px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-detail" state="read-only" label="read-only (Compare)" frame="w-fit *:border-l-0 flex h-[760px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+</Gallery>
+
+<Rules component="task-detail">
+
+<ul class="ds-rules">
+<Rule component="task-detail" id="panel">頁面右側的 Task 詳細面板：展開寬 350px（36 字元 ID 能完整顯示的最小寬度）、`bg-surface`、左側 `border-line`。頂端是 48px Bar（左右內距 8px，標題「Detail」與收合鈕），下方內容可捲動、捲軸隱藏，內距左右 16px、底部 20px，區塊間距 12px。</Rule>
+<Rule component="task-detail" id="order">內容順序固定：task-info → reference-image → task-config → task-lora，區塊之間以一條上下各留 4px 的 `border-line-subtle` 細線分隔；只有 task-info 不帶區塊標題。</Rule>
+<Rule component="task-detail" id="modes">兩種模式：Generate 用可編輯模式，顯示選取中的 task（view）或新 draft，四個區塊都可編輯，改的是下一次生成的設定；Compare 用唯讀模式（read-only），只顯示所選輸出圖的 task，不能改名、刪除或調整。</Rule>
+<Rule component="task-detail" id="draft">Draft 時 task-info 為 Draft、沒有參考圖、Seed 為 Random、沒有 LoRA；Workflow 預設選第一個可用的 workflow。</Rule>
+<Rule component="task-detail" id="loading">Loading（cold，尚無資料）時四個區塊同時顯示各自的 loading 狀態，版面不跳動；已有資料時重新整理不換成 skeleton。</Rule>
+<Rule component="task-detail" id="error">載入失敗且沒有任何資料時，內容換成一個 compact StatusMessage：一句 muted 訊息加 Retry，不顯示任何區塊。</Rule>
+<Rule component="task-detail" id="collapsed">收合時寬 40px，只留 48px 高的展開鈕（ChevronsRight）；展開時收合鈕為 ChevronsLeft。視窗過窄時整個面板隱藏。</Rule>
+</ul>
+
+</Rules>
+
+## Task info
+
+Task 詳細面板最上面的 identity 區：ID、名稱（inline 改名）、狀態、失敗原因、建立時間與刪除。
+
+<Gallery min="400px">
+<State component="task-info" state="done" label="existing task" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="editing" label="editing name" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="rename-pending" label="rename pending" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="rename-error" label="rename error" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="failed" label="failed" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="failed-details" label="failed · details open" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="failed-unknown" label="failed · no reason recorded" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="draft" label="draft" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="loading" label="loading (cold)" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="read-only" label="read-only · done" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+</Gallery>
+
+<Rules component="task-info">
+
+<ul class="ds-rules">
+<Rule component="task-info" id="rows">Task 詳細面板最上方的 identity 區，不帶區塊標題；列由上而下固定為 ID、Name、Status、（失敗原因）、Created、刪除鈕。標籤欄寬 74px，值欄可截斷；ID 用 mono 11px，Created 用 `fg-secondary`。</Rule>
+<Rule component="task-info" id="modes">可編輯模式（Generate）可改名與刪除；唯讀模式（Compare）名稱欄一律停用、不顯示鉛筆，也沒有刪除鈕。</Rule>
+<Rule component="task-info" id="rename">改名用 inline Editable：點名稱或鉛筆進入編輯，此時名稱 preview 與鉛筆一起消失，只剩帶 accent 外框與 ring 的輸入框；送出時去除前後空白，空字串代表清除名稱。改名送出中、draft、loading 時名稱欄停用。</Rule>
+<Rule component="task-info" id="rename-error">改名失敗不改輸入框外觀，只在下方加一行單行截斷的 danger 提示。</Rule>
+<Rule component="task-info" id="failure">失敗原因只在 Failed 狀態出現，插在 Status 與 Created 之間：左側 2px 半透明 danger 邊線，先寫一句依錯誤代碼翻譯的原因（未知代碼回退成通用文案），可展開的 Details 顯示錯誤代碼與最高 160px、可捲動的原始訊息；展開時 chevron 轉 90°。沒有錯誤代碼也沒有原始訊息時，原因用通用文案，Details 內只有一行「No failure reason was recorded.」。</Rule>
+<Rule component="task-info" id="draft">Draft（尚未送出的新 task）的 Status 用 neutral Badge「Draft」，ID 留白、Created 顯示 `-`，沒有刪除鈕。</Rule>
+<Rule component="task-info" id="loading">Loading（cold）逐格蓋 skeleton，ID 用空白字元、Status 用空 Badge 撐住行高，不顯示假資料。</Rule>
+<Rule component="task-info" id="delete">「Delete task」是全寬 danger soft 按鈕，按下開啟刪除確認 dialog。</Rule>
+</ul>
+
+</Rules>
+
+## Reference image
+
+Task 詳細面板的 Image 區：img2img 的參考圖與 denoise。
+
+<Gallery min="400px">
+<State component="reference-image" state="origin" label="reference from a task" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="reference-image" state="upload" label="uploaded file" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="reference-image" state="empty" label="empty" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="reference-image" state="dragging" label="dragging a file" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="reference-image" state="rejected" label="rejected file" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="reference-image" state="loading" label="loading (cold)" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="reference-image" state="read-only" label="read-only · reference" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="reference-image" state="read-only-empty" label="read-only · no reference" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+</Gallery>
+
+<Rules component="reference-image">
+
+<ul class="ds-rules">
+<Rule component="reference-image" id="section">Task 詳細面板的 Image 區：img2img 的參考圖與 denoise。可編輯模式能拖放、點擊上傳、從圖庫挑選或移除；唯讀模式只顯示。</Rule>
+<Rule component="reference-image" id="frame">參考圖放在高 160px、`bg-active` 的圓角框內等比 contain；點圖開啟全螢幕 image viewer（不帶操作）。可編輯模式右上角有 24px 的移除鈕，平時是半透明 stage 底色加背景模糊，hover 轉 danger。</Rule>
+<Rule component="reference-image" id="source">來源列只在參考圖來自既有 task 的輸出時出現：可編輯模式是帶「回到來源」圖示的外框按鈕，點了選取來源 task；唯讀模式是純文字。直接上傳的檔案沒有來源列。</Rule>
+<Rule component="reference-image" id="denoise">Denoise 只在有參考圖時出現：Slider 與 64px 寬的窄數字欄並排（數字欄不顯示標籤），範圍 0.05–1、step 0.05；唯讀模式兩者都停用。</Rule>
+<Rule component="reference-image" id="empty">沒有參考圖時，可編輯模式顯示虛線 drop zone（hover 換底色，拖曳中轉 accent 外框、accent 淡底與 accent 文字）與虛線外框的「Search image library」；唯讀模式顯示 `bg-active` 虛線框與「No reference image.」。</Rule>
+<Rule component="reference-image" id="file-types">只接受 PNG 與 JPEG，型別以內容判斷；拒收時在區塊底部加一行 danger 提示：型別不符為「Use a PNG or JPEG image.」，其他為「That file cannot be used as a reference image.」。</Rule>
+<Rule component="reference-image" id="loading">Loading 時逐塊蓋 skeleton（圖框內整塊覆蓋），整段不可互動。</Rule>
+</ul>
+
+</Rules>
+
+## Task config
+
+Task 詳細面板的 Config 區：workflow、seed、步數、尺寸、批次與 sampler。
+
+<Gallery min="400px">
+<State component="task-config" state="restorable" label="existing task · restorable seed" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="task-config" state="draft" label="draft" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="task-config" state="reference" label="with reference image" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="task-config" state="archived" label="archived workflow" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="task-config" state="option-error" label="workflow / sampler unavailable" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="task-config" state="loading" label="loading" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="task-config" state="read-only" label="read-only" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+</Gallery>
+
+<Rules component="task-config">
+
+<ul class="ds-rules">
+<Rule component="task-config" id="order">Task 詳細面板的 Config 區，欄位順序固定：Workflow Template、Seed、Steps｜CFG、Width｜Height、Batch、Sampler。成對欄位兩欄並排、間距 8px。</Rule>
+<Rule component="task-config" id="modes">可編輯模式全部可改；唯讀模式全部停用，Seed 也不顯示還原鈕。</Rule>
+<Rule component="task-config" id="seed">Seed 欄留空代表隨機：placeholder 是來源 task 的 seed，新 draft 則是「Random」。右側還原鈕把來源 seed 填回欄位，只在有來源 seed 時可按；沒有來源 seed 時停用，外觀依 L0 Button disabled。</Rule>
+<Rule component="task-config" id="reference-size">有參考圖時 Width、Height、Batch 停用，尺寸由參考圖決定。</Rule>
+<Rule component="task-config" id="archived">目前選的是已封存的 workflow 時，Select 值後面加 warning Badge「archived」；其他時候不出 badge。</Rule>
+<Rule component="task-config" id="option-error">Workflow 或 Sampler 清單載入失敗或為空時，只把該 Select 停用並清空值；錯誤訊息與 Retry 由 prompt-panel 的 issue chip 顯示，不寫在欄位下方。</Rule>
+<Rule component="task-config" id="loading">Loading 以欄位為單位：欄位名稱保留，只在底部 28px 的控制項位置蓋 skeleton，整段不可互動。</Rule>
+</ul>
+
+</Rules>
+
+## Task LoRA
+
+Task 詳細面板的 LoRA 區：已選 LoRA 的清單與 weight。
+
+<Gallery min="400px">
+<State component="task-lora" state="items" label="2 items" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="task-lora" state="remove-hover" label="remove button hover" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="task-lora" state="empty" label="empty" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="task-lora" state="loading" label="loading (cold)" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="task-lora" state="read-only" label="read-only · 2 items" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="task-lora" state="read-only-empty" label="read-only · empty" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+</Gallery>
+
+<Rules component="task-lora">
+
+<ul class="ds-rules">
+<Rule component="task-lora" id="cards">Task 詳細面板的 LoRA 區：每個 LoRA 一張小卡（`border-line`、圓角 8px），上列名稱與移除鈕，下列 weight 用 Slider 加 64px 窄數字欄並排調整，兩者綁同一個值。</Rule>
+<Rule component="task-lora" id="count-weight">區塊標題的計數只在兩個以上才顯示。Weight 範圍 0–2、step 0.05。</Rule>
+<Rule component="task-lora" id="remove">移除鈕是 24px ghost 圖示鈕，平時 muted，hover 才轉 danger 淡底與 danger 文字，平時不搶眼。</Rule>
+<Rule component="task-lora" id="select">可編輯模式底部是全寬 accent soft「Select LoRA」，開啟 LoRA 選擇 dialog；唯讀模式沒有移除鈕與 Select LoRA，名稱降為 `fg-secondary`，Slider 半透明、數字欄走停用欄位外觀。</Rule>
+<Rule component="task-lora" id="empty">沒有 LoRA 時只顯示一行 muted 提示「No LoRA selected.」，兩種模式相同。</Rule>
+<Rule component="task-lora" id="loading">Loading 時每張卡、提示與按鈕各自整塊蓋 skeleton（卡片的 skeleton 跟卡片同為圓角 8px），整段不可互動。</Rule>
+</ul>
+
+</Rules>
+
+## LoRA picker
+
+從 ComfyUI 的 LoRA 清單多選，Apply 才寫回 task。
+
+<Gallery min="720px">
+<State component="lora-picker" state="results" label="results · multi-select" frame="relative h-[480px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="lora-picker" state="loading" label="loading" frame="relative h-[480px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="lora-picker" state="error" label="load error" frame="relative h-[360px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="lora-picker" state="no-match" label="no match" frame="relative h-[360px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="lora-picker" state="empty" label="empty · none in ComfyUI" frame="relative h-[360px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+</Gallery>
+
+<Rules component="lora-picker">
+
+<ul class="ds-rules">
+<Rule component="lora-picker" id="draft-selection">開啟時複製目前選取作為暫存，開啟期間外部更新不覆蓋使用者的勾選；Cancel 或關閉不套用，Apply 才寫回。</Rule>
+<Rule component="lora-picker" id="backdrop">Backdrop 用較淡的 `bg-backdrop-muted backdrop-blur-[2px]`；dialog `w-[600px] rounded-[10px] max-h-[70vh]`，body 是 flex 欄：搜尋固定在上，清單自己捲動。</Rule>
+<Rule component="lora-picker" id="search">搜尋欄 `h-7`、左側 search icon、label 隱藏，以名稱不分大小寫的包含比對篩選。</Rule>
+<Rule component="lora-picker" id="rows">清單列是整列 ghost 按鈕：`h-12 text-sm rounded-none`、底線 `border-line-subtle`，hover `bg-elevated`；選中 `bg-accent/15 text-fg` 加 accent 45% inset 框，右側 Plus 換成 accent Check。</Rule>
+<Rule component="lora-picker" id="loading-error">載入中以 5 列 `h-12` skeleton 取代清單；載入失敗用 L0 StatusMessage compact 載入失敗（muted 訊息 + Retry，不用紅字）。</Rule>
+<Rule component="lora-picker" id="empty-vs-no-match">清單本來就空顯示「No LoRAs available in ComfyUI.」，搜尋後沒有結果才是「No LoRA matches the search.」，兩者都是 L0 StatusMessage compact 空結果、不放按鈕。</Rule>
+<Rule component="lora-picker" id="footer">footer 照 L0 Dialog picker，左側是已選數量。</Rule>
+</ul>
+
+</Rules>
+
+## Reference image picker
+
+選參考圖的 dialog：從圖庫挑一張圖當參考圖。
+
+<Gallery min="100%">
+<State component="generate-reference-picker" state="single" label="single · Type = Input" frame="min-w-[1260px] relative h-[440px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="generate-reference-picker" state="loading" label="loading" frame="min-w-[1260px] relative h-[440px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="generate-reference-picker" state="error" label="load error" frame="min-w-[1260px] relative h-[340px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="generate-reference-picker" state="empty" label="empty" frame="min-w-[1260px] relative h-[340px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+</Gallery>
+
+<Rules component="generate-reference-picker">
+
+<ul class="ds-rules">
+<Rule component="generate-reference-picker" id="purpose">選參考圖用，只選一張；標題「Choose reference image」。</Rule>
+<Rule component="generate-reference-picker" id="size">dialog `w-[1200px]`、高度撐滿視窗扣掉邊距；窄時縮到可用寬度。Backdrop `bg-backdrop`。</Rule>
+<Rule component="generate-reference-picker" id="search-filters">上方搜尋（task name 或 task ID）+ 篩選列：Task flag 為多選 chips（All／Unflag／Pin／Discard），Type 為單選（All／Input／Output）；選中 chip `bg-selected text-fg`。Type 選 Input 時 Task 整組停用（照 L0 停用樣式）並清掉 flag 篩選。</Rule>
+<Rule component="generate-reference-picker" id="grid">格狀固定 `grid-cols-5 gap-3`；卡片 `p-1.5 rounded-lg`，hover `bg-hover` 並浮出右上 glass 勾選鈕；選中 `border-accent bg-accent/20 ring-2 ring-accent/40`，右上是 Check。</Rule>
+<Rule component="generate-reference-picker" id="flag-state">Flag 只顯示狀態：左上角摺 26px（pin／discard 色），discard 另壓 `bg-discard-dim`；picker 內沒有 flag 操作。</Rule>
+<Rule component="generate-reference-picker" id="source-label">卡片下方 mono 顯示來源（task 名稱 #n 或 input），右側 `in`（`bg-info/18 text-info-fg`）／`out`（`bg-elevated text-fg-muted`）小標。</Rule>
+<Rule component="generate-reference-picker" id="loading-empty">載入中以 `aspect-square` skeleton 鋪滿兩列；載入失敗與沒有圖都用 L0 StatusMessage compact（失敗為 muted 訊息 + Retry，不用紅字）。</Rule>
+<Rule component="generate-reference-picker" id="next-page">捲到底自動載下一頁；下一頁失敗時在格狀尾端附加 L0 StatusMessage compact 載入失敗（muted「Failed to load more images.」+ Retry，不用紅字），已載入的卡片保留。</Rule>
+<Rule component="generate-reference-picker" id="footer">footer 照 L0 Dialog picker；左側是所選圖的尺寸。沒有選取時 Apply 停用。</Rule>
+<Rule component="generate-reference-picker" id="representative">板上卡片只放代表性的一組狀態，實際張數依資料而定。</Rule>
+</ul>
+
+</Rules>
+
+## Confirm dialog
+
+刪除 task 前的確認：單一 task、批次刪除選取或標記的 task。
+
+<Gallery min="520px">
+<State component="generate-confirm-dialog" state="task-delete" label="task · delete" frame="relative h-[300px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="generate-confirm-dialog" state="task-delete-error" label="task · delete · error" frame="relative h-[300px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="generate-confirm-dialog" state="batch-delete" label="batch · selected" frame="relative h-[300px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="generate-confirm-dialog" state="batch-discard-pending" label="batch · discard · pending" frame="relative h-[300px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+</Gallery>
+
+<Rules component="generate-confirm-dialog">
+
+<ul class="ds-rules">
+<Rule component="generate-confirm-dialog" id="structure">結構固定：header（`text-base font-bold` 標題 + `text-xs leading-5 text-fg-muted` 說明 + 右上 soft 關閉鈕 `size-7`）、body（受影響的對象，名稱用 `font-mono`）、footer（`border-t`）。</Rule>
+<Rule component="generate-confirm-dialog" id="backdrop">Backdrop `bg-backdrop`；dialog 置中，`rounded-lg border-line bg-surface shadow-2xl`。板上以 `absolute` 畫在固定高度的框內。</Rule>
+<Rule component="generate-confirm-dialog" id="width-error">刪除／封存類寬 `w-[420px]`；footer 左側放錯誤（`text-xs text-danger-fg`，單行截斷），右側 Cancel（soft neutral）與確認鈕（soft danger），尺寸依 L0 Dialog footer。</Rule>
+<Rule component="generate-confirm-dialog" id="pending">確認進行中依 L0 Dialog pending：兩顆按鈕都用 L0 Button 停用樣式，確認鈕文案換成「Deleting...」；批次刪除在進行中也擋掉關閉，右上關閉鈕一併停用。</Rule>
+<Rule component="generate-confirm-dialog" id="close-on-success">失敗時 dialog 保持開啟並在 footer 顯示錯誤；成功才關閉。</Rule>
+</ul>
+
+</Rules>
+
+## Screen
+
+<Screen>
+    <Slot name="header" component="app-header" states="generate,comfy-down,server-down,connecting" />
+    <div class="flex min-h-0 flex-1 overflow-hidden">
+        <Switch name="view">
+            <Case state="workspace" label="workspace">
+                <Slot name="list" component="task-list" states="default,empty,empty-pin,empty-filter,loading,error,loading-more,page-error,flag-error,collapsed,collapsed-loading,collapsed-empty" />
+                <section class="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-canvas">
+                    <Slot name="prompt" component="prompt-panel" states="default,submitting,loading,issues" />
+                    <Slot name="stage" component="image-stage" states="multiple,single,empty,loading" />
+                </section>
+            </Case>
+            <Case state="browser" label="task browser">
+                <Slot name="browser" component="task-browser" states="default,search,filter-unflag,filter-pin,filter-multi,filter-discard,selection,selection-one,marquee,discard-selection,selection-limit,flag-error,empty,no-match,empty-unflag,empty-pin,empty-filter,empty-discard,loading,error,loading-more,page-error" />
+            </Case>
+        </Switch>
+        <Slot name="detail" component="task-detail" states="view,draft,loading,error,collapsed,failed" />
+    </div>
+    <Switch name="overlay">
+        <Case state="none" label="none" />
+        <Case state="viewer" label="image viewer">
+            <div class="absolute inset-0 z-10 flex">
+                <Slot name="viewer" component="image-viewer" states="default,zoomed,error" />
+            </div>
+        </Case>
+        <Case state="lora" label="LoRA picker"><Slot name="lora" component="lora-picker" states="results,loading,error,no-match,empty" /></Case>
+        <Case state="reference" label="reference image picker"><Slot name="reference" component="generate-reference-picker" states="single,loading,error,empty" /></Case>
+        <Case state="delete" label="delete task"><Slot name="delete" component="generate-confirm-dialog" states="task-delete,task-delete-error" /></Case>
+        <Case state="batch-delete" label="delete selected"><Fixed component="generate-confirm-dialog" state="batch-delete" /></Case>
+        <Case state="batch-discard" label="delete discarded"><Fixed component="generate-confirm-dialog" state="batch-discard-pending" /></Case>
+    </Switch>
+</Screen>
+
+<Rules component="generate-screen">
+
+<ul class="ds-rules">
+<Rule component="generate-screen" id="columns">Header 固定 48px；其下三欄以 `border-r`／`border-l border-line` 分隔，不留縫。</Rule>
+<Rule component="generate-screen" id="widths">Task list 展開 250px、收合時寬度由縮圖撐開；Task detail 展開 350px、收合 40px。兩側各自收合，工作區吃掉其餘寬度。</Rule>
+<Rule component="generate-screen" id="workspace">工作區 Prompt panel 在上、Image stage 填滿剩餘高度；Stage 永遠存在，沒有圖時顯示自己的空狀態，不收掉。</Rule>
+<Rule component="generate-screen" id="browser">Task browser 取代 Task list 與工作區，Task detail 保留在右側，選取的 task 兩邊同步。</Rule>
+<Rule component="generate-screen" id="browser-toolbar">Task browser 的篩選、搜尋與勾選都在工具列；各篩選下的卡片組成、空狀態文案與批次操作見 L1 Task browser，控制列的 browser 選單可逐一切換。</Rule>
+<Rule component="generate-screen" id="overlays">Image viewer、LoRA／參考圖 picker 與刪除確認 dialog 蓋住整個視窗（含 Header），關閉後回到原本狀態；Task browser 點卡片縮圖開的也是同一個 Image viewer。</Rule>
+<Rule component="generate-screen" id="narrow">視窗變窄時先隱藏 Task detail（寬度 &lt; 980px），再隱藏 Task list（&lt; 720px），工作區永遠保留。</Rule>
+</ul>
+
+</Rules>

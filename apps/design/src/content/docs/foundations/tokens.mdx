@@ -1,0 +1,182 @@
+---
+title: Tokens
+description: 顏色、文字、圖示、尺寸、狀態與動畫的設計 token，以及最上層的 App model。
+---
+
+import State from '@silent-pix/blueprint/components/State.astro'
+import Gallery from '@silent-pix/blueprint/components/Gallery.astro'
+import Rule from '@silent-pix/blueprint/components/Rule.astro'
+import Rules from '@silent-pix/blueprint/components/Rules.astro'
+import TokenValues from '@silent-pix/blueprint/components/TokenValues.astro'
+
+<TokenValues />
+
+## App model
+
+Silent Pix 是桌面 App，瀏覽器版用的也是同一套介面。所有畫面一律照桌面 App 的習慣設計，不照網頁。這是最上層的規則，其他規則都在它底下。
+
+<Rules component="token-app-model">
+
+<ul class="ds-rules">
+<Rule component="token-app-model" id="workspace-window">視窗就是工作區：Header 固定在頂端，下方各區塊填滿視窗高度、各自捲動。整頁不捲動，不做網頁式的長頁面。</Rule>
+<Rule component="token-app-model" id="bar-and-panels">用 Bar 與面板分割空間：側欄固定寬度，主區吃掉剩餘寬度。不把內容置中成一欄、不設頁面最大寬度；只有表單類內容（Settings）可以限制欄寬，讓欄位不會拉得過長。</Rule>
+<Rule component="token-app-model" id="no-web-header">沒有網頁式的頁首：不放 hero、大標題或整段介紹文字。頁面或區塊名稱寫在 Bar 標題；需要說明時，寫在用得到它的空狀態或欄位提示裡。</Rule>
+<Rule component="token-app-model" id="controls-not-links">操作用控制項，不用網頁慣例：不用文字連結、底線分頁或麵包屑。切換用 Segment group，換頁用 Header 的模式分頁與選單。</Rule>
+<Rule component="token-app-model" id="arrow-cursor">游標照桌面習慣：按鈕、選項、清單列、選單項目這些控制項維持箭頭，不顯示網頁連結的手指游標（不用 `cursor-pointer`）。文字輸入顯示 I 形游標，可拖曳的元件顯示 grab，停用照 L0 停用樣式。可不可以點，由外觀和 hover 底色表達，不靠游標。</Rule>
+<Rule component="token-app-model" id="in-place">操作就地完成：不換頁、不重新整理。結果留在原處呈現（按鈕狀態、Issue chip、StatusMessage），進行中用停用樣式與進行式文案表示。</Rule>
+<Rule component="token-app-model" id="open-files">檔案用桌面習慣開啟：開檔按鈕，或把檔案拖進視窗；拖曳經過時，整個接收區顯示接收框。</Rule>
+<Rule component="token-app-model" id="desktop-first">設計新元件或新頁面時，先想桌面 App 會怎麼做；和網頁慣例衝突時，以桌面 App 為準。</Rule>
+</ul>
+
+</Rules>
+
+## Color
+
+Chrome 一律純 neutral，不帶色溫——這是影像工具，chrome 的色溫會干擾對圖片顏色的判斷。顏色只用來表達語意：accent、flag、status。 色塊底下是該 theme 的實際值；alpha 色塊疊在 `surface` 上。
+
+<Gallery min="100%">
+<State component="token-color" state="surface" label="Surface" themes="both" frame="flex flex-col gap-6 p-5" />
+<State component="token-color" state="line-text" label="Line & Text" themes="both" frame="flex flex-col gap-6 p-5" />
+<State component="token-color" state="accent-status" label="Accent & Status" themes="both" frame="flex flex-col gap-6 p-5" />
+<State component="token-color" state="flag" label="Flag" themes="both" frame="flex flex-col gap-6 p-5" />
+<State component="token-color" state="stage" label="Stage" themes="both" frame="flex flex-col gap-6 p-5" />
+<State component="token-color" state="utility" label="Utility" themes="both" frame="p-5" />
+</Gallery>
+
+<Rules component="token-color">
+
+#### Surface
+
+<ul class="ds-rules">
+<Rule component="token-color" id="panel-border">相鄰 panel 之間用 `border-r border-line` 分隔（見示意右側），不留縫。</Rule>
+<Rule component="token-color" id="hover-alpha">`hover` 是 alpha，疊在任何底上都會相對加深；但底本來就是 `elevated` 的元件要用 `elevated-hover`，因為 bg 是替換不是疊加。</Rule>
+<Rule component="token-color" id="field-not-active">輸入框用 `field`，不要拿 `active` 代替——兩個角色在 Light 的方向相反。</Rule>
+</ul>
+
+#### Line & Text
+
+<ul class="ds-rules">
+<Rule component="token-color" id="fg-steps">降低文字層次只換 `fg-*` 階，不用 `opacity`。唯一例外是 disabled 控制項。</Rule>
+<Rule component="token-color" id="spacing-not-lines">需要比 `line-subtle` 更淡的分隔時，改用間距而不是再造一階線。</Rule>
+</ul>
+
+#### Accent & Status
+
+<ul class="ds-rules">
+<Rule component="token-color" id="on-solid">實心底上的字與 icon 用 `text-on-stage`（白），不用 `text-fg`。</Rule>
+<Rule component="token-color" id="soft-tint">染色底用 `bg-*-soft` token，比例會隨 theme 變；不要寫死 `/15`。Button 的 `/15` 是既有例外。</Rule>
+<Rule component="token-color" id="primary-action">主要動作（Generate、Save、Apply）用 accent solid，一個區塊只放一個；破壞性動作（含確認 dialog 的刪除鈕）用 `tone="danger"` 的預設 soft。</Rule>
+</ul>
+
+#### Flag
+
+<ul class="ds-rules">
+<Rule component="token-color" id="flag-state-action">縮圖左上的角摺是「狀態」，常駐不可點；行右端的按鈕是「操作」，只在 hover 時出現。Inactive 一律中性 ghost，顏色只在 active 出現。</Rule>
+<Rule component="token-color" id="flag-ink">Gold / mist 是淺色，實心底上的 icon 必須用 `*-ink`，不用白。Discard 另加 `discard-dim` 壓暗照片。</Rule>
+</ul>
+
+#### Stage
+
+<ul class="ds-rules">
+<Rule component="token-color" id="glass-recipe">疊在圖片上的控制項一律用 glass recipe：`border-stage-line bg-stage-control text-on-stage hover:bg-stage-control-hover backdrop-blur-[8px]`。</Rule>
+<Rule component="token-color" id="viewer-backdrop">全螢幕 viewer 的底走 `backdrop`，不用 `stage`。</Rule>
+</ul>
+
+</Rules>
+
+## Typography
+
+Manrope Variable 搭配 Noto Sans TC Variable。介面是高密度工具，預設內容字級是 `text-xs`（12px）；更大的字只給標題與空狀態，更小的只給 meta 與 overline。
+
+<Gallery min="100%">
+<State component="token-typography" state="roles" label="文字角色" themes="both" frame="p-0" />
+</Gallery>
+
+<Rules component="token-typography">
+
+<ul class="ds-rules">
+<Rule component="token-typography" id="font-weight">字重只用 `font-medium`（強調值、按鈕）與 `font-semibold`（標題）；`font-bold` 只給 Dialog title。</Rule>
+<Rule component="token-typography" id="leading">單行標題、label 用 `leading-none` 配合固定高度容器對齊；多行內容用 `leading-relaxed`。</Rule>
+<Rule component="token-typography" id="numbers-truncate">數字欄位加 `tabular-nums`；可能過長的單行加 `truncate` 並確保父層 `min-w-0`。</Rule>
+</ul>
+
+</Rules>
+
+## Icon
+
+只用 `lucide-solid`。尺寸跟著所在元件走，stroke 預設 1.8。
+
+<Gallery min="100%">
+<State component="token-icon" state="sizes" label="尺寸與筆畫" themes="both" frame="flex flex-col gap-5 p-5" />
+</Gallery>
+
+<Rules component="token-icon">
+
+<ul class="ds-rules">
+<Rule component="token-icon" id="icon-color">Icon 跟文字同色（`currentColor`）；列表與 menu 裡的 icon 降一階為 `text-fg-muted`，目前項目再回到 `text-fg`。</Rule>
+<Rule component="token-icon" id="icon-gap-square">Icon 與文字的間距用 `gap-1.5`（緊湊）或 `gap-2`（預設）。只有 icon 的按鈕永遠是正方形：一般 `size-7`，附在列或縮圖上 `size-6`，stage 玻璃鈕 `size-8`。</Rule>
+</ul>
+
+</Rules>
+
+## Size & spacing
+
+控制項高度是固定的幾階；間距以 4px 為單位，常用 1–4。
+
+<Gallery min="100%">
+<State component="token-size" state="control-heights" label="控制項高度" themes="both" frame="p-5" />
+<State component="token-size" state="spacing" label="間距" themes="both" frame="p-5" />
+</Gallery>
+
+<Rules component="token-size">
+
+<ul class="ds-rules">
+<Rule component="token-size" id="flex-gap">預設用 flex + gap 排版，不用 margin 堆疊。</Rule>
+<Rule component="token-size" id="padding">Bar 左右內距 `px-3`～`px-4`，panel 內容 `p-4`，dialog header／footer `px-4 py-3`。</Rule>
+</ul>
+
+</Rules>
+
+## Radius & elevation
+
+<Gallery min="100%">
+<State component="token-shape" state="radius" label="圓角" themes="both" frame="p-5" />
+<State component="token-shape" state="shadow" label="陰影" themes="both" frame="p-6" />
+</Gallery>
+
+## Interaction state
+
+所有互動元件共用同一組狀態表現。下方為靜態攤開的結果，實際 class 帶 `hover:`／`focus-visible:`／`disabled:` 前綴。
+
+<Gallery min="100%">
+<State component="token-state" state="matrix" label="狀態矩陣" themes="both" frame="flex flex-col gap-6 p-5" />
+</Gallery>
+
+<Rules component="token-state">
+
+<ul class="ds-rules">
+<Rule component="token-state" id="focus">Focus 一律 `focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40`；danger 元件換成 danger 色。元件預留 `border border-transparent`，focus 時才不會跳動。</Rule>
+<Rule component="token-state" id="selected">選取態用 `bg-selected text-fg`：和 hover 一樣是 alpha 疊加層，但深一階，疊在 surface、elevated 或清單列上都看得出來，滑過其他項目時也分得出哪個是選中的。不畫框線，也不要另用 accent 底表示選取。</Rule>
+<Rule component="token-state" id="stage-selected">Stage 上的縮圖（縮圖列、viewer）不用選取底色，改用 `ring-2` 加所在底色的前景色：跟著 theme 變色的 stage 用 `ring-stage-fg`，永遠是暗底的全螢幕 viewer 用 `ring-on-stage`。不用 accent。</Rule>
+<Rule component="token-state" id="disabled">停用的輸入框用 `theme.field.disabled`；停用的按鈕、導覽項目與選項一律 `disabled:cursor-not-allowed disabled:opacity-60`；唯一例外是疊在照片上的 stage 玻璃鈕，規則見 L0 Stage button。</Rule>
+<Rule component="token-state" id="field-error">欄位錯誤不改輸入框外觀，改在欄位下方顯示 `FieldHint tone="danger"`。</Rule>
+</ul>
+
+</Rules>
+
+## Motion
+
+動畫只用在「出現」：140ms ease-out。消失不做動畫。`prefers-reduced-motion` 下全部關閉。
+
+<Gallery min="100%">
+<State component="token-motion" state="classes" label="既有動畫 class" themes="both" frame="p-5" />
+</Gallery>
+
+<Rules component="token-motion">
+
+<ul class="ds-rules">
+<Rule component="token-motion" id="reuse-animation">新動畫先確認能否重用上述 class；新增時寫進 `styles.css` 並加入 reduced-motion 區塊。</Rule>
+<Rule component="token-motion" id="opaque-skeleton">Loading 骨架不可半透明——底下尚未替換的舊資料會透出來。</Rule>
+</ul>
+
+</Rules>

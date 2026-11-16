@@ -1,0 +1,30 @@
+---
+/*
+ * 位址複製鈕（Copy 圖示，與只負責跳轉的標題錨點區分）：平時隱藏，滑過所在的狀態／規則時才出現；hover 提示完整位址，點了複製。
+ * 位址＝頁面路徑＋錨點，可直接貼給 agent，也能貼在瀏覽器開啟。
+ */
+type Props = { id: string }
+const { id } = Astro.props
+const address = `${Astro.url.pathname.replace(/^\/|\/$/g, '')}#${id}`
+---
+<button type="button" data-ds-copy={address} title={`Copy address: ${address}`} class="ds-copy not-content">
+    <svg data-ds-copy-icon="link" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+    <svg data-ds-copy-icon="check" hidden xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+</button>
+
+<script>
+    /* 一個委派的 click handler 處理全頁的複製鈕；複製後圖示換成 Check 約 1.5 秒 */
+    document.addEventListener('click', event => {
+        const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-ds-copy]')
+        if (!button) return
+        void navigator.clipboard.writeText(button.dataset.dsCopy ?? '').then(() => {
+            const [link, check] = button.querySelectorAll<SVGElement>('[data-ds-copy-icon]')
+            link?.toggleAttribute('hidden', true)
+            check?.toggleAttribute('hidden', false)
+            setTimeout(() => {
+                link?.toggleAttribute('hidden', false)
+                check?.toggleAttribute('hidden', true)
+            }, 1500)
+        })
+    })
+</script>

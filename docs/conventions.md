@@ -163,6 +163,9 @@ apps/web
     Shared form/control primitives live in `apps/web/src/components/field`.
     Page-specific UI lives under that page folder, e.g. `apps/web/src/pages/generate/components`.
 
+apps/design
+    Design system blueprint content: pages, state fragments, and its own token stylesheet. Never imports or is imported by apps/web.
+
 apps/server
     Elysia app, middleware, domain routes/services, server env, lifecycle.
 
@@ -182,6 +185,9 @@ packages/db
 
 packages/env
     Node-only base env and path resolution for server and DB scripts.
+
+packages/blueprint
+    Reusable design-system blueprint framework (Astro + Starlight integration, page components, search, chrome styles, layout check). No Silent Pix content.
 ```
 
 Do not mix ownership.
@@ -471,6 +477,29 @@ Rules:
 ---
 
 ## Web UI
+
+The design system in `apps/design` is the blueprint for Web UI. It is a separate
+app built with `packages/blueprint` (Astro + Starlight) and has its own token stylesheet; run it with
+`pnpm dev:design`. Web and the blueprint never import each other. Design or
+change UI on the blueprint first (or in the same change), then build it in Web
+from the blueprint. A token change updates both `apps/design/src/styles/tokens.css`
+and `apps/web/src/styles.css`.
+
+The sidebar lists Tokens, then base components (one page each), then one page
+per product page. A product page has a `##` section per part, ordered from the
+outside in and top to bottom, and ends with `## Screen`, the whole page. A part
+shows only itself: each state is one HTML fragment in
+`src/blueprint/<component>/<state>.html`, shown with `<State>`, followed by the
+part's `<Rules>`. Small pieces such as rows and cards are shown through the
+states of the part that contains them; a piece with many states and rules of
+its own gets its own section. A part goes on the App page only when several
+product pages use the same UI. Embed another part in a fragment with
+`data-ds-slot` instead of copying its markup; screens compose fragments with
+`<Slot>`, `<Fixed>`, and `<Switch>`/`<Case>`. Rules are written for agents, once,
+in the section that owns them, with a stable `id`, and describe design only — no
+implementation file names. Use inline lucide SVG markup for icons and fixed
+sample copy instead of i18n keys. The content format is in `apps/design/AGENTS.md`; the components and behavior come from the reusable framework in `packages/blueprint` (see its `AGENTS.md`), which holds no Silent Pix content.
+Run `pnpm build:design` and `pnpm check:design` after changes.
 
 Use:
 

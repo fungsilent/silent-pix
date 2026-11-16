@@ -1,0 +1,9 @@
+---
+/*
+ * Screen 裡切換「一整塊版面」：每個 <Case> 是一個選項，裡面可以再放 Slot（例如工作區／Task browser、覆蓋層的類型）。
+ * 控制列只顯示目前選中 Case 裡的 Slot 選單。第一個 Case 是預設。
+ */
+type Props = { name: string }
+const { name } = Astro.props
+---
+<div data-ds-slot={name} class="contents"><slot /></div>

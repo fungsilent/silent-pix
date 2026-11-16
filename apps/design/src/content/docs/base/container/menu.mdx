@@ -1,0 +1,30 @@
+---
+title: Menu
+description: 由圖示鈕開啟的下拉選單：一列列 icon + 文字的項目，用來前往或執行不常駐在畫面上的功能。範例用中性的佔位項目；產品裡的實際選單見各頁（例如 App 頁的 App menu）。
+sidebar:
+    order: 6
+---
+
+import State from '@silent-pix/blueprint/components/State.astro'
+import Gallery from '@silent-pix/blueprint/components/Gallery.astro'
+import Rule from '@silent-pix/blueprint/components/Rule.astro'
+import Rules from '@silent-pix/blueprint/components/Rules.astro'
+
+## Examples
+
+<Gallery min="300px">
+<State component="menu" state="open" label="open" frame="relative h-[136px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
+<State component="menu" state="current" label="open · current item" frame="relative h-[136px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
+<State component="menu" state="highlighted" label="open · item hover" frame="relative h-[136px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
+</Gallery>
+
+<Rules component="menu">
+
+<ul class="ds-rules">
+<Rule component="menu" id="trigger">Trigger 是 `size-7` 圖示鈕；選單開啟時 trigger 停在按下狀態 `bg-selected text-fg`，hover 時 `bg-hover`；關閉後回到 `text-fg-secondary`。</Rule>
+<Rule component="menu" id="surface">選單面 `w-[212px] rounded-md border border-line bg-elevated p-1 shadow-popover`，對齊 trigger 左下（bottom-start）、間距 4px，浮在所有面板之上。</Rule>
+<Rule component="menu" id="item">項目 `h-8 gap-2 rounded px-2 text-xs text-fg`，icon 14、`text-fg-muted`，文字單行 truncate；hover 或鍵盤高亮只加 `bg-hover`。代表目前所在頁的項目用 `bg-selected` 並把 icon 提亮為 `text-fg`；這一項 hover 時仍維持 `bg-selected`，不換成 `bg-hover`。</Rule>
+<Rule component="menu" id="item-content">項目只放 icon + 文字，不放勾選、快捷鍵或子選單；項目少時不分組、不加分隔線。</Rule>
+</ul>
+
+</Rules>

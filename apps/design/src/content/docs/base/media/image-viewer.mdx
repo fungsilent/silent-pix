@@ -1,0 +1,60 @@
+---
+title: Image viewer
+description: 蓋住整個 app 的大圖檢視，以及檢視器和比較工作區共用的縮放控制。
+sidebar:
+    order: 1
+---
+
+import State from '@silent-pix/blueprint/components/State.astro'
+import Gallery from '@silent-pix/blueprint/components/Gallery.astro'
+import Rule from '@silent-pix/blueprint/components/Rule.astro'
+import Rules from '@silent-pix/blueprint/components/Rules.astro'
+
+## Image viewer
+
+全螢幕看圖：backdrop 蓋住整個 app，可縮放、平移、左右切換。Generate、task browser、compare、參考圖共用。
+
+<Gallery min="720px">
+<State component="image-viewer" state="default" label="default · fit · thumbnails" frame="relative h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="image-viewer" state="compare" label="compare · current image chip · labelled thumbnails" frame="relative h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="image-viewer" state="zoomed" label="zoomed 200% · minimap · strip hidden" frame="relative h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="image-viewer" state="error" label="single · load error" frame="relative h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+</Gallery>
+
+<Rules component="image-viewer">
+
+<ul class="ds-rules">
+<Rule component="image-viewer" id="overlay">蓋住整個 app 的 overlay，底色 `bg-backdrop backdrop-blur-[6px]` 並淡入；底固定是暗的，不用 stage 色。點 backdrop 或 Esc 關閉；拖曳平移後放開不算點擊關閉。板上以 `absolute` 畫在固定高度的框內。</Rule>
+<Rule component="image-viewer" id="close">右上只有 close（size-8 glass、icon 16），不放其他動作。</Rule>
+<Rule component="image-viewer" id="counter">左上：2 張以上時顯示 `n / total` glass chip。從 compare 開啟時換成目前圖片 chip（accent 序號 + 來源標籤 + 尺寸，同 compare-workspace），縮圖底部疊 gradient 標籤。chip 與縮圖的標籤規則同 compare-strip：沒有來源的圖用 image id 前 8 碼。</Rule>
+<Rule component="image-viewer" id="paging-strip">左右切換 `size-8` glass、icon 18，2 張以上才出現。縮圖列只在 2 張以上且 Fit 時出現，放大後收起；選取縮圖 `ring-2 ring-on-stage`（viewer 底固定暗，不用 `ring-stage-fg`）。</Rule>
+<Rule component="image-viewer" id="pan-minimap">放大到超出可視範圍時游標變 grab 可平移，右下出現 minimap（長邊 96px、`bg-stage-overlay-muted`），框出可見範圍，可點擊或拖曳跳轉。</Rule>
+<Rule component="image-viewer" id="load-error">圖片載入失敗時隱藏該圖，置中放 L0 StatusMessage regular content error「Image unavailable」（不放 Retry），不出 minimap。viewer 底固定是暗的，danger 文字改用 `text-stage-danger`，兩種主題都讀得到。</Rule>
+<Rule component="image-viewer" id="zoom-controls">左下是 zoom-controls。</Rule>
+</ul>
+
+</Rules>
+
+## Zoom controls
+
+疊在可縮放圖片左下的 glass 縮放條。image-viewer 與 compare-workspace 共用。
+
+<Gallery min="360px">
+<State component="zoom-controls" state="fit" label="fit · − disabled" frame="relative h-[84px] overflow-hidden rounded-lg border border-line-subtle bg-stage" />
+<State component="zoom-controls" state="zoomed" label="zoomed · 200%" frame="relative h-[84px] overflow-hidden rounded-lg border border-line-subtle bg-stage" />
+<State component="zoom-controls" state="hover" label="percent · hover" frame="relative h-[84px] overflow-hidden rounded-lg border border-line-subtle bg-stage" />
+<State component="zoom-controls" state="editing" label="percent · editing" frame="relative h-[84px] overflow-hidden rounded-lg border border-line-subtle bg-stage" />
+<State component="zoom-controls" state="max" label="max 800% · + disabled" frame="relative h-[84px] overflow-hidden rounded-lg border border-line-subtle bg-stage" />
+</Gallery>
+
+<Rules component="zoom-controls">
+
+<ul class="ds-rules">
+<Rule component="zoom-controls" id="bar">glass 條 `h-8 gap-1 px-1`，固定在所在 stage 左下 `bottom-6 left-6`：−、目前倍率、+、分隔線、`1:1`。按鈕 `size-7 rounded`、icon 15，hover `bg-stage-control-hover`。</Rule>
+<Rule component="zoom-controls" id="percent">倍率欄固定 `w-[54px] tabular-nums`，Fit 時顯示「Fit」，否則顯示百分比。</Rule>
+<Rule component="zoom-controls" id="limits">Fit 時 − 不可用、到 800% 時 + 不可用，皆照 L0 Stage button 停用。</Rule>
+<Rule component="zoom-controls" id="editing">點倍率切成輸入框（`bg-stage-control-hover`，只輸入數字），Enter 或失焦套用、Esc 取消。</Rule>
+<Rule component="zoom-controls" id="one-to-one">`1:1` 在 Fit 與 100% 之間切換；雙擊圖片同效。</Rule>
+</ul>
+
+</Rules>

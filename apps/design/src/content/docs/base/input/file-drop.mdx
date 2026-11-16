@@ -1,0 +1,34 @@
+---
+title: File drop
+description: 單一圖片的拖放／點擊選檔區。
+sidebar:
+    order: 7
+---
+
+import State from '@silent-pix/blueprint/components/State.astro'
+import Gallery from '@silent-pix/blueprint/components/Gallery.astro'
+import Rule from '@silent-pix/blueprint/components/Rule.astro'
+import Rules from '@silent-pix/blueprint/components/Rules.astro'
+
+## Examples
+
+<Gallery min="300px">
+<State component="file-drop" state="empty" label="empty" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="file-drop" state="hover" label="hover" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="file-drop" state="dragging" label="dragging a file over" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="file-drop" state="rejected" label="rejected file" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="file-drop" state="replace" label="has a file · replace" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="file-drop" state="disabled" label="disabled" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+</Gallery>
+
+<Rules component="file-drop">
+
+<ul class="ds-rules">
+<Rule component="file-drop" id="drop-area">單一檔案的拖放區，同時接受拖放與點擊選檔：`border-dashed border-line rounded-md`、`py-6` 置中三行——20px ImagePlus、`text-xs text-fg-secondary` 的操作說明、`text-[11px]` 的可接受格式。</Rule>
+<Rule component="file-drop" id="hover-drag">Hover `bg-hover`；拖曳檔案經過時整塊轉 accent：`border-accent bg-accent/10 text-accent-fg`，告訴使用者放開就會收下。</Rule>
+<Rule component="file-drop" id="invalid">格式或大小不符時拖放區外觀不變，在區塊下方用 L0 field-hint danger 說明原因；可接受的檔案會直接取代先前的選擇，所以同一個檔案可以重選。</Rule>
+<Rule component="file-drop" id="replace">已經有檔案時說明改成「Drop or choose another image」，拖放區仍在，作為替換入口。停用時整塊 `opacity-50`、游標 default。</Rule>
+<Rule component="file-drop" id="empty-placeholder">虛線框也是「這裡還沒有東西」的視覺語言：唯讀檢視沒有檔案時用同樣的虛線框（不可點、底色 active）顯示 empty 文字，不要用實線框。</Rule>
+</ul>
+
+</Rules>

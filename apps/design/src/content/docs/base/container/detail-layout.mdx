@@ -1,0 +1,33 @@
+---
+title: Detail layout
+description: 面板內詳細內容的三層骨架：section → group → row，以及 row 內各種值的樣式。範例用中性的佔位內容；實際的詳細面板見各頁（例如 Generate 的 Task detail、Workflow 的 Workflow detail）。
+sidebar:
+    order: 4
+---
+
+import State from '@silent-pix/blueprint/components/State.astro'
+import Gallery from '@silent-pix/blueprint/components/Gallery.astro'
+import Rule from '@silent-pix/blueprint/components/Rule.astro'
+import Rules from '@silent-pix/blueprint/components/Rules.astro'
+
+## Examples
+
+<Gallery min="360px">
+<State component="detail-layout" state="default" label="section · identity + titled section" frame="flex w-fit max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface pt-4" />
+<State component="detail-layout" state="groups" label="section → group → row" frame="flex w-fit max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface pt-4" />
+<State component="detail-layout" state="row-values" label="row values" frame="flex w-fit max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface pt-4" />
+</Gallery>
+
+<Rules component="detail-layout">
+
+<ul class="ds-rules">
+<Rule component="detail-layout" id="outer">外層 `flex flex-col gap-3 px-4 pt-0 pb-5`，緊接在面板 Bar 下方（所以頂端不留內距）。section 之間只插一條 Line（`my-1 border-t border-line-subtle`），不另加間距。</Rule>
+<Rule component="detail-layout" id="section-title">**section** 標題：`text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-title`，外包 `py-1`；可在標題後接一個 muted 計數。第一段（identity：ID、建立時間等）不放標題。</Rule>
+<Rule component="detail-layout" id="group">**group** 是 section 內的次分組，標題 `text-xs font-semibold text-fg-secondary`；組與組之間同樣用 Line。</Rule>
+<Rule component="detail-layout" id="row">**row** 固定兩欄 `grid-cols-[74px_minmax(0,1fr)] items-center gap-3`，label `text-xs text-fg-muted` 單行 truncate。需要多欄對照的 L1 元件可自訂欄格，但沿用同一個 label 樣式。</Rule>
+<Rule component="detail-layout" id="values">值：ID 用 `font-mono text-[11px] font-medium text-fg` 並 truncate；一般短值 `text-xs leading-none text-fg-secondary`；無值顯示 `-` 並改 `text-fg-muted`；狀態與標記用 Badge（`h-5`，與值同一行時以 `h-5` 對齊）；長文字與原始錯誤用 `leading-relaxed`（原始錯誤 mono、`max-h-40` 自行捲動），不用 `leading-none`。</Rule>
+<Rule component="detail-layout" id="image">圖片區 `h-40 rounded-md bg-active`，圖片 `object-contain` 置中，不裁切。</Rule>
+<Rule component="detail-layout" id="loading-readonly">載入中按欄位用 Skeleton control／mask；唯讀（例如生成中）時整個 section 不可互動但外觀不變。</Rule>
+</ul>
+
+</Rules>

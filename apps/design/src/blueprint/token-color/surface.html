@@ -1,0 +1,54 @@
+<div class="grid grid-cols-1 gap-x-6 gap-y-4 @md:grid-cols-2">
+                                    <div class="flex items-center gap-3">
+                                        <span class="size-10 shrink-0 overflow-hidden rounded-md border border-line-subtle bg-surface"><span class="block size-full bg-canvas"></span></span>
+                                        <div class="flex min-w-0 flex-col gap-0.5"><code class="font-mono text-[11px] font-medium text-fg">canvas</code><span class="text-[11px] text-fg-muted">App 最底層、panel 之間的縫</span><code class="font-mono text-[10px] text-fg-muted" data-ds-value="canvas"></code></div>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <span class="size-10 shrink-0 overflow-hidden rounded-md border border-line-subtle bg-surface"><span class="block size-full bg-surface"></span></span>
+                                        <div class="flex min-w-0 flex-col gap-0.5"><code class="font-mono text-[11px] font-medium text-fg">surface</code><span class="text-[11px] text-fg-muted">Panel、Bar、Header、Dialog 主體</span><code class="font-mono text-[10px] text-fg-muted" data-ds-value="surface"></code></div>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <span class="size-10 shrink-0 overflow-hidden rounded-md border border-line-subtle bg-surface"><span class="block size-full bg-elevated"></span></span>
+                                        <div class="flex min-w-0 flex-col gap-0.5"><code class="font-mono text-[11px] font-medium text-fg">elevated</code><span class="text-[11px] text-fg-muted">Surface 上的次層：soft button、menu、segment group</span><code class="font-mono text-[10px] text-fg-muted" data-ds-value="elevated"></code></div>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <span class="size-10 shrink-0 overflow-hidden rounded-md border border-line-subtle bg-surface"><span class="block size-full bg-active"></span></span>
+                                        <div class="flex min-w-0 flex-col gap-0.5"><code class="font-mono text-[11px] font-medium text-fg">active</code><span class="text-[11px] text-fg-muted">圖片與參考圖的佔位底；Dark 的欄位底</span><code class="font-mono text-[10px] text-fg-muted" data-ds-value="active"></code></div>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <span class="size-10 shrink-0 overflow-hidden rounded-md border border-line-subtle bg-surface"><span class="block size-full bg-hover"></span></span>
+                                        <div class="flex min-w-0 flex-col gap-0.5"><code class="font-mono text-[11px] font-medium text-fg">hover</code><span class="text-[11px] text-fg-muted">Hover 疊加層（alpha，相對加深）</span><code class="font-mono text-[10px] text-fg-muted" data-ds-value="hover"></code></div>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <span class="size-10 shrink-0 overflow-hidden rounded-md border border-line-subtle bg-surface"><span class="block size-full bg-selected"></span></span>
+                                        <div class="flex min-w-0 flex-col gap-0.5"><code class="font-mono text-[11px] font-medium text-fg">selected</code><span class="text-[11px] text-fg-muted">選取態、目前項目（alpha，比 hover 深一階）</span><code class="font-mono text-[10px] text-fg-muted" data-ds-value="selected"></code></div>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <span class="size-10 shrink-0 overflow-hidden rounded-md border border-line-subtle bg-surface"><span class="block size-full bg-elevated-hover"></span></span>
+                                        <div class="flex min-w-0 flex-col gap-0.5"><code class="font-mono text-[11px] font-medium text-fg">elevated-hover</code><span class="text-[11px] text-fg-muted">Elevated 底元件的 hover（實色）</span><code class="font-mono text-[10px] text-fg-muted" data-ds-value="elevated-hover"></code></div>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <span class="size-10 shrink-0 overflow-hidden rounded-md border border-line-subtle bg-surface p-1.5"><span class="block size-full rounded border border-field-border bg-field"></span></span>
+                                        <div class="flex min-w-0 flex-col gap-0.5"><code class="font-mono text-[11px] font-medium text-fg">field · field-border</code><span class="text-[11px] text-fg-muted">輸入框底與框；Dark 無框，Light 白底靠框界定</span><code class="font-mono text-[10px] text-fg-muted" data-ds-value="field"></code></div>
+                                    </div>
+                                </div>
+
+                                <!-- 層級示意 -->
+                                <div class="flex flex-col gap-2">
+                                    <span class="text-[10px] font-semibold uppercase tracking-wide text-fg-muted">層級示意</span>
+                                    <div class="flex overflow-hidden rounded-lg border border-line-subtle bg-canvas">
+                                        <div class="flex min-w-0 flex-1 flex-col gap-3 border-r border-line bg-surface p-3">
+                                            <span class="text-[11px] text-fg-muted">surface</span>
+                                            <div class="flex h-7 w-fit items-center gap-0.5 rounded-md border border-line-subtle bg-elevated p-px">
+                                                <span class="flex h-6 items-center rounded bg-selected px-2.5 text-xs font-medium text-fg">selected</span>
+                                                <span class="flex h-6 items-center rounded px-2.5 text-xs font-medium text-fg-muted">elevated</span>
+                                            </div>
+                                            <div class="flex flex-col gap-0.5">
+                                                <span class="flex h-8 items-center rounded-md px-2 text-xs text-fg">row</span>
+                                                <span class="flex h-8 items-center rounded-md bg-hover px-2 text-xs text-fg">row · hover</span>
+                                            </div>
+                                            <span class="flex h-7 items-center rounded-md border border-field-border bg-field px-2.5 text-xs text-fg-muted">field</span>
+                                        </div>
+                                        <div class="w-12 shrink-0 bg-surface"></div>
+                                    </div>
+                                </div>

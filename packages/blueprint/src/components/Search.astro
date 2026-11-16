@@ -1,0 +1,324 @@
+---
+/*
+ * 取代 Starlight 的 Pagefind 搜尋：不用 build，開發模式也能搜。
+ * Ctrl+K 或 / 開啟；空白分隔的每個字都要出現（不分大小寫）；方向鍵選、Enter 跳轉。
+ */
+---
+<button type="button" data-ds-search-open class="ds-search-button">
+    <span>Search</span>
+    <kbd>Ctrl K</kbd>
+</button>
+
+<dialog data-ds-search class="ds-search">
+    <input data-ds-search-input type="search" placeholder="搜尋頁面、狀態、規則、畫面文字…" autocomplete="off" spellcheck="false" />
+    <div class="ds-search-options">
+        <select data-ds-search-scope><option value="ui">畫面與元件</option><option value="rule">Rules · Agent 規格</option></select>
+        <p data-ds-search-summary class="ds-search-summary"></p>
+    </div>
+    <ol data-ds-search-results class="ds-search-results"></ol>
+</dialog>
+
+<script>
+    import type { SearchItem } from '#/pages/search-index.json'
+
+    const dialog = document.querySelector<HTMLDialogElement>('[data-ds-search]')!
+    const input = dialog.querySelector<HTMLInputElement>('[data-ds-search-input]')!
+    const list = dialog.querySelector<HTMLOListElement>('[data-ds-search-results]')!
+    const summary = dialog.querySelector<HTMLParagraphElement>('[data-ds-search-summary]')!
+    const scope = dialog.querySelector<HTMLSelectElement>('[data-ds-search-scope]')!
+    const kindLabel = { page: 'Page', state: 'State', rule: 'Rule' }
+    const limit = 60
+
+    let items: SearchItem[] = []
+    let matches: SearchItem[] = []
+    let active = 0
+
+    /* 每次開啟都重新抓，開發中改了檔案不用重新整理頁面 */
+    async function open() {
+        dialog.showModal()
+        input.select()
+        try {
+            const response = await fetch('/search-index.json', { cache: 'no-store' })
+            if (!response.ok) throw new Error('Search index unavailable')
+            items = await response.json() as SearchItem[]
+            update()
+        } catch {
+            matches = []
+            list.replaceChildren()
+            summary.textContent = '無法載入搜尋，請重新開啟。'
+        }
+    }
+
+    function snippet(text: string, term: string): string {
+        const index = term ? text.toLowerCase().indexOf(term) : -1
+        const start = Math.max(0, index - 40)
+        return (start > 0 ? '…' : '') + text.slice(start, start + 160) + (text.length > start + 160 ? '…' : '')
+    }
+
+    function mark(text: string, terms: string[]): DocumentFragment {
+        const fragment = document.createDocumentFragment()
+        const pattern = terms.length > 0
+            ? new RegExp(`(${terms.map(term => term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi')
+            : undefined
+        for (const part of pattern ? text.split(pattern) : [text]) {
+            if (pattern && terms.includes(part.toLowerCase())) {
+                const node = document.createElement('mark')
+                node.textContent = part
+                fragment.append(node)
+            } else {
+                fragment.append(part)
+            }
+        }
+        return fragment
+    }
+
+    function update() {
+        const terms = input.value.toLowerCase().split(/\s+/).filter(Boolean)
+        const score = (item: SearchItem) => {
+            const head = `${item.title} ${item.address}`.toLowerCase()
+            return terms.filter(term => head.includes(term)).length
+        }
+        matches = items.filter(item => {
+            if ((item.kind === 'rule') !== (scope.value === 'rule')) return false
+            const haystack = `${item.title} ${item.address} ${item.page} ${item.text}`.toLowerCase()
+            return terms.every(term => haystack.includes(term))
+        }).sort((a, b) => score(b) - score(a) || Number(b.address.startsWith('screens/')) - Number(a.address.startsWith('screens/')))
+        active = 0
+        summary.textContent = `${matches.length} 筆${matches.length > limit ? `（顯示前 ${limit} 筆）` : ''}`
+        list.replaceChildren(...matches.slice(0, limit).map((item, index) => {
+            const row = document.createElement('li')
+            const link = document.createElement('a')
+            link.href = item.url
+            link.dataset.index = String(index)
+            const head = document.createElement('div')
+            head.className = 'ds-search-head'
+            const kind = document.createElement('span')
+            kind.className = 'ds-search-kind'
+            kind.textContent = kindLabel[item.kind]
+            const title = document.createElement('span')
+            title.className = 'ds-search-title'
+            title.append(mark(item.title, terms))
+            const address = document.createElement('span')
+            address.className = 'ds-search-address'
+            address.append(mark(item.address || '/', terms))
+            head.append(kind, title, address)
+            const body = document.createElement('div')
+            body.className = 'ds-search-text'
+            body.append(mark(snippet(item.text, terms.find(term => item.text.toLowerCase().includes(term)) ?? ''), terms))
+            link.append(head, body)
+            row.append(link)
+            return row
+        }))
+        highlight()
+    }
+
+    function highlight() {
+        for (const link of list.querySelectorAll<HTMLAnchorElement>('a')) {
+            const current = Number(link.dataset.index) === active
+            link.toggleAttribute('data-active', current)
+            if (current) link.scrollIntoView({ block: 'nearest' })
+        }
+    }
+
+    function go(index: number) {
+        const item = matches[index]
+        if (!item) return
+        dialog.close()
+        location.href = item.url
+    }
+
+    input.addEventListener('input', update)
+    scope.addEventListener('change', update)
+    input.addEventListener('keydown', event => {
+        const count = Math.min(matches.length, limit)
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.preventDefault()
+            if (count === 0) return
+            active = (active + (event.key === 'ArrowDown' ? 1 : -1) + count) % count
+            highlight()
+        } else if (event.key === 'Enter') {
+            event.preventDefault()
+            go(active)
+        }
+    })
+    list.addEventListener('click', event => {
+        const link = (event.target as HTMLElement).closest<HTMLAnchorElement>('a')
+        if (!link) return
+        event.preventDefault()
+        go(Number(link.dataset.index))
+    })
+    dialog.addEventListener('click', event => {
+        if (event.target === dialog) dialog.close()
+    })
+    document.querySelector('[data-ds-search-open]')?.addEventListener('click', () => void open())
+    document.addEventListener('keydown', event => {
+        const typing = (event.target as HTMLElement).closest('input, textarea, [contenteditable]')
+        if ((event.key === 'k' && (event.ctrlKey || event.metaKey)) || (event.key === '/' && !typing)) {
+            event.preventDefault()
+            if (!dialog.open) void open()
+        }
+    })
+</script>
+
+<style>
+    /* 行高撐滿框高讓文字置中；「Search」與「Ctrl K」以基線對齊，字級不同也不會錯開 */
+    .ds-search-button {
+        display: flex;
+        align-items: baseline;
+        line-height: 1.625rem;
+        gap: 0.5rem;
+        width: 16rem;
+        height: 1.75rem;
+        padding: 0 0.3125rem 0 0.625rem;
+        border: 1px solid var(--sp-field-border);
+        border-radius: 0.375rem;
+        background: var(--sp-field);
+        color: var(--sl-color-gray-3);
+        font-size: 0.75rem;
+    }
+
+    .ds-search-button:hover {
+        border-color: var(--sp-line);
+        color: var(--sp-fg-secondary);
+    }
+
+    .ds-search-button kbd {
+        margin-left: auto;
+        padding: 0 0.3125rem;
+        border-radius: 0.25rem;
+        background: var(--sp-hover);
+        color: var(--sp-fg-muted);
+        font-family: inherit;
+        font-size: 0.6875rem;
+        line-height: 1.125rem;
+    }
+
+    .ds-search {
+        width: min(48rem, calc(100vw - 2rem));
+        max-height: min(40rem, calc(100vh - 6rem));
+        margin: 4rem auto auto;
+        padding: 0.75rem;
+        border: 1px solid var(--sl-color-gray-5);
+        border-radius: 0.5rem;
+        box-shadow: var(--shadow-popover);
+        background: var(--sl-color-black);
+        color: var(--sl-color-gray-2);
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .ds-search[open] {
+        display: flex;
+    }
+
+    .ds-search::backdrop {
+        background: rgb(0 0 0 / 0.5);
+    }
+
+    .ds-search input {
+        height: 2rem;
+        padding: 0 0.625rem;
+        border: 1px solid var(--sl-color-gray-5);
+        border-radius: 0.5rem;
+        background: var(--sl-color-gray-6);
+        color: var(--sl-color-white);
+        font-size: 0.8125rem;
+        outline: none;
+    }
+
+    .ds-search input:focus {
+        border-color: var(--sl-color-accent);
+    }
+
+    .ds-search-summary {
+        margin: 0;
+        font-size: var(--sl-text-xs);
+        color: var(--sl-color-gray-3);
+    }
+
+    .ds-search-options {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+    }
+
+    .ds-search-options select {
+        padding: 0.25rem 0.5rem;
+        border: 1px solid var(--sl-color-gray-5);
+        border-radius: 0.375rem;
+        background: var(--sl-color-gray-6);
+        color: var(--sl-color-white);
+        font-size: var(--sl-text-xs);
+    }
+
+    .ds-search-results {
+        margin: 0;
+        padding: 0;
+        overflow-y: auto;
+        list-style: none;
+    }
+
+    .ds-search-results :global(a) {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        padding: 0.375rem 0.5rem;
+        border-radius: 0.375rem;
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .ds-search-results :global(a:hover),
+    .ds-search-results :global(a[data-active]) {
+        background: var(--sl-color-gray-6);
+    }
+
+    .ds-search-results :global(.ds-search-head) {
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
+        min-width: 0;
+    }
+
+    .ds-search-results :global(.ds-search-kind) {
+        flex-shrink: 0;
+        width: 2.75rem;
+        font-size: 0.625rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--sl-color-accent-high);
+    }
+
+    .ds-search-results :global(.ds-search-title) {
+        min-width: 0;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: var(--sl-color-white);
+    }
+
+    .ds-search-results :global(.ds-search-address) {
+        flex: 1;
+        min-width: 4rem;
+        overflow: hidden;
+        font-family: var(--sl-font-mono);
+        font-size: 0.6875rem;
+        color: var(--sl-color-gray-3);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .ds-search-results :global(.ds-search-text) {
+        padding-left: 3.25rem;
+        font-size: 0.75rem;
+        line-height: 1.5;
+        color: var(--sl-color-gray-2);
+    }
+
+    .ds-search-results :global(mark) {
+        border-radius: 0.125rem;
+        background: color-mix(in srgb, var(--sl-color-accent) 35%, transparent);
+        color: inherit;
+    }
+</style>

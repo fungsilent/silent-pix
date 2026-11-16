@@ -1,0 +1,152 @@
+---
+title: Image Metadata
+description: 讀取圖片內嵌生成資訊（Prompt、Workflow）的工具頁。先列出各部件，最後是整頁示範。
+sidebar:
+    order: 6
+---
+
+import State from '@silent-pix/blueprint/components/State.astro'
+import Gallery from '@silent-pix/blueprint/components/Gallery.astro'
+import Rule from '@silent-pix/blueprint/components/Rule.astro'
+import Rules from '@silent-pix/blueprint/components/Rules.astro'
+import Screen from '@silent-pix/blueprint/components/Screen.astro'
+import Slot from '@silent-pix/blueprint/components/Slot.astro'
+import Fixed from '@silent-pix/blueprint/components/Fixed.astro'
+
+## Opening screen
+
+尚未開檔時佔滿整個工作區的開啟畫面。
+
+<Gallery min="520px">
+<State component="metadata-opening-screen" state="default" label="預設" frame="flex h-[360px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="metadata-opening-screen" state="dragging" label="拖曳檔案經過" description="檔案拖進視窗時，整區疊上虛線框。" frame="flex h-[360px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="metadata-opening-screen" state="error" label="讀取失敗" description="引導鈕下方說明原因。" frame="flex h-[360px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+</Gallery>
+
+<Rules component="metadata-opening-screen">
+
+<ul class="ds-rules">
+<Rule component="metadata-opening-screen" id="opening-screen">尚未開檔時沒有左側面板，整個工作區是開啟畫面：L0 StatusMessage regular guide，說明寫出可拖放的格式與「只在本機讀取、不上傳」，引導鈕是「Choose image」。本機處理只寫在這裡，不另外放標章。</Rule>
+<Rule component="metadata-opening-screen" id="drag-overlay">拖曳檔案經過視窗時，整個工作區上方疊一層 `border-2 border-dashed border-accent bg-accent/10`（內縮 12px），開啟畫面的標題換成「Drop to read metadata」；已開檔時同一層蓋在面板與結果區上。放開才開始讀取。</Rule>
+<Rule component="metadata-opening-screen" id="read-error">讀取失敗（格式不支援、檔案過大、無法讀取）：回到開啟畫面，引導鈕下方加一行 danger 文字說明原因與怎麼做。</Rule>
+</ul>
+
+</Rules>
+
+## File panel
+
+開檔後左側的檔案面板：預覽與檔案資訊。
+
+<Gallery min="320px">
+<State component="metadata-file-panel" state="file" label="已開檔" frame="flex h-[560px] w-fit overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="metadata-file-panel" state="loading" label="讀取中" frame="flex h-[560px] w-fit overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="metadata-file-panel" state="preview-failed" label="預覽無法顯示" description="檔案仍可讀取，只是預覽失敗。" frame="flex h-[560px] w-fit overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+</Gallery>
+
+<Rules component="metadata-file-panel">
+
+<ul class="ds-rules">
+<Rule component="metadata-file-panel" id="panel-bar">左側面板的 Bar 標題是頁面名稱「Image Metadata」，右側是開檔（FolderOpen，hover 提示「Open image」）與清除（X）兩顆 L0 Icon button。</Rule>
+<Rule component="metadata-file-panel" id="preview">預覽框 `h-56 rounded-md bg-stage`，圖片 `object-contain` 不裁切。預覽無法顯示時框內改成 muted「Preview unavailable」、Dimensions 顯示「—」，結果照常顯示。</Rule>
+<Rule component="metadata-file-panel" id="file-details">File 區用 L0 Detail row：Name（單行截斷，hover 提示完整檔名）、Format、Dimensions、Size；數字用 tabular-nums。</Rule>
+</ul>
+
+</Rules>
+
+## Result bar
+
+結果區頂端的分頁列。
+
+<Gallery min="520px">
+<State component="metadata-result-bar" state="generation" label="Generation 分頁" frame="max-w-[760px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
+<State component="metadata-result-bar" state="raw" label="Raw 分頁" frame="max-w-[760px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
+<State component="metadata-result-bar" state="warning" label="部分讀取失敗" description="右側出現 warning Issue chip。" frame="max-w-[760px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
+</Gallery>
+
+<Rules component="metadata-result-bar">
+
+<ul class="ds-rules">
+<Rule component="metadata-result-bar" id="result-bar">結果區頂端是 page Bar：左側 L0 Segment group（Generation／Raw）。部分 metadata 讀不到或超過限制時，Bar 右側出現 warning Issue chip，下方仍列出完整讀到的內容。</Rule>
+</ul>
+
+</Rules>
+
+## Generation tab
+
+結果區的 Generation 分頁：從圖片取出並整理過的生成資訊。
+
+<Gallery min="820px">
+<State component="metadata-generation-tab" state="default" label="預設" description="Prompt 與 Nodes 展開，兩個 JSON 群組收合。" frame="max-w-[760px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
+<State component="metadata-generation-tab" state="prompt-copied" label="複製提示詞" frame="max-w-[760px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
+<State component="metadata-generation-tab" state="jumped" label="點連線後" description="捲到來源節點卡並短暫標亮。" frame="max-w-[760px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
+<State component="metadata-generation-tab" state="json-open" label="展開 Workflow (API) 並複製" frame="max-w-[760px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
+<State component="metadata-generation-tab" state="text-only" label="只有文字參數" description="不是節點圖時，整段一張卡片。" frame="max-w-[760px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
+<State component="metadata-generation-tab" state="nothing" label="沒有生成資訊" frame="max-w-[760px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
+</Gallery>
+
+<Rules component="metadata-generation-tab">
+
+<ul class="ds-rules">
+<Rule component="metadata-generation-tab" id="naming">命名：ComfyUI 存在圖片裡、名為 prompt 的欄位其實是 API 格式的節點圖，在 Generation 分頁的 JSON 群組標題稱為「Workflow (API)」，workflow 欄位稱為「Workflow」；這個名稱只出現在這裡，Prompt、Nodes 是拆出來的資料，不再標示來源，Raw 一律用原始欄位名。</Rule>
+<Rule component="metadata-generation-tab" id="generation-tab">Generation 分頁是加工過的生成資訊，一欄往下捲，依序四個群組：Prompt、Nodes、Workflow (API)、Workflow。圖片沒有的群組整個不顯示；四個都沒有時，結果區置中一句 muted 說明（L0 StatusMessage regular empty，不放按鈕）。</Rule>
+<Rule component="metadata-generation-tab" id="group-header">群組標頭 `h-7`：展開箭頭、小型大寫標題、muted 的數量（Prompt、Nodes）或來源（JSON 群組，例如 PNG text · prompt），可點整列展開收合；JSON 群組的標頭右側有 24px 複製鈕，收合時也能複製。Prompt 與 Nodes 預設展開，兩個 JSON 群組預設收合。</Rule>
+<Rule component="metadata-generation-tab" id="prompt-cards">Prompt：從 API 節點圖盡量取出提示詞，每段一張卡片，標頭 `h-9 bg-elevated` 寫節點標題（沒有標題時「Text node」）、mono 的 #節點 ID，右側 24px 複製鈕；內文 `text-xs leading-relaxed`，保留原本的換行。文字編碼節點的每個文字欄位（text、SDXL 的 text_g／text_l 等）各一張，欄位不是 text 時標頭加 mono 欄位名；文字由其他節點連入時順著連線取來源文字，標頭加來源連線（寫法同 Nodes）；同一段來源文字只列一次。不是節點圖的文字（A1111 parameters、無法解析的 prompt）整段一張卡片，標頭寫欄位名稱。</Rule>
+<Rule component="metadata-generation-tab" id="node-cards">Nodes：API 節點圖拆成節點卡，依節點 ID 排序；標頭 `h-8 bg-elevated` 寫節點標題、mono muted 的節點類型（與標題相同時省略）與右側 #ID；下方每個輸入一列（88px mono muted 欄位名＋值）：文字保留換行，數字 mono tabular-nums，連線寫成「ArrowLeft icon（12px、muted）＋來源節點標題＋mono #ID」（沒有標題時用節點類型），只有輸出序號不是 0 時才加分隔點＋「output N」；值本身是 JSON 的字串（以 \{ 或 [ 開頭且能解析）排好縮排，放在 mono 的小 code 框裡（最高 400px，框內捲動）。</Rule>
+<Rule component="metadata-generation-tab" id="link-jump">連線可點：捲到來源節點卡，該卡以 `border-accent ring-2 ring-accent/40` 標亮約 1.5 秒；Nodes 收合時先展開。Prompt 卡片的來源連線同樣可點。</Rule>
+<Rule component="metadata-generation-tab" id="json-groups">Workflow (API) 與 Workflow：展開後是整段 JSON 的 code 框（`bg-elevated font-mono text-[11px]`、不換行、最高 480px 自身捲動），只重排縮排、不重新解析，避免大數值失真。複製給原文。</Rule>
+</ul>
+
+</Rules>
+
+## Raw tab
+
+結果區的 Raw 分頁：圖片內所有 metadata 欄位，原樣列出、不加工。
+
+<Gallery min="820px">
+<State component="metadata-raw-tab" state="default" label="預設" description="全部欄位收合。" frame="max-w-[760px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
+<State component="metadata-raw-tab" state="expanded" label="展開一個欄位" frame="max-w-[760px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
+<State component="metadata-raw-tab" state="nothing" label="沒有任何欄位" frame="max-w-[760px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
+</Gallery>
+
+<Rules component="metadata-raw-tab">
+
+<ul class="ds-rules">
+<Rule component="metadata-raw-tab" id="raw-tab">Raw 分頁是原生、不加工的欄位清單：每個 metadata 欄位一列，可展開看原文（mono、最高 h-64 自身捲動）；列上是 mono 的原始欄位名、來源與格式，右側一顆 24px 複製鈕。預設全部收合。沒有任何欄位時同 Generation，置中一句 muted 說明。</Rule>
+</ul>
+
+</Rules>
+
+## Screen
+
+<Screen>
+    <Fixed component="app-header" state="other-page" />
+    <div class="flex min-h-0 flex-1 overflow-hidden">
+        <Slot name="viewer" component="metadata-viewer" states="empty,dragging,loading,generation,generation-jump,generation-json,generation-text,raw-incomplete,missing,error,preview-failed" labels="empty · open|dragging a file over|reading|Generation · prompt copied|Generation · jumped to a linked node|Generation · API JSON open, copied|Generation · text parameters only|Raw tab · incomplete|Generation · nothing found|unsupported file|preview unavailable" />
+    </div>
+</Screen>
+
+<Rules component="metadata-screen">
+
+#### 版面
+
+<ul class="ds-rules">
+<Rule component="metadata-screen" id="workspace">整頁是工作區，不是置中的文件頁：左側 300px 面板＋右側結果區，兩者都 `bg-surface`，以 `border-r border-line` 分隔、各自捲動，不設最大寬度。</Rule>
+<Rule component="metadata-screen" id="single-area">整頁只有 Metadata viewer 一個區塊，面板與結果區各自捲動；檔案只在本機讀取，不上傳也不建立 task，沒有 Server 也能使用。</Rule>
+</ul>
+
+#### 流程
+
+<ul class="ds-rules">
+<Rule component="metadata-screen" id="entry">從 Header 選單進入，Header 不標示任何分頁。</Rule>
+<Rule component="metadata-screen" id="open-file">開檔方式有三種：面板的開檔鈕、開啟畫面的 Choose image、把檔案拖進視窗任何位置；已開檔時拖入新檔直接取代。一次只讀一個檔案：已開檔時一次拖入多個檔案，保留目前結果，Bar 右側出現 warning Issue chip；在開啟畫面則照讀取失敗顯示。</Rule>
+<Rule component="metadata-screen" id="loading">讀取中：左側預覽與欄位值用 L0 Skeleton，結果區用幾塊卡片 skeleton。</Rule>
+</ul>
+
+#### 共通
+
+<ul class="ds-rules">
+<Rule component="metadata-screen" id="separator-dot">並列的短資訊（來源與格式、連線的輸出序號）以 12px muted Dot icon（線寬 5，圓點約 3.5px）分隔，不用文字「·」。</Rule>
+<Rule component="metadata-screen" id="copy-feedback">複製後，該按鈕的圖示換成 Check 約 1.5 秒再還原，不另外顯示訊息。</Rule>
+</ul>
+
+</Rules>

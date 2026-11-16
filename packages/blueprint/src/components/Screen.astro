@@ -1,0 +1,116 @@
+---
+/* L2 整頁預覽保留 Slot 狀態選單；L1 的狀態各自獨立展示。 */
+import Address from '#/components/Address.astro'
+
+type Props = { frame?: string }
+const { frame = 'relative flex h-[800px] min-w-[1080px] flex-col overflow-hidden rounded-xl border border-line bg-canvas text-fg' } = Astro.props
+---
+<div data-ds-screen-root class="not-content mt-6 flex flex-col gap-3">
+    <div data-ds-bar class="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-[var(--sl-color-gray-5)] px-3 py-2">
+        <div data-ds-controls class="contents"></div>
+        <span class="ds-copy-visible ml-auto"><Address id="" /></span>
+    </div>
+    <div class="overflow-x-auto">
+        <div data-ds-screen class={`ds-frame ${frame}`}>
+            <slot />
+        </div>
+    </div>
+</div>
+
+<script>
+    for (const root of document.querySelectorAll<HTMLElement>('[data-ds-screen-root]')) {
+        const screen = root.querySelector<HTMLElement>('[data-ds-screen]')!
+        const controls = root.querySelector<HTMLElement>('[data-ds-controls]')!
+        const copy = root.querySelector<HTMLButtonElement>('[data-ds-bar] [data-ds-copy]')!
+        const page = location.pathname.replace(/^\/|\/$/g, '')
+        const slots = [...screen.querySelectorAll<HTMLElement>('[data-ds-slot]')]
+        const selects = new Map<HTMLElement, HTMLSelectElement>()
+
+        const variantsOf = (slot: HTMLElement) => [...slot.children].filter((child): child is HTMLElement => child instanceof HTMLElement && child.dataset.dsVariant !== undefined)
+        const current = (slot: HTMLElement) => variantsOf(slot).find(variant => !variant.hidden)?.dataset.dsVariant ?? ''
+        /* Switch 的 Case 被隱藏時，裡面的 Slot 用不到：選單隱藏、不寫進網址、左右鍵跳過 */
+        const inactive = (slot: HTMLElement) => slot.parentElement?.closest('[data-ds-variant][hidden]') !== null
+        const refreshControls = () => {
+            for (const [slot, select] of selects) (select.parentElement as HTMLElement).hidden = inactive(slot)
+        }
+        const updateAddress = () => {
+            const hash = slots.filter(slot => !inactive(slot)).map(slot => `${slot.dataset.dsSlot}=${current(slot)}`).join('&')
+            copy.dataset.dsCopy = `${page}#${hash}`
+            copy.title = `Copy address: ${page}#${hash}`
+            return hash
+        }
+        const writeAddress = () => { history.replaceState(null, '', `#${updateAddress()}`) }
+
+        const show = (slot: HTMLElement, state: string) => {
+            const variants = variantsOf(slot)
+            if (!variants.some(variant => variant.dataset.dsVariant === state)) return
+            for (const variant of variants) variant.hidden = variant.dataset.dsVariant !== state
+            const select = selects.get(slot)
+            if (select) select.value = state
+            refreshControls()
+            const target = variants.find(variant => !variant.hidden)?.querySelector<HTMLElement>('[data-ds-scroll]')
+            const scroller = target?.closest<HTMLElement>('.overflow-y-auto')
+            if (target && scroller) scroller.scrollTop += target.getBoundingClientRect().top - scroller.getBoundingClientRect().top - 16
+        }
+
+        for (const slot of slots) {
+            const select = document.createElement('select')
+            select.className = 'h-7 rounded-md border border-[var(--sl-color-gray-5)] bg-[var(--sl-color-black)] px-2 text-xs text-[var(--sl-color-white)]'
+            for (const variant of variantsOf(slot)) {
+                select.append(new Option(variant.dataset.dsLabel ?? '', variant.dataset.dsVariant ?? ''))
+            }
+            select.onchange = () => {
+                show(slot, select.value)
+                writeAddress()
+            }
+            /* 選單 focus 時：上下鍵切換這個選單的狀態（循環、不展開），左右鍵移到前一個／後一個選單 */
+            select.onkeydown = event => {
+                if (event.altKey || event.metaKey || event.ctrlKey) return
+                const option = { ArrowUp: -1, ArrowDown: 1 }[event.key]
+                const across = { ArrowLeft: -1, ArrowRight: 1 }[event.key]
+                if (option) {
+                    event.preventDefault()
+                    select.selectedIndex = (select.selectedIndex + option + select.options.length) % select.options.length
+                    select.onchange?.(new Event('change'))
+                } else if (across) {
+                    event.preventDefault()
+                    const all = [...selects.values()].filter(item => !(item.parentElement as HTMLElement).hidden)
+                    all[(all.indexOf(select) + across + all.length) % all.length]?.focus()
+                }
+            }
+            const label = document.createElement('label')
+            label.className = 'flex items-center gap-2'
+            const name = document.createElement('span')
+            name.className = 'text-[10px] font-semibold uppercase tracking-wide text-[var(--sl-color-gray-3)]'
+            name.textContent = slot.dataset.dsSlot ?? ''
+            label.append(name, select)
+            controls.append(label)
+            selects.set(slot, select)
+        }
+
+        const readAddress = () => {
+            /* Case 預設都是隱藏的：還沒有選中任何狀態的 Slot（Switch）先顯示第一個 */
+            for (const slot of slots) if (!current(slot)) show(slot, variantsOf(slot)[0]?.dataset.dsVariant ?? '')
+            const params = new URLSearchParams(location.hash.slice(1))
+            for (const slot of slots) show(slot, params.get(slot.dataset.dsSlot ?? '') || current(slot))
+            updateAddress()
+        }
+
+        let hintTimer: number | undefined
+        screen.addEventListener('click', event => {
+            const target = (event.target as HTMLElement).closest<HTMLElement>('[data-ds-go]')
+            const slot = target?.closest<HTMLElement>('[data-ds-slot]')
+            if (target && slot) {
+                show(slot, target.dataset.dsGo ?? '')
+                writeAddress()
+                return
+            }
+            screen.classList.add('ds-hint')
+            clearTimeout(hintTimer)
+            hintTimer = window.setTimeout(() => screen.classList.remove('ds-hint'), 700)
+        })
+
+        window.addEventListener('hashchange', readAddress)
+        readAddress()
+    }
+</script>
