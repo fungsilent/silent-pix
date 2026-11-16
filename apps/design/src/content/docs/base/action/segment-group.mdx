@@ -27,7 +27,7 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 <Rule component="segment-group" id="anatomy">一組互斥選項：`h-7` 的 `bg-elevated` 槽（`border-line-subtle`、`p-px`、`gap-0.5`），內含 `h-6 rounded` 的 ghost 項目。選中項目用共用選取態 `bg-selected text-fg`，其餘 `text-fg-muted`、hover `bg-hover`。</Rule>
 <Rule component="segment-group" id="variants">兩種呈現：icon + label（頁面模式切換，`text-xs`、icon 13px）；label only（設定值選項，`min-w-[50px] text-[11.5px]` 讓短字如 On／Off 等寬）。</Rule>
 <Rule component="segment-group" id="none-selected">允許沒有任何項目被選中（目前頁面不屬於任一選項時）。不要用 accent 底表示選中。</Rule>
-<Rule component="segment-group" id="disabled">停用時照 L0 Button 的停用樣式（`cursor-not-allowed opacity-60`）套在所有項目上，原本的選中項目仍保留選取態，只是一起變淡。</Rule>
+<Rule component="segment-group" id="disabled">停用時照 L0 Button 的停用樣式（`opacity-60`）套在所有項目上，原本的選中項目仍保留選取態，只是一起變淡。</Rule>
 <Rule component="segment-group" id="keyboard">鍵盤操作：整組是一個停駐點，方向鍵在選項間移動並直接選取；停用的項目會被跳過。</Rule>
 <Rule component="segment-group" id="when-to-use">Segment group 是「切換一個值」；需要多選或「全部」語意時改用 L0 filter-chips。</Rule>
 </ul>

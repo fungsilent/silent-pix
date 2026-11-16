@@ -48,7 +48,7 @@ hover、focus、停用與進行中。
 
 <ul class="ds-rules">
 <Rule component="button" id="focus-border">所有按鈕保留 `border border-transparent`，focus 時才換成 accent 邊框加 `ring-2 ring-accent/40`，尺寸不跳動；danger tone 的 focus 改用 danger 色，neutral 仍用 accent。</Rule>
-<Rule component="button" id="disabled">停用：`cursor-not-allowed opacity-60`，顏色不變；所有不可操作的按鈕都用這一個樣子，沒有「不可按但外觀不變」的例外。Pending 時按鈕停用並把文字換成進行式（Creating...／Saving...／Deleting...／Testing...），圖示保留；同一組的其他按鈕（例如 dialog 的 Cancel）一併停用。一個進行中的變更會讓所有受它影響的按鈕（不論在哪個區塊）都用同樣的停用樣式，直到完成。</Rule>
+<Rule component="button" id="disabled">停用：`opacity-60`，顏色不變，游標維持箭頭（桌面慣例，不用 `cursor-not-allowed`）；所有不可操作的按鈕都用這一個樣子，沒有「不可按但外觀不變」的例外。Pending 時按鈕停用並把文字換成進行式（Creating...／Saving...／Deleting...／Testing...），圖示保留；同一組的其他按鈕（例如 dialog 的 Cancel）一併停用。一個進行中的變更會讓所有受它影響的按鈕（不論在哪個區塊）都用同樣的停用樣式，直到完成。</Rule>
 </ul>
 
 </Rules>

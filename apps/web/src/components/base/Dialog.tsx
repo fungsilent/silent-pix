@@ -88,7 +88,7 @@ export function Dialog(props: DialogProps) {
                                 )}
                             </div>
                             <ArkDialog.CloseTrigger
-                                class='flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md border border-transparent bg-elevated text-fg-secondary outline-none hover:bg-elevated-hover focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40'
+                                class='flex size-7 shrink-0 items-center justify-center rounded-md border border-transparent bg-elevated text-fg-secondary outline-none hover:bg-elevated-hover focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40'
                             >
                                 <X
                                     size={15}

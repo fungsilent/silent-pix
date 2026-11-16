@@ -42,7 +42,7 @@ export function SegmentGroup<Value extends string>(props: SegmentGroupProps<Valu
                             option.icon ? 'gap-1.5 text-xs' : 'min-w-[50px] text-[11.5px]',
                             'bg-transparent text-fg-muted hover:bg-hover',
                             'data-[focus-visible]:border-accent data-[focus-visible]:ring-2 data-[focus-visible]:ring-accent/40',
-                            'data-[disabled]:cursor-not-allowed data-[disabled]:opacity-60',
+                            'data-[disabled]:opacity-60',
                             'data-[state=checked]:bg-selected data-[state=checked]:text-fg data-[state=checked]:hover:bg-selected',
                         )}
                     >

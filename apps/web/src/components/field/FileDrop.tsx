@@ -22,7 +22,6 @@ export function FileDrop(props: FileDropProps) {
     return (
         <FileUpload.Root
             accept={props.accept}
-            acceptedFiles={[]}
             maxFiles={1}
             maxFileSize={props.maxFileSize}
             disabled={props.disabled}
@@ -43,7 +42,7 @@ export function FileDrop(props: FileDropProps) {
             {/* Dropzone 同時給拖放與點擊兩種手勢，一個元素就夠 */}
             <FileUpload.Dropzone
                 class={cn(
-                    'flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-md border border-dashed border-line px-3 py-6 text-center text-fg-muted',
+                    'flex flex-col items-center justify-center gap-1.5 rounded-md border border-dashed border-line px-3 py-6 text-center text-fg-muted',
                     'hover:border-line hover:bg-hover',
                     'data-[dragging]:border-accent data-[dragging]:bg-accent/10 data-[dragging]:text-accent-fg',
                     'data-[disabled]:cursor-default data-[disabled]:opacity-50',

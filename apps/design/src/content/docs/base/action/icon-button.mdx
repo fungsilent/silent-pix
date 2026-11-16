@@ -54,7 +54,7 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 <Rule component="stage-button" id="size">尺寸一律 `size-8`（32px，icon 15–18），包括 stage 工具列、全螢幕 viewer 的關閉與左右翻頁（翻頁垂直置中貼左右）。多顆並排 `gap-2`。</Rule>
 <Rule component="stage-button" id="hover">Hover 換 `bg-stage-control-hover`；移除鈕 hover 時圖示另轉 `text-stage-danger`，平時與其他鈕同色。</Rule>
 <Rule component="stage-button" id="tooltip">Hover 提示的規則同 L0 Icon button。</Rule>
-<Rule component="stage-button" id="disabled">停用用 `cursor-not-allowed opacity-30`：玻璃底本身已經半透明，60% 在照片上看不出差別。這是 L0 停用樣式唯一的例外。</Rule>
+<Rule component="stage-button" id="disabled">停用用 `opacity-30`（游標維持箭頭）：玻璃底本身已經半透明，60% 在照片上看不出差別。這是 L0 停用樣式唯一的例外。</Rule>
 <Rule component="stage-button" id="thumb-remove">縮圖上的移除鈕更小更輕：`size-6`、無邊框、`backdrop-blur-[3px]`，hover 轉 `bg-danger/35`，放在縮圖右上 `right-1.5 top-1.5`。</Rule>
 <Rule component="stage-button" id="not-on-photos">不要把 L0 button／icon-button 直接放到照片上——它們的底色依 theme 變化，在亮照片上會消失。</Rule>
 </ul>

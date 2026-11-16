@@ -107,7 +107,7 @@ Workflow 頁最右欄：Bar 的 Save／issue chip，下面依序是 workflow-inf
 <Rule component="workflow-detail" id="column">Workflow 頁最右欄，固定寬 620px、`bg-surface`；頂端 L0 Bar 標題「Detail」，下方可捲動內容（`px-4 pb-5 gap-3`）依序放 workflow-info、分隔線、workflow-mapping。Graph 不屬於本欄，在中欄 graph-editor。</Rule>
 <Rule component="workflow-detail" id="three-columns">頁面三欄並排：workflow-list（200px）→ graph-editor（彈性）→ workflow-detail（620px）；整頁最窄 1180px，更窄時整頁水平捲動而不擠壓欄寬。</Rule>
 <Rule component="workflow-detail" id="no-selection">沒有選取時整欄只剩 Bar 與 L0 StatusMessage regular guide：Workflow 圖示方塊、標題「No workflow selected」、說明一句、accent「Add workflow」按鈕；Bar 右側不放任何動作。</Rule>
-<Rule component="workflow-detail" id="bar-actions">Bar 右側（有選取時）依序：issue chip（只在有問題時出現）、Save。Save 是 bar 尺寸的 accent solid、semibold；沒有修改、儲存中、載入中、版本衝突、名稱空白、graph 無法解析或 mapping 有問題時停用（`opacity-60`、not-allowed 游標），儲存中文案換成「Saving」。</Rule>
+<Rule component="workflow-detail" id="bar-actions">Bar 右側（有選取時）依序：issue chip（只在有問題時出現）、Save。Save 是 bar 尺寸的 accent solid、semibold；沒有修改、儲存中、載入中、版本衝突、名稱空白、graph 無法解析或 mapping 有問題時停用（`opacity-60`），儲存中文案換成「Saving」。</Rule>
 <Rule component="workflow-detail" id="issue-chip">Issue chip 彙整名稱必填、graph 解析、mapping 失效與儲存失敗；只要有一則 error 整個 chip 為 danger 色，多則時顯示「N issues」，單則時直接顯示該句。清單讀取失敗由 workflow-list 自己顯示，不進 chip。</Rule>
 <Rule component="workflow-detail" id="archived">封存的 workflow 整欄唯讀：Save 換成 muted 文字「Read-only · archived」，workflow-info 名稱與 workflow-mapping 全部 disabled。</Rule>
 <Rule component="workflow-detail" id="loading">載入中 Bar 保留、Save 停用，內容各區塊以 skeleton 遮罩並不可互動（見 workflow-info、workflow-mapping 的 loading）。</Rule>
@@ -124,7 +124,7 @@ Workflow 頁最右欄：Bar 的 Save／issue chip，下面依序是 workflow-inf
 <Rule component="workflow-info" id="name-trim">名稱提交時去頭尾空白並截到 120 字；空值顯示 placeholder「Untitled」。</Rule>
 <Rule component="workflow-info" id="revision-badge">Revision 旁的 Badge：新建 draft 顯示「Draft」、有未儲存修改顯示「Unsaved」，一律 neutral。新建（尚未存過）顯示「—」並改 muted 色，且不出現破壞性按鈕。</Rule>
 <Rule component="workflow-info" id="destructive-button">破壞性按鈕是滿寬的 L0 Button soft danger，文案依用量：仍有 task 使用且未封存 →「Archive workflow」；沒有 task 使用或已封存 →「Delete workflow」。點下後一律先開確認 dialog。</Rule>
-<Rule component="workflow-info" id="archived-name">封存後名稱改成 disabled 外觀，不可編輯；刪除鈕仍可用。Server 不可用時名稱同樣 disabled，破壞性按鈕停用（L0 Button disabled：`cursor-not-allowed opacity-60`）。</Rule>
+<Rule component="workflow-info" id="archived-name">封存後名稱改成 disabled 外觀，不可編輯；刪除鈕仍可用。Server 不可用時名稱同樣 disabled，破壞性按鈕停用（L0 Button disabled：`opacity-60`）。</Rule>
 <Rule component="workflow-info" id="pending">確認 dialog 送出後、結果回來前，此處的破壞性按鈕以 L0 Button disabled 停用、文案不變；進行中文案（「Archiving...」／「Deleting...」）只出現在確認 dialog 的確認鈕上。</Rule>
 <Rule component="workflow-info" id="loading">載入中每個 value（名稱、revision、按鈕）各自蓋上 skeleton 遮罩，label 保留，整區不可互動。</Rule>
 </ul>

@@ -20,7 +20,7 @@ export function TaskFailure(props: TaskFailureProps) {
             <span class='text-[11px] text-fg-muted'>{t('task.failure.reason')}</span>
             <p class='mb-1 mt-1.5 text-xs leading-relaxed text-danger-fg'>{reason()}</p>
             <Collapsible.Root>
-                <Collapsible.Trigger class='group flex cursor-pointer items-center gap-1 border-0 bg-transparent py-1 text-[11px] text-fg-muted hover:text-fg-secondary'>
+                <Collapsible.Trigger class='group flex items-center gap-1 border-0 bg-transparent py-1 text-[11px] text-fg-muted hover:text-fg-secondary'>
                     <ChevronRight
                         size={12}
                         class='shrink-0 group-data-[state=open]:rotate-90'

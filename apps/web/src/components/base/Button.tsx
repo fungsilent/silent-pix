@@ -61,8 +61,8 @@ export function Button(props: ButtonProps) {
             {...rest}
             type={local.type ?? 'button'}
             class={cn(
-                'flex cursor-pointer items-center justify-center gap-2 rounded-md border border-transparent px-3 py-[5px] text-xs outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40',
-                'disabled:cursor-not-allowed disabled:opacity-60',
+                'flex items-center justify-center gap-2 rounded-md border border-transparent px-3 py-[5px] text-xs outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40',
+                'disabled:opacity-60',
                 local.size && sizeClass[local.size],
                 variantClass[variant()][tone()],
                 toneFocusClass[tone()],

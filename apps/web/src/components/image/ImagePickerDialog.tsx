@@ -230,7 +230,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                 <div class='flex flex-wrap items-center gap-6'>
                     <fieldset
                         disabled={imageType()?.[0] === 'input'}
-                        class='m-0 flex min-w-0 items-center gap-3 border-0 p-0 disabled:cursor-not-allowed disabled:opacity-60'
+                        class='m-0 flex min-w-0 items-center gap-3 border-0 p-0 disabled:opacity-60'
                     >
                         <span class='text-[10px] font-medium uppercase tracking-wide text-fg-title'>
                             {t('task.singular')}
@@ -310,7 +310,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                                                     root: cn(
                                                         'group block w-full min-w-0 rounded-lg border border-transparent p-1.5 text-left hover:bg-hover',
                                                         selected() && 'border-accent bg-accent/20 ring-2 ring-accent/40 hover:bg-accent/20',
-                                                        disabled() && 'cursor-not-allowed hover:bg-transparent',
+                                                        disabled() && 'hover:bg-transparent',
                                                     ),
                                                 }}
                                                 onClick={() => toggle(item)}

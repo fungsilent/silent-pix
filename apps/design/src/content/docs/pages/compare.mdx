@@ -92,7 +92,7 @@ Compare 右側面板在選到的圖不是 task 產出（上傳或參考圖）或
 <Rule component="compare-image-picker" id="size">dialog `w-[1200px]`、高度撐滿視窗扣掉邊距；窄時縮到可用寬度。Backdrop `bg-backdrop`。</Rule>
 <Rule component="compare-image-picker" id="search-filters">上方搜尋（task name 或 task ID）+ 篩選列：Task flag 為多選 chips（All／Unflag／Pin／Discard），Type 為單選（All／Input／Output）；選中 chip `bg-selected text-fg`。Type 選 Input 時 Task 整組停用（照 L0 停用樣式）並清掉 flag 篩選。</Rule>
 <Rule component="compare-image-picker" id="grid">格狀固定 `grid-cols-5 gap-3`；卡片 `p-1.5 rounded-lg`，hover `bg-hover` 並浮出右上 glass 勾選鈕；選中 `border-accent bg-accent/20 ring-2 ring-accent/40`，右上換成 accent 實心的選取序號。</Rule>
-<Rule component="compare-image-picker" id="already-compared">已在比較中的圖不可選：`cursor-not-allowed`、不顯示勾選鈕，整張壓 `bg-stage-overlay-muted` 並置中大 Check；此時 discard 不再另外壓暗。</Rule>
+<Rule component="compare-image-picker" id="already-compared">已在比較中的圖不可選：不顯示勾選鈕，整張壓 `bg-stage-overlay-muted` 並置中大 Check；此時 discard 不再另外壓暗。</Rule>
 <Rule component="compare-image-picker" id="flag-state">Flag 只顯示狀態：左上角摺 26px（pin／discard 色），discard 另壓 `bg-discard-dim`；picker 內沒有 flag 操作。</Rule>
 <Rule component="compare-image-picker" id="source-label">卡片下方 mono 顯示來源（task 名稱 #n 或 input），右側 `in`（`bg-info/18 text-info-fg`）／`out`（`bg-elevated text-fg-muted`）小標。</Rule>
 <Rule component="compare-image-picker" id="loading-empty">載入中以 `aspect-square` skeleton 鋪滿兩列；載入失敗與沒有圖都用 L0 StatusMessage compact（失敗為 muted 訊息 + Retry，不用紅字）。</Rule>

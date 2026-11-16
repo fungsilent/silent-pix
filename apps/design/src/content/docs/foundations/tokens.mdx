@@ -158,7 +158,7 @@ Manrope Variable 搭配 Noto Sans TC Variable。介面是高密度工具，預�
 <Rule component="token-state" id="focus">Focus 一律 `focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40`；danger 元件換成 danger 色。元件預留 `border border-transparent`，focus 時才不會跳動。</Rule>
 <Rule component="token-state" id="selected">選取態用 `bg-selected text-fg`：和 hover 一樣是 alpha 疊加層，但深一階，疊在 surface、elevated 或清單列上都看得出來，滑過其他項目時也分得出哪個是選中的。不畫框線，也不要另用 accent 底表示選取。</Rule>
 <Rule component="token-state" id="stage-selected">Stage 上的縮圖（縮圖列、viewer）不用選取底色，改用 `ring-2` 加所在底色的前景色：跟著 theme 變色的 stage 用 `ring-stage-fg`，永遠是暗底的全螢幕 viewer 用 `ring-on-stage`。不用 accent。</Rule>
-<Rule component="token-state" id="disabled">停用的輸入框用 `theme.field.disabled`；停用的按鈕、導覽項目與選項一律 `disabled:cursor-not-allowed disabled:opacity-60`；唯一例外是疊在照片上的 stage 玻璃鈕，規則見 L0 Stage button。</Rule>
+<Rule component="token-state" id="disabled">停用的輸入框用 `theme.field.disabled`；停用的按鈕、導覽項目與選項一律 `disabled:opacity-60`，游標維持箭頭，不用 `cursor-not-allowed`；唯一例外是疊在照片上的 stage 玻璃鈕，規則見 L0 Stage button。</Rule>
 <Rule component="token-state" id="field-error">欄位錯誤不改輸入框外觀，改在欄位下方顯示 `FieldHint tone="danger"`。</Rule>
 </ul>
 

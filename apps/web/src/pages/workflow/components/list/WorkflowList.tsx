@@ -129,7 +129,7 @@ function Row(props: RowProps) {
     return (
         <div
             class={cn(
-                'flex h-[34px] shrink-0 cursor-pointer items-center gap-2 rounded-md px-2.5',
+                'flex h-[34px] shrink-0 items-center gap-2 rounded-md px-2.5',
                 selected()
                     ? theme.selected
                     : 'text-fg-secondary hover:bg-elevated',

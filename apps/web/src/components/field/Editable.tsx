@@ -49,7 +49,7 @@ export function Editable(props: EditableProps) {
             <ArkEditable.Control>
                 <ArkEditable.EditTrigger
                     class={cn(
-                        'flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md border border-transparent text-fg-muted hover:bg-hover hover:text-fg',
+                        'flex size-7 shrink-0 items-center justify-center rounded-md border border-transparent text-fg-muted hover:bg-hover hover:text-fg',
                         props.classes?.trigger,
                     )}
                 >
