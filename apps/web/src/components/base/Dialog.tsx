@@ -1,8 +1,9 @@
 import { Dialog as ArkDialog } from '@ark-ui/solid'
 import { X } from 'lucide-solid'
-import { createEffect, onCleanup } from 'solid-js'
+import { createEffect, onCleanup, Show } from 'solid-js'
 import { Portal } from 'solid-js/web'
 
+import { Callout } from '#/components/base/Callout'
 import { cn } from '#/lib/cn'
 import { overlayStore } from '#/store/overlay'
 
@@ -15,6 +16,8 @@ type DialogProps = {
     description?: string
     children: JSX.Element
     footer?: JSX.Element
+    error?: string | undefined
+    closeDisabled?: boolean
     onOpenChange: (open: boolean) => void
     classes?: {
         backdrop?: string
@@ -50,6 +53,8 @@ export function Dialog(props: DialogProps) {
     return (
         <ArkDialog.Root
             open={props.open}
+            closeOnEscape={!props.closeDisabled}
+            closeOnInteractOutside={!props.closeDisabled}
             onOpenChange={details => props.onOpenChange(details.open)}
         >
             <Portal>
@@ -88,7 +93,8 @@ export function Dialog(props: DialogProps) {
                                 )}
                             </div>
                             <ArkDialog.CloseTrigger
-                                class='flex size-7 shrink-0 items-center justify-center rounded-md border border-transparent bg-elevated text-fg-secondary outline-none hover:bg-elevated-hover focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40'
+                                disabled={props.closeDisabled}
+                                class='flex size-7 shrink-0 items-center justify-center rounded-md border border-transparent bg-elevated text-fg-secondary outline-none hover:bg-elevated-hover focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40 disabled:opacity-60'
                             >
                                 <X
                                     size={15}
@@ -104,6 +110,9 @@ export function Dialog(props: DialogProps) {
                         >
                             {props.children}
                         </div>
+                        <Show when={props.error}>
+                            {message => <Callout variant='attached'>{message()}</Callout>}
+                        </Show>
                         {props.footer && (
                             <div
                                 class={cn(

@@ -7,6 +7,7 @@ import type { JSX } from 'solid-js'
 
 type TextProps = {
     disabled?: boolean
+    invalid?: boolean
     label: string
     value: string
     action?: JSX.Element
@@ -47,6 +48,7 @@ export function Text(props: TextProps) {
                         class={cn(
                             'h-7 w-full min-w-0 rounded-md border border-field-border bg-field px-3 text-xs leading-none text-fg outline-none placeholder:text-fg-muted focus:border-accent focus:ring-2 focus:ring-accent/40',
                             theme.field.disabled,
+                            props.invalid && theme.field.invalid,
                             props.icon && 'pl-9',
                             props.classes?.input,
                         )}

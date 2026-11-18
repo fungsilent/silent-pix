@@ -28,7 +28,7 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 <ul class="ds-rules">
 <Rule component="status-message" id="structure">結構固定：icon 方塊（只限 regular、可省）→ 文字區 `flex flex-col gap-1`（標題可省、說明可省，但至少一行）→ 按鈕（可省）。所有空／錯誤狀態都用這一個元件，不在使用處另組一份。</Rule>
 <Rule component="status-message" id="regular">regular 用在工作區、格狀瀏覽、比較 stage、metadata 等大區塊：`max-w-[280px] gap-3`，由所在區塊負責置中（stage 底色用 `bg-stage-empty`）；標題 `text-sm font-medium`，說明 `text-xs leading-relaxed`，icon 方塊 `size-12 rounded-xl`、icon 21／stroke 1.5，按鈕用 L0 Button default 加 `mt-1`、icon 14。</Rule>
-<Rule component="status-message" id="types">三種類型 × 兩種尺寸（regular／compact）：**empty**（沒有內容可顯示）muted 文字；尚未選取或加入時可加一顆 solid accent 引導鈕（guide，與 Bar 上同一個動作），有條件但沒結果時不放按鈕。**load error**（讀取失敗，重試可能會好）只寫一句 muted 訊息 + 中性 soft Retry，不用標題、不用紅色。**content error**（使用者提供的內容無法處理，重試也不會好）一句 `text-danger-fg`、不放 Retry。</Rule>
+<Rule component="status-message" id="types">三種類型 × 兩種尺寸（regular／compact）：**empty**（沒有內容可顯示）muted 文字；尚未選取或加入時可加一顆 solid accent 引導鈕（guide，與 Bar 上同一個動作），有條件但沒結果時不放按鈕。**load error**（讀取失敗，重試可能會好）只寫一句 muted 訊息 + 中性 soft Retry，不用標題、不用紅色。**content error**（內容無法處理，重試也不會好）不放 Retry，訊息用 `text-danger-fg`：regular 加 danger 染色的 icon 方塊（`border-danger/25 bg-danger-soft text-danger-fg`），圖示依內容選（圖片用 image-off），沒指定時用警告三角；compact 不放方塊，改在文字上方放 14px danger 警告三角。</Rule>
 <Rule component="status-message" id="copy-by-cause">文案依原因區分：完全沒資料、單一 filter（各自一組標題與說明）、多 filter 無結果、搜尋無結果。說明要告訴使用者下一步。</Rule>
 <Rule component="status-message" id="not-included">不屬於本元件：載入中用 Skeleton；未選取時仍維持欄位外觀的編輯器佔位；浮在圖片上的短暫訊息。</Rule>
 </ul>

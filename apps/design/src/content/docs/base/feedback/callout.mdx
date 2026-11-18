@@ -1,0 +1,30 @@
+---
+title: Callout
+description: 需要說明原因的錯誤區塊：一整塊淡紅底加紅色警告三角標出「這裡是錯誤」，文字維持一般色，可放標題與說明。兩種擺法：獨立的圓角框，以及貼齊容器邊緣的整寬條（Dialog 錯誤條）。
+sidebar:
+    order: 2
+---
+
+import State from '@silent-pix/blueprint/components/State.astro'
+import Gallery from '@silent-pix/blueprint/components/Gallery.astro'
+import Rule from '@silent-pix/blueprint/components/Rule.astro'
+import Rules from '@silent-pix/blueprint/components/Rules.astro'
+
+## Examples
+
+<Gallery min="480px">
+<State component="callout" state="default" label="title + message" frame="w-max flex rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="callout" state="message-only" label="message only" frame="w-max flex rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="callout" state="attached" label="attached · full-width bar" frame="w-max flex rounded-lg border border-line-subtle bg-canvas p-4" />
+</Gallery>
+
+<Rules component="callout">
+
+<ul class="ds-rules">
+<Rule component="callout" id="signal">顏色交給區塊，不交給文字：`border-danger/25 bg-danger-soft` 加 `text-danger-fg` 警告三角（與 Issue chip 同一個圖示）；標題 `font-medium text-fg`，說明 `text-fg-secondary`，`text-xs leading-4` 可換行不截斷，長檔名與沒有空白的字串也在區塊內換行。長句與暗底上的紅字難讀，所以內文不上紅。</Rule>
+<Rule component="callout" id="box">**box**：獨立出現的錯誤，`rounded-md px-3 py-2.5`、三角 14px；寬度跟隨所在內容（置中引導區內與說明同寬）。標題寫「什麼失敗了」（可帶對象名稱，例如檔名），說明寫原因與下一步；只有一句時省略標題，那一句用 `text-fg`。</Rule>
+<Rule component="callout" id="attached">**attached**：貼在容器兩段之間的整寬條，不加圓角、只有 `border-t border-danger/25`，`px-4 py-2`、三角 12px，只放一句。Dialog 的操作失敗用這個擺法（見 Dialog 的 error）。</Rule>
+<Rule component="callout" id="when">用在需要說明原因、且不屬於某個欄位的錯誤：讀檔失敗、dialog 內的操作失敗。欄位與拖放區的錯誤空間小、句子短，仍用 danger Field hint；整塊內容出不來用 StatusMessage；操作與前置檢查問題進 Header 的 Issue chip。沒有錯誤時不佔位，不做會自己消失的提示。</Rule>
+</ul>
+
+</Rules>

@@ -271,7 +271,7 @@ Task 詳細面板最上面的 identity 區：ID、名稱（inline 改名）、�
 <Rule component="task-info" id="rows">Task 詳細面板最上方的 identity 區，不帶區塊標題；列由上而下固定為 ID、Name、Status、（失敗原因）、Created、刪除鈕。標籤欄寬 74px，值欄可截斷；ID 用 mono 11px，Created 用 `fg-secondary`。</Rule>
 <Rule component="task-info" id="modes">可編輯模式（Generate）可改名與刪除；唯讀模式（Compare）名稱欄一律停用、不顯示鉛筆，也沒有刪除鈕。</Rule>
 <Rule component="task-info" id="rename">改名用 inline Editable：點名稱或鉛筆進入編輯，此時名稱 preview 與鉛筆一起消失，只剩帶 accent 外框與 ring 的輸入框；送出時去除前後空白，空字串代表清除名稱。改名送出中、draft、loading 時名稱欄停用。</Rule>
-<Rule component="task-info" id="failure">失敗原因只在 Failed 狀態出現，插在 Status 與 Created 之間：左側 2px 半透明 danger 邊線，先寫一句依錯誤代碼翻譯的原因（未知代碼回退成通用文案），可展開的 Details 顯示錯誤代碼與最高 160px、可捲動的原始訊息；展開時 chevron 轉 90°。沒有錯誤代碼也沒有原始訊息時，原因用通用文案，Details 內只有一行「No failure reason was recorded.」。</Rule>
+<Rule component="task-info" id="failure">失敗原因只在 Failed 狀態出現，插在 Status 與 Created 之間：左側 2px 半透明 danger 邊線，「Failure reason」標籤前加 12px danger 警告三角，先用 danger 文字寫一句依錯誤代碼翻譯的原因（未知代碼回退成通用文案），可展開的 Details 用 muted mono 顯示錯誤代碼與最高 160px、可捲動的原始訊息；展開時 chevron 轉 90°。沒有錯誤代碼也沒有原始訊息時，原因用通用文案，Details 內只有一行「No failure reason was recorded.」。</Rule>
 <Rule component="task-info" id="draft">Draft（尚未送出的新 task）的 Status 用 neutral Badge「Draft」，ID 留白、Created 顯示 `-`，沒有刪除鈕。</Rule>
 <Rule component="task-info" id="loading">Loading（cold）逐格蓋 skeleton，ID 用空白字元、Status 用空 Badge 撐住行高，不顯示假資料。</Rule>
 <Rule component="task-info" id="delete">「Delete task」是全寬 danger soft 按鈕，按下開啟刪除確認 dialog。</Rule>
@@ -432,7 +432,7 @@ Task 詳細面板的 LoRA 區：已選 LoRA 的清單與 weight。
 <ul class="ds-rules">
 <Rule component="generate-confirm-dialog" id="structure">結構固定：header（`text-base font-bold` 標題 + `text-xs leading-5 text-fg-muted` 說明 + 右上 soft 關閉鈕 `size-7`）、body（受影響的對象，名稱用 `font-mono`）、footer（`border-t`）。</Rule>
 <Rule component="generate-confirm-dialog" id="backdrop">Backdrop `bg-backdrop`；dialog 置中，`rounded-lg border-line bg-surface shadow-2xl`。板上以 `absolute` 畫在固定高度的框內。</Rule>
-<Rule component="generate-confirm-dialog" id="width-error">刪除／封存類寬 `w-[420px]`；footer 左側放錯誤（`text-xs text-danger-fg`，單行截斷），右側 Cancel（soft neutral）與確認鈕（soft danger），尺寸依 L0 Dialog footer。</Rule>
+<Rule component="generate-confirm-dialog" id="width-error">刪除／封存類寬 `w-[420px]`；失敗時用 L0 Dialog 的錯誤條；footer 只放 Cancel（soft neutral）與確認鈕（soft danger），尺寸依 L0 Dialog footer。</Rule>
 <Rule component="generate-confirm-dialog" id="pending">確認進行中依 L0 Dialog pending：兩顆按鈕都用 L0 Button 停用樣式，確認鈕文案換成「Deleting...」；批次刪除在進行中也擋掉關閉，右上關閉鈕一併停用。</Rule>
 <Rule component="generate-confirm-dialog" id="close-on-success">失敗時 dialog 保持開啟並在 footer 顯示錯誤；成功才關閉。</Rule>
 </ul>

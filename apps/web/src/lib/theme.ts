@@ -3,6 +3,7 @@ export const theme = {
     field: {
         disabled: 'disabled:cursor-default disabled:border-line-subtle disabled:bg-disabled disabled:text-fg-muted',
         disabledData: 'data-[disabled]:cursor-default data-[disabled]:border-line-subtle data-[disabled]:bg-disabled data-[disabled]:text-fg-muted',
+        invalid: 'border-l-2 border-l-danger focus:border-field-border focus:border-l-danger focus:ring-danger/30',
     },
     selected: 'bg-selected text-fg hover:bg-selected',
     /*

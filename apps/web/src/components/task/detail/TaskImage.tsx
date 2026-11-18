@@ -1,10 +1,9 @@
 import { image } from '@silent-pix/shared'
-import { ImagePlus, RotateCcw, Search, X } from 'lucide-solid'
+import { ImagePlus, RotateCcw, Search, TriangleAlert, X } from 'lucide-solid'
 import { createSignal, Show } from 'solid-js'
 
 import { resolveImageUrl } from '#/api/image'
 import { Button } from '#/components/base/Button'
-import { FieldHint } from '#/components/base/FieldHint'
 import { Loading } from '#/components/base/Loading'
 import { DetailSection } from '#/components/detail'
 import { FileDrop, Number, Slider } from '#/components/field'
@@ -114,13 +113,28 @@ export function TaskImage(props: TaskImageProps) {
                                     accept={[...image.imageMimeValues]}
                                     onAccept={onReferenceFile}
                                     onReject={onReferenceReject}
+                                    invalid={!!referenceError()}
                                 >
                                     <ImagePlus
                                         size={20}
                                         strokeWidth={1.5}
                                     />
                                     <span class='text-xs text-fg-secondary'>{t('image.dropHint')}</span>
-                                    <span class='text-[11px]'>PNG · JPEG</span>
+                                    <Show
+                                        when={referenceError()}
+                                        fallback={<span class='text-[11px]'>PNG · JPEG</span>}
+                                    >
+                                        {message => (
+                                            <span class='flex items-center gap-1 text-[11px] text-danger-fg'>
+                                                <TriangleAlert
+                                                    size={11}
+                                                    strokeWidth={2}
+                                                    class='shrink-0'
+                                                />
+                                                {message()}
+                                            </span>
+                                        )}
+                                    </Show>
                                 </FileDrop>
                             </Loading.Mask>
                             <Loading.Mask loading={props.loading}>
@@ -204,10 +218,6 @@ export function TaskImage(props: TaskImageProps) {
                         </div>
                     </Loading.Mask>
                 </div>
-            </Show>
-
-            <Show when={referenceError()}>
-                {message => <FieldHint tone='danger'>{message()}</FieldHint>}
             </Show>
 
             <Show when={isCreate()}>

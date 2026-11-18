@@ -365,6 +365,7 @@
     },
     "metadata": {
         "title": "圖片 Metadata",
+        "cantRead": "無法讀取 {{name}}",
         "openTitle": "開啟圖片",
         "openMessage": "把 PNG、JPEG 或 WebP 檔拖進視窗任何位置。檔案只在這台裝置上讀取，不會上傳。",
         "choose": "選擇圖片",

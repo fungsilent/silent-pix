@@ -37,7 +37,7 @@ Compare 頁的整個工作區：標題列、可縮放的目前圖片、底部 co
 <Rule component="compare-workspace" id="current-chip">目前圖片左上是 glass chip：accent 序號（在「可見項」中的位置）+ 來源標籤 + 尺寸；右上只有 expand（開 image-viewer compare）；左下是 zoom-controls。</Rule>
 <Rule component="compare-workspace" id="empty-guide">Empty 與 all-hidden 都是 L0 StatusMessage regular 引導（solid accent 主要動作，與標題列同一個動作），置中於 `bg-stage-empty`。all-hidden 只有標題與 Show all，縮圖列保留，讓使用者逐張取消隱藏。</Rule>
 <Rule component="compare-workspace" id="zoom-pan">放大後與 image-viewer 相同：圖片超出可視範圍時游標變 grab 可平移，stage 右下出現 minimap；左下 zoom-controls 顯示倍率。縮圖列不收起。</Rule>
-<Rule component="compare-workspace" id="image-error">目前圖片載入失敗時隱藏該圖，置中於 stage 放 L0 StatusMessage regular content error「Image unavailable」（不放 Retry），不出 minimap；標題列、圖片 chip 與縮圖列照常。</Rule>
+<Rule component="compare-workspace" id="image-error">目前圖片載入失敗時隱藏該圖，置中於 stage 放 L0 StatusMessage regular content error「Image unavailable」（image-off 圖示、不放 Retry），不出 minimap；標題列、圖片 chip 與縮圖列照常。</Rule>
 <Rule component="compare-workspace" id="keyboard">←／→ 只在可見項間循環；有 overlay 開著時不攔。</Rule>
 </ul>
 

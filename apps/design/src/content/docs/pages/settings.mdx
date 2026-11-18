@@ -70,7 +70,7 @@ Desktop 才有的 Server 連線設定：輸入、測試、儲存。
 <ul class="ds-rules">
 <Rule component="setting-card" id="connection-desktop-only">Connection 卡只在 Desktop 平台出現。已有儲存的 URL 時主按鈕是「Save and reload」，否則「Save and connect」；改到不同 Server 時先開確認 dialog。</Rule>
 <Rule component="setting-card" id="test-result">測試結果只有 Connected／Connection check failed 兩種，是連線狀態不是錯誤：留在按鈕右側，用 1.5 的圓點加語意 fg 色文字，不用 badge；尚未測試時不顯示，修改輸入即清除。</Rule>
-<Rule component="setting-card" id="invalid">URL 不合法時，danger Field hint 取代欄位下方的說明文字（同 Text field 的 error），不另加一行。</Rule>
+<Rule component="setting-card" id="invalid">URL 不合法時，danger Field hint 取代欄位下方的說明文字，輸入框加左側紅邊（同 Text field 的 error），不另加一行。</Rule>
 <Rule component="setting-card" id="read-error">設定讀取失敗時在欄位區上方多一區，用 compact StatusMessage 的 load-error：一句 muted 訊息＋預設 Retry，不用紅色。</Rule>
 <Rule component="setting-card" id="button-states">URL 為空、測試中或儲存中兩顆按鈕都用 L0 Button 停用樣式；進行中的那顆依 L0 pending 換成「Testing...」／「Saving...」。</Rule>
 </ul>

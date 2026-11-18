@@ -158,7 +158,7 @@ Workflow 頁最右欄：Bar 的 Save，下面依序是 workflow-info 與 workflo
 <ul class="ds-rules">
 <Rule component="workflow-confirm-dialog" id="structure">結構固定：header（`text-base font-bold` 標題 + `text-xs leading-5 text-fg-muted` 說明 + 右上 soft 關閉鈕 `size-7`）、body（受影響的對象，名稱用 `font-mono`）、footer（`border-t`）。</Rule>
 <Rule component="workflow-confirm-dialog" id="backdrop">Backdrop `bg-backdrop`；dialog 置中，`rounded-lg border-line bg-surface shadow-2xl`。板上以 `absolute` 畫在固定高度的框內。</Rule>
-<Rule component="workflow-confirm-dialog" id="width-error">刪除／封存類寬 `w-[420px]`；footer 左側放錯誤（`text-xs text-danger-fg`，單行截斷），右側 Cancel（soft neutral）與確認鈕（soft danger），尺寸依 L0 Dialog footer。</Rule>
+<Rule component="workflow-confirm-dialog" id="width-error">刪除／封存類寬 `w-[420px]`；失敗時用 L0 Dialog 的錯誤條；footer 只放 Cancel（soft neutral）與確認鈕（soft danger），尺寸依 L0 Dialog footer。</Rule>
 <Rule component="workflow-confirm-dialog" id="pending">確認進行中依 L0 Dialog pending：兩顆按鈕都用 L0 Button 停用樣式，確認鈕文案換成「Archiving...」或「Deleting...」。</Rule>
 <Rule component="workflow-confirm-dialog" id="close-on-success">失敗時 dialog 保持開啟並在 footer 顯示錯誤；成功才關閉。</Rule>
 <Rule component="workflow-confirm-dialog" id="archive-or-delete">Workflow 仍有 task 使用時只能封存（說明寫出使用數，封存後離開 generate 選單、既有 task 照常）；沒有 task 使用才真正刪除；已封存的 workflow 要等所有 task 都不再使用才刪得掉，說明寫出剩下幾個。</Rule>

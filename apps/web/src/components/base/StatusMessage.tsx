@@ -1,4 +1,4 @@
-import { RefreshCw } from 'lucide-solid'
+import { RefreshCw, TriangleAlert } from 'lucide-solid'
 import { Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
@@ -7,13 +7,6 @@ import { t } from '#/lib/i18n'
 
 import type { JSX } from 'solid-js'
 
-/*
- * 所有空狀態與錯誤提示共用的置中訊息。三種類型：
- * - empty：muted 文字，尚未選取或加入時可帶一顆 solid accent 引導鈕。
- * - load-error：一句 muted 訊息 + Retry。
- * - content-error：一句 danger 文字，不放 Retry。
- * regular 用在大區塊（由所在區塊負責置中），compact 用在側欄與 dialog 內的清單。
- */
 type StatusMessageSize = 'regular' | 'compact'
 
 type StatusMessageAction = {
@@ -26,6 +19,7 @@ type StatusMessageProps = {
     size?: StatusMessageSize
     classes?: {
         root?: string
+        icon?: string
         message?: string
     }
 } & (
@@ -46,13 +40,30 @@ type StatusMessageProps = {
     | {
         kind: 'content-error'
         message: string
+        /* 依內容選，例如圖片用 ImageOff；沒給就是警告三角 */
+        icon?: JSX.Element
     }
 )
 
 export function StatusMessage(props: StatusMessageProps) {
     const compact = () => props.size === 'compact'
     const title = () => props.kind === 'empty' ? props.title : undefined
-    const icon = () => props.kind === 'empty' && !compact() ? props.icon : undefined
+    const icon = () => {
+        if (compact()) {
+            return undefined
+        }
+        if (props.kind === 'empty') {
+            return props.icon
+        }
+        return props.kind === 'content-error'
+            ? props.icon ?? (
+                <TriangleAlert
+                    size={21}
+                    strokeWidth={1.5}
+                />
+            )
+            : undefined
+    }
     const action = (): StatusMessageAction | undefined => {
         if (props.kind === 'empty') {
             return props.action
@@ -86,10 +97,25 @@ export function StatusMessage(props: StatusMessageProps) {
         >
             <Show when={icon()}>
                 {value => (
-                    <div class='grid size-12 place-items-center rounded-xl border border-line-subtle bg-elevated text-fg-muted'>
+                    <div
+                        class={cn(
+                            'grid size-12 place-items-center rounded-xl border',
+                            props.kind === 'content-error'
+                                ? 'border-danger/25 bg-danger-soft text-danger-fg'
+                                : 'border-line-subtle bg-elevated text-fg-muted',
+                            props.classes?.icon,
+                        )}
+                    >
                         {value()}
                     </div>
                 )}
+            </Show>
+            <Show when={compact() && props.kind === 'content-error'}>
+                <TriangleAlert
+                    size={14}
+                    strokeWidth={1.8}
+                    class='text-danger-fg'
+                />
             </Show>
             <div class='flex flex-col gap-1'>
                 <Show when={title()}>

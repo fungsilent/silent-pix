@@ -1,3 +1,4 @@
+import { ImageOff } from 'lucide-solid'
 import { createEffect, createSignal, For, Show } from 'solid-js'
 
 import { resolveImageUrl } from '#/api/image'
@@ -85,7 +86,15 @@ export function ZoomStage(props: ZoomStageProps) {
                     <StatusMessage
                         kind='content-error'
                         message={t('image.unavailable')}
-                        classes={{ message: props.stageDanger ? 'text-stage-danger' : '' }}
+                        icon={(
+                            <ImageOff
+                                size={21}
+                                strokeWidth={1.5}
+                            />
+                        )}
+                        classes={props.stageDanger
+                            ? { icon: 'text-stage-danger', message: 'text-stage-danger' }
+                            : {}}
                     />
                 </div>
             </Show>

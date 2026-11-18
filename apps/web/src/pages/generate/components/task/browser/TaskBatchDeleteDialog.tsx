@@ -1,8 +1,7 @@
-import { createSignal, Show } from 'solid-js'
+import { createSignal } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { Dialog } from '#/components/base/Dialog'
-import { FieldHint } from '#/components/base/FieldHint'
 import { toErrorMessage } from '#/lib/error'
 import { t } from '#/lib/i18n'
 
@@ -42,35 +41,28 @@ export function TaskBatchDeleteDialog(props: TaskBatchDeleteDialogProps) {
             description={isSelected()
                 ? t('task.deleteSelectedDescription', { count: props.selectedCount })
                 : t('task.deleteDiscardedDescription')}
-            onOpenChange={open => {
-                if (!props.pending) {
-                    props.onOpenChange(open)
-                }
-            }}
+            closeDisabled={props.pending}
+            onOpenChange={props.onOpenChange}
             classes={{ content: 'w-[420px] max-w-full' }}
+            error={error()?.()}
             footer={(
-                <div class='flex w-full items-center justify-between gap-3'>
-                    <Show when={error()}>
-                        {message => <FieldHint tone='danger'>{message()()}</FieldHint>}
-                    </Show>
-                    <div class='ml-auto flex shrink-0 gap-2'>
-                        <Button
-                            disabled={props.pending}
-                            size='dialog'
-                            onClick={() => props.onOpenChange(false)}
-                        >
-                            {t('common.cancel')}
-                        </Button>
-                        <Button
-                            tone='danger'
-                            disabled={props.pending}
-                            size='dialog'
-                            onClick={() => void confirm()}
-                        >
-                            {props.pending ? t('common.deleting') : t('common.delete')}
-                        </Button>
-                    </div>
-                </div>
+                <>
+                    <Button
+                        disabled={props.pending}
+                        size='dialog'
+                        onClick={() => props.onOpenChange(false)}
+                    >
+                        {t('common.cancel')}
+                    </Button>
+                    <Button
+                        tone='danger'
+                        disabled={props.pending}
+                        size='dialog'
+                        onClick={() => void confirm()}
+                    >
+                        {props.pending ? t('common.deleting') : t('common.delete')}
+                    </Button>
+                </>
             )}
         >
             <p class='m-0 text-xs leading-5 text-fg-secondary'>

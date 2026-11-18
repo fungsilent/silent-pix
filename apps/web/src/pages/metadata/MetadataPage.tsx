@@ -1,6 +1,7 @@
 import { FolderOpen, ImagePlus } from 'lucide-solid'
 import { createSignal, onCleanup, onMount, Show } from 'solid-js'
 
+import { Callout } from '#/components/base/Callout'
 import { StatusMessage } from '#/components/base/StatusMessage'
 import { t } from '#/lib/i18n'
 import { useIssueSource } from '#/lib/issue'
@@ -28,6 +29,8 @@ export function MetadataPage() {
     const [previewFailed, setPreviewFailed] = createSignal(false)
     const [loading, setLoading] = createSignal(false)
     const [error, setError] = createSignal<PageError>()
+    /* 讀檔失敗時 file 已清掉，另外留檔名給錯誤標題 */
+    const [failedName, setFailedName] = createSignal<string>()
     const [activeTab, setActiveTab] = createSignal<MetadataTab>('generation')
     const [dragging, setDragging] = createSignal(false)
     const [copiedId, setCopiedId] = createSignal<string>()
@@ -67,8 +70,10 @@ export function MetadataPage() {
     }
 
     const fail = (code: PageError) => {
+        const name = file()?.name
         clear()
         setError(code)
+        setFailedName(name)
     }
 
     const selectFile = (selected: File) => {
@@ -213,6 +218,7 @@ export function MetadataPage() {
                     <OpeningScreen
                         dragging={dragging()}
                         error={error()}
+                        failedName={failedName()}
                         onChoose={openPicker}
                     />
                 )}
@@ -256,6 +262,7 @@ export function MetadataPage() {
 type OpeningScreenProps = {
     dragging: boolean
     error: PageError | undefined
+    failedName: string | undefined
     onChoose: () => void
 }
 
@@ -293,7 +300,14 @@ function OpeningScreen(props: OpeningScreenProps) {
                     classes={{ root: 'max-w-[320px]' }}
                 />
                 <Show when={!props.dragging && props.error}>
-                    {code => <p class='m-0 text-xs text-danger-fg'>{t(`metadata.errors.${code()}`)}</p>}
+                    {code => (
+                        <Callout
+                            title={props.failedName ? t('metadata.cantRead', { name: props.failedName }) : undefined}
+                            class='mt-2 w-full'
+                        >
+                            {t(`metadata.errors.${code()}`)}
+                        </Callout>
+                    )}
                 </Show>
             </div>
         </div>

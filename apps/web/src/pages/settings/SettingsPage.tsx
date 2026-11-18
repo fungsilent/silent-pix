@@ -288,6 +288,7 @@ function ConnectionSettings(props: ConnectionSettingsProps) {
                     label={t('settings.localServerUrl')}
                     value={props.value()}
                     placeholder='http://127.0.0.1:3070'
+                    invalid={!!props.urlError()}
                     onInput={props.onValueChange}
                 />
                 <Show

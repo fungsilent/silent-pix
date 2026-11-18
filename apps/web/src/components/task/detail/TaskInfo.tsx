@@ -4,7 +4,6 @@ import { createSignal, Show } from 'solid-js'
 import { Badge } from '#/components/base/Badge'
 import { Button } from '#/components/base/Button'
 import { Dialog } from '#/components/base/Dialog'
-import { FieldHint } from '#/components/base/FieldHint'
 import { Loading } from '#/components/base/Loading'
 import { DetailRow, DetailSection } from '#/components/detail'
 import { Editable } from '#/components/field/Editable'
@@ -213,29 +212,25 @@ export function TaskInfo(props: TaskInfoProps) {
                         : t('task.deleteWithoutImages')}
                     onOpenChange={setDeleteOpen}
                     classes={{ content: 'w-[420px] max-w-full' }}
+                    error={deleteError()?.()}
                     footer={(
-                        <div class='flex w-full items-center justify-between gap-3'>
-                            <Show when={deleteError()}>
-                                {message => <FieldHint tone='danger'>{message()()}</FieldHint>}
-                            </Show>
-                            <div class='ml-auto flex shrink-0 gap-2'>
-                                <Button
-                                    size='dialog'
-                                    disabled={deletePending()}
-                                    onClick={() => setDeleteOpen(false)}
-                                >
-                                    {t('common.cancel')}
-                                </Button>
-                                <Button
-                                    tone='danger'
-                                    size='dialog'
-                                    disabled={deletePending()}
-                                    onClick={() => void confirmDelete()}
-                                >
-                                    {deletePending() ? t('common.deleting') : t('common.delete')}
-                                </Button>
-                            </div>
-                        </div>
+                        <>
+                            <Button
+                                size='dialog'
+                                disabled={deletePending()}
+                                onClick={() => setDeleteOpen(false)}
+                            >
+                                {t('common.cancel')}
+                            </Button>
+                            <Button
+                                tone='danger'
+                                size='dialog'
+                                disabled={deletePending()}
+                                onClick={() => void confirmDelete()}
+                            >
+                                {deletePending() ? t('common.deleting') : t('common.delete')}
+                            </Button>
+                        </>
                     )}
                 >
                     <p class='m-0 truncate font-mono text-xs text-fg-secondary'>

@@ -9,6 +9,7 @@ type FileDropProps = {
     accept: string[]
     children: JSX.Element
     disabled?: boolean
+    invalid?: boolean
     maxFileSize?: number | undefined
     onAccept: (file: File) => void
     onReject: (rejection: FileUploadFileRejection) => void
@@ -43,8 +44,10 @@ export function FileDrop(props: FileDropProps) {
             <FileUpload.Dropzone
                 class={cn(
                     'flex flex-col items-center justify-center gap-1.5 rounded-md border border-dashed border-line px-3 py-6 text-center text-fg-muted',
-                    'hover:border-line hover:bg-hover',
-                    'data-[dragging]:border-accent data-[dragging]:bg-accent/10 data-[dragging]:text-accent-fg',
+                    props.invalid
+                        ? 'border-danger bg-danger/10 hover:border-danger hover:bg-danger/15'
+                        : 'hover:border-line hover:bg-hover',
+                    'data-[dragging]:border-accent data-[dragging]:bg-accent/10',
                     'data-[disabled]:cursor-default data-[disabled]:opacity-50',
                     props.classes?.dropzone,
                 )}

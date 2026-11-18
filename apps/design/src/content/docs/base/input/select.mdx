@@ -20,6 +20,7 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 <State component="select" state="badge-danger" label="with badge · danger" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
 <State component="select" state="open-badge" label="open · option badges" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
 <State component="select" state="disabled" label="disabled" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
+<State component="select" state="error" label="error" frame="overflow-hidden rounded-lg border border-line-subtle bg-surface p-4" />
 </Gallery>
 
 <Rules component="select">
@@ -28,6 +29,7 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 <Rule component="select" id="trigger">Trigger 與 text-field 同規格（`h-7`、field 底與邊框、focus／停用相同），右側 15px ChevronDown 用 `text-fg-secondary`；值過長時 truncate。</Rule>
 <Rule component="select" id="list">展開清單是浮在 trigger 下方 `mt-1` 的 `bg-elevated` 層：`border-line rounded-md p-1 shadow-xl`，寬度至少等於 trigger。項目 `h-8 rounded px-2 text-xs`；鍵盤／滑鼠 highlight 用 `bg-accent/20`，目前值在右側顯示 13px accent 勾。</Rule>
 <Rule component="select" id="option-badge">選項可帶一個 badge（L0 Badge，`h-5`），trigger 與清單同時顯示，用來標示仍被引用但已不正常的值：warning 標 `archived`、danger 標 `missing`。值本身照常顯示，讓使用者知道原本選的是什麼。</Rule>
+<Rule component="select" id="error">錯誤同 text-field：trigger 加左側紅邊，下方放 danger hint。值已失效但仍被引用時用 option badge 標示，不算欄位錯誤。</Rule>
 <Rule component="select" id="no-groups">選項在清單中不用分組或說明行；需要搜尋或預覽的挑選改用 dialog。</Rule>
 </ul>
 

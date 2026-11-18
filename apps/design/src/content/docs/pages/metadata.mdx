@@ -20,15 +20,15 @@ import Fixed from '@silent-pix/blueprint/components/Fixed.astro'
 <Gallery min="520px">
 <State component="metadata-opening-screen" state="default" label="預設" frame="flex h-[360px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="metadata-opening-screen" state="dragging" label="拖曳檔案經過" description="檔案拖進視窗時，整區疊上虛線框。" frame="flex h-[360px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="metadata-opening-screen" state="error" label="讀取失敗" description="引導鈕下方說明原因。" frame="flex h-[360px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="metadata-opening-screen" state="error" label="讀取失敗" description="引導鈕下方放 Callout，標出哪個檔、為什麼讀不了。" frame="flex h-[360px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 </Gallery>
 
 <Rules component="metadata-opening-screen">
 
 <ul class="ds-rules">
 <Rule component="metadata-opening-screen" id="opening-screen">尚未開檔時沒有左側面板，整個工作區是開啟畫面：L0 StatusMessage regular guide，說明寫出可拖放的格式與「只在本機讀取、不上傳」，引導鈕是「Choose image」。本機處理只寫在這裡，不另外放標章。</Rule>
-<Rule component="metadata-opening-screen" id="drag-overlay">拖曳檔案經過視窗時，整個工作區上方疊一層 `border-2 border-dashed border-accent bg-accent/10`（內縮 12px），開啟畫面的標題換成「Drop to read metadata」；已開檔時同一層蓋在面板與結果區上。放開才開始讀取。</Rule>
-<Rule component="metadata-opening-screen" id="read-error">讀取失敗（格式不支援、檔案過大、無法讀取）：回到開啟畫面，引導鈕下方加一行 danger 文字說明原因與怎麼做。</Rule>
+<Rule component="metadata-opening-screen" id="drag-overlay">拖曳檔案經過視窗時，整個工作區上方疊一層 `border-2 border-dashed border-accent bg-accent/10`（內縮 12px），開啟畫面的標題換成「Drop to read metadata」，icon 方塊維持原色（狀態由疊層的框與底表達，圖示不轉色）；已開檔時同一層蓋在面板與結果區上。放開才開始讀取。</Rule>
+<Rule component="metadata-opening-screen" id="read-error">讀取失敗（格式不支援、檔案過大、無法讀取）：回到開啟畫面，引導鈕下方放 L0 Callout box，與說明同寬：標題「Can’t read」加檔名，說明寫原因與怎麼做。換檔或開始拖曳時移除。</Rule>
 </ul>
 
 </Rules>

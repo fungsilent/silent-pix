@@ -1,9 +1,8 @@
 import { Trash2 } from 'lucide-solid'
-import { createSignal, Show } from 'solid-js'
+import { createSignal } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { Dialog } from '#/components/base/Dialog'
-import { FieldHint } from '#/components/base/FieldHint'
 import { useDeleteWorkflowMutation } from '#/features/workflow/workflow.query'
 import { toErrorMessage } from '#/lib/error'
 import { t } from '#/lib/i18n'
@@ -80,33 +79,27 @@ export function WorkflowDelete() {
                 description={describe()}
                 onOpenChange={setOpen}
                 classes={{ content: 'w-[420px] max-w-full' }}
+                error={error()?.()}
                 footer={(
-                    <div class='flex w-full items-center justify-between gap-3'>
-                        <Show when={error()}>
-                            {message => (
-                                <FieldHint tone='danger'>{message()()}</FieldHint>
-                            )}
-                        </Show>
-                        <div class='ml-auto flex shrink-0 gap-2'>
-                            <Button
-                                size='dialog'
-                                disabled={mutation.isPending}
-                                onClick={() => setOpen(false)}
-                            >
-                                {t('common.cancel')}
-                            </Button>
-                            <Button
-                                tone='danger'
-                                size='dialog'
-                                disabled={mutation.isPending}
-                                onClick={() => void confirm()}
-                            >
-                                {mutation.isPending
-                                    ? (willArchive() ? t('workflow.archive.pending') : t('common.deleting'))
-                                    : (willArchive() ? t('workflow.archive.confirm') : t('common.delete'))}
-                            </Button>
-                        </div>
-                    </div>
+                    <>
+                        <Button
+                            size='dialog'
+                            disabled={mutation.isPending}
+                            onClick={() => setOpen(false)}
+                        >
+                            {t('common.cancel')}
+                        </Button>
+                        <Button
+                            tone='danger'
+                            size='dialog'
+                            disabled={mutation.isPending}
+                            onClick={() => void confirm()}
+                        >
+                            {mutation.isPending
+                                ? (willArchive() ? t('workflow.archive.pending') : t('common.deleting'))
+                                : (willArchive() ? t('workflow.archive.confirm') : t('common.delete'))}
+                        </Button>
+                    </>
                 )}
             >
                 <p class='m-0 truncate font-mono text-xs text-fg-secondary'>
