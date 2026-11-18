@@ -302,7 +302,7 @@ function OpeningScreen(props: OpeningScreenProps) {
                 <Show when={!props.dragging && props.error}>
                     {code => (
                         <Callout
-                            title={props.failedName ? t('metadata.cantRead', { name: props.failedName }) : undefined}
+                            title={props.failedName && code() !== 'WORKER_FAILED' ? t('metadata.cantRead', { name: props.failedName }) : undefined}
                             class='mt-2 w-full'
                         >
                             {t(`metadata.errors.${code()}`)}

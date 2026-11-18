@@ -28,7 +28,7 @@ import Fixed from '@silent-pix/blueprint/components/Fixed.astro'
 <ul class="ds-rules">
 <Rule component="metadata-opening-screen" id="opening-screen">尚未開檔時沒有左側面板，整個工作區是開啟畫面：L0 StatusMessage regular guide，說明寫出可拖放的格式與「只在本機讀取、不上傳」，引導鈕是「Choose image」。本機處理只寫在這裡，不另外放標章。</Rule>
 <Rule component="metadata-opening-screen" id="drag-overlay">拖曳檔案經過視窗時，整個工作區上方疊一層 `border-2 border-dashed border-accent bg-accent/10`（內縮 12px），開啟畫面的標題換成「Drop to read metadata」，icon 方塊維持原色（狀態由疊層的框與底表達，圖示不轉色）；已開檔時同一層蓋在面板與結果區上。放開才開始讀取。</Rule>
-<Rule component="metadata-opening-screen" id="read-error">讀取失敗（格式不支援、檔案過大、無法讀取）：回到開啟畫面，引導鈕下方放 L0 Callout box，與說明同寬：標題「Can’t read」加檔名，說明寫原因與怎麼做。換檔或開始拖曳時移除。</Rule>
+<Rule component="metadata-opening-screen" id="read-error">讀取失敗（格式不支援、檔案過大、無法讀取）：回到開啟畫面，引導鈕下方放 L0 Callout box，與說明同寬：標題「Can’t read」加檔名，說明寫原因與怎麼做。不是檔案本身的問題（例如讀取元件載入失敗）時不帶標題，只寫原因並請使用者重新載入 App。換檔或開始拖曳時移除。</Rule>
 </ul>
 
 </Rules>

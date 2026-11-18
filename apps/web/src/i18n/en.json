@@ -419,7 +419,7 @@
             "INVALID_IMAGE": "The image or its metadata could not be read.",
             "READ_FAILED": "Could not read the file. Select it again.",
             "TIMEOUT": "Reading the metadata took too long. Try another image.",
-            "WORKER_FAILED": "Could not read metadata on this device. Try again.",
+            "WORKER_FAILED": "The metadata reader couldn’t load. Reload the app and try again.",
             "TOO_MANY_FILES": "Choose one image at a time."
         }
     }
