@@ -5,14 +5,14 @@ import { useWorkflowListQuery } from '#/features/workflow/workflow.query'
 import { toErrorMessage } from '#/lib/error'
 import { t } from '#/lib/i18n'
 import { generateFieldLabel } from '#/pages/generate/issue'
-import { useGenerateStore } from '#/pages/generate/store'
+import { useGenerateSession } from '#/pages/generate/session'
 import { hasLostConnection, serviceHealth } from '#/store/app'
 
 import type { GenerateIssue } from '#/pages/generate/issue'
 import type { Accessor } from 'solid-js'
 
 export function useRuntimeIssues(): Accessor<GenerateIssue[]> {
-    const store = useGenerateStore()
+    const store = useGenerateSession()
     const workflowId = store.form.useSelector(({ values }) => values.workflowId)
     const workflowQuery = useWorkflowListQuery()
     const samplerQuery = useSamplerListQuery()

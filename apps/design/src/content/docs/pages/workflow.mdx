@@ -73,7 +73,7 @@ Workflow 頁中欄：ComfyUI API JSON 文字編輯器，含行號、mapping fiel
 <Rule component="graph-editor" id="bound-lines">被 mapping 綁定的 input 行：field gutter 顯示 field 名（`text-code-string`，綁定失效時 `text-danger-fg`），整行底色 `bg-workflow-bound-soft`／失效為 `bg-workflow-broken-soft`。</Rule>
 <Rule component="graph-editor" id="tokens">Token 色只有六種：第一層 key（node id）`text-accent-fg`，其他 key `text-fg`，字串 `text-code-string`，數字 `text-code-number`，`true`／`false`／`null` `text-code-literal`，標點與其他 `text-fg-muted`。</Rule>
 <Rule component="graph-editor" id="paste-format">貼上壓縮成一行的 JSON 時自動以 2 空白縮排重排，行號與標記才對得上；一般打字不重排。空文件顯示 placeholder「Paste the ComfyUI API JSON here.」。</Rule>
-<Rule component="graph-editor" id="no-selection-loading">沒有選取 workflow 時編輯區整塊換成 `bg-elevated` 置中提示；載入中以直角 skeleton 蓋滿編輯區且不可互動。Archived 或 Server 不可用時內容唯讀，外觀不變。</Rule>
+<Rule component="graph-editor" id="no-selection-loading">沒有選取 workflow 時編輯區整塊換成 `bg-elevated` 置中提示；載入中以直角 skeleton 蓋滿編輯區且不可互動。封存、已刪除或 Server 不可用時內容唯讀，仍可選取及複製原文。</Rule>
 <Rule component="graph-editor" id="issues-elsewhere">JSON 無法解析、格式不是 API graph（例如 UI workflow 格式）等問題不在編輯器內標示，而是進 Header 的 Issue chip（來源 Graph）。</Rule>
 </ul>
 
@@ -92,6 +92,7 @@ Workflow 頁最右欄：Bar 的 Save，下面依序是 workflow-info 與 workflo
 <State component="workflow-detail" state="issues" label="modified · mapping issues" frame="w-max flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="workflow-detail" state="new" label="create draft" frame="w-max flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="workflow-detail" state="archived" label="archived · read-only" frame="w-max flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="workflow-detail" state="deleted" label="deleted · unsaved draft" frame="w-max flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="workflow-detail" state="loading" label="loading" frame="w-max flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="workflow-detail" state="load-error" label="detail load error" frame="w-max flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="workflow-detail" state="unavailable" label="Server unavailable · read-only" frame="w-max flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
@@ -110,6 +111,7 @@ Workflow 頁最右欄：Bar 的 Save，下面依序是 workflow-info 與 workflo
 <Rule component="workflow-detail" id="bar-actions">Bar 右側（有選取時）只有 Save。Save 是 bar 尺寸的 accent solid、semibold；沒有修改、儲存中、載入中、版本衝突、名稱空白、graph 無法解析或 mapping 有問題時停用（`opacity-60`），儲存中文案換成「Saving」。</Rule>
 <Rule component="workflow-detail" id="issue-chip">名稱必填、graph 解析、mapping 失效與儲存失敗都進 Header 的 Issue chip，來源分別標 Name／Graph／Mapping／Save；Workflow detail 本身不放 chip，只靠欄位標記（例如 missing Badge）與 Save 停用表示。清單讀取失敗由 workflow-list 自己顯示。</Rule>
 <Rule component="workflow-detail" id="archived">封存的 workflow 整欄唯讀：Save 換成 muted 文字「Read-only · archived」，workflow-info 名稱與 workflow-mapping 全部 disabled。</Rule>
+<Rule component="workflow-detail" id="deleted">選取的 workflow 被其他客戶端刪除時，有未儲存修改就保留草稿。Bar 顯示「Read-only · deleted」，內容提示可到 API JSON 複製草稿，並保留唯讀的 Info 與 Mapping。這個狀態沒有 Save、Delete 或 Retry。沒有未儲存修改時選取清單第一項，清單為空時回到無選取。</Rule>
 <Rule component="workflow-detail" id="loading">載入中 Bar 保留、Save 停用，內容各區塊以 skeleton 遮罩並不可互動（見 workflow-info、workflow-mapping 的 loading）。</Rule>
 <Rule component="workflow-detail" id="load-error">選取的 workflow 讀取失敗時，內容整塊換成置中的 L0 StatusMessage regular load error「Failed to load workflow.」＋ Retry；Bar 只留標題，右側不放任何動作。</Rule>
 <Rule component="workflow-detail" id="unavailable">Server 不可用時整欄唯讀，組法同封存：workflow-info 與 workflow-mapping 用各自的唯讀狀態，Bar 右側保留 Save 但停用。</Rule>
@@ -173,7 +175,7 @@ Workflow 頁最右欄：Bar 的 Save，下面依序是 workflow-info 與 workflo
     <div class="flex min-h-0 flex-1 overflow-hidden">
         <Slot name="list" component="workflow-list" states="default,modified,creating,archived-selected,loading,empty,error" />
         <Slot name="graph" component="graph-editor" states="default,empty,no-selection,loading" />
-        <Slot name="detail" component="workflow-detail" states="saved,unused,modified,saving,issues,node-open,new,archived,pending,unavailable,loading,load-error,no-selection" />
+        <Slot name="detail" component="workflow-detail" states="saved,unused,modified,saving,issues,node-open,new,archived,deleted,pending,unavailable,loading,load-error,no-selection" />
     </div>
     <Slot name="overlay" component="workflow-confirm-dialog" states="none,workflow-archive,workflow-delete-error,workflow-archived-pending" empty="none" />
 </Screen>

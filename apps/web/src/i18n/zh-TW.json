@@ -303,6 +303,8 @@
         "unsaved": "未儲存",
         "archivedTitle": "已封存",
         "readOnlyArchived": "唯讀 · 已封存",
+        "readOnlyDeleted": "已刪除 · 唯讀",
+        "deletedDraft": "這個 Workflow 已刪除。你仍可在 API JSON 選取並複製草稿。",
         "saving": "儲存中",
         "noSelection": "未選擇工作流程",
         "description": "工作流程包含 ComfyUI 的圖，以及生成頁面使用的欄位對應。",

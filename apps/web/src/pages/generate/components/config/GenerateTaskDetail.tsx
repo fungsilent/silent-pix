@@ -10,7 +10,7 @@ import {
     referencePreviewUrl,
     referenceSize,
 } from '#/pages/generate/form'
-import { useGenerateStore } from '#/pages/generate/store'
+import { useGenerateSession } from '#/pages/generate/session'
 import { taskStore } from '#/store/task'
 
 import type { ImageApi } from '@silent-pix/shared'
@@ -22,7 +22,7 @@ import type { TaskLoraActions, TaskLoraCreateData } from '#/components/task/deta
 import type { ReferenceImage } from '#/pages/generate/form'
 
 export function GenerateTaskDetail() {
-    const store = useGenerateStore()
+    const store = useGenerateSession()
     const form = store.form
     const detail = useGenerateDetail()
     const samplerQuery = useSamplerListQuery()

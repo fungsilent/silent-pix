@@ -7,8 +7,8 @@ import { toFailureIssue } from '#/lib/issue'
 import type { Comfy } from '@silent-pix/shared'
 import type { ZodIssue } from '#/lib/error'
 import type { AppIssue } from '#/lib/issue'
-import type { GraphParse } from '#/pages/workflow/components/graph/graph.document'
 import type { WorkflowFormValues } from '#/pages/workflow/form'
+import type { GraphParse } from '#/pages/workflow/graph'
 
 const fieldLabel: Record<keyof WorkflowFormValues, () => string> = {
     name: () => t('fields.name'),

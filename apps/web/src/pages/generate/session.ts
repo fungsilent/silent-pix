@@ -1,25 +1,24 @@
-import { batch, createContext, onCleanup, useContext } from 'solid-js'
+import { createContextProvider } from '@solid-primitives/context'
+import { batch, onCleanup } from 'solid-js'
 
+import { ApiError } from '#/api/api.client'
+import { useCreateTaskMutation } from '#/features/task/task.query'
+import { useRefreshWorkflowList } from '#/features/workflow/workflow.query'
 import { createStore } from '#/lib/store'
 import {
     cloneGenerateValues,
     createGenerateForm,
     draftGenerateValues,
     referenceSize,
+    toCreateTaskRequest,
     toGenerateValues,
 } from '#/pages/generate/form'
-import { toValidationIssues } from '#/pages/generate/issue'
+import { toSubmitIssue, toValidationIssues } from '#/pages/generate/issue'
+import { taskStore } from '#/store/task'
 
 import type { TaskApi } from '@silent-pix/shared'
-import type {
-    GenerateValues,
-    PromptKind,
-    ReferenceImage,
-} from '#/pages/generate/form'
+import type { PromptKind, ReferenceImage } from '#/pages/generate/form'
 import type { GenerateIssue } from '#/pages/generate/issue'
-import type { JSX } from 'solid-js'
-
-export type { ReferenceImage } from '#/pages/generate/form'
 
 type GenerateUiState = {
     submitIssues: GenerateIssue[]
@@ -28,13 +27,7 @@ type GenerateUiState = {
     promptVisible: Record<PromptKind, boolean>
 }
 
-export type GenerateStoreOptions = {
-    onSubmit?: (values: GenerateValues) => Promise<void>
-}
-
-export function createGenerateStore(
-    options: GenerateStoreOptions = {},
-) {
+function createGenerateSession() {
     const initialState: GenerateUiState = {
         submitIssues: [],
         submitToken: 0,
@@ -60,21 +53,55 @@ export function createGenerateStore(
         }),
     )
 
+    // MARK: Generate Task
+    const createTaskMutation = useCreateTaskMutation()
+    const refreshWorkflowList = useRefreshWorkflowList()
     const form = createGenerateForm(draftGenerateValues, {
         onInvalid: issues => uiStore.reportSubmitIssues(toValidationIssues(issues)),
         onSubmit: async values => {
-            await options.onSubmit?.(values)
+            const response = await createTaskMutation.mutateAsync(toCreateTaskRequest(values))
+            taskStore.selectTask(response.id)
         },
     })
+    const formSubmitting = form.useSelector(state => state.isSubmitting)
+    const isSubmitting = () => formSubmitting() || createTaskMutation.isPending
 
+    const submit = async () => {
+        if (isSubmitting()) return
+
+        uiStore.clearSubmitIssues()
+        try {
+            await form.handleSubmit()
+        }
+        catch (error) {
+            const code = error instanceof ApiError ? error.code : undefined
+
+            if (code === 'WORKFLOW_NOT_FOUND' || code === 'WORKFLOW_ARCHIVED') {
+                refreshWorkflowList()
+            }
+
+            if (code !== 'WORKFLOW_ARCHIVED') {
+                uiStore.reportSubmitIssues([toSubmitIssue(error)])
+            }
+        }
+    }
+
+    // MARK: Load a Task or draft
+    let lastServerName = ''
     const loadTask = (task: TaskApi.GetTaskResponse) => {
-        /* 同一 task 的 task.changed 只更新 query cache，不重設編輯中的表單。 */
+        const serverName = task.name ?? ''
         if (uiStore.state.taskId === task.id) {
+            // 跨路由保留名稱基準，只有使用者沒改過名稱才跟隨 Server。
+            if (serverName !== lastServerName && form.getFieldValue('name') === lastServerName) {
+                form.setFieldValue('name', serverName)
+            }
+            lastServerName = serverName
             return
         }
 
         releaseLocalPreview(form.getFieldValue('referenceImage'))
         form.reset(toGenerateValues(task))
+        lastServerName = serverName
         uiStore.set('taskId', task.id)
     }
 
@@ -86,6 +113,13 @@ export function createGenerateStore(
         releaseLocalPreview(form.getFieldValue('referenceImage'))
         form.reset(cloneGenerateValues(draftGenerateValues))
         uiStore.set('taskId', undefined)
+    }
+
+    // MARK: Reference image
+    function releaseLocalPreview(reference: ReferenceImage | null): void {
+        if (reference?.type === 'local') {
+            URL.revokeObjectURL(reference.previewUrl)
+        }
     }
 
     const setReferenceImage = (reference: ReferenceImage) => {
@@ -106,6 +140,11 @@ export function createGenerateStore(
         form.setFieldValue('referenceImage', null)
     }
 
+    onCleanup(() => {
+        releaseLocalPreview(form.getFieldValue('referenceImage'))
+    })
+
+    // MARK: LoRA selection
     const applyLoraSelection = (names: string[]) => {
         const current = form.getFieldValue('lora')
 
@@ -122,13 +161,11 @@ export function createGenerateStore(
         }))
     }
 
-    onCleanup(() => {
-        releaseLocalPreview(form.getFieldValue('referenceImage'))
-    })
-
     return {
         ...uiStore,
         form,
+        isSubmitting,
+        submit,
         loadTask,
         loadDraft,
         setReferenceImage,
@@ -137,36 +174,13 @@ export function createGenerateStore(
     }
 }
 
-function releaseLocalPreview(reference: ReferenceImage | null): void {
-    if (reference?.type === 'local') {
-        URL.revokeObjectURL(reference.previewUrl)
-    }
-}
+// MARK: Generate session access
+const [GenerateSessionProvider, readGenerateSession] = createContextProvider(createGenerateSession)
+export { GenerateSessionProvider }
 
-export type GenerateStore = ReturnType<typeof createGenerateStore>
+export function useGenerateSession() {
+    const session = readGenerateSession()
+    if (!session) throw new Error('useGenerateSession must be used within GenerateSessionProvider')
 
-const GenerateStoreContext = createContext<GenerateStore>()
-
-type GenerateStoreProviderProps = {
-    children: JSX.Element
-    store: GenerateStore
-}
-
-export function GenerateStoreProvider(props: GenerateStoreProviderProps) {
-    return GenerateStoreContext.Provider({
-        get children() {
-            return props.children
-        },
-        value: props.store,
-    })
-}
-
-export function useGenerateStore() {
-    const store = useContext(GenerateStoreContext)
-
-    if (!store) {
-        throw new Error('Generate store context is missing')
-    }
-
-    return store
+    return session
 }

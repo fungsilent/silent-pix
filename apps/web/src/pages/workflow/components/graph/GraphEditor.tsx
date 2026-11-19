@@ -6,7 +6,6 @@ import { createEffect, onCleanup, onMount, Show } from 'solid-js'
 import { Loading } from '#/components/base/Loading'
 import { t } from '#/lib/i18n'
 import { formatJsonText } from '#/lib/json'
-import { parseGraphText } from '#/pages/workflow/components/graph/graph.document'
 import {
     fieldGutter,
     lineMarkDecorations,
@@ -15,6 +14,7 @@ import {
 } from '#/pages/workflow/components/graph/graph.mark'
 import { createWorkflowEditorTheme } from '#/pages/workflow/components/graph/graph.theme'
 import { workflowTokens } from '#/pages/workflow/components/graph/graph.token'
+import { parseGraphText } from '#/pages/workflow/graph'
 import { themeStore } from '#/store/theme'
 
 import type { LineMark } from '#/pages/workflow/components/graph/graph.document'

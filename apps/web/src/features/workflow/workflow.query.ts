@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/solid-query'
 
+import { ApiError } from '#/api/api.client'
 import { workflowApi } from '#/api/workflow'
-import { cacheWorkflowRemoved, cacheWorkflowSaved } from '#/features/workflow/workflow.cache'
+import { applyWorkflowRemoved, cacheWorkflowRemoved, cacheWorkflowSaved } from '#/features/workflow/workflow.cache'
 import { workflowKeys } from '#/features/workflow/workflow.key'
 
 import type { WorkflowApi } from '@silent-pix/shared'
@@ -34,12 +35,20 @@ export function useWorkflowDetailQuery(workflowId: Accessor<string | null>) {
                 ? workflowKeys.detail(request)
                 : workflowKeys.details(),
             enabled: Boolean(request),
+            staleTime: query => query.state.data === null ? Infinity : 0,
             queryFn: async () => {
                 if (!request) {
                     throw new Error('Workflow detail query requires a workflow ID.')
                 }
 
-                return workflowApi.detail(request)
+                try {
+                    return await workflowApi.detail(request)
+                }
+                catch (error) {
+                    if (isWorkflowNotFound(error)) return null
+
+                    throw error
+                }
             },
         }
     })
@@ -49,10 +58,8 @@ export function useCreateWorkflowMutation() {
     const queryClient = useQueryClient()
 
     return useMutation(() => ({
-        mutationFn: (request: WorkflowApi.CreateWorkflowRequest) => workflowApi.create(request),
-        onSuccess: (created: WorkflowApi.CreateWorkflowResponse) => {
-            cacheWorkflowSaved(queryClient, created)
-        },
+        mutationFn: async (request: WorkflowApi.CreateWorkflowRequest) =>
+            cacheWorkflowSaved(queryClient, await workflowApi.create(request)),
     }))
 }
 
@@ -71,11 +78,15 @@ export function useUpdateWorkflowMutation() {
     const queryClient = useQueryClient()
 
     return useMutation(() => ({
-        mutationFn: (
+        mutationFn: async (
             request: WorkflowApi.UpdateWorkflowParams & WorkflowApi.UpdateWorkflowRequest,
-        ) => workflowApi.update(request),
-        onSuccess: (updated: WorkflowApi.UpdateWorkflowResponse) => {
-            cacheWorkflowSaved(queryClient, updated)
+        ) => cacheWorkflowSaved(queryClient, await workflowApi.update(request)),
+        onError: (error, { workflowId }) => {
+            if (isWorkflowNotFound(error)) applyWorkflowRemoved(queryClient, workflowId)
         },
     }))
+}
+
+function isWorkflowNotFound(error: unknown): boolean {
+    return error instanceof ApiError && error.code === 'WORKFLOW_NOT_FOUND'
 }

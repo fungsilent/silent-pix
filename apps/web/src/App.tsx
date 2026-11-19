@@ -1,3 +1,4 @@
+import { MultiProvider } from '@solid-primitives/context'
 import { HashRouter, Navigate, Route, Router } from '@solidjs/router'
 import { useQueryClient } from '@tanstack/solid-query'
 import { onCleanup, onMount } from 'solid-js'
@@ -7,8 +8,10 @@ import { startServerEvents } from '#/features/event/event.client'
 import { getPlatform } from '#/lib/platform'
 import { ComparePage } from '#/pages/compare/ComparePage'
 import { GeneratePage } from '#/pages/generate/GeneratePage'
+import { GenerateSessionProvider } from '#/pages/generate/session'
 import { MetadataPage } from '#/pages/metadata/MetadataPage'
 import { SettingsPage } from '#/pages/settings/SettingsPage'
+import { WorkflowSessionProvider } from '#/pages/workflow/session'
 import { WorkflowPage } from '#/pages/workflow/WorkflowPage'
 import { routePaths } from '#/routes'
 
@@ -64,7 +67,18 @@ function AppLayout(props: RouteSectionProps) {
     return (
         <main class='flex h-dvh flex-col overflow-hidden bg-canvas text-fg'>
             <Header />
-            {props.children}
+            {platform.endpoint
+                ? (
+                    <MultiProvider
+                        values={[
+                            GenerateSessionProvider,
+                            WorkflowSessionProvider,
+                        ]}
+                    >
+                        {props.children}
+                    </MultiProvider>
+                )
+                : props.children}
         </main>
     )
 }

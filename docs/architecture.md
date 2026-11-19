@@ -244,9 +244,12 @@ mounted across navigation. The QueryClient outlives individual routes. Leaving a
 route unmounts its page, releasing page resources and subscriptions.
 
 TanStack Query owns Server data, loading/errors, and pagination. Solid stores own
-UI choices and connection state without copying Query data. Page-scoped TanStack
-Form owns editable Generate/Workflow values. Server refreshes preserve unrelated
-local edits; changing theme/language does not rebuild editors or reset input.
+UI choices and connection state without copying Query data. Generate and Workflow
+each keep their TanStack Form and pending submission in a work session owned by
+the App root layout. Pages own Query subscriptions, synchronization with server
+data, and editor views. Navigation preserves the work, and restarting the App
+resets it. Server refreshes preserve unrelated local edits; changing theme or
+language does not rebuild editors or reset input.
 
 Local image metadata inspection runs entirely in the browser, with no Server,
 ComfyUI, or durable storage dependency. The page owns File, Worker, preview URL,

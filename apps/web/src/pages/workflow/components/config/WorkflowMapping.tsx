@@ -17,9 +17,9 @@ const unboundValue = ''
 
 /* 對應 TaskConfig：右欄的設定區，分組順序見 pages/workflow/generator-field.ts */
 export function WorkflowMapping() {
-    const store = useWorkflowStore()
-    const configSchema = store.form.useSelector(state => state.values.configSchema)
-    const isLoading = store.isDetailLoading
+    const page = useWorkflowStore()
+    const configSchema = page.form.useSelector(state => state.values.configSchema)
+    const isLoading = page.isDetailLoading
 
     return (
         <DetailSection
@@ -45,9 +45,9 @@ export function WorkflowMapping() {
                                         field={field}
                                         binding={configSchema()[field]}
                                         loading={isLoading}
-                                        nodeOptions={store.graphState().nodeOptions}
-                                        readOnly={store.isRemoteUnavailable() || store.selection().isArchived}
-                                        onChange={(target, value) => store.setMapping(target, value)}
+                                        nodeOptions={page.graphState().nodeOptions}
+                                        readOnly={page.isReadOnly()}
+                                        onChange={(target, value) => page.setMapping(target, value)}
                                     />
                                 )}
                             </For>

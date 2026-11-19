@@ -1,7 +1,6 @@
 import { Save, Workflow } from 'lucide-solid'
-import { createMemo, Show } from 'solid-js'
+import { createMemo, onCleanup, Show } from 'solid-js'
 
-import { ApiError } from '#/api/api.client'
 import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
 import { Line } from '#/components/base/Line'
@@ -24,73 +23,47 @@ import { useWorkflowStore } from '#/pages/workflow/store'
  * mapping 只是底下的一段，所以這一欄叫 Detail 不叫 Mapping。
  */
 export function WorkflowDetail() {
-    const store = useWorkflowStore()
-    const detailQuery = store.detailQuery
+    const page = useWorkflowStore()
+    const detailQuery = page.detailQuery
 
     const issues = createMemo(() => [
-        ...store.state.validationIssues,
+        ...page.state.validationIssues,
         /* 沒有資料的讀取失敗由內容區的 StatusMessage 顯示；這裡只剩背景重新整理失敗 */
         ...toLoadIssues(detailQuery.isError && detailQuery.data ? detailQuery.error : null),
         ...toRequirementIssues({
-            isDirty: store.isModified(),
-            name: store.selection().name,
-            parse: store.graphState().parse,
+            isDirty: page.isModified(),
+            name: page.selection().name,
+            parse: page.graphState().parse,
         }),
-        ...toGraphIssues(store.graphState().parse),
-        ...toMappingIssues(store.graphState().mappingIssues),
+        ...toGraphIssues(page.graphState().parse),
+        ...toMappingIssues(page.graphState().mappingIssues),
         ...toSaveIssues({
-            conflict: store.isConflict(),
-            error: store.selection().isNew
-                ? store.createMutation.error
-                : store.updateMutation.error,
-            onDismiss: () => {
-                store.createMutation.reset()
-                store.updateMutation.reset()
-            },
+            conflict: page.isConflict(),
+            error: page.state.saveError,
+            onDismiss: page.dismissSaveError,
         }),
     ])
 
-    const isSaving = store.isSubmitting
-    const loadFailed = () => store.hasSelection() && detailQuery.isError && !detailQuery.data
-    /* 沒有選取或整個讀取失敗時，畫面上沒有可存的東西，問題也不列 */
-    useIssueSource(() => store.hasSelection() && !loadFailed() ? issues() : [])
-
-    const canSave = () => {
-        const selection = store.selection()
-
-        return store.isModified()
-            /* 沒有目標就不可能存——空狀態之後走不到，守衛仍該在 */
-            && selection.id !== null
-            && !selection.isArchived
-            && !isSaving()
-            /* 載入中畫面全被遮住，使用者看不到自己會存下什麼 */
-            && !store.isDetailLoading()
-            && !store.isConflict()
-            && selection.name.trim().length > 0
-            && store.graphState().graph !== undefined
-            && store.graphState().mappingIssues.length === 0
+    const isSaving = page.isSubmitting
+    const readOnlyLabel = () => {
+        if (page.isDeleted()) return t('workflow.readOnlyDeleted')
+        if (page.selection().isArchived) return t('workflow.readOnlyArchived')
     }
+    const loadFailed = () => page.hasSelection() && !page.isDeleted() && detailQuery.isError && !detailQuery.data
+    /* 沒有選取或整個讀取失敗時，畫面上沒有可存的東西，問題也不列 */
+    useIssueSource(() => page.hasSelection() && !page.isDeleted() && !loadFailed() ? issues() : [])
+
+    let disposed = false
+    onCleanup(() => { disposed = true })
 
     const handleSubmit = async (event: SubmitEvent) => {
         event.preventDefault()
 
-        if (isSaving() || store.isDetailLoading()) {
-            return
-        }
+        const submission = page.submit()
+        if (!submission) return
 
-        store.clearValidationIssues()
-
-        try {
-            await store.form.handleSubmit()
-        }
-        catch (error) {
-            if (error instanceof ApiError && error.code === 'WORKFLOW_NOT_FOUND') {
-                store.refreshWorkflowList()
-            }
-        }
-
-        /* 按下 Save 被擋或失敗時展開 Header 的清單 */
-        if (issues().length > 0) issueList.setOpen(true)
+        const stillEditing = await submission
+        if (!disposed && stillEditing && issues().length > 0) issueList.setOpen(true)
     }
 
     return (
@@ -102,13 +75,13 @@ export function WorkflowDetail() {
                 <Bar.Group>
                     <Bar.Title>{t('common.detail')}</Bar.Title>
                 </Bar.Group>
-                <Show when={store.hasSelection() && !loadFailed()}>
+                <Show when={page.hasSelection() && !loadFailed()}>
                     <Bar.Actions classes={{ root: 'flex-1 justify-end' }}>
                         <Show
-                            when={!store.selection().isArchived}
+                            when={!readOnlyLabel()}
                             fallback={
                                 <span class='shrink-0 text-[11.5px] leading-none text-fg-muted'>
-                                    {t('workflow.readOnlyArchived')}
+                                    {readOnlyLabel()}
                                 </span>
                             }
                         >
@@ -117,7 +90,7 @@ export function WorkflowDetail() {
                                 variant='solid'
                                 tone='accent'
                                 type='submit'
-                                disabled={!canSave()}
+                                disabled={!page.canSave()}
                                 classes={{ root: 'shrink-0 font-semibold' }}
                             >
                                 <Save
@@ -132,7 +105,7 @@ export function WorkflowDetail() {
             </Bar.Root>
 
             <Show
-                when={store.hasSelection()}
+                when={page.hasSelection()}
                 fallback={(
                     <div class='flex min-h-0 flex-1 items-center justify-center px-4 pb-5'>
                         <StatusMessage
@@ -153,7 +126,7 @@ export function WorkflowDetail() {
                                         strokeWidth={1.8}
                                     />
                                 ),
-                                onClick: () => store.startCreate(),
+                                onClick: () => page.startCreate(),
                             }}
                         />
                     </div>
@@ -172,9 +145,12 @@ export function WorkflowDetail() {
                     )}
                 >
                     <div class='scrollbar-thin flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 pb-5'>
+                        <Show when={page.isDeleted()}>
+                            <p class='m-0 text-xs leading-relaxed text-fg-secondary'>{t('workflow.deletedDraft')}</p>
+                        </Show>
                         <div
                             class='contents'
-                            inert={store.isDetailLoading()}
+                            inert={page.isDetailLoading()}
                         >
                             <WorkflowInfo />
                             <Line />

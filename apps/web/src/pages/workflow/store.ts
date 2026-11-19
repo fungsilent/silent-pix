@@ -1,71 +1,32 @@
 import { comfy } from '@silent-pix/shared'
-import { createContext, createEffect, createMemo, on, useContext } from 'solid-js'
+import { createContextProvider } from '@solid-primitives/context'
+import { createEffect, createMemo, on } from 'solid-js'
 
-import {
-    useCreateWorkflowMutation,
-    useUpdateWorkflowMutation,
-    useWorkflowDetailQuery,
-    useWorkflowListQuery,
-} from '#/features/workflow/workflow.query'
+import { useWorkflowDetailQuery, useWorkflowListQuery } from '#/features/workflow/workflow.query'
 import { t } from '#/lib/i18n'
-import { createStore } from '#/lib/store'
-import { toLineMarks as createLineMarks, parseGraphText as parseWorkflowGraphText } from '#/pages/workflow/components/graph/graph.document'
-import {
-    cloneWorkflowValues,
-    createWorkflowForm,
-    emptyWorkflowValues,
-    toWorkflowValues,
-} from '#/pages/workflow/form'
-import { toValidationIssues } from '#/pages/workflow/issue'
+import { toLineMarks as createLineMarks } from '#/pages/workflow/components/graph/graph.document'
+import { parseGraphText } from '#/pages/workflow/graph'
 import { toNodeOptions } from '#/pages/workflow/node-option'
+import { useWorkflowSession } from '#/pages/workflow/session'
 import { isColdLoading } from '#/store/dev'
 
-import type { Comfy, ConfigSchema, GeneratorField, Mapping, WorkflowApi } from '@silent-pix/shared'
-import type { AppIssue } from '#/lib/issue'
-import type { GraphParse, LineMark } from '#/pages/workflow/components/graph/graph.document'
-import type { WorkflowFormValues } from '#/pages/workflow/form'
+import type { Comfy, GeneratorField, Mapping, WorkflowApi } from '@silent-pix/shared'
+import type { LineMark } from '#/pages/workflow/components/graph/graph.document'
+import type { GraphParse } from '#/pages/workflow/graph'
 import type { WorkflowNodeOption } from '#/pages/workflow/node-option'
-import type { JSX } from 'solid-js'
 
-type WorkflowUiState = {
-    selectedId: string | null
-    createDraftId: string | null
-    baseRevision: number | null
-    validationIssues: AppIssue[]
-}
+function createWorkflowStore() {
+    const session = useWorkflowSession()
+    const { form, isModified, isSubmitting, state } = session
 
-function createInitialState(): WorkflowUiState {
-    return {
-        selectedId: null,
-        createDraftId: null,
-        baseRevision: null,
-        validationIssues: [],
-    }
-}
-
-let draftSequence = 0
-
-export function createWorkflowStore() {
-    const uiStore = createStore(
-        createInitialState(),
-        store => ({
-            clearValidationIssues() {
-                store.set('validationIssues', [])
-            },
-
-            reportValidationIssues(issues: AppIssue[]) {
-                store.set('validationIssues', issues)
-            },
-        }),
-    )
+    // MARK: Workflow selection
     const listQuery = useWorkflowListQuery()
-    const createMutation = useCreateWorkflowMutation()
-    const updateMutation = useUpdateWorkflowMutation()
-    const remoteId = createMemo(() => uiStore.state.createDraftId
-        ? null
-        : uiStore.state.selectedId)
-    const detailQuery = useWorkflowDetailQuery(remoteId)
+    const remoteId = () => state.createDraftId ? null : state.selectedId
     const summaries = createMemo((): WorkflowApi.WorkflowSummary[] => listQuery.data?.options ?? [])
+    const selectedSummary = createMemo(() => summaries().find(item => item.id === remoteId()))
+    const missingFromList = () => remoteId() !== null && listQuery.isSuccess && !selectedSummary()
+    const detailQuery = useWorkflowDetailQuery(remoteId)
+    const isDeleted = () => remoteId() !== null && detailQuery.data === null
     const refreshWorkflowList = () => {
         void listQuery.refetch()
     }
@@ -77,39 +38,86 @@ export function createWorkflowStore() {
             : null
     })
 
-    const form = createWorkflowForm(emptyWorkflowValues, {
-        onInvalid: issues => uiStore.reportValidationIssues(toValidationIssues(issues)),
-        onSubmit: saveWorkflow,
-    })
-    const formValues = form.useSelector(state => state.values)
-    const graphText = form.useSelector(state => state.values.graphText)
-    const configSchema = form.useSelector(state => state.values.configSchema)
-    const isDefaultValue = form.useSelector(state => state.isDefaultValue)
-    const isSubmitting = form.useSelector(state => state.isSubmitting)
-
-    const isModified = () => uiStore.state.createDraftId !== null || !isDefaultValue()
-
-    const selection = createMemo((): WorkflowSelection => {
-        const values = formValues()
+    const serverWorkflow = createMemo(() => {
         const current = record()
-        const isNew = uiStore.state.createDraftId !== null
-        const archivedAt = current?.archivedAt ?? null
+        const summary = selectedSummary()
+        return summary && (!current || summary.revision >= current.revision) ? summary : current
+    })
+    const name = form.useSelector(state => state.values.name)
+
+    const selection = createMemo(() => {
+        const current = record()
+        const isNew = state.createDraftId !== null
 
         return {
-            id: isNew ? uiStore.state.createDraftId : current?.id ?? uiStore.state.selectedId,
-            name: values.name,
-            graphText: values.graphText,
-            configSchema: values.configSchema,
-            archivedAt: isNew ? null : archivedAt,
-            revision: isNew ? 0 : uiStore.state.baseRevision ?? current?.revision ?? 0,
+            id: state.createDraftId ?? state.selectedId,
+            name: name(),
+            revision: isNew ? 0 : state.baseRevision ?? current?.revision ?? 0,
             taskCount: isNew ? 0 : current?.taskCount ?? 0,
             isNew,
-            isArchived: !isNew && archivedAt !== null,
+            isArchived: !isNew && Boolean(serverWorkflow()?.archivedAt),
         }
     })
 
-    /* Graph 派生值只追蹤相關欄位；name/revision 變動不重算，mapping 變動不重解析。 */
-    const graphParse = createMemo(() => parseWorkflowGraphText(graphText()))
+    const draftLabel = createMemo((): string | null => {
+        if (state.createDraftId !== null) {
+            return t('task.draft')
+        }
+
+        return isModified() ? t('workflow.unsaved') : null
+    })
+
+    const hasSelection = () => selection().id !== null
+
+    const isDetailLoading = isColdLoading(() => remoteId() !== null && !isDeleted() && detailQuery.isLoading)
+
+    const isReadOnly = () => selection().isArchived
+        || (state.createDraftId === null && (isDeleted() || !record()))
+
+    const applyRemoved = (workflowId: string) => {
+        if (state.selectedId === workflowId) {
+            session.selectWorkflow(summaries().find(item => item.id !== workflowId)?.id ?? null)
+        }
+    }
+
+    createEffect(on([record, session.isDefaultValue, isDeleted], ([current, isDefault, deleted]) => {
+        if (current && isDefault && !deleted) session.loadWorkflow(current)
+    }))
+
+    createEffect(on([remoteId, missingFromList], ([id, missing]) => {
+        if (!id || !missing || isDeleted()) return
+
+        void detailQuery.refetch({ cancelRefetch: false }).then(result => {
+            if (result.isSuccess && result.data?.id === id && remoteId() === id && missingFromList()) refreshWorkflowList()
+        })
+    }))
+
+    createEffect(on([isDeleted, selectedSummary], ([deleted, summary]) => {
+        if (deleted && summary && !listQuery.isFetching) refreshWorkflowList()
+    }))
+
+    createEffect(on(
+        [() => listQuery.isSuccess, summaries, remoteId, isModified, isDeleted],
+        ([loaded, options, selectedId, modified, deleted]) => {
+            if (!loaded || modified || (selectedId !== null && (!deleted || options.some(item => item.id === selectedId)))) return
+
+            session.selectWorkflow(options[0]?.id ?? null)
+        },
+    ))
+
+    // MARK: Graph and mapping
+    type WorkflowGraphState = {
+        parse: GraphParse
+        graph: Comfy.Graph | undefined
+        nodeOptions: WorkflowNodeOption[]
+        mappingIssues: Comfy.MappingIssue[]
+        lineMarks: Map<number, LineMark>
+    }
+
+    const graphText = form.useSelector(state => state.values.graphText)
+    const configSchema = form.useSelector(state => state.values.configSchema)
+
+    const graphParse = createMemo(() => parseGraphText(graphText()))
     const nodeOptions = createMemo(() => {
         const parse = graphParse()
 
@@ -140,72 +148,6 @@ export function createWorkflowStore() {
         }
     })
 
-    const isConflict = () => {
-        const current = record()
-        const baseRevision = uiStore.state.baseRevision
-
-        return Boolean(
-            !uiStore.state.createDraftId
-            && isModified()
-            && baseRevision !== null
-            && current
-            && current.id === uiStore.state.selectedId
-            && current.revision !== baseRevision,
-        )
-    }
-
-    const draftLabel = createMemo((): string | null => {
-        if (uiStore.state.createDraftId !== null) {
-            return t('task.draft')
-        }
-
-        return isModified() ? t('workflow.unsaved') : null
-    })
-
-    /* 沒有 draft 也沒有選中的 remote workflow：整頁沒有可編輯的對象 */
-    const hasSelection = () => selection().id !== null
-
-    const isDetailLoading = isColdLoading(() => remoteId() !== null && detailQuery.isLoading)
-
-    const isRemoteUnavailable = () => Boolean(
-        !uiStore.state.createDraftId
-        && (!uiStore.state.selectedId || !record() || record()?.id !== uiStore.state.selectedId),
-    )
-
-    const selectWorkflow = (id: string) => {
-        if (uiStore.state.selectedId === id && uiStore.state.createDraftId === null) {
-            return
-        }
-
-        form.reset(cloneWorkflowValues(emptyWorkflowValues))
-        uiStore.set({ selectedId: id, createDraftId: null, baseRevision: null, validationIssues: [] })
-    }
-
-    const applyRemoved = (workflowId: string) => {
-        const next = summaries().find(item => item.id !== workflowId)?.id ?? null
-
-        form.reset(cloneWorkflowValues(emptyWorkflowValues))
-        uiStore.set({ selectedId: next, createDraftId: null, baseRevision: null, validationIssues: [] })
-    }
-
-    const startCreate = () => {
-        draftSequence += 1
-        const id = `draft-${draftSequence}`
-
-        form.reset(cloneWorkflowValues(emptyWorkflowValues))
-        uiStore.set({ selectedId: null, createDraftId: id, baseRevision: null, validationIssues: [] })
-    }
-
-    const cancelCreate = () => {
-        if (uiStore.state.createDraftId === null) {
-            return
-        }
-
-        const first = summaries()[0]?.id ?? null
-        form.reset(cloneWorkflowValues(emptyWorkflowValues))
-        uiStore.set({ selectedId: first, createDraftId: null, baseRevision: null, validationIssues: [] })
-    }
-
     const setMapping = (field: GeneratorField, value: Mapping | undefined) => {
         form.setFieldValue('configSchema', current => {
             const next = { ...current }
@@ -221,169 +163,69 @@ export function createWorkflowStore() {
         })
     }
 
-    const applySaved = (detail: WorkflowApi.GetWorkflowResponse) => {
-        form.reset(toWorkflowValues(detail))
-        uiStore.set({
-            selectedId: detail.id,
-            createDraftId: null,
-            baseRevision: detail.revision,
-            validationIssues: [],
-        })
+    // MARK: Save Workflow
+    const isConflict = () => {
+        const current = serverWorkflow()
+        const baseRevision = state.baseRevision
+
+        return Boolean(
+            !state.createDraftId
+            && isModified()
+            && baseRevision !== null
+            && current
+            && current.revision !== baseRevision,
+        )
     }
 
-    async function saveWorkflow(values: WorkflowFormValues): Promise<void> {
+    const canSave = () => {
         const current = selection()
-        const graph = graphState().graph
-
-        if (
-            !graph
-            || graphState().mappingIssues.length > 0
-            || !isModified()
-            || current.isArchived
-            || isConflict()
-        ) {
-            return
-        }
-
-        if (current.isNew) {
-            const created = await createMutation.mutateAsync({
-                name: values.name,
-                graph,
-                configSchema: values.configSchema,
-            })
-
-            applySaved(created)
-            return
-        }
-
-        if (!current.id || uiStore.state.baseRevision === null) {
-            return
-        }
-
-        const updated = await updateMutation.mutateAsync({
-            workflowId: current.id,
-            revision: uiStore.state.baseRevision,
-            name: values.name,
-            graph,
-            configSchema: values.configSchema,
-        })
-
-        applySaved(updated)
+        const { graph, mappingIssues } = graphState()
+        return isModified()
+            && !isReadOnly()
+            && !isSubmitting()
+            && !isDetailLoading()
+            && !isConflict()
+            && current.name.trim().length > 0
+            && graph !== undefined
+            && mappingIssues.length === 0
     }
 
-    createEffect(on(
-        () => [record(), isDefaultValue()] as const,
-        ([current, isDefault]) => {
-            if (!current || !isDefault) {
-                return
-            }
-
-            form.reset(toWorkflowValues(current))
-            uiStore.set('baseRevision', current.revision)
-        },
-    ))
-
-    const summaryIds = createMemo(() => summaries().map(item => item.id).join(','))
-
-    createEffect(on(summaryIds, () => {
-        if (uiStore.state.createDraftId !== null) {
-            return
-        }
-
-        const options = summaries()
-
-        if (options.some(item => item.id === uiStore.state.selectedId)) {
-            return
-        }
-
-        const first = options[0]
-
-        if (first) {
-            selectWorkflow(first.id)
-            return
-        }
-
-        if (uiStore.state.selectedId === null) {
-            return
-        }
-
-        form.reset(cloneWorkflowValues(emptyWorkflowValues))
-        uiStore.set({ selectedId: null, createDraftId: null, baseRevision: null, validationIssues: [] })
-    }))
+    const submit = () => canSave() ? session.submit() : undefined
 
     return {
-        ...uiStore,
+        state,
         form,
         listQuery,
         detailQuery,
-        createMutation,
-        updateMutation,
+        dismissSaveError: session.dismissSaveError,
         refreshWorkflowList,
-        remoteId,
-        record,
         summaries,
         selection,
         graphState,
         isModified,
         isConflict,
+        isDeleted,
         hasSelection,
         isDetailLoading,
-        isRemoteUnavailable,
+        isReadOnly,
         isSubmitting,
         draftLabel,
-        selectWorkflow,
-        startCreate,
-        cancelCreate,
+        selectWorkflow: session.selectWorkflow,
+        startCreate: session.startCreate,
         setMapping,
-        applySaved,
         applyRemoved,
+        canSave,
+        submit,
     }
 }
 
-export type WorkflowStore = ReturnType<typeof createWorkflowStore>
-
-const WorkflowStoreContext = createContext<WorkflowStore>()
-
-type WorkflowStoreProviderProps = {
-    children: JSX.Element
-    store: WorkflowStore
-}
-
-export function WorkflowStoreProvider(props: WorkflowStoreProviderProps) {
-    return WorkflowStoreContext.Provider({
-        get children() {
-            return props.children
-        },
-        value: props.store,
-    })
-}
+// MARK: Workflow page access
+const [WorkflowPageStateProvider, readWorkflowStore] = createContextProvider(createWorkflowStore)
+export { WorkflowPageStateProvider }
 
 export function useWorkflowStore() {
-    const store = useContext(WorkflowStoreContext)
+    const page = readWorkflowStore()
+    if (!page) throw new Error('useWorkflowStore must be used within WorkflowPageStateProvider')
 
-    if (!store) {
-        throw new Error('Workflow store context is missing')
-    }
-
-    return store
-}
-
-export type WorkflowSelection = {
-    id: string | null
-    name: string
-    graphText: string
-    configSchema: ConfigSchema
-    archivedAt: string | null
-    revision: number
-    taskCount: number
-    isNew: boolean
-    isArchived: boolean
-}
-
-export type WorkflowGraphState = {
-    parse: GraphParse
-    graph: Comfy.Graph | undefined
-    nodeOptions: WorkflowNodeOption[]
-    mappingIssues: Comfy.MappingIssue[]
-    lineMarks: Map<number, LineMark>
+    return page
 }

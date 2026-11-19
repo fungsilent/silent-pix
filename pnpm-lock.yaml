@@ -290,6 +290,9 @@ importers:
       '@silent-pix/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@solid-primitives/context':
+        specifier: ^0.3.2
+        version: 0.3.2(solid-js@1.9.17)
       '@solidjs/router':
         specifier: ^0.16.3
         version: 0.16.3(solid-js@1.9.17)
@@ -1783,6 +1786,11 @@ packages:
 
   '@sinclair/typebox@0.34.52':
     resolution: {integrity: sha512-XiMQh7qqVlxZzcVD+kkGMNGMzcTrDMLWI7S4x7z1MkCkbDPrekpZXEUK0eZqZFMuHQg2a2DZOcDIh9o5v3Gonw==}
+
+  '@solid-primitives/context@0.3.2':
+    resolution: {integrity: sha512-6fvTtpK17PFHnUf/UOc1TzBjd+kLFjtA62aRFEm1kDP9ufTo7FYW2kUzQAWbfbRHi30yjBJtopbR8qd6nShwyg==}
+    peerDependencies:
+      solid-js: ^1.6.12
 
   '@solid-primitives/keyed@1.5.3':
     resolution: {integrity: sha512-zNadtyYBhJSOjXtogkGHmRxjGdz9KHc8sGGVAGlUABkE8BED2tbIZoxkwSqzOwde8OcUEH0bb5DLZUWIMvyBSA==}
@@ -5411,6 +5419,10 @@ snapshots:
   '@shikijs/vscode-textmate@10.1.0': {}
 
   '@sinclair/typebox@0.34.52': {}
+
+  '@solid-primitives/context@0.3.2(solid-js@1.9.17)':
+    dependencies:
+      solid-js: 1.9.17
 
   '@solid-primitives/keyed@1.5.3(solid-js@1.9.17)':
     dependencies:

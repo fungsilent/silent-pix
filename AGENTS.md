@@ -91,7 +91,7 @@ These are implementation constraints. `docs/architecture.md` explains system bou
 - Web UI uses SolidJS, Ark UI for headless primitives, Tailwind CSS utilities, `clsx` for conditional class composition, and `lucide-solid` for icons.
 - Web-owned UI copy uses i18next through `apps/web/src/lib/i18n.ts`; English and Traditional Chinese string resources live in `apps/web/src/i18n/en.json` and `zh-TW.json`, with resource keys typed by `i18next.d.ts`. Use native interpolation and plural forms; API transport keeps raw errors, while `lib/error.ts` maps known codes to translated messages and falls back to the original message for unknown codes. Keep canonical values and user content outside translation resources. The runtime supports English (`en`, default) and Traditional Chinese (`zh-TW`); Settings switches language reactively and persists the choice in localStorage. Keep translated captions reactive without resetting user edits. Deferred captions and issue messages use explicit functions.
 - Web state uses Solid native stores through `apps/web/src/lib/store.ts`; read `store.state` directly and keep actions flattened on returned stores, not inside reactive state.
-- Generate and Workflow form state uses TanStack Form through page-scoped context.
+- Generate and Workflow forms use TanStack Form in work sessions owned by the App root layout and provided through context. Route pages own query subscriptions and view state.
 - Do not add another generic form abstraction.
 - Solid stores own UI/query lifecycle state only, not duplicated form values.
 - Zod validates submit boundaries; domain diagnostics may remain live where required.

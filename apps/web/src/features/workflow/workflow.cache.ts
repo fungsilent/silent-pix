@@ -9,12 +9,14 @@ type WorkflowSummary = WorkflowApi.WorkflowSummary
 export function cacheWorkflowSaved(
     queryClient: QueryClient,
     workflow: WorkflowApi.GetWorkflowResponse,
-): void {
-    queryClient.setQueryData<WorkflowApi.GetWorkflowResponse>(
-        workflowKeys.detail({ workflowId: workflow.id }),
-        workflow,
-    )
+): WorkflowApi.GetWorkflowResponse | null {
+    const queryKey = workflowKeys.detail({ workflowId: workflow.id })
+    if (queryClient.getQueryData(queryKey) === null) return null
+
+    queryClient.setQueryData(queryKey, workflow)
     applyWorkflowSummary(queryClient, toSummary(workflow))
+
+    return workflow
 }
 
 export function cacheWorkflowRemoved(
@@ -64,7 +66,9 @@ export function applyWorkflowRemoved(
     queryClient: QueryClient,
     workflowId: string,
 ): void {
-    queryClient.removeQueries({ queryKey: workflowKeys.detail({ workflowId }) })
+    const queryKey = workflowKeys.detail({ workflowId })
+    void queryClient.cancelQueries({ queryKey, exact: true })
+    queryClient.setQueryData(queryKey, null)
     queryClient.setQueryData<WorkflowList>(workflowKeys.list(), current => {
         if (!current) {
             return current

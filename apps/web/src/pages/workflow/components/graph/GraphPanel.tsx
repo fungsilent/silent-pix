@@ -7,8 +7,8 @@ import { useWorkflowStore } from '#/pages/workflow/store'
 
 /* 中欄，對應 PromptPanel：面板自己擁有標題列與欄位標籤 */
 export function GraphPanel() {
-    const store = useWorkflowStore()
-    const form = store.form
+    const page = useWorkflowStore()
+    const form = page.form
     const graphText = form.useSelector(state => state.values.graphText)
 
     return (
@@ -22,7 +22,7 @@ export function GraphPanel() {
             <div class='flex min-h-0 flex-1 flex-col px-4 pb-3'>
                 <span class='pb-1.5 text-xs leading-none text-fg-muted'>{t('workflow.graph.title')}</span>
                 <Show
-                    when={store.hasSelection()}
+                    when={page.hasSelection()}
                     fallback={(
                         <div class='flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-md border border-transparent bg-elevated px-8 text-center text-xs leading-relaxed text-fg-muted'>
                             {t('workflow.graph.addWorkflowHint')}
@@ -33,9 +33,9 @@ export function GraphPanel() {
                         {field => (
                             <GraphEditor
                                 value={graphText()}
-                                loading={store.isDetailLoading()}
-                                marks={store.graphState().lineMarks}
-                                readOnly={store.isRemoteUnavailable() || store.selection().isArchived}
+                                loading={page.isDetailLoading()}
+                                marks={page.graphState().lineMarks}
+                                readOnly={page.isReadOnly()}
                                 onChange={field().handleChange}
                             />
                         )}

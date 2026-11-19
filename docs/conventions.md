@@ -246,7 +246,7 @@ parent-owned source again. A hook that itself needs shared store state reads it
 directly.
 
 Read Solid store state through `store.state`, with actions flattened on the
-returned store. Use page-scoped TanStack Form for editable values, with reactive
+returned store. Use TanStack Form for editable values, with reactive
 `form.useSelector()` or `<form.Subscribe>` reads; direct `form.state` reads are
 imperative snapshots. Do not duplicate form values in a store or add a generic
 form abstraction. Submit validation uses Zod; domain diagnostics can remain live.
@@ -262,6 +262,23 @@ URLs, event listeners, and issue-source registrations. Cancel superseded work
 and reject callbacks from outdated work. Bound untrusted file processing and
 preserve original payload text when copy fidelity matters; exact parser limits
 stay in the owning code.
+
+### Context and Providers
+
+- Define each context beside the value it provides. Use `createContextProvider`
+  from `@solid-primitives/context` and expose `XxxProvider` and `useXxx()` from
+  the same module. Keep the raw accessor private. The public hook throws and
+  names the required provider when used outside it.
+- Create the value in the Provider factory when it owns that value's lifetime.
+  When the caller already owns a stable value, pass it through a `value` prop.
+- Use `session.ts`, `XxxSessionProvider`, and `useXxxSession()` for domain work
+  that must survive leaving its route. Compose those providers in the fixed
+  `MultiProvider` list at the App root layout. Providers for query subscriptions
+  and view state stay inside the route that uses them.
+- Name a Context that coordinates a whole route `XxxPageState`, with its factory
+  in `store.ts`. Use the specific capability name for a narrower Context.
+  In larger modules, use `// MARK: <feature or operation>` to label sections.
+  Keep queries, derived state, and actions together when they serve the same operation.
 
 ### Composition or Configuration
 

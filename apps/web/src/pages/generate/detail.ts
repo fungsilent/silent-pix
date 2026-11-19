@@ -1,18 +1,11 @@
-import { createContext, useContext } from 'solid-js'
+import { createContextProvider } from '@solid-primitives/context'
 
 import { isPreviewing } from '#/store/dev'
 
 import type { TaskApi } from '@silent-pix/shared'
-import type { Accessor, JSX } from 'solid-js'
+import type { Accessor } from 'solid-js'
 
-/*
- * 選中 task 的唯讀 detail。只公開衍生後的 accessor，不儲存也不複製任何東西：
- * TanStack Query 仍然是 server data 的唯一擁有者，GenerateStore 仍然只放 form
- * 與 UI state。這一層存在的目的只有一個——消掉 Workspace 與 TaskDetail 那兩段
- * 純轉手的 prop chain。
- *
- * CompareDetail 有自己的 detail query，在它內部再包一層同類 provider 覆蓋。
- */
+/* 提供選取 Task 的查詢衍生值，讓 Generate 各區共用同一次查詢。 */
 export type GenerateDetail = {
     draft: Accessor<boolean>
     /* query 失敗且沒有可用 task */
@@ -43,28 +36,12 @@ export function createGenerateDetail(source: GenerateDetailSource): GenerateDeta
     }
 }
 
-const GenerateDetailContext = createContext<GenerateDetail>()
-
-type GenerateDetailProviderProps = {
-    children: JSX.Element
-    value: GenerateDetail
-}
-
-export function GenerateDetailProvider(props: GenerateDetailProviderProps) {
-    return GenerateDetailContext.Provider({
-        get children() {
-            return props.children
-        },
-        value: props.value,
-    })
-}
+const [GenerateDetailProvider, readGenerateDetail] = createContextProvider((props: { value: GenerateDetail }) => props.value)
+export { GenerateDetailProvider }
 
 export function useGenerateDetail(): GenerateDetail {
-    const detail = useContext(GenerateDetailContext)
-
-    if (!detail) {
-        throw new Error('Generate detail context is missing')
-    }
+    const detail = readGenerateDetail()
+    if (!detail) throw new Error('useGenerateDetail must be used within GenerateDetailProvider')
 
     return detail
 }

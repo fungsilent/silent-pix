@@ -11,7 +11,7 @@ import { promptDefaultHeight, promptMinHeight } from '#/pages/generate/component
 import { PromptEditor } from '#/pages/generate/components/workspace/generate/prompt/PromptEditor'
 import { useGenerateDetail } from '#/pages/generate/detail'
 import { useRuntimeIssues } from '#/pages/generate/issue.runtime'
-import { useGenerateStore } from '#/pages/generate/store'
+import { useGenerateSession } from '#/pages/generate/session'
 
 import type { PromptDocument } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
 import type { PromptKind } from '#/pages/generate/form'
@@ -24,11 +24,11 @@ const promptLabel: Record<PromptKind, () => string> = {
 }
 
 export function PromptPanel() {
-    const store = useGenerateStore()
+    const store = useGenerateSession()
     const detail = useGenerateDetail()
     const isLoading = detail.loading
     const form = store.form
-    const isSubmitting = form.useSelector(state => state.isSubmitting)
+    const isSubmitting = store.isSubmitting
     const runtimeIssues = useRuntimeIssues()
     const issues = () => [...runtimeIssues(), ...store.state.submitIssues]
     useIssueSource(issues)

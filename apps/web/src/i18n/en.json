@@ -304,6 +304,8 @@
         "unsaved": "Unsaved",
         "archivedTitle": "Archived",
         "readOnlyArchived": "Read-only · archived",
+        "readOnlyDeleted": "Read-only · deleted",
+        "deletedDraft": "This workflow was deleted. You can still select and copy your draft in API JSON.",
         "saving": "Saving",
         "noSelection": "No workflow selected",
         "description": "A workflow holds the ComfyUI graph and the field mapping the generate page uses.",

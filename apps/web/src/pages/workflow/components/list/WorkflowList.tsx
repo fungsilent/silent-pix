@@ -16,12 +16,12 @@ import { useWorkflowStore } from '#/pages/workflow/store'
 const listSkeletonRows = [0, 1, 2, 3, 4, 5, 6, 7]
 
 export function WorkflowList() {
-    const store = useWorkflowStore()
-    const listQuery = store.listQuery
-    const active = () => store.summaries().filter(item => item.archivedAt === null)
-    const archived = () => store.summaries().filter(item => item.archivedAt !== null)
-    const draftId = () => store.state.createDraftId
-    const draftName = store.form.useSelector(state => state.values.name)
+    const page = useWorkflowStore()
+    const listQuery = page.listQuery
+    const active = () => page.summaries().filter(item => item.archivedAt === null)
+    const archived = () => page.summaries().filter(item => item.archivedAt !== null)
+    const draftId = () => page.state.createDraftId
+    const draftName = page.form.useSelector(state => state.values.name)
 
     return (
         <aside class='flex w-[200px] flex-none flex-col overflow-hidden border-r border-line bg-surface'>
@@ -34,7 +34,7 @@ export function WorkflowList() {
                         size='bar'
                         variant='ghost'
                         classes={{ root: 'size-7 shrink-0 p-0' }}
-                        onClick={() => store.startCreate()}
+                        onClick={() => page.startCreate()}
                     >
                         <Plus
                             size={15}
@@ -60,7 +60,7 @@ export function WorkflowList() {
                                 kind='load-error'
                                 size='compact'
                                 message={t('workflow.loadListFailed')}
-                                onRetry={() => store.refreshWorkflowList()}
+                                onRetry={() => page.refreshWorkflowList()}
                             />
                         )}
                     >
@@ -113,17 +113,17 @@ type RowProps = {
 }
 
 function Row(props: RowProps) {
-    const store = useWorkflowStore()
-    const selected = () => store.state.selectedId === props.id || store.state.createDraftId === props.id
-    const label = () => store.state.createDraftId === props.id || store.state.selectedId === props.id
-        ? store.draftLabel()
+    const page = useWorkflowStore()
+    const selected = () => page.state.selectedId === props.id || page.state.createDraftId === props.id
+    const label = () => page.state.createDraftId === props.id || page.state.selectedId === props.id
+        ? page.draftLabel()
         : null
     const select = () => {
-        if (store.state.createDraftId === props.id) {
+        if (page.state.createDraftId === props.id) {
             return
         }
 
-        store.selectWorkflow(props.id)
+        page.selectWorkflow(props.id)
     }
 
     return (

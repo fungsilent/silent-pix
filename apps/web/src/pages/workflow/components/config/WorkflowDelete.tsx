@@ -9,12 +9,12 @@ import { t } from '#/lib/i18n'
 import { useWorkflowStore } from '#/pages/workflow/store'
 
 export function WorkflowDelete() {
-    const store = useWorkflowStore()
+    const page = useWorkflowStore()
     const mutation = useDeleteWorkflowMutation()
     const [open, setOpen] = createSignal(false)
     const [error, setError] = createSignal<() => string>()
 
-    const selection = () => store.selection()
+    const selection = () => page.selection()
     const taskCount = () => selection().taskCount
     const isArchived = () => selection().isArchived
 
@@ -50,7 +50,7 @@ export function WorkflowDelete() {
             setOpen(false)
 
             if (result.disposition === 'deleted') {
-                store.applyRemoved(workflowId)
+                page.applyRemoved(workflowId)
             }
         }
         catch (cause) {

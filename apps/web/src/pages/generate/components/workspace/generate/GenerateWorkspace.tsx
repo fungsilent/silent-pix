@@ -4,14 +4,14 @@ import { ImageViewer } from '#/components/viewer/ImageViewer'
 import { ImageStage } from '#/pages/generate/components/workspace/generate/ImageStage'
 import { PromptPanel } from '#/pages/generate/components/workspace/generate/PromptPanel'
 import { useGenerateDetail } from '#/pages/generate/detail'
-import { useGenerateStore } from '#/pages/generate/store'
+import { useGenerateSession } from '#/pages/generate/session'
 import { useNavigateToRoute } from '#/routes'
 import { compareStore } from '#/store/compare'
 import { overlayStore } from '#/store/overlay'
 
 export function GenerateWorkspace() {
     const navigate = useNavigateToRoute()
-    const store = useGenerateStore()
+    const store = useGenerateSession()
     const detail = useGenerateDetail()
     const images = createMemo(() => detail.task()?.images ?? [])
     const [selectedImageIndex, setSelectedImageIndex] = createSignal(0)
