@@ -10,19 +10,19 @@ import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
 import { appIssues, issueList } from '#/lib/issue'
 import { currentWindow, getPlatform, isMacDesktop } from '#/lib/platform'
+import { useCurrentRouteName, useNavigateToRoute } from '#/routes'
 import { appStore, serviceHealth } from '#/store/app'
 
+import type { RouteName } from '#/routes'
 import type { JSX } from 'solid-js'
 
 /* MARK: Header */
-type Mode = 'generate' | 'compare' | 'workflow'
-
 const modeIcon = { size: 13, strokeWidth: 1.6 }
 
-const modes: { value: Mode, label: () => string, icon: () => JSX.Element }[] = [
-    { value: 'generate', label: () => t('header.generate'), icon: () => <Sparkles {...modeIcon} /> },
-    { value: 'compare', label: () => t('header.compare'), icon: () => <Columns2 {...modeIcon} /> },
-    { value: 'workflow', label: () => t('header.workflow'), icon: () => <Workflow {...modeIcon} /> },
+const modes: { name: RouteName, label: () => string, icon: () => JSX.Element }[] = [
+    { name: 'generate', label: () => t('header.generate'), icon: () => <Sparkles {...modeIcon} /> },
+    { name: 'compare', label: () => t('header.compare'), icon: () => <Columns2 {...modeIcon} /> },
+    { name: 'workflow', label: () => t('header.workflow'), icon: () => <Workflow {...modeIcon} /> },
 ]
 
 const menuTrigger = 'h-7 shrink-0 gap-1.5 px-2.5 text-xs font-medium'
@@ -33,8 +33,10 @@ const menuTrigger = 'h-7 shrink-0 gap-1.5 px-2.5 text-xs font-medium'
  */
 export function Header() {
     const platform = getPlatform()
+    const navigate = useNavigateToRoute()
+    const routeName = useCurrentRouteName()
     const windowControls = platform.kind === 'desktop' && !isMacDesktop()
-    const pageMode = () => modes.find(item => item.value === appStore.state.page)
+    const pageMode = () => modes.find(item => item.name === routeName())
     /* 在 Tools 或 Settings 頁時，模式選單仍顯示最後使用的模式 */
     const currentMode = createMemo<(typeof modes)[number]>(previous => pageMode() ?? previous, modes[0]!)
     const onMode = () => pageMode() !== undefined
@@ -78,18 +80,18 @@ export function Header() {
                 <For each={modes}>
                     {mode => (
                         <MenuItem
-                            value={mode.value}
+                            value={mode.name}
                             label={mode.label()}
-                            current={appStore.state.page === mode.value}
+                            current={routeName() === mode.name}
                             icon={mode.icon()}
-                            onSelect={() => appStore.setPage(mode.value)}
+                            onSelect={() => navigate(mode.name)}
                         />
                     )}
                 </For>
             </Menu>
 
             <Menu
-                classes={{ trigger: cn(menuTrigger, appStore.state.page === 'metadata' ? 'text-fg' : 'text-fg-muted') }}
+                classes={{ trigger: cn(menuTrigger, routeName() === 'metadata' ? 'text-fg' : 'text-fg-muted') }}
                 trigger={(
                     <>
                         {t('header.tools')}
@@ -104,14 +106,14 @@ export function Header() {
                 <MenuItem
                     value='metadata'
                     label={t('metadata.title')}
-                    current={appStore.state.page === 'metadata'}
+                    current={routeName() === 'metadata'}
                     icon={(
                         <FileImage
                             size={14}
                             strokeWidth={1.7}
                         />
                     )}
-                    onSelect={() => appStore.setPage('metadata')}
+                    onSelect={() => navigate('metadata')}
                 />
             </Menu>
 
@@ -134,10 +136,10 @@ export function Header() {
                 classes={{
                     root: cn(
                         'size-7 shrink-0 p-0',
-                        appStore.state.page === 'settings' ? 'bg-selected text-fg hover:bg-selected' : 'text-fg-secondary',
+                        routeName() === 'settings' ? 'bg-selected text-fg hover:bg-selected' : 'text-fg-secondary',
                     ),
                 }}
-                onClick={() => appStore.setPage('settings')}
+                onClick={() => navigate('settings')}
             >
                 <Settings
                     size={15}

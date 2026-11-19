@@ -290,6 +290,9 @@ importers:
       '@silent-pix/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@solidjs/router':
+        specifier: ^0.16.3
+        version: 0.16.3(solid-js@1.9.17)
       '@tanstack/solid-form':
         specifier: ^1.33.5
         version: 1.33.5(solid-js@1.9.17)
@@ -1785,6 +1788,11 @@ packages:
     resolution: {integrity: sha512-zNadtyYBhJSOjXtogkGHmRxjGdz9KHc8sGGVAGlUABkE8BED2tbIZoxkwSqzOwde8OcUEH0bb5DLZUWIMvyBSA==}
     peerDependencies:
       solid-js: ^1.6.12
+
+  '@solidjs/router@0.16.3':
+    resolution: {integrity: sha512-WWQkmSmSpl+15HgUktGPbeXkgWmonj4XwPOcZVHJz1EQV3dz5qWHIyQ/BKXFevor6u/0dKvC9FlUmKmDwE1QHw==}
+    peerDependencies:
+      solid-js: ^1.8.6
 
   '@stylistic/eslint-plugin@5.10.0':
     resolution: {integrity: sha512-nPK52ZHvot8Ju/0A4ucSX1dcPV2/1clx0kLcH5wDmrE4naKso7TUC/voUyU1O9OTKTrR6MYip6LP0ogEMQ9jPQ==}
@@ -5405,6 +5413,10 @@ snapshots:
   '@sinclair/typebox@0.34.52': {}
 
   '@solid-primitives/keyed@1.5.3(solid-js@1.9.17)':
+    dependencies:
+      solid-js: 1.9.17
+
+  '@solidjs/router@0.16.3(solid-js@1.9.17)':
     dependencies:
       solid-js: 1.9.17
 

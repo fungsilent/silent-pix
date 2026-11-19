@@ -13,6 +13,7 @@ import { cn } from '#/lib/cn'
 import { localeStore, t } from '#/lib/i18n'
 import { useIssueSource } from '#/lib/issue'
 import { getPlatform, saveLocalServerUrl, validateLocalServerUrl } from '#/lib/platform'
+import { routePaths } from '#/routes'
 import { devStore } from '#/store/dev'
 import { themeStore } from '#/store/theme'
 
@@ -95,6 +96,8 @@ export function SettingsPage() {
         setActionError(undefined)
         try {
             await saveLocalServerUrl(nextServerUrl)
+            // 先更新 Desktop 路由，再重新初始化 Server 連線。
+            window.history.replaceState(window.history.state, '', `#${routePaths.generate}`)
             window.location.reload()
         }
         catch (value) {

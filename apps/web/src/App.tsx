@@ -1,5 +1,6 @@
+import { HashRouter, Navigate, Route, Router } from '@solidjs/router'
 import { useQueryClient } from '@tanstack/solid-query'
-import { Match, onCleanup, onMount, Switch } from 'solid-js'
+import { onCleanup, onMount } from 'solid-js'
 
 import { Header } from '#/components/Header'
 import { startServerEvents } from '#/features/event/event.client'
@@ -9,9 +10,50 @@ import { GeneratePage } from '#/pages/generate/GeneratePage'
 import { MetadataPage } from '#/pages/metadata/MetadataPage'
 import { SettingsPage } from '#/pages/settings/SettingsPage'
 import { WorkflowPage } from '#/pages/workflow/WorkflowPage'
-import { appStore } from '#/store/app'
+import { routePaths } from '#/routes'
+
+import type { RouteSectionProps } from '@solidjs/router'
 
 export function App() {
+    const platform = getPlatform()
+    const PlatformRouter = platform.kind === 'desktop' ? HashRouter : Router
+    const EntryRedirect = () => <Navigate href={routePaths[platform.endpoint ? 'generate' : 'settings']} />
+
+    return (
+        <PlatformRouter root={AppLayout}>
+            {platform.endpoint && (
+                <>
+                    <Route
+                        path={routePaths.generate}
+                        component={GeneratePage}
+                    />
+                    <Route
+                        path={routePaths.compare}
+                        component={ComparePage}
+                    />
+                    <Route
+                        path={routePaths.workflow}
+                        component={WorkflowPage}
+                    />
+                </>
+            )}
+            <Route
+                path={routePaths.metadata}
+                component={MetadataPage}
+            />
+            <Route
+                path={routePaths.settings}
+                component={SettingsPage}
+            />
+            <Route
+                path={['/', '/*rest']}
+                component={EntryRedirect}
+            />
+        </PlatformRouter>
+    )
+}
+
+function AppLayout(props: RouteSectionProps) {
     const queryClient = useQueryClient()
     const platform = getPlatform()
 
@@ -22,23 +64,7 @@ export function App() {
     return (
         <main class='flex h-dvh flex-col overflow-hidden bg-canvas text-fg'>
             <Header />
-            <Switch>
-                <Match when={appStore.state.page === 'metadata'}>
-                    <MetadataPage />
-                </Match>
-                <Match when={appStore.state.page === 'settings' || !platform.endpoint}>
-                    <SettingsPage />
-                </Match>
-                <Match when={appStore.state.page === 'generate'}>
-                    <GeneratePage />
-                </Match>
-                <Match when={appStore.state.page === 'compare'}>
-                    <ComparePage />
-                </Match>
-                <Match when={appStore.state.page === 'workflow'}>
-                    <WorkflowPage />
-                </Match>
-            </Switch>
+            {props.children}
         </main>
     )
 }

@@ -236,6 +236,13 @@ loader. The graph selects txt2img/img2img from the supplied reference path.
 
 ## Web State
 
+The URL owns page selection. Browser uses pathname routes and the Caddy SPA
+fallback, while Desktop uses hash routes within its WebView entry document. Both
+share the same routes. App code navigates by route name, which the route catalog
+resolves to a URL path. The App root layout keeps Header and any active WebSocket
+mounted across navigation. The QueryClient outlives individual routes. Leaving a
+route unmounts its page, releasing page resources and subscriptions.
+
 TanStack Query owns Server data, loading/errors, and pagination. Solid stores own
 UI choices and connection state without copying Query data. Page-scoped TanStack
 Form owns editable Generate/Workflow values. Server refreshes preserve unrelated
