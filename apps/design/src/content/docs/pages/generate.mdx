@@ -36,9 +36,9 @@ Generate 左側可收合的 task 面板：頂端 Bar（標題 Tasks、展開到 
 <Rules component="task-list">
 
 <ul class="ds-rules">
-<Rule component="task-list" id="panel">面板展開寬 250px、右側 `border-r border-line`、`bg-surface`。頂端 Bar 高 48px、左右內距 8px 讓圖示鈕貼邊；右側依序是 Expand（打開 **task-browser**，15px icon）與收合鈕（展開時 ChevronsLeft、收合時 ChevronsRight），兩顆都是 28px ghost 圖示鈕。</Rule>
-<Rule component="task-list" id="filter">Bar 下方是 icon 版 flag 篩選（All／Unflag／Pin／Discard，見 **task-toolbar** 的篩選規則），名稱只在 hover 時以提示顯示；左右 8px、下 4px 內距。清單內距 8px（右側 12px 讓出捲軸），列距 4px，捲軸平常隱藏。</Rule>
-<Rule component="task-list" id="collapsed">收合時面板寬度改為由內容決定（w-max），Bar 保留標題、Expand 與收合鈕，篩選列隱藏，清單只剩縮圖列。收合時不顯示空狀態與載入失敗提示，清單維持空白（同 collapsed-empty）；展開後才顯示對應的訊息。</Rule>
+<Rule component="task-list" id="panel">面板分兩欄，外框右側 `border-r border-line`、`bg-surface`：左側是 40px 直條（與 Detail 收合直條同寬，以 `border-r border-line-subtle` 與清單分隔），右側是清單欄（展開 250px）。直條由上而下：頂端 48px 區放收合／展開鈕（展開時 ChevronsLeft、收合時 ChevronsRight，與 Detail 收合直條的切換鈕同高）、四個 flag 篩選、分隔線、Expand（打開 **task-browser**，15px icon），全部是 28px ghost 圖示鈕，名稱只在 hover 時以提示顯示。面板沒有標題列，清單上方沒有任何控制項會隨收合改變。</Rule>
+<Rule component="task-list" id="filter">篩選（All／Unflag／Pin／Discard，規則見 **task-toolbar** 的篩選）直排在直條上，選中的用 selected 樣式；展開與收合都看得到、都能操作。清單欄頂端 48px 區放搜尋欄（同 **task-toolbar**：28px 高、左側 Search icon、placeholder「task name or task ID...」），與 task-browser 共用同一個搜尋字。清單內距 8px（右側 12px 讓出捲軸），列距 4px，捲軸平常隱藏。</Rule>
+<Rule component="task-list" id="collapsed">收合等於把清單欄右側裁掉：直條不變，清單欄寬度改由縮圖決定（`w-max`），頂端 48px 區照樣放搜尋欄，寬度跟著縮圖欄（不撐寬清單欄，placeholder 被截掉也無妨），縮圖的位置、尺寸與選取底都不動，只藏起文字與 flag 操作鈕。收合時不顯示空狀態與載入失敗提示，清單維持空白（同 collapsed-empty）；展開後才顯示對應的訊息。</Rule>
 <Rule component="task-list" id="empty-error">空狀態與載入失敗用 L0 StatusMessage compact：沒有 task 時是「No tasks yet」＋說明；只篩一個 flag 時各有專屬標題與說明（如 No pinned tasks）；多個 flag 篩選無結果時是「No matching tasks / Try a different task filter.」。載入失敗只有一句 muted 訊息＋預設 Retry 按鈕，不用紅色。</Rule>
 <Rule component="task-list" id="loading">首次載入用 6 列骨架整組替換清單（收合時用只有縮圖的骨架）。捲到底載入下一頁時，清單尾端出現置中的 12px muted「Loading...」純文字，不用骨架。已有資料時下一頁失敗，錯誤訊息＋Retry 附加在清單尾端，既有的列保留。</Rule>
 <Rule component="task-list" id="narrow">視窗寬度小於 720px 時整個面板隱藏。</Rule>
@@ -80,13 +80,13 @@ Generate 左側 task 清單的單列：72px 縮圖＋名稱／狀態／建立時
 
 <ul class="ds-rules">
 <Rule component="task-item" id="button">整列是一顆 ghost 按鈕，圓角 8px、內距 6px，縮圖與文字間距 10px。未選取時 hover 加 `bg-elevated`；選取（目前顯示在 detail 的 task）用 selected 樣式 `bg-selected`，文字提亮為 `text-fg`。</Rule>
-<Rule component="task-item" id="text-rows">三行文字對 72px 縮圖垂直置中：名稱（12px medium，單行截斷）、狀態 badge、建立時間（11px muted，24 小時制，格式依語系）。沒有名稱時顯示 ID 前 8 碼並改用等寬字。</Rule>
-<Rule component="task-item" id="flag-actions">Flag 操作鈕（Pin、Discard，各 28px）不佔文字行，浮在列的右上角（距邊 8px）；只在 hover 或列內有焦點時一起出現。已標記的那顆用該 flag 的實心色（pin／discard 底色＋ink 字色），另一顆維持 ghost。</Rule>
+<Rule component="task-item" id="text-rows">三行文字對 72px 縮圖垂直置中：名稱（12px medium，單行截斷）、狀態 badge、建立日期與時間（11px muted，24 小時制，格式依語系）。日期與時間拆開放在同一行，日期靠左、時間靠右，與上方名稱及右上的 flag 鈕對齊兩側。沒有名稱時顯示 ID 前 8 碼並改用等寬字。</Rule>
+<Rule component="task-item" id="flag-actions">Flag 操作鈕（Pin、Discard，各 24px）放在名稱那一行的右側，只在 hover 或列內有焦點時出現；出現時名稱讓位提早截斷，列高不變（按鈕以負邊距貼齊名稱行）。已標記的那顆用該 flag 的實心色（pin／discard 底色＋ink 字色），另一顆維持 ghost。</Rule>
 <Rule component="task-item" id="flag-pending">任何一筆 flag 更新進行中時，整個清單所有列的 flag 操作鈕一律停用（外觀依 L0 Button disabled），完成後恢復；task-card 在格狀檢視中同此規則。</Rule>
-<Rule component="task-item" id="placeholder">沒有縮圖時依狀態顯示 placeholder：done 為 muted Image、queued 為 warning Hourglass、running 為 info LoaderCircle、failed 為 danger CircleX，icon 22px、stroke 1.6。Placeholder 的 icon 與色調是固定對應，不隨場合更換。</Rule>
+<Rule component="task-item" id="placeholder">沒有縮圖時依狀態顯示 placeholder：底是該狀態色的斜向淡漸層（`bg-gradient-to-br from-{tone}/[0.14] to-{tone}/[0.04]`，邊框 `border-{tone}/15`），icon 用同一個 tone 的 fg 色——queued 為 warning Clock、running 為 info LoaderCircle、failed 為 danger ImageOff（這張圖沒產生出來）；done 沒縮圖時維持中性底與 muted Image。icon 22px、stroke 1.6。Placeholder 屬於有底色的容器，帶狀態色符合錯誤顏色規則；icon 與色調固定對應，不隨場合更換，task-card 與收合縮圖同此規則。</Rule>
 <Rule component="task-item" id="corner-fold">已標記的 task 在縮圖左上角有常駐的角摺（列表 22px，pin／discard 色），不可點；未標記時不畫。Discard 只在有真實縮圖時再壓一層 discard 暗化，placeholder 不壓暗。</Rule>
 <Rule component="task-item" id="thumb-only">只有縮圖的變體（清單收合時）不畫文字與 flag 操作鈕，角摺成為唯一的 flag 訊號，不另加 badge；選取狀態照樣用 selected 底色。</Rule>
-<Rule component="task-item" id="skeleton">載入中骨架沿用真實列的外框與尺寸（72px 方塊＋三條 12px 灰條，寬 3/4、1/2、2/3），換回真資料時版面不跳；收合時骨架也只剩方塊。灰條規則見 L0 Skeleton。</Rule>
+<Rule component="task-item" id="skeleton">載入中骨架沿用真實列的外框與尺寸（72px 方塊＋三條 12px 灰條，寬 3/4、1/2，第三條拆成左 1/2、右 1/3 對應日期與時間），換回真資料時版面不跳；收合時骨架也只剩方塊。灰條規則見 L0 Skeleton。</Rule>
 </ul>
 
 </Rules>
@@ -216,7 +216,7 @@ Generate 工作區中央的成品展示區：目前選取 task 的大圖、右�
 <Rule component="image-stage" id="actions">右上三顆依序是 expand、compare（加入比較）、use as reference（設為參考圖），全部 size-8 L0 glass recipe、icon 15／stroke 1.8。</Rule>
 <Rule component="image-stage" id="paging-strip">左右切換（`size-8` glass、icon 18）與縮圖列只在 2 張以上出現。縮圖列 `h-20 bg-stage-strip`，選取縮圖 `opacity-100 ring-2 ring-stage-fg`，其他 `opacity-60 hover:opacity-100`，右端 `n / total`。鍵盤 ←／→ 循環切換，焦點在輸入框時不攔。</Rule>
 <Rule component="image-stage" id="loading">Loading 時不鋪 skeleton、也不說 No image（還不知道有沒有圖）：只留底色，右上控制項 invisible 保留位置，整區不可互動。</Rule>
-<Rule component="image-stage" id="empty">沒圖但不是 loading 時，置中放 L0 StatusMessage regular empty（只有標題「No image」、不放按鈕）；右上控制項仍然在，不隨 empty 隱藏。</Rule>
+<Rule component="image-stage" id="empty">沒圖但不是 loading 時，置中放 L0 StatusMessage regular empty：中性 icon 方塊（Image）＋標題「No image」，不放按鈕；右上控制項仍然在，不隨 empty 隱藏。</Rule>
 </ul>
 
 </Rules>
@@ -477,7 +477,7 @@ Task 詳細面板的 LoRA 區：已選 LoRA 的清單與 weight。
 
 <ul class="ds-rules">
 <Rule component="generate-screen" id="columns">Header 固定 36px；其下三欄以 `border-r`／`border-l border-line` 分隔，不留縫。</Rule>
-<Rule component="generate-screen" id="widths">Task list 展開 250px、收合時寬度由縮圖撐開；Task detail 展開 350px、收合 40px。兩側各自收合，工作區吃掉其餘寬度。</Rule>
+<Rule component="generate-screen" id="widths">Task list 是 40px 直條＋清單欄：展開時清單欄 250px（合計 290px），收合時清單欄寬度由縮圖撐開；Task detail 展開 350px、收合 40px。兩側各自收合，工作區吃掉其餘寬度。</Rule>
 <Rule component="generate-screen" id="workspace">工作區 Prompt panel 在上、Image stage 填滿剩餘高度；Stage 永遠存在，沒有圖時顯示自己的空狀態，不收掉。</Rule>
 <Rule component="generate-screen" id="browser">Task browser 取代 Task list 與工作區，Task detail 保留在右側，選取的 task 兩邊同步。</Rule>
 <Rule component="generate-screen" id="browser-toolbar">Task browser 的篩選、搜尋與勾選都在工具列；各篩選下的卡片組成、空狀態文案與批次操作見 L1 Task browser，控制列的 browser 選單可逐一切換。</Rule>

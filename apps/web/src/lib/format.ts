@@ -5,3 +5,11 @@
 export function formatDateTime(value: number | string): string {
     return new Date(value).toLocaleString(undefined, { hourCycle: 'h23' })
 }
+
+export function formatDate(value: number | string): string {
+    return new Date(value).toLocaleDateString()
+}
+
+export function formatTime(value: number | string): string {
+    return new Date(value).toLocaleTimeString(undefined, { hourCycle: 'h23' })
+}

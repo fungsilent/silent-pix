@@ -1,12 +1,13 @@
-import { Expand } from 'lucide-solid'
+import { Expand, Search } from 'lucide-solid'
 import { createMemo, For, Show } from 'solid-js'
 
-import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
 import { Loading } from '#/components/base/Loading'
 import { CollapseButton, Panel, PanelContent } from '#/components/base/Panel'
 import { StatusMessage } from '#/components/base/StatusMessage'
+import { Text } from '#/components/field/Text'
 import { useTaskFeedQuery, useTaskFlagMutation } from '#/features/task/task.query'
+import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
 import { toFailureIssue, useIssueSource } from '#/lib/issue'
 import { createLoadOnScroll } from '#/lib/loadOnScroll'
@@ -37,16 +38,25 @@ export function TaskList() {
         <Panel
             classes={{
                 root: 'w-max border-r border-line max-[720px]:hidden',
-                open: 'w-[250px]',
             }}
         >
             {panel => (
-                <div class='flex h-full min-h-0 flex-col'>
-                    <Bar.Root classes={{ root: 'px-2' }}>
-                        <Bar.Group>
-                            <Bar.Title>{t('task.title')}</Bar.Title>
-                        </Bar.Group>
-                        <Bar.Actions classes={{ root: 'gap-1' }}>
+                <div class='flex h-full min-h-0'>
+                    <nav class='flex w-10 shrink-0 flex-col items-center border-r border-line-subtle'>
+                        <div class='flex h-12 shrink-0 items-center justify-center'>
+                            <CollapseButton
+                                collapsed={panel.isCollapsed()}
+                                onClick={panel.toggle}
+                            />
+                        </div>
+                        <div class='flex flex-col items-center gap-1'>
+                            <TaskFilterChips
+                                values={taskStore.state.feedTaskFlags}
+                                onChange={taskStore.setFeedTaskFlags}
+                                presentation='icon'
+                                classes={{ root: 'flex-col px-0 pb-0' }}
+                            />
+                            <div class='my-1 h-px w-5 bg-line-subtle' />
                             <Button
                                 size='bar'
                                 variant='ghost'
@@ -59,41 +69,88 @@ export function TaskList() {
                                     strokeWidth={1.8}
                                 />
                             </Button>
-                            <CollapseButton
-                                collapsed={panel.isCollapsed()}
-                                onClick={panel.toggle}
-                            />
-                        </Bar.Actions>
-                    </Bar.Root>
-                    <Show when={!panel.isCollapsed()}>
-                        <TaskFilterChips
-                            values={taskStore.state.feedTaskFlags}
-                            onChange={taskStore.setFeedTaskFlags}
-                            presentation='icon'
-                        />
-                    </Show>
-                    <PanelContent
-                        viewportRef={loadOnScroll.setViewport}
-                        classes={{
-                            content: 'gap-1',
-                        }}
-                    >
-                        <Loading.Swap
-                            loading={() => taskFeedQuery.isLoading}
-                            fallback={(
-                                <For each={taskSkeletonRows}>
-                                    {() => (
-                                        <TaskItemSkeleton
-                                            thumbnailOnly={panel.isCollapsed()}
+                        </div>
+                    </nav>
+                    <div class={cn('flex min-h-0 min-w-0 flex-col', panel.isCollapsed() ? 'w-max' : 'w-[250px]')}>
+                        <div class='flex h-12 shrink-0 items-center px-2'>
+                            <div class='flex w-0 min-w-full'>
+                                <Text
+                                    label={t('task.search')}
+                                    value={taskStore.state.feedSearch}
+                                    placeholder={t('task.searchPlaceholder')}
+                                    icon={(
+                                        <Search
+                                            size={14}
+                                            strokeWidth={1.7}
                                         />
                                     )}
-                                </For>
-                            )}
+                                    classes={{ root: 'min-w-0 flex-1', label: 'hidden' }}
+                                    onInput={taskStore.setFeedSearch}
+                                />
+                            </div>
+                        </div>
+                        <PanelContent
+                            viewportRef={loadOnScroll.setViewport}
+                            classes={{
+                                content: 'gap-1',
+                            }}
                         >
-                            <Show
-                                when={!taskFeedQuery.isError || taskFeedQuery.data}
+                            <Loading.Swap
+                                loading={() => taskFeedQuery.isLoading}
                                 fallback={(
-                                    <Show when={!panel.isCollapsed()}>
+                                    <For each={taskSkeletonRows}>
+                                        {() => (
+                                            <TaskItemSkeleton
+                                                thumbnailOnly={panel.isCollapsed()}
+                                            />
+                                        )}
+                                    </For>
+                                )}
+                            >
+                                <Show
+                                    when={!taskFeedQuery.isError || taskFeedQuery.data}
+                                    fallback={(
+                                        <Show when={!panel.isCollapsed()}>
+                                            <StatusMessage
+                                                kind='load-error'
+                                                size='compact'
+                                                message={t('task.loadFailed')}
+                                                onRetry={() => void taskFeedQuery.refetch()}
+                                            />
+                                        </Show>
+                                    )}
+                                >
+                                    <Show
+                                        when={tasks().length > 0}
+                                        fallback={(
+                                            <Show when={!panel.isCollapsed()}>
+                                                <StatusMessage
+                                                    kind='empty'
+                                                    size='compact'
+                                                    title={taskFilterEmptyCopy().title}
+                                                    message={taskFilterEmptyCopy().message}
+                                                />
+                                            </Show>
+                                        )}
+                                    >
+                                        <For each={taskIds()}>
+                                            {taskId => (
+                                                <TaskItem
+                                                    selected={taskId === taskStore.state.selectedTaskId}
+                                                    task={taskById().get(taskId)!}
+                                                    thumbnailOnly={panel.isCollapsed()}
+                                                    onSelect={() => selectTask(taskId)}
+                                                    onFlagChange={flag => flagMutation.mutate({
+                                                        taskIds: [taskId],
+                                                        flag,
+                                                    })}
+                                                    flagPending={flagMutation.isPending}
+                                                />
+                                            )}
+                                        </For>
+                                    </Show>
+
+                                    <Show when={taskFeedQuery.isError && !panel.isCollapsed()}>
                                         <StatusMessage
                                             kind='load-error'
                                             size='compact'
@@ -101,58 +158,19 @@ export function TaskList() {
                                             onRetry={() => void taskFeedQuery.refetch()}
                                         />
                                     </Show>
-                                )}
-                            >
-                                <Show
-                                    when={tasks().length > 0}
-                                    fallback={(
-                                        <Show when={!panel.isCollapsed()}>
-                                            <StatusMessage
-                                                kind='empty'
-                                                size='compact'
-                                                title={taskFilterEmptyCopy().title}
-                                                message={taskFilterEmptyCopy().message}
-                                            />
-                                        </Show>
-                                    )}
-                                >
-                                    <For each={taskIds()}>
-                                        {taskId => (
-                                            <TaskItem
-                                                selected={taskId === taskStore.state.selectedTaskId}
-                                                task={taskById().get(taskId)!}
-                                                thumbnailOnly={panel.isCollapsed()}
-                                                onSelect={() => selectTask(taskId)}
-                                                onFlagChange={flag => flagMutation.mutate({
-                                                    taskIds: [taskId],
-                                                    flag,
-                                                })}
-                                                flagPending={flagMutation.isPending}
-                                            />
-                                        )}
-                                    </For>
                                 </Show>
 
-                                <Show when={taskFeedQuery.isError && !panel.isCollapsed()}>
-                                    <StatusMessage
-                                        kind='load-error'
-                                        size='compact'
-                                        message={t('task.loadFailed')}
-                                        onRetry={() => void taskFeedQuery.refetch()}
-                                    />
+                                <Show when={taskFeedQuery.hasNextPage && !taskFeedQuery.isError}>
+                                    <div
+                                        ref={loadOnScroll.setTrigger}
+                                        class='py-2 text-center text-xs text-fg-muted'
+                                    >
+                                        {taskFeedQuery.isFetchingNextPage ? t('common.loading') : ''}
+                                    </div>
                                 </Show>
-                            </Show>
-
-                            <Show when={taskFeedQuery.hasNextPage && !taskFeedQuery.isError}>
-                                <div
-                                    ref={loadOnScroll.setTrigger}
-                                    class='py-2 text-center text-xs text-fg-muted'
-                                >
-                                    {taskFeedQuery.isFetchingNextPage ? t('common.loading') : ''}
-                                </div>
-                            </Show>
-                        </Loading.Swap>
-                    </PanelContent>
+                            </Loading.Swap>
+                        </PanelContent>
+                    </div>
                 </div>
             )}
         </Panel>

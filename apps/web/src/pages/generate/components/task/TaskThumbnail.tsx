@@ -1,4 +1,4 @@
-import { CircleX, Hourglass, Image as ImageIcon, LoaderCircle } from 'lucide-solid'
+import { Clock, Image as ImageIcon, ImageOff, LoaderCircle } from 'lucide-solid'
 
 import { resolveImageUrl } from '#/api/image'
 import { cn } from '#/lib/cn'
@@ -28,22 +28,22 @@ type TaskThumbnailProps = {
     children?: JSX.Element
 }
 
-/* status placeholder 的 icon 與顏色沿用現行，不得更動 */
+/* 沒縮圖時依狀態顯示：狀態色的斜向淡漸層底＋同色 icon；done 維持中性 */
 const placeholderMap: Record<TaskApi.TaskStatus, TaskPlaceholderMeta> = {
     done: {
         class: 'border-line-subtle bg-elevated text-fg-muted',
         label: () => t('task.thumbnail.none'),
     },
     queued: {
-        class: 'border-warning/30 bg-warning/10 text-warning-fg',
+        class: 'border-warning/15 bg-gradient-to-br from-warning/[0.14] to-warning/[0.04] text-warning-fg',
         label: () => t('task.thumbnail.queued'),
     },
     running: {
-        class: 'border-info/30 bg-info/10 text-info-fg',
+        class: 'border-info/15 bg-gradient-to-br from-info/[0.14] to-info/[0.04] text-info-fg',
         label: () => t('task.thumbnail.running'),
     },
     failed: {
-        class: 'border-danger/30 bg-danger/10 text-danger-fg',
+        class: 'border-danger/15 bg-gradient-to-br from-danger/[0.14] to-danger/[0.04] text-danger-fg',
         label: () => t('task.thumbnail.failed'),
     },
 }
@@ -104,11 +104,11 @@ function TaskPlaceholderIcon(props: TaskPlaceholderIconProps) {
 
     switch (props.status) {
         case 'queued':
-            return <Hourglass {...iconProps} />
+            return <Clock {...iconProps} />
         case 'running':
             return <LoaderCircle {...iconProps} />
         case 'failed':
-            return <CircleX {...iconProps} />
+            return <ImageOff {...iconProps} />
         case 'done':
             return <ImageIcon {...iconProps} />
     }

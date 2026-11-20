@@ -14,7 +14,8 @@ type TaskFlagControlsProps = {
     discard: boolean
     pending: boolean
     onChange: (flag: TaskApi.TaskFlag | null) => void
-    /* 定位由載體決定：卡片掛在 ID 行右端，列浮在右上角 */
+    compact?: boolean
+    /* 定位由載體決定：卡片掛在 ID 行右端，列放在名稱行右側 */
     class?: string
 }
 
@@ -34,6 +35,7 @@ export function TaskFlagControls(props: TaskFlagControlsProps) {
                 active={props.pin}
                 pending={props.pending}
                 activeClass={theme.taskFlag.pin.active}
+                compact={props.compact}
                 onClick={() => props.onChange(props.pin ? null : 'pin')}
             >
                 <FlagTriangleRight
@@ -45,6 +47,7 @@ export function TaskFlagControls(props: TaskFlagControlsProps) {
                 active={props.discard}
                 pending={props.pending}
                 activeClass={theme.taskFlag.discard.active}
+                compact={props.compact}
                 onClick={() => props.onChange(props.discard ? null : 'discard')}
             >
                 <HeartX
@@ -60,6 +63,7 @@ type TaskFlagButtonProps = {
     active: boolean
     pending: boolean
     activeClass: string
+    compact: boolean | undefined
     onClick: () => void
     children: JSX.Element
 }
@@ -72,7 +76,8 @@ function TaskFlagButton(props: TaskFlagButtonProps) {
             disabled={props.pending}
             classes={{
                 root: cn(
-                    'size-7 shrink-0 rounded-md border-0 p-0',
+                    'shrink-0 rounded-md border-0 p-0',
+                    props.compact ? 'size-6' : 'size-7',
                     props.active ? props.activeClass : theme.taskFlag.inactive,
                 ),
             }}

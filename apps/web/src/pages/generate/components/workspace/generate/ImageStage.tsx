@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Columns2, Expand, ImagePlus } from 'lucide-solid'
+import { ChevronLeft, ChevronRight, Columns2, Expand, Image as ImageIcon, ImagePlus } from 'lucide-solid'
 import { For, onCleanup, onMount, Show } from 'solid-js'
 
 import { resolveImageUrl } from '#/api/image'
@@ -84,6 +84,12 @@ export function ImageStage(props: ImageStageProps) {
                             <StatusMessage
                                 kind='empty'
                                 title={t('generate.noImage')}
+                                icon={(
+                                    <ImageIcon
+                                        size={21}
+                                        strokeWidth={1.5}
+                                    />
+                                )}
                             />
                         </Show>
                     )}
