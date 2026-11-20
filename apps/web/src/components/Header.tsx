@@ -12,6 +12,7 @@ import { appIssues, issueList } from '#/lib/issue'
 import { currentWindow, getPlatform, isMacDesktop } from '#/lib/platform'
 import { useCurrentRouteName, useNavigateToRoute } from '#/routes'
 import { appStore, serviceHealth } from '#/store/app'
+import { overlayStore } from '#/store/overlay'
 
 import type { RouteName } from '#/routes'
 import type { JSX } from 'solid-js'
@@ -36,6 +37,8 @@ export function Header() {
     const navigate = useNavigateToRoute()
     const routeName = useCurrentRouteName()
     const windowControls = platform.kind === 'desktop' && !isMacDesktop()
+    /* Desktop 疊加層從標題列下方開始（見 overlayRoot），所以標題列露出；開著時 App 控制停用並蓋上遮罩 */
+    const appControlsInert = () => platform.kind === 'desktop' && overlayStore.isActive()
     const pageMode = () => modes.find(item => item.name === routeName())
     /* 在 Tools 或 Settings 頁時，模式選單仍顯示最後使用的模式 */
     const currentMode = createMemo<(typeof modes)[number]>(previous => pageMode() ?? previous, modes[0]!)
@@ -59,102 +62,119 @@ export function Header() {
         <header
             data-tauri-drag-region
             class={cn(
-                'flex h-9 shrink-0 items-center gap-1 border-b border-line-subtle bg-surface',
+                'relative flex h-9 shrink-0 items-center gap-1 border-b border-line-subtle bg-surface',
                 isMacDesktop() ? 'pl-[78px]' : 'pl-3',
                 windowControls ? 'pr-0' : 'pr-3',
             )}
         >
-            <span
+            {/* Desktop 有疊加層時兩組 App 控制 inert（不能點、不能用鍵盤進入），外觀由下方的遮罩處理 */}
+            <div
                 data-tauri-drag-region
-                class='mr-2 shrink-0 whitespace-nowrap text-[13px] font-semibold tracking-[0.02em] text-fg'
+                inert={appControlsInert()}
+                class='flex shrink-0 items-center gap-1'
             >
-                Silent Pix
-            </span>
+                <span
+                    data-tauri-drag-region
+                    class='mr-2 shrink-0 whitespace-nowrap text-[13px] font-semibold tracking-[0.02em] text-fg'
+                >
+                    Silent Pix
+                </span>
 
-            <Menu
-                disabled={!platform.endpoint}
-                classes={{ trigger: cn(menuTrigger, onMode() ? 'text-fg' : 'text-fg-muted') }}
-                trigger={(
-                    <>
-                        {currentMode().icon()}
-                        {currentMode().label()}
-                        <ChevronDown
-                            class='shrink-0 opacity-60'
-                            size={12}
-                            strokeWidth={2}
-                        />
-                    </>
-                )}
-            >
-                <For each={modes}>
-                    {mode => (
-                        <MenuItem
-                            value={mode.name}
-                            label={mode.label()}
-                            current={routeName() === mode.name}
-                            icon={mode.icon()}
-                            onSelect={() => navigate(mode.name)}
-                        />
+                <Menu
+                    disabled={!platform.endpoint}
+                    classes={{ trigger: cn(menuTrigger, onMode() ? 'text-fg' : 'text-fg-muted') }}
+                    trigger={(
+                        <>
+                            {currentMode().icon()}
+                            {currentMode().label()}
+                            <ChevronDown
+                                class='shrink-0 opacity-60'
+                                size={12}
+                                strokeWidth={2}
+                            />
+                        </>
                     )}
-                </For>
-            </Menu>
+                >
+                    <For each={modes}>
+                        {mode => (
+                            <MenuItem
+                                value={mode.name}
+                                label={mode.label()}
+                                current={routeName() === mode.name}
+                                icon={mode.icon()}
+                                onSelect={() => navigate(mode.name)}
+                            />
+                        )}
+                    </For>
+                </Menu>
 
-            <Menu
-                classes={{ trigger: cn(menuTrigger, routeName() === 'metadata' ? 'text-fg' : 'text-fg-muted') }}
-                trigger={(
-                    <>
-                        {t('header.tools')}
-                        <ChevronDown
-                            class='shrink-0 opacity-60'
-                            size={12}
-                            strokeWidth={2}
-                        />
-                    </>
-                )}
-            >
-                <MenuItem
-                    value='metadata'
-                    label={t('metadata.title')}
-                    current={routeName() === 'metadata'}
-                    icon={(
-                        <FileImage
-                            size={14}
-                            strokeWidth={1.7}
-                        />
+                <Menu
+                    classes={{ trigger: cn(menuTrigger, routeName() === 'metadata' ? 'text-fg' : 'text-fg-muted') }}
+                    trigger={(
+                        <>
+                            {t('header.tools')}
+                            <ChevronDown
+                                class='shrink-0 opacity-60'
+                                size={12}
+                                strokeWidth={2}
+                            />
+                        </>
                     )}
-                    onSelect={() => navigate('metadata')}
-                />
-            </Menu>
+                >
+                    <MenuItem
+                        value='metadata'
+                        label={t('metadata.title')}
+                        current={routeName() === 'metadata'}
+                        icon={(
+                            <FileImage
+                                size={14}
+                                strokeWidth={1.7}
+                            />
+                        )}
+                        onSelect={() => navigate('metadata')}
+                    />
+                </Menu>
+            </div>
 
             <div
                 data-tauri-drag-region
                 class='h-full min-w-6 flex-1'
             />
 
-            <IssueChip
-                issues={appIssues()}
-                open={issueList.open()}
-                onOpenChange={issueList.setOpen}
-            />
-            <Show when={platform.endpoint}>
-                <ServiceStatus />
-            </Show>
-            <Button
-                variant='ghost'
-                title={t('common.settings')}
-                classes={{
-                    root: cn(
-                        'size-7 shrink-0 p-0',
-                        routeName() === 'settings' ? 'bg-selected text-fg hover:bg-selected' : 'text-fg-secondary',
-                    ),
-                }}
-                onClick={toggleSettings}
+            <div
+                inert={appControlsInert()}
+                class='flex shrink-0 items-center gap-1'
             >
-                <Settings
-                    size={15}
-                    strokeWidth={1.7}
+                <IssueChip
+                    issues={appIssues()}
+                    open={issueList.open()}
+                    onOpenChange={issueList.setOpen}
                 />
-            </Button>
+                <Show when={platform.endpoint}>
+                    <ServiceStatus />
+                </Show>
+                <Button
+                    variant='ghost'
+                    title={t('common.settings')}
+                    classes={{
+                        root: cn(
+                            'size-7 shrink-0 p-0',
+                            routeName() === 'settings' ? 'bg-selected text-fg hover:bg-selected' : 'text-fg-secondary',
+                        ),
+                    }}
+                    onClick={toggleSettings}
+                >
+                    <Settings
+                        size={15}
+                        strokeWidth={1.7}
+                    />
+                </Button>
+            </div>
+            {/* 像 VS Code：同一層遮罩蓋滿整條標題列（含視窗控制）。只負責外觀、不攔點擊，
+                視窗控制與拖曳照常；App 控制靠上面兩組的 inert 停用 */}
+            <Show when={appControlsInert()}>
+                <div class='pointer-events-none absolute inset-x-0 top-0 -bottom-px z-20 bg-backdrop' />
+            </Show>
 
             <Show when={windowControls}>
                 <WindowControls />

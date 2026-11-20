@@ -5,6 +5,7 @@ import { Portal } from 'solid-js/web'
 
 import { Callout } from '#/components/base/Callout'
 import { cn } from '#/lib/cn'
+import { overlayRoot } from '#/lib/overlayRoot'
 import { overlayStore } from '#/store/overlay'
 
 import type { OverlayId } from '#/store/overlay'
@@ -57,22 +58,22 @@ export function Dialog(props: DialogProps) {
             closeOnInteractOutside={!props.closeDisabled}
             onOpenChange={details => props.onOpenChange(details.open)}
         >
-            <Portal>
+            <Portal mount={overlayRoot()}>
                 <ArkDialog.Backdrop
                     class={cn(
-                        'fixed inset-0 z-40 bg-backdrop',
+                        'pointer-events-auto absolute inset-0 z-40 bg-backdrop',
                         props.classes?.backdrop,
                     )}
                 />
                 <ArkDialog.Positioner
                     class={cn(
-                        'fixed inset-0 z-50 flex max-h-[100dvh] items-center justify-center overflow-y-auto p-4',
+                        'pointer-events-auto absolute inset-0 z-50 flex max-h-full items-center justify-center overflow-y-auto p-4',
                         props.classes?.positioner,
                     )}
                 >
                     <ArkDialog.Content
                         class={cn(
-                            'flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-lg border border-line bg-surface text-fg-secondary shadow-2xl outline-none',
+                            'flex max-h-full w-full max-w-lg flex-col overflow-hidden rounded-lg border border-line bg-surface text-fg-secondary shadow-2xl outline-none',
                             props.classes?.content,
                         )}
                     >

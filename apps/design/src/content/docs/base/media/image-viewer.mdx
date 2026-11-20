@@ -1,6 +1,6 @@
 ---
 title: Image viewer
-description: 蓋住整個 app 的大圖檢視，以及檢視器和比較工作區共用的縮放控制。
+description: 蓋住疊加層區域的大圖檢視，以及檢視器和比較工作區共用的縮放控制。
 sidebar:
     order: 1
 ---
@@ -12,7 +12,7 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 
 ## Image viewer
 
-全螢幕看圖：backdrop 蓋住整個 app，可縮放、平移、左右切換。Generate、task browser、compare、參考圖共用。
+全螢幕看圖：backdrop 蓋住疊加層區域（Desktop 標題列以下，見 App），可縮放、平移、左右切換。Generate、task browser、compare、參考圖共用。
 
 <Gallery min="720px">
 <State component="image-viewer" state="default" label="default · fit · thumbnails" frame="relative h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
@@ -23,7 +23,7 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 <Rules component="image-viewer">
 
 <ul class="ds-rules">
-<Rule component="image-viewer" id="overlay">蓋住整個 app 的 overlay，底色 `bg-backdrop backdrop-blur-[6px]` 並淡入；底固定是暗的，不用 stage 色。點 backdrop 或 Esc 關閉；拖曳平移後放開不算點擊關閉。板上以 `absolute` 畫在固定高度的框內。</Rule>
+<Rule component="image-viewer" id="overlay">蓋住疊加層區域的 overlay（範圍見 App 的疊加層區域），底色 `bg-backdrop backdrop-blur-[6px]` 並淡入；底固定是暗的，不用 stage 色。點 backdrop 或 Esc 關閉；拖曳平移後放開不算點擊關閉。板上以 `absolute` 畫在固定高度的框內。</Rule>
 <Rule component="image-viewer" id="close">右上只有 close（size-8 glass、icon 16），不放其他動作。</Rule>
 <Rule component="image-viewer" id="counter">左上：2 張以上時顯示 `n / total` glass chip。</Rule>
 <Rule component="image-viewer" id="paging-strip">左右切換 `size-8` glass、icon 18，2 張以上才出現。縮圖列只在 2 張以上且 Fit 時出現，放大後收起；選取縮圖 `ring-2 ring-on-stage`（viewer 底固定暗，不用 `ring-stage-fg`）。</Rule>

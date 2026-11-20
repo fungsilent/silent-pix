@@ -23,7 +23,7 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 <Rules component="dialog">
 
 <ul class="ds-rules">
-<Rule component="dialog" id="frame">外框 `rounded-lg border border-line bg-surface shadow-2xl`，下方鋪 `bg-backdrop` 全畫面遮罩；dialog 置中、與視窗保留 16px，最高不超過視窗、超出時只捲 body。</Rule>
+<Rule component="dialog" id="frame">外框 `rounded-lg border border-line bg-surface shadow-2xl`，下方鋪 `bg-backdrop` 遮罩，範圍是疊加層區域（見 App）；dialog 在區域內置中、與區域邊緣保留 16px，最高不超過區域、超出時只捲 body。</Rule>
 <Rule component="dialog" id="header">**header**：`px-4 py-3 border-b border-line-subtle`，標題 `text-base font-bold leading-tight text-fg`，說明（可省）`mt-1 text-xs leading-5 text-fg-muted`，右上固定一顆 `size-7` soft 關閉鈕（X 15）。**body**：`p-4`，受影響對象的名稱用 `font-mono text-xs`。**footer**（可省）：`px-4 py-3 border-t border-line-subtle`，按鈕靠右。</Rule>
 <Rule component="dialog" id="width">寬度：預設 `max-w-lg`；刪除／封存等確認 `w-[420px]`；清單選取器 `w-[600px]`、最高 70% 視窗、圓角 10px；圖片選取器 `w-[1200px]`、滿高。都加 `max-w-full` 防溢出。</Rule>
 <Rule component="dialog" id="footer">footer 按鈕用 L0 Button dialog（`h-7 min-w-20 text-xs`）：Cancel 為中性 soft，確認鈕依性質選 tone——破壞性用 danger soft、一般用 solid accent。每個 dialog 只有一顆確認鈕。</Rule>

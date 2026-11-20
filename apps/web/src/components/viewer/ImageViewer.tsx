@@ -9,6 +9,7 @@ import { ZoomControls } from '#/components/viewer/ZoomControls'
 import { ZoomStage } from '#/components/viewer/ZoomStage'
 import { cn } from '#/lib/cn'
 import { createImageZoom } from '#/lib/imageZoom'
+import { overlayRoot } from '#/lib/overlayRoot'
 import { overlayStore } from '#/store/overlay'
 
 import type { ViewerImage } from '#/components/viewer/ZoomStage'
@@ -119,9 +120,9 @@ export function ImageViewer(props: ImageViewerProps) {
     })
 
     return (
-        <Portal>
+        <Portal mount={overlayRoot()}>
             <div
-                class='backdrop fixed inset-0 z-50 flex select-none flex-col items-center justify-center bg-backdrop backdrop-blur-[6px]'
+                class='backdrop pointer-events-auto absolute inset-0 z-50 flex select-none flex-col items-center justify-center bg-backdrop backdrop-blur-[6px]'
                 onClick={closeOnBackdrop}
             >
                 <Show when={hasMany()}>

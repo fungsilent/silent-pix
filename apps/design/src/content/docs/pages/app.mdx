@@ -102,6 +102,23 @@ App 最上方 36px 的全域列，同時是視窗的標題列：品牌名、模�
 
 </Rules>
 
+## 疊加層
+
+Image viewer、dialog、picker 共用的疊加層區域，以及疊加層開著時的 Header。
+
+<Gallery min="900px">
+<State component="app-header" state="overlay-open" label="Desktop · overlay open · backdrop over title bar" frame="min-w-[1000px]" />
+</Gallery>
+
+<Rules component="app-overlay">
+
+<ul class="ds-rules">
+<Rule component="app-overlay" id="area">所有疊加層（Image viewer、dialog、picker）都放在同一個疊加層區域內：Desktop 是 Header 以下的整個視窗（標題列永遠露出，拖曳與視窗控制照常），Web 是整個視窗。疊加層的大小、置中、留白與最大高度都以這個區域為準，各元件不自己判斷平台。</Rule>
+<Rule component="app-header" id="overlay-open">Desktop 有疊加層開著時，整條標題列（含 Windows／Linux 的視窗控制與底線，遮罩往下延伸 1px 蓋過 `border-b`）蓋上與下方疊加層同一層 `bg-backdrop` 遮罩，整個 App 一致變暗（同 VS Code）。遮罩只負責外觀、不攔截點擊：拖曳、雙擊放大／還原與視窗控制照常可用；App 控制（品牌名、模式選單、Tools、Issue chip、服務狀態、Settings）另外停用，不可點擊、不可用鍵盤進入。macOS 原生視窗鈕由系統畫在最上層，不受影響。疊加層關閉後遮罩移除。</Rule>
+</ul>
+
+</Rules>
+
 ## 啟動失敗
 
 App 啟動時就出錯（例如讀不到設定），整個視窗只顯示一個置中的 StatusMessage，沒有 Header。
@@ -121,6 +138,6 @@ App 啟動時就出錯（例如讀不到設定），整個視窗只顯示一個�
 ## Screen
 
 <Screen>
-    <Slot name="header" component="app-header" states="generate,compare,workflow,metadata,settings,mac,web,mode-menu,tools-menu,comfy-down,server-down,connecting,status-open,issues,issues-open,no-endpoint" />
+    <Slot name="header" component="app-header" states="generate,compare,workflow,metadata,settings,mac,web,mode-menu,tools-menu,comfy-down,server-down,connecting,status-open,issues,issues-open,no-endpoint,overlay-open" />
     <div class="min-h-0 flex-1 bg-canvas"></div>
 </Screen>
