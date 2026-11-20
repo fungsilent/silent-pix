@@ -28,14 +28,14 @@ type TaskBrowserCardProps = {
 export function TaskBrowserCard(props: TaskBrowserCardProps) {
     const shortId = () => props.task.id.slice(0, 8)
     const title = () => props.task.name ?? shortId()
-    /* 整張卡只有一種單擊：選取（Ctrl/⌘ 為切換勾選）；雙擊開大圖 */
-    const activate = (event: MouseEvent) => {
+    /* 點縮圖開大圖、點下方資訊選取（Detail）；兩處 Ctrl/⌘＋單擊都是切換勾選 */
+    const withToggle = (action: () => void) => (event: MouseEvent) => {
         if (event.ctrlKey || event.metaKey) {
             props.onToggleByClick()
             return
         }
 
-        props.onFocusTask()
+        action()
     }
 
     return (
@@ -45,6 +45,7 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
             class={cn(
                 'group relative min-w-0 rounded-lg border border-transparent p-2',
                 props.focused && !props.checked && 'bg-selected',
+                !props.focused && !props.checked && 'hover:bg-hover',
                 props.checked && !props.focused && 'border-accent bg-accent/20 ring-2 ring-accent/40',
                 props.focused && props.checked && 'border-accent bg-accent/20 ring-2 ring-accent/40',
             )}
@@ -53,12 +54,11 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
                 variant='ghost'
                 classes={{
                     root: cn(
-                        'block w-full min-w-0 p-0 text-left hover:bg-transparent',
+                        'block w-full min-w-0 cursor-zoom-in p-0 text-left hover:bg-transparent',
                         props.focused && 'focus-visible:border-transparent focus-visible:ring-0',
                     ),
                 }}
-                onClick={activate}
-                onDblClick={props.onOpenViewer}
+                onClick={withToggle(props.onOpenViewer)}
             >
                 <TaskThumbnail
                     thumbnail={props.task.thumbnail}
@@ -95,8 +95,7 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
                             props.focused && 'focus-visible:border-transparent focus-visible:ring-0',
                         ),
                     }}
-                    onClick={activate}
-                    onDblClick={props.onOpenViewer}
+                    onClick={withToggle(props.onFocusTask)}
                 >
                     <div class='flex min-w-0 flex-col gap-2'>
                         <span

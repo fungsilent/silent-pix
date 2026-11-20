@@ -136,7 +136,7 @@ Generate 左側 task 清單的單列：72px 縮圖＋名稱／狀態／建立時
 <Rule component="task-browser" id="selection-reset">搜尋或篩選變更時清空勾選；勾選中的 task 因搜尋／篩選離開目前結果時，自動從勾選移除。</Rule>
 <Rule component="task-browser" id="empty-error">空狀態與載入失敗用 L0 StatusMessage regular，在格狀區置中：完全沒有 task 是「No tasks yet / Generated tasks will appear here.」；有搜尋文字而無結果是「No matching tasks / Try another search or filter.」；沒有搜尋、只篩一個 flag 時用該 flag 的專屬文案；沒有搜尋、多個 flag 篩選無結果是「No matching tasks / Try a different task filter.」。空狀態不放按鈕。</Rule>
 <Rule component="task-browser" id="loading">首次載入以 16 張骨架卡整組替換格子。捲到底載入下一頁時格子尾端出現跨整列的「Loading...」純文字。已有資料時下一頁失敗，在格子尾端附加 regular 載入失敗訊息＋Retry，既有卡片保留；沒有資料時失敗則整個格狀區換成置中的失敗訊息。</Rule>
-<Rule component="task-browser" id="overlays">整張卡片只有一種單擊：選取這個 task（右側 Detail 顯示它）；雙擊卡片開啟審片模式（**task-review**）；Ctrl／⌘＋單擊切換勾選，hover 時右上的勾選框照舊可用。刪除確認 dialog 與審片模式疊在本檢視之上，各自見對應元件。</Rule>
+<Rule component="task-browser" id="overlays">點縮圖開啟審片模式（**task-review**，縮圖上游標為 zoom-in），點下方資訊選取這個 task（右側 Detail 顯示它）；Ctrl／⌘＋單擊在兩處都是切換勾選，hover 時右上的勾選框照舊可用。卡片未選取、未勾選時 hover 整張加 `bg-hover` 底色。刪除確認 dialog 與審片模式疊在本檢視之上，各自見對應元件。</Rule>
 </ul>
 
 #### 工具列
@@ -154,7 +154,7 @@ Generate 左側 task 清單的單列：72px 縮圖＋名稱／狀態／建立時
 
 ## Task review
 
-從 Task browser 雙擊開啟的大圖：逐張確認內容並直接分類。
+從 Task browser 點縮圖開啟的大圖：逐張確認內容並直接分類。
 
 <Gallery min="1000px">
 <State component="task-review" state="default" label="default · controls hidden" frame="relative h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
