@@ -177,8 +177,11 @@
         "deleteDiscardedDescription": "永久刪除所有已捨棄的任務。執行中或排隊中的任務會略過，並保持選取。",
         "deleteSelectedHint": "選取的任務及其不再被引用的圖片將永久移除。",
         "deleteDiscardedHint": "排隊中或執行中的任務會保留，讓生成能夠完成。",
-        "deleteDiscardedAction": "刪除已捨棄的任務…",
+        "deleteDiscardedAction": "刪除已捨棄的任務",
         "search": "搜尋任務",
+        "clearSelection": "取消勾選",
+        "gridView": "格狀檢視",
+        "thumbnailSize": "縮圖大小",
         "searchPlaceholder": "任務名稱或任務 ID…",
         "thumbnail": {
             "none": "沒有縮圖",
@@ -233,10 +236,8 @@
         "deleteWithImages_other": "任務及其 {{count}} 張圖片將從磁碟移除，此操作無法復原。",
         "deleteSelectedDescription_one": "永久刪除 {{count}} 個選取的任務，此操作無法復原。",
         "deleteSelectedDescription_other": "永久刪除 {{count}} 個選取的任務，此操作無法復原。",
-        "deleteSelectedButton_other": "刪除 {{count}} 個任務…",
+        "deleteSelectedButton_other": "刪除 {{count}} 個任務",
         "selectionLimit": "每批最多 {{maximum}} 個任務。",
-        "expandBrowser": "展開任務清單",
-        "collapseBrowser": "收回任務清單",
         "useTaskSeed": "使用此任務的種子值"
     },
     "image": {

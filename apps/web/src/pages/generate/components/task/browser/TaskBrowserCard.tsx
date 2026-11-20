@@ -1,4 +1,5 @@
 import { Check } from 'lucide-solid'
+import { Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { CenteredText } from '#/components/base/CenteredText'
@@ -19,12 +20,23 @@ type TaskBrowserCardProps = {
     onFocusTask: () => void
     onOpenViewer: () => void
     onToggleSelected: () => void
+    /* Ctrl/⌘＋單擊；與勾選框分開，因為要先經過拖曳後 click 的防護 */
+    onToggleByClick: () => void
     onFlagChange: (flag: TaskApi.TaskFlag | null) => void
 }
 
 export function TaskBrowserCard(props: TaskBrowserCardProps) {
     const shortId = () => props.task.id.slice(0, 8)
     const title = () => props.task.name ?? shortId()
+    /* 整張卡只有一種單擊：選取（Ctrl/⌘ 為切換勾選）；雙擊開大圖 */
+    const activate = (event: MouseEvent) => {
+        if (event.ctrlKey || event.metaKey) {
+            props.onToggleByClick()
+            return
+        }
+
+        props.onFocusTask()
+    }
 
     return (
         <article
@@ -45,7 +57,8 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
                         props.focused && 'focus-visible:border-transparent focus-visible:ring-0',
                     ),
                 }}
-                onClick={props.onOpenViewer}
+                onClick={activate}
+                onDblClick={props.onOpenViewer}
             >
                 <TaskThumbnail
                     thumbnail={props.task.thumbnail}
@@ -60,13 +73,16 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
                         dim={Boolean(props.task.thumbnail)}
                         carrier='card'
                     />
-                    <CenteredText
-                        classes={{
-                            root: 'absolute bottom-1 right-1 rounded-md bg-stage-overlay px-2 py-1 text-[10px] font-semibold text-stage-overlay-label shadow-sm ring-1 ring-stage-ring tabular-nums backdrop-blur-[3px]',
-                        }}
-                    >
-                        {props.task.outputCount}
-                    </CenteredText>
+                    {/* 張數只在批次生成（2 張以上）時有意義 */}
+                    <Show when={props.task.outputCount >= 2}>
+                        <CenteredText
+                            classes={{
+                                root: 'absolute bottom-1 right-1 rounded-md bg-stage-overlay px-2 py-1 text-[10px] font-semibold text-stage-overlay-label shadow-sm ring-1 ring-stage-ring tabular-nums backdrop-blur-[3px]',
+                            }}
+                        >
+                            {props.task.outputCount}
+                        </CenteredText>
+                    </Show>
                 </TaskThumbnail>
             </Button>
             {/* ID 行固定 size-7 的高度，操作鈕浮現時卡片高度才不會跳 */}
@@ -79,7 +95,8 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
                             props.focused && 'focus-visible:border-transparent focus-visible:ring-0',
                         ),
                     }}
-                    onClick={props.onFocusTask}
+                    onClick={activate}
+                    onDblClick={props.onOpenViewer}
                 >
                     <div class='flex min-w-0 flex-col gap-2'>
                         <span
@@ -111,7 +128,6 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
                 data-marquee-control='true'
                 classes={{
                     root: cn(
-                        /* 貼著縮圖角落而不是卡片角落：內縮對齊右下角的張數 pill，兩顆浮在圖上的東西要同一個邊距 */
                         'absolute right-3.5 top-3.5 size-6 rounded-md border-0 p-0 transition-opacity',
                         props.checked
                             ? 'bg-accent text-on-stage hover:bg-accent-hover'

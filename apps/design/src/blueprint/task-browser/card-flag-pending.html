@@ -1,7 +1,20 @@
+<div class="flex h-full min-h-0 min-w-0 flex-1 overflow-hidden bg-surface">
+<nav class="flex w-10 shrink-0 flex-col items-center border-r border-line-subtle">
+                                <div class="h-12 shrink-0"></div>
+                                <div class="flex flex-col items-center gap-1">
+                                    <span class="flex size-7 shrink-0 items-center justify-center rounded-md border border-transparent p-0 text-xs outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40 bg-selected text-fg hover:bg-selected" title="Grid view"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg></span>
+                                    <div class="my-1 h-px w-5 bg-line-subtle"></div>
+                                    <span class="flex h-7 items-center justify-center gap-1.5 rounded-md border border-transparent py-[5px] text-[11px] font-medium outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40 bg-selected text-fg hover:bg-selected w-7 px-0" title="All"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5h20"/><path d="M6 12h12"/><path d="M9 19h6"/></svg></span>
+                                <span class="flex h-7 items-center justify-center gap-1.5 rounded-md border border-transparent py-[5px] text-[11px] font-medium outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40 bg-transparent text-fg-muted hover:bg-hover w-7 px-0" title="Unflag"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528"/><path d="m2 2 20 20"/><path d="M4 22V4"/><path d="M7.656 2H8c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10.347"/></svg></span>
+                                <span class="flex h-7 items-center justify-center gap-1.5 rounded-md border border-transparent py-[5px] text-[11px] font-medium outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40 bg-transparent text-fg-muted hover:bg-hover w-7 px-0" title="Pin"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V2.8a.8.8 0 0 1 1.17-.71l11.38 5.69a.8.8 0 0 1 0 1.44L6 15.5"/></svg></span>
+                                <span class="flex h-7 items-center justify-center gap-1.5 rounded-md border border-transparent py-[5px] text-[11px] font-medium outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40 bg-transparent text-fg-muted hover:bg-hover w-7 px-0" title="Discard"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15.5 12.5 5 5"/><path d="m20.5 12.5-5 5"/><path d="M21.955 8.774a5.5 5.5 0 0 0-9.546-2.95.6.6 0 0 1-.818 0A5.5 5.5 0 0 0 2 9.5c0 2.3 1.5 4 3 5.5l5.508 5.332a2 2 0 0 0 2.57.352"/></svg></span>
+                                
+                                </div>
+                            </nav>
 <section class="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-surface">
                             <div data-ds-slot="task-toolbar" data-ds-state="default"></div>
                             <div class="scrollbar-thin relative min-h-0 flex-1 overflow-y-auto bg-surface">
-                                <div class="grid grid-cols-8 content-start gap-3 p-2">
+                                <div class="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] content-start gap-3 p-2">
                                     <div data-ds-slot="task-card" data-ds-state="focused"></div>
                                     <div data-ds-slot="task-card" data-ds-state="flag-pending"></div>
                                     <div data-ds-slot="task-card" data-ds-state="running"></div>
@@ -21,3 +34,4 @@
                                 </div>
                             </div>
                         </section>
+</div>

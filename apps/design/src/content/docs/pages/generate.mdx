@@ -30,15 +30,17 @@ Generate 左側可收合的 task 面板：頂端 Bar（標題 Tasks、展開到 
 <State component="task-list" state="loading-more" label="loading next page" frame="w-max *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="task-list" state="page-error" label="next page failed · rows kept" frame="w-max *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="task-list" state="collapsed-loading" label="collapsed · loading" frame="w-max *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="task-list" state="collapsed-empty" label="collapsed · empty (blank)" frame="w-max *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-list" state="collapsed-empty" label="collapsed · empty · no tasks" frame="w-max *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-list" state="collapsed-empty-filter" label="collapsed · empty · filter" frame="w-max *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-list" state="collapsed-no-match" label="collapsed · empty · search" frame="w-max *:border-r-0 flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 </Gallery>
 
 <Rules component="task-list">
 
 <ul class="ds-rules">
-<Rule component="task-list" id="panel">面板分兩欄，外框右側 `border-r border-line`、`bg-surface`：左側是 40px 直條（與 Detail 收合直條同寬，以 `border-r border-line-subtle` 與清單分隔），右側是清單欄（展開 250px）。直條由上而下：頂端 48px 區放收合／展開鈕（展開時 ChevronsLeft、收合時 ChevronsRight，與 Detail 收合直條的切換鈕同高）、四個 flag 篩選、分隔線、Expand（打開 **task-browser**，15px icon），全部是 28px ghost 圖示鈕，名稱只在 hover 時以提示顯示。面板沒有標題列，清單上方沒有任何控制項會隨收合改變。</Rule>
-<Rule component="task-list" id="filter">篩選（All／Unflag／Pin／Discard，規則見 **task-toolbar** 的篩選）直排在直條上，選中的用 selected 樣式；展開與收合都看得到、都能操作。清單欄頂端 48px 區放搜尋欄（同 **task-toolbar**：28px 高、左側 Search icon、placeholder「task name or task ID...」），與 task-browser 共用同一個搜尋字。清單內距 8px（右側 12px 讓出捲軸），列距 4px，捲軸平常隱藏。</Rule>
-<Rule component="task-list" id="collapsed">收合等於把清單欄右側裁掉：直條不變，清單欄寬度改由縮圖決定（`w-max`），頂端 48px 區照樣放搜尋欄，寬度跟著縮圖欄（不撐寬清單欄，placeholder 被截掉也無妨），縮圖的位置、尺寸與選取底都不動，只藏起文字與 flag 操作鈕。收合時不顯示空狀態與載入失敗提示，清單維持空白（同 collapsed-empty）；展開後才顯示對應的訊息。</Rule>
+<Rule component="task-list" id="panel">面板分兩欄，外框右側 `border-r border-line`、`bg-surface`：左側是 40px 直條（與 Detail 收合直條同寬，以 `border-r border-line-subtle` 與清單分隔），右側是清單欄（展開 250px）。直條由上而下：頂端 48px 區放收合／展開鈕（展開時 ChevronsLeft、收合時 ChevronsRight，與 Detail 收合直條的切換鈕同高）、Grid view（LayoutGrid icon，15px，切換到 **task-browser** 格狀檢視）、分隔線、四個 flag 篩選，全部是 28px ghost 圖示鈕，名稱只在 hover 時以提示顯示。面板沒有標題列，清單上方沒有任何控制項會隨收合改變。</Rule>
+<Rule component="task-list" id="filter">篩選（All／Unflag／Pin／Discard，規則見 **task-toolbar** 的篩選）直排在直條上，選中的用 selected 樣式；展開與收合都看得到、都能操作。清單欄頂端 48px 區放搜尋欄，底部有一條透明底線（`border-b border-transparent`），與 task-browser 工具列一樣是 48px 含 1px 底線，兩邊搜尋欄的位置與 baseline 一致（同 **task-toolbar**：28px 高、左側 Search icon、placeholder「task name or task ID...」），與 task-browser 共用同一個搜尋字。清單內距 8px（右側 12px 讓出捲軸），列距 4px，捲軸平常隱藏。</Rule>
+<Rule component="task-list" id="collapsed">收合等於把清單欄右側裁掉：直條不變，清單欄寬度固定為縮圖欄寬（106px＝內距 8＋列 86＋右側 12），清單是空的時也不變窄，頂端 48px 區照樣放搜尋欄，寬度跟著縮圖欄（不撐寬清單欄，placeholder 被截掉也無妨），縮圖的位置、尺寸與選取底都不動，只藏起文字與 flag 操作鈕。收合時放不下 StatusMessage：清單沒有東西時，在第一張縮圖的位置放一個同尺寸的虛線方塊（`border-dashed border-line`、muted icon 22px），依原因換 icon——沒有 task 為 Inbox、篩選無結果為 FunnelX、搜尋無結果為 SearchX，完整文案放在 hover 提示；載入失敗收合時仍留白，展開後才顯示訊息與 Retry。</Rule>
 <Rule component="task-list" id="empty-error">空狀態與載入失敗用 L0 StatusMessage compact：沒有 task 時是「No tasks yet」＋說明；只篩一個 flag 時各有專屬標題與說明（如 No pinned tasks）；多個 flag 篩選無結果時是「No matching tasks / Try a different task filter.」。載入失敗只有一句 muted 訊息＋預設 Retry 按鈕，不用紅色。</Rule>
 <Rule component="task-list" id="loading">首次載入用 6 列骨架整組替換清單（收合時用只有縮圖的骨架）。捲到底載入下一頁時，清單尾端出現置中的 12px muted「Loading...」純文字，不用骨架。已有資料時下一頁失敗，錯誤訊息＋Retry 附加在清單尾端，既有的列保留。</Rule>
 <Rule component="task-list" id="narrow">視窗寬度小於 720px 時整個面板隱藏。</Rule>
@@ -129,23 +131,43 @@ Generate 左側 task 清單的單列：72px 縮圖＋名稱／狀態／建立時
 #### Browser
 
 <ul class="ds-rules">
-<Rule component="task-browser" id="layout">整塊 `bg-surface`、填滿可用寬高。工具列固定在上方，下方格狀區獨立捲動（細捲軸）；格子固定 8 欄、間距 12px、內距 8px，不依寬度改欄數。</Rule>
+<Rule component="task-browser" id="layout">整塊 `bg-surface`、填滿可用寬高。左側保留 **task-list** 的 40px 直條（篩選與 Grid view 不變；Grid view 用 selected 樣式表示目前是格狀檢視，再按一次回到清單；頂端收合鈕在 browser 模式不放，留白），右側是工具列加格狀區：工具列固定在上方，格狀區獨立捲動（細捲軸）；卡片最小寬度由工具列的縮圖大小滑桿決定（140–320px，預設約 200px），欄數依可用寬度自動排（`repeat(auto-fill, minmax(<size>, 1fr))`），間距 12px、內距 8px。</Rule>
 <Rule component="task-browser" id="marquee">在格狀區空白處按下拖曳會畫出框選矩形（`border-accent bg-accent/15`），框到的卡片即時變成 checked；拖曳期間不選取文字。從勾選鈕或 flag 鈕起手不會開始框選。</Rule>
 <Rule component="task-browser" id="selection-reset">搜尋或篩選變更時清空勾選；勾選中的 task 因搜尋／篩選離開目前結果時，自動從勾選移除。</Rule>
 <Rule component="task-browser" id="empty-error">空狀態與載入失敗用 L0 StatusMessage regular，在格狀區置中：完全沒有 task 是「No tasks yet / Generated tasks will appear here.」；有搜尋文字而無結果是「No matching tasks / Try another search or filter.」；沒有搜尋、只篩一個 flag 時用該 flag 的專屬文案；沒有搜尋、多個 flag 篩選無結果是「No matching tasks / Try a different task filter.」。空狀態不放按鈕。</Rule>
-<Rule component="task-browser" id="loading">首次載入以 16 張骨架卡整組替換格子。捲到底載入下一頁時格子尾端出現跨 8 欄的「Loading...」純文字。已有資料時下一頁失敗，在格子尾端附加 regular 載入失敗訊息＋Retry，既有卡片保留；沒有資料時失敗則整個格狀區換成置中的失敗訊息。</Rule>
-<Rule component="task-browser" id="overlays">點縮圖開啟的大圖檢視與刪除確認 dialog 疊在本檢視之上，各自見對應元件。</Rule>
+<Rule component="task-browser" id="loading">首次載入以 16 張骨架卡整組替換格子。捲到底載入下一頁時格子尾端出現跨整列的「Loading...」純文字。已有資料時下一頁失敗，在格子尾端附加 regular 載入失敗訊息＋Retry，既有卡片保留；沒有資料時失敗則整個格狀區換成置中的失敗訊息。</Rule>
+<Rule component="task-browser" id="overlays">整張卡片只有一種單擊：選取這個 task（右側 Detail 顯示它）；雙擊卡片開啟審片模式（**task-review**）；Ctrl／⌘＋單擊切換勾選，hover 時右上的勾選框照舊可用。刪除確認 dialog 與審片模式疊在本檢視之上，各自見對應元件。</Rule>
 </ul>
 
 #### 工具列
 
 <ul class="ds-rules">
-<Rule component="task-toolbar" id="bar">第一列是 48px Bar（左右 8px）：標題 Tasks、撐滿剩餘寬度的搜尋框（28px 高、左側 14px Search icon，只靠 placeholder「task name or task ID...」說明，不顯示 label），最右是 Minimize2 收回鈕（28px ghost）。第二列左右 8px、下 4px，可換行；整個工具列底部 `border-b border-line-subtle`。</Rule>
-<Rule component="task-toolbar" id="filter-buttons">Flag 篩選每顆是 28px 高的 ghost 鈕（11px medium、13px icon），選中用 selected 樣式，未選中 `text-fg-muted`。可多選；全部取消或三項全選都回到 All（不篩選），所以畫面上不會同時亮三個 flag。順序固定 All、Unflag、Pin、Discard。工具列用 icon＋文字版；**task-list** 用只有 icon 的版本。</Rule>
-<Rule component="task-toolbar" id="actions">右側群組靠右，只在有勾選、有提示或篩選恰好只剩 Discard 時出現。批次操作順序固定：計數、Clear、Unflag（ghost）、Pin／Discard（各自 flag 的 soft 色）、刪除（soft danger）；所有按鈕 28px 高、11px 字。</Rule>
+<Rule component="task-toolbar" id="bar">工具列只有一列 48px（左右 8px，底部 `border-b border-line-subtle` 畫在 48px 內），與 **task-list** 清單欄頂端的搜尋同高、同位置、同 baseline。平常：左側 234px 搜尋欄（與 task-list 的搜尋同寬）（28px 高、左側 14px Search icon，只靠 placeholder「task name or task ID...」說明，不顯示 label，搜尋字與 task-list 共用）；篩選恰好為 Discard 時右側多一顆「Delete discarded」。最右端固定是縮圖大小滑桿（112px：左小格圖示、滑軌、右大格圖示；前面有其他內容時以 20px 直線分隔），設定記在這台裝置。沒有標題、沒有收回鈕（回到清單用直條的 Grid view）。</Rule>
+<Rule component="task-toolbar" id="filter-buttons">Flag 篩選在左側直條，只有 icon（見 **task-list**），名稱只在 hover 時以提示顯示；選中用 selected 樣式，未選中 `text-fg-muted`。可多選；全部取消或三項全選都回到 All（不篩選），所以畫面上不會同時亮三個 flag。順序固定 All、Unflag、Pin、Discard。</Rule>
+<Rule component="task-toolbar" id="actions">有勾選時搜尋欄保留在左側（桌面慣例：工具列不因勾選而換掉；勾選中改搜尋字會依 selection-reset 清空勾選）。左側放「範圍」：搜尋欄右邊緊接一個「N selected ✕」chip（`h-7 bg-selected`，✕ 為 20px 取消鈕，Esc 同效），沒有勾選時不出現。右側放「動作」：flag 三段（Unflag／Pin／Discard，意思是把勾選的 task 設成哪一種）、20px 直線分隔、刪除鈕（soft danger「Delete N tasks」），危險按鈕永遠在最右。三段維持各自 flag 的顏色：平常 Pin／Discard 用 soft 色、Unflag 為 muted；勾到的 task 全部是同一狀態時，那一段換成實心色（Pin／Discard 用該 flag 的底色＋ink 字色，Unflag 用 selected 樣式），狀態混合時不亮任何一段。不提供全選。</Rule>
 <Rule component="task-toolbar" id="limit">一次最多勾選 200 筆：超出的部分不會被勾入（框選會截斷到 200），同時在 Header 的 Issue chip 加一則 warning；勾選數降回上限以下時自動消失。批次 flag 更新失敗也進 Header（error）。</Rule>
-<Rule component="task-toolbar" id="delete-discarded">「Delete discarded...」只在篩選恰好為 Discard 時出現；與批次操作或提示同時存在時，前面加一條 20px 高的 `bg-line-subtle` 直線分隔。</Rule>
-<Rule component="task-toolbar" id="confirm-dialogs">文字帶刪節號（...）的按鈕會先開確認 dialog。執行中按鈕停用，外觀依 L0 Button disabled。</Rule>
+<Rule component="task-toolbar" id="delete-discarded">「Delete discarded」只在篩選恰好為 Discard、而且沒有勾選時出現，靠右放在搜尋那一列；有勾選時由勾選群組取代。</Rule>
+<Rule component="task-toolbar" id="confirm-dialogs">刪除類按鈕一律先開確認 dialog，按鈕文字不加刪節號。執行中按鈕停用，外觀依 L0 Button disabled。</Rule>
+</ul>
+
+</Rules>
+
+## Task review
+
+從 Task browser 雙擊開啟的大圖：逐張確認內容並直接分類。
+
+<Gallery min="1000px">
+<State component="task-review" state="default" label="default · controls hidden" frame="relative h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-review" state="hover" label="hover bottom · flag bar + strip" frame="relative h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-review" state="hover-single" label="hover bottom · single image" frame="relative h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+</Gallery>
+
+<Rules component="task-review">
+
+<ul class="ds-rules">
+<Rule component="task-review" id="base">外框、縮放、平移、minimap、關閉與左上的 `n / total` chip 都照 L0 Image viewer（2 張以上才顯示 chip）。</Rule>
+<Rule component="task-review" id="flag-bar">分類列與縮圖列綁在一起，平常不顯示，主圖用滿整個畫面；滑鼠在畫面下方那一區時兩者一起出現，離開就收起，沒有延遲或自動顯示的計時。兩者都浮在圖上、不推擠主圖：縮圖列在最下面（`bottom-3`，glass 底），分類列在它正上方；task 只有一張圖時沒有縮圖列，分類列直接從最底下開始（同樣 `bottom-3`）。分類列是 `h-8` 的 glass 容器（`border-stage-line bg-stage-control`），內三段 `h-7` 的 Unflag／Pin／Discard，只有 13px icon 加一個小的快捷鍵標示（U／P／X，9px），不放文字，名稱只在 hover 時以提示顯示；尺寸與 zoom-controls 同一級，不搶主圖。目前狀態那一段用實心色（Pin／Discard 用該 flag 的底色＋ink 字色，Unflag 用 `bg-on-stage/20`），其他段 Pin／Discard 用該 flag 色 25% 的底配 `text-on-stage/85`（viewer 底固定是暗的）、Unflag 為 `text-on-stage/70`；點擊或按鍵立即生效並留在目前這張。</Rule>
+<Rule component="task-review" id="navigation">←／→ 換上一個／下一個 task（依 Browser 目前的搜尋、篩選與排序）；task 有多張圖時，底部縮圖列在這個 task 的圖之間切換。Esc 關閉，Browser 的選取停在最後看的 task。快捷鍵在焦點位於輸入框時不攔。</Rule>
 </ul>
 
 </Rules>
@@ -446,7 +468,7 @@ Task 詳細面板的 LoRA 區：已選 LoRA 的清單與 weight。
     <div class="flex min-h-0 flex-1 overflow-hidden">
         <Switch name="view">
             <Case state="workspace" label="workspace">
-                <Slot name="list" component="task-list" states="default,empty,empty-pin,empty-filter,loading,error,loading-more,page-error,collapsed,collapsed-loading,collapsed-empty" />
+                <Slot name="list" component="task-list" states="default,empty,empty-pin,empty-filter,loading,error,loading-more,page-error,collapsed,collapsed-loading,collapsed-empty,collapsed-empty-filter,collapsed-no-match" />
                 <section class="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-canvas">
                     <Slot name="prompt" component="prompt-panel" states="default,submitting,loading,issues" />
                     <Slot name="stage" component="image-stage" states="multiple,single,empty,loading" />
@@ -460,6 +482,7 @@ Task 詳細面板的 LoRA 區：已選 LoRA 的清單與 weight。
     </div>
     <Switch name="overlay">
         <Case state="none" label="none" />
+        <Case state="review" label="task review (from browser)"><div class="absolute inset-0 z-10 flex"><Slot name="review" component="task-review" states="default,hover,hover-single" /></div></Case>
         <Case state="viewer" label="image viewer">
             <div class="absolute inset-0 z-10 flex">
                 <Slot name="viewer" component="image-viewer" states="default,zoomed,error" />
@@ -479,7 +502,7 @@ Task 詳細面板的 LoRA 區：已選 LoRA 的清單與 weight。
 <Rule component="generate-screen" id="columns">Header 固定 36px；其下三欄以 `border-r`／`border-l border-line` 分隔，不留縫。</Rule>
 <Rule component="generate-screen" id="widths">Task list 是 40px 直條＋清單欄：展開時清單欄 250px（合計 290px），收合時清單欄寬度由縮圖撐開；Task detail 展開 350px、收合 40px。兩側各自收合，工作區吃掉其餘寬度。</Rule>
 <Rule component="generate-screen" id="workspace">工作區 Prompt panel 在上、Image stage 填滿剩餘高度；Stage 永遠存在，沒有圖時顯示自己的空狀態，不收掉。</Rule>
-<Rule component="generate-screen" id="browser">Task browser 取代 Task list 與工作區，Task detail 保留在右側，選取的 task 兩邊同步。</Rule>
+<Rule component="generate-screen" id="browser">Task browser 取代 Task list 的清單欄與工作區，左側直條與右側 Task detail 都保留，選取的 task 兩邊同步。</Rule>
 <Rule component="generate-screen" id="browser-toolbar">Task browser 的篩選、搜尋與勾選都在工具列；各篩選下的卡片組成、空狀態文案與批次操作見 L1 Task browser，控制列的 browser 選單可逐一切換。</Rule>
 <Rule component="generate-screen" id="overlays">Image viewer、LoRA／參考圖 picker 與刪除確認 dialog 蓋住整個視窗（含 Header），關閉後回到原本狀態；Task browser 點卡片縮圖開的也是同一個 Image viewer。</Rule>
 <Rule component="generate-screen" id="narrow">視窗變窄時先隱藏 Task detail（寬度 &lt; 980px），再隱藏 Task list（&lt; 720px），工作區永遠保留。</Rule>

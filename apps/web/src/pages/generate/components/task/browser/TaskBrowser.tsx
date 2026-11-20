@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createSignal, Show } from 'solid-js'
+import { createEffect, createMemo, createSignal, onCleanup, onMount, Show } from 'solid-js'
 
 import {
     useDeleteDiscardedTasksMutation,
@@ -8,17 +8,34 @@ import {
 } from '#/features/task/task.query'
 import { t } from '#/lib/i18n'
 import { toFailureIssue, useIssueSource } from '#/lib/issue'
+import { isEditableTarget } from '#/lib/keyboard'
 import { TaskBatchDeleteDialog } from '#/pages/generate/components/task/browser/TaskBatchDeleteDialog'
 import { TaskBrowserGrid } from '#/pages/generate/components/task/browser/TaskBrowserGrid'
 import { TaskBrowserToolbar } from '#/pages/generate/components/task/browser/TaskBrowserToolbar'
 import { TaskBrowserViewer } from '#/pages/generate/components/task/browser/TaskBrowserViewer'
 import { taskFilterEmptyCopy } from '#/pages/generate/components/task/TaskFilterChips'
+import { TaskRail } from '#/pages/generate/components/task/TaskRail'
+import { overlayStore } from '#/store/overlay'
 import { taskStore } from '#/store/task'
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { AppIssue } from '#/lib/issue'
+import type { SelectedFlag } from '#/pages/generate/components/task/browser/TaskBrowserToolbar'
 
 const taskSelectionLimit = 200
+
+const thumbnailSizeRange = { min: 140, max: 320, initial: 200 }
+const thumbnailSizeKey = 'silent-pix.task-thumbnail-size'
+
+function readThumbnailSize() {
+    try {
+        const value = Number(localStorage.getItem(thumbnailSizeKey))
+        return value >= thumbnailSizeRange.min && value <= thumbnailSizeRange.max ? value : thumbnailSizeRange.initial
+    }
+    catch {
+        return thumbnailSizeRange.initial
+    }
+}
 
 export function TaskBrowser() {
     const taskFeedQuery = useTaskFeedQuery()
@@ -30,6 +47,14 @@ export function TaskBrowser() {
     const [batchDeleteOpen, setBatchDeleteOpen] = createSignal(false)
     const [batchDeleteScope, setBatchDeleteScope] = createSignal<'selected' | 'discard'>('selected')
     const [selectionLimitWarning, setSelectionLimitWarning] = createSignal(false)
+    const [thumbnailSize, setThumbnailSize] = createSignal(readThumbnailSize())
+    const changeThumbnailSize = (size: number) => {
+        setThumbnailSize(size)
+        try {
+            localStorage.setItem(thumbnailSizeKey, String(size))
+        }
+        catch { /* 存不了就只在這次生效 */ }
+    }
     const tasks = createMemo(() => taskFeedQuery.data?.pages.flatMap(page => page.items) ?? [])
     const taskById = createMemo(() => new Map(tasks().map(task => [task.id, task])))
     const taskIds = createMemo(() => tasks().map(task => task.id))
@@ -66,6 +91,35 @@ export function TaskBrowser() {
             setSelectionLimitWarning(false)
         }
     })
+
+    const selectedFlag = createMemo<SelectedFlag>(() => {
+        const flags = new Set(selectedTaskIds().map(taskId => {
+            const task = taskById().get(taskId)
+            return task?.pin ? 'pin' : task?.discard ? 'discard' : 'unflag'
+        }))
+
+        return flags.size === 1 ? [...flags][0] : undefined
+    })
+
+    const clearSelection = () => {
+        setSelectedTaskIds([])
+        setSelectionLimitWarning(false)
+    }
+
+    /* Esc 取消勾選；有 overlay 或焦點在輸入框時不攔 */
+    const handleKeyDown = (event: KeyboardEvent) => {
+        if (overlayStore.isActive() || viewerTaskId() || event.defaultPrevented || isEditableTarget(event.target)) {
+            return
+        }
+
+        if (event.key === 'Escape' && selectedTaskIds().length > 0) {
+            event.preventDefault()
+            clearSelection()
+        }
+    }
+
+    onMount(() => window.addEventListener('keydown', handleKeyDown))
+    onCleanup(() => window.removeEventListener('keydown', handleKeyDown))
 
     const focusTask = (taskId: string) => {
         taskStore.selectTask(taskId)
@@ -176,68 +230,74 @@ export function TaskBrowser() {
     const deletePending = () => selectedDeleteMutation.isPending || discardedDeleteMutation.isPending
 
     return (
-        <section
-            class='flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-surface'
-        >
-            <TaskBrowserToolbar
-                taskFlags={taskStore.state.feedTaskFlags}
-                search={taskStore.state.feedSearch}
-                selectedCount={selectedTaskIds().length}
-                onSearchChange={changeSearch}
-                onTaskFlagsChange={changeFilter}
-                onClearSelection={() => {
-                    setSelectedTaskIds([])
-                    setSelectionLimitWarning(false)
-                }}
-                onSetFlags={setSelectedFlags}
-                flagPending={flagMutation.isPending}
-                onDeleteSelected={() => openBatchDelete('selected')}
-                onDeleteAll={() => openBatchDelete('discard')}
-                deletePending={deletePending()}
-                showPermanentDelete={showPermanentDelete()}
-                onCollapse={() => taskStore.setBrowserOpen(false)}
+        <div class='flex h-full min-h-0 min-w-0 flex-1 overflow-hidden bg-surface'>
+            <TaskRail
+                gridActive
+                onFilterChange={changeFilter}
             />
-
-            <TaskBrowserGrid
-                taskIds={taskIds}
-                taskById={taskById}
-                focusedTaskId={() => taskStore.state.selectedTaskId}
-                selectedTaskIds={selectedTaskIds}
-                emptyCopy={taskFilterEmptyCopy()}
-                loading={taskFeedQuery.isLoading}
-                hasData={taskFeedQuery.data !== undefined}
-                error={taskFeedQuery.isError}
-                hasNextPage={taskFeedQuery.hasNextPage}
-                fetchingNextPage={taskFeedQuery.isFetchingNextPage}
-                fetching={taskFeedQuery.isFetching}
-                flagPending={flagMutation.isPending}
-                onRetry={() => void taskFeedQuery.refetch()}
-                onFetchNextPage={() => void taskFeedQuery.fetchNextPage()}
-                onSelectionChange={applyDragSelection}
-                onFocusTask={focusTask}
-                onOpenViewer={openTask}
-                onToggleSelected={toggleSelection}
-                onFlagChange={(taskId, flag) => {
-                    if (!flagMutation.isPending) {
-                        flagMutation.mutate({ taskIds: [taskId], flag })
-                    }
-                }}
-            />
-
-            <TaskBrowserViewer
-                taskId={viewerTaskId}
-                onClose={() => setViewerTaskId(undefined)}
-            />
-            <Show when={batchDeleteOpen()}>
-                <TaskBatchDeleteDialog
-                    open={batchDeleteOpen()}
-                    scope={batchDeleteScope()}
+            <section
+                class='flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-surface'
+            >
+                <TaskBrowserToolbar
+                    search={taskStore.state.feedSearch}
                     selectedCount={selectedTaskIds().length}
-                    pending={deletePending()}
-                    onOpenChange={setBatchDeleteOpen}
-                    onConfirm={confirmBatchDelete}
+                    selectedFlag={selectedFlag()}
+                    onSearchChange={changeSearch}
+                    onClearSelection={clearSelection}
+                    onSetFlags={setSelectedFlags}
+                    flagPending={flagMutation.isPending}
+                    onDeleteSelected={() => openBatchDelete('selected')}
+                    onDeleteAll={() => openBatchDelete('discard')}
+                    deletePending={deletePending()}
+                    showPermanentDelete={showPermanentDelete()}
+                    thumbnailSize={thumbnailSize()}
+                    thumbnailSizeMin={thumbnailSizeRange.min}
+                    thumbnailSizeMax={thumbnailSizeRange.max}
+                    onThumbnailSizeChange={changeThumbnailSize}
                 />
-            </Show>
-        </section>
+
+                <TaskBrowserGrid
+                    taskIds={taskIds}
+                    taskById={taskById}
+                    focusedTaskId={() => taskStore.state.selectedTaskId}
+                    thumbnailSize={thumbnailSize()}
+                    selectedTaskIds={selectedTaskIds}
+                    emptyCopy={taskFilterEmptyCopy()}
+                    loading={taskFeedQuery.isLoading}
+                    hasData={taskFeedQuery.data !== undefined}
+                    error={taskFeedQuery.isError}
+                    hasNextPage={taskFeedQuery.hasNextPage}
+                    fetchingNextPage={taskFeedQuery.isFetchingNextPage}
+                    fetching={taskFeedQuery.isFetching}
+                    flagPending={flagMutation.isPending}
+                    onRetry={() => void taskFeedQuery.refetch()}
+                    onFetchNextPage={() => void taskFeedQuery.fetchNextPage()}
+                    onSelectionChange={applyDragSelection}
+                    onFocusTask={focusTask}
+                    onOpenViewer={openTask}
+                    onToggleSelected={toggleSelection}
+                    onFlagChange={(taskId, flag) => {
+                        if (!flagMutation.isPending) {
+                            flagMutation.mutate({ taskIds: [taskId], flag })
+                        }
+                    }}
+                />
+
+                <TaskBrowserViewer
+                    taskId={viewerTaskId}
+                    onClose={() => setViewerTaskId(undefined)}
+                />
+                <Show when={batchDeleteOpen()}>
+                    <TaskBatchDeleteDialog
+                        open={batchDeleteOpen()}
+                        scope={batchDeleteScope()}
+                        selectedCount={selectedTaskIds().length}
+                        pending={deletePending()}
+                        onOpenChange={setBatchDeleteOpen}
+                        onConfirm={confirmBatchDelete}
+                    />
+                </Show>
+            </section>
+        </div>
     )
 }

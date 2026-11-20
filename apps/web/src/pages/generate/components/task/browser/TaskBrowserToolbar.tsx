@@ -1,28 +1,31 @@
 import {
     FlagOff,
     FlagTriangleRight,
+    Grid,
     HeartX,
-    Minimize2,
     Search,
+    Square,
     Trash2,
+    X,
 } from 'lucide-solid'
 import { Show } from 'solid-js'
 
-import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
+import { Slider } from '#/components/field/Slider'
 import { Text } from '#/components/field/Text'
+import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
 import { theme } from '#/lib/theme'
-import { TaskFilterChips } from '#/pages/generate/components/task/TaskFilterChips'
 
 import type { TaskApi } from '@silent-pix/shared'
 
+export type SelectedFlag = 'unflag' | TaskApi.TaskFlag | undefined
+
 type TaskBrowserToolbarProps = {
-    taskFlags: readonly TaskApi.TaskFilterFlag[] | undefined
     search: string
     selectedCount: number
+    selectedFlag: SelectedFlag
     onSearchChange: (search: string) => void
-    onTaskFlagsChange: (taskFlags: TaskApi.TaskFilterFlag[] | undefined) => void
     onClearSelection: () => void
     onSetFlags: (flag: TaskApi.TaskFlag | null) => void
     flagPending: boolean
@@ -30,119 +33,68 @@ type TaskBrowserToolbarProps = {
     onDeleteAll: () => void
     deletePending: boolean
     showPermanentDelete: boolean
-    onCollapse: () => void
+    thumbnailSize: number
+    thumbnailSizeMin: number
+    thumbnailSizeMax: number
+    onThumbnailSizeChange: (size: number) => void
 }
 
+const flagSegment = {
+    unflag: { active: theme.selected, idle: theme.taskFlag.inactive },
+    pin: { active: theme.taskFlag.pin.active, idle: 'bg-pin/22 text-pin-fg hover:bg-pin/32' },
+    discard: { active: theme.taskFlag.discard.active, idle: 'bg-discard/22 text-discard-fg hover:bg-discard/32' },
+}
+
+/*
+ * 一列 48px（底線畫在 48px 內），與 Task list 頂端的搜尋同高、同寬、同 baseline。左側是「範圍」（搜尋、勾選 chip），
+ * 右側是「動作」（flag 三段、刪除），最右固定是縮圖大小滑桿。
+ */
 export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
+    const segment = (flag: 'unflag' | TaskApi.TaskFlag) => cn(
+        'h-6 gap-1.5 rounded px-2.5 text-xs font-medium',
+        props.selectedFlag === flag ? flagSegment[flag].active : flagSegment[flag].idle,
+    )
+
     return (
-        <div class='flex shrink-0 flex-col border-b border-line-subtle bg-surface'>
-            <Bar.Root classes={{ root: 'px-2' }}>
-                <Bar.Group>
-                    <Bar.Title>{t('task.title')}</Bar.Title>
-                </Bar.Group>
-                <Bar.Actions classes={{ root: 'flex-1 justify-end' }}>
-                    <Text
-                        label={t('task.search')}
-                        value={props.search}
-                        placeholder={t('task.searchPlaceholder')}
-                        icon={(
-                            <Search
-                                size={14}
-                                strokeWidth={1.7}
-                            />
-                        )}
-                        classes={{ root: 'min-w-0 flex-1', label: 'hidden' }}
-                        onInput={props.onSearchChange}
-                    />
+        <div class='flex h-12 shrink-0 items-center gap-3 border-b border-line-subtle bg-surface px-2'>
+            <div class='flex w-[234px] shrink-0'>
+                <Text
+                    label={t('task.search')}
+                    value={props.search}
+                    placeholder={t('task.searchPlaceholder')}
+                    icon={(
+                        <Search
+                            size={14}
+                            strokeWidth={1.7}
+                        />
+                    )}
+                    classes={{ root: 'min-w-0 flex-1', label: 'hidden' }}
+                    onInput={props.onSearchChange}
+                />
+            </div>
+
+            <Show when={props.selectedCount > 0}>
+                <span class='flex h-7 shrink-0 items-center gap-1 rounded-md bg-selected pl-2.5 pr-1 text-xs font-medium leading-none text-fg tabular-nums'>
+                    {t('common.selectedCount', { count: props.selectedCount })}
                     <Button
-                        size='bar'
                         variant='ghost'
-                        title={t('task.collapseBrowser')}
-                        classes={{ root: 'size-7 shrink-0 p-0' }}
-                        onClick={props.onCollapse}
+                        title={t('task.clearSelection')}
+                        classes={{ root: 'size-5 rounded p-0 text-fg-muted hover:text-fg' }}
+                        onClick={props.onClearSelection}
                     >
-                        <Minimize2
-                            size={16}
-                            strokeWidth={1.8}
+                        <X
+                            size={13}
+                            strokeWidth={1.9}
                         />
                     </Button>
-                </Bar.Actions>
-            </Bar.Root>
-            <div class='flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 px-2 pb-1'>
-                <TaskFilterChips
-                    values={props.taskFlags}
-                    onChange={props.onTaskFlagsChange}
-                    classes={{ root: 'px-0 pb-0' }}
-                />
-                <Show when={props.selectedCount > 0 || props.showPermanentDelete}>
-                    <div class='ml-auto flex min-w-0 flex-wrap items-center justify-end gap-1'>
-                        <Show when={props.selectedCount > 0}>
-                            <span class='mr-1 text-xs text-fg-muted tabular-nums'>
-                                {t('common.selectedCount', { count: props.selectedCount })}
-                            </span>
-                            <Button
-                                variant='ghost'
-                                disabled={props.flagPending}
-                                size='compact'
-                                onClick={props.onClearSelection}
-                            >
-                                {t('common.clear')}
-                            </Button>
-                            <Button
-                                variant='ghost'
-                                disabled={props.flagPending}
-                                size='compact'
-                                onClick={() => props.onSetFlags(null)}
-                            >
-                                <FlagOff
-                                    size={13}
-                                    strokeWidth={1.8}
-                                />
-                                {t('task.filter.unflag')}
-                            </Button>
-                            <Button
-                                variant='soft'
-                                disabled={props.flagPending}
-                                size='compact'
-                                classes={{ root: theme.taskFlag.pin.soft }}
-                                onClick={() => props.onSetFlags('pin')}
-                            >
-                                <FlagTriangleRight
-                                    size={13}
-                                    strokeWidth={1.8}
-                                />
-                                {t('task.filter.pin')}
-                            </Button>
-                            <Button
-                                variant='soft'
-                                disabled={props.flagPending}
-                                size='compact'
-                                classes={{ root: theme.taskFlag.discard.soft }}
-                                onClick={() => props.onSetFlags('discard')}
-                            >
-                                <HeartX
-                                    size={13}
-                                    strokeWidth={1.8}
-                                />
-                                {t('task.filter.discard')}
-                            </Button>
-                            <Button
-                                tone='danger'
-                                disabled={props.deletePending}
-                                size='compact'
-                                onClick={props.onDeleteSelected}
-                            >
-                                <Trash2
-                                    size={13}
-                                    strokeWidth={1.8}
-                                />
-                                {t('task.deleteSelectedButton', { count: props.selectedCount })}
-                            </Button>
-                        </Show>
+                </span>
+            </Show>
+
+            <div class='ml-auto flex shrink-0 items-center gap-2'>
+                <Show
+                    when={props.selectedCount > 0}
+                    fallback={(
                         <Show when={props.showPermanentDelete}>
-                            <Show when={props.selectedCount > 0}>
-                                <div class='mx-1 h-5 w-px bg-line-subtle' />
-                            </Show>
                             <Button
                                 tone='danger'
                                 disabled={props.deletePending}
@@ -156,8 +108,88 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                                 {t('task.deleteDiscardedAction')}
                             </Button>
                         </Show>
+                    )}
+                >
+                    <div class='flex h-7 items-center gap-0.5 rounded-md border border-line-subtle bg-elevated p-px'>
+                        <Button
+                            variant='ghost'
+                            disabled={props.flagPending}
+                            classes={{ root: segment('unflag') }}
+                            onClick={() => props.onSetFlags(null)}
+                        >
+                            <FlagOff
+                                size={13}
+                                strokeWidth={1.8}
+                            />
+                            {t('task.filter.unflag')}
+                        </Button>
+                        <Button
+                            variant='ghost'
+                            disabled={props.flagPending}
+                            classes={{ root: segment('pin') }}
+                            onClick={() => props.onSetFlags('pin')}
+                        >
+                            <FlagTriangleRight
+                                size={13}
+                                strokeWidth={1.8}
+                            />
+                            {t('task.filter.pin')}
+                        </Button>
+                        <Button
+                            variant='ghost'
+                            disabled={props.flagPending}
+                            classes={{ root: segment('discard') }}
+                            onClick={() => props.onSetFlags('discard')}
+                        >
+                            <HeartX
+                                size={13}
+                                strokeWidth={1.8}
+                            />
+                            {t('task.filter.discard')}
+                        </Button>
                     </div>
+                    <span class='mx-1 h-5 w-px bg-line-subtle' />
+                    <Button
+                        tone='danger'
+                        disabled={props.deletePending}
+                        size='compact'
+                        onClick={props.onDeleteSelected}
+                    >
+                        <Trash2
+                            size={13}
+                            strokeWidth={1.8}
+                        />
+                        {t('task.deleteSelectedButton', { count: props.selectedCount })}
+                    </Button>
                 </Show>
+
+                <Show when={props.selectedCount > 0 || props.showPermanentDelete}>
+                    <span class='h-5 w-px shrink-0 bg-line-subtle' />
+                </Show>
+                <div
+                    title={t('task.thumbnailSize')}
+                    class='flex w-[112px] shrink-0 items-center gap-2 text-fg-muted'
+                >
+                    <Grid
+                        class='shrink-0'
+                        size={13}
+                        strokeWidth={1.8}
+                    />
+                    <Slider
+                        label={t('task.thumbnailSize')}
+                        value={props.thumbnailSize}
+                        min={props.thumbnailSizeMin}
+                        max={props.thumbnailSizeMax}
+                        step={10}
+                        classes={{ root: 'flex-1', track: 'h-1.5', thumb: 'size-3.5' }}
+                        onChange={props.onThumbnailSizeChange}
+                    />
+                    <Square
+                        class='shrink-0'
+                        size={13}
+                        strokeWidth={1.8}
+                    />
+                </div>
             </div>
         </div>
     )

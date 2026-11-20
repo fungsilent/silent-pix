@@ -177,8 +177,11 @@
         "deleteDiscardedDescription": "Permanently delete every discarded task. Active tasks are skipped and remain selected.",
         "deleteSelectedHint": "The selected tasks and their unreferenced images will be removed permanently.",
         "deleteDiscardedHint": "Tasks that are still queued or running are kept so generation can finish.",
-        "deleteDiscardedAction": "Delete discarded...",
+        "deleteDiscardedAction": "Delete discarded",
         "search": "Search tasks",
+        "clearSelection": "Clear selection",
+        "gridView": "Grid view",
+        "thumbnailSize": "Thumbnail size",
         "searchPlaceholder": "task name or task ID...",
         "thumbnail": {
             "none": "No thumbnail",
@@ -233,11 +236,9 @@
         "deleteWithImages_other": "The task and its {{count}} images are removed from disk. This cannot be undone.",
         "deleteSelectedDescription_one": "Permanently delete {{count}} selected task. This cannot be undone.",
         "deleteSelectedDescription_other": "Permanently delete {{count}} selected tasks. This cannot be undone.",
-        "deleteSelectedButton_one": "Delete {{count}} task...",
-        "deleteSelectedButton_other": "Delete {{count}} tasks...",
+        "deleteSelectedButton_one": "Delete {{count}} task",
+        "deleteSelectedButton_other": "Delete {{count}} tasks",
         "selectionLimit": "Maximum {{maximum}} tasks per batch.",
-        "expandBrowser": "Expand task list",
-        "collapseBrowser": "Collapse task list",
         "useTaskSeed": "Use this task's seed"
     },
     "image": {

@@ -1,4 +1,5 @@
 import { Clock, Image as ImageIcon, ImageOff, LoaderCircle } from 'lucide-solid'
+import { Match, Switch } from 'solid-js'
 
 import { resolveImageUrl } from '#/api/image'
 import { cn } from '#/lib/cn'
@@ -96,20 +97,18 @@ type TaskPlaceholderIconProps = {
 }
 
 function TaskPlaceholderIcon(props: TaskPlaceholderIconProps) {
-    const iconProps = {
+    const iconProps = () => ({
         class: props.class,
         size: props.size,
         strokeWidth: 1.6,
-    }
+    })
 
-    switch (props.status) {
-        case 'queued':
-            return <Clock {...iconProps} />
-        case 'running':
-            return <LoaderCircle {...iconProps} />
-        case 'failed':
-            return <ImageOff {...iconProps} />
-        case 'done':
-            return <ImageIcon {...iconProps} />
-    }
+    return (
+        <Switch>
+            <Match when={props.status === 'queued'}><Clock {...iconProps()} /></Match>
+            <Match when={props.status === 'running'}><LoaderCircle {...iconProps()} /></Match>
+            <Match when={props.status === 'failed'}><ImageOff {...iconProps()} /></Match>
+            <Match when={props.status === 'done'}><ImageIcon {...iconProps()} /></Match>
+        </Switch>
+    )
 }

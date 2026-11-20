@@ -1,7 +1,6 @@
-import { Expand, Search } from 'lucide-solid'
+import { FunnelX, Inbox, Search, SearchX } from 'lucide-solid'
 import { createMemo, For, Show } from 'solid-js'
 
-import { Button } from '#/components/base/Button'
 import { Loading } from '#/components/base/Loading'
 import { CollapseButton, Panel, PanelContent } from '#/components/base/Panel'
 import { StatusMessage } from '#/components/base/StatusMessage'
@@ -12,7 +11,8 @@ import { t } from '#/lib/i18n'
 import { toFailureIssue, useIssueSource } from '#/lib/issue'
 import { createLoadOnScroll } from '#/lib/loadOnScroll'
 import { TaskItem, TaskItemSkeleton } from '#/pages/generate/components/task/list/TaskItem'
-import { TaskFilterChips, taskFilterEmptyCopy } from '#/pages/generate/components/task/TaskFilterChips'
+import { taskFilterEmptyCopy } from '#/pages/generate/components/task/TaskFilterChips'
+import { TaskRail } from '#/pages/generate/components/task/TaskRail'
 import { taskStore } from '#/store/task'
 
 const taskSkeletonRows = [0, 1, 2, 3, 4, 5]
@@ -42,37 +42,19 @@ export function TaskList() {
         >
             {panel => (
                 <div class='flex h-full min-h-0'>
-                    <nav class='flex w-10 shrink-0 flex-col items-center border-r border-line-subtle'>
-                        <div class='flex h-12 shrink-0 items-center justify-center'>
+                    <TaskRail
+                        toggle={(
                             <CollapseButton
                                 collapsed={panel.isCollapsed()}
                                 onClick={panel.toggle}
                             />
-                        </div>
-                        <div class='flex flex-col items-center gap-1'>
-                            <TaskFilterChips
-                                values={taskStore.state.feedTaskFlags}
-                                onChange={taskStore.setFeedTaskFlags}
-                                presentation='icon'
-                                classes={{ root: 'flex-col px-0 pb-0' }}
-                            />
-                            <div class='my-1 h-px w-5 bg-line-subtle' />
-                            <Button
-                                size='bar'
-                                variant='ghost'
-                                title={t('task.expandBrowser')}
-                                classes={{ root: 'size-7 shrink-0 p-0' }}
-                                onClick={() => taskStore.setBrowserOpen(true)}
-                            >
-                                <Expand
-                                    size={15}
-                                    strokeWidth={1.8}
-                                />
-                            </Button>
-                        </div>
-                    </nav>
-                    <div class={cn('flex min-h-0 min-w-0 flex-col', panel.isCollapsed() ? 'w-max' : 'w-[250px]')}>
-                        <div class='flex h-12 shrink-0 items-center px-2'>
+                        )}
+                        gridActive={false}
+                        onFilterChange={taskStore.setFeedTaskFlags}
+                    />
+                    <div class={cn('flex min-h-0 min-w-0 flex-col', panel.isCollapsed() ? 'w-[106px]' : 'w-[250px]')}>
+                        {/* 透明底線：與 Task browser 工具列同樣是 48px 含 1px 底線，搜尋欄位置與 baseline 一致 */}
+                        <div class='flex h-12 shrink-0 items-center border-b border-transparent px-2'>
                             <div class='flex w-0 min-w-full'>
                                 <Text
                                     label={t('task.search')}
@@ -123,7 +105,10 @@ export function TaskList() {
                                     <Show
                                         when={tasks().length > 0}
                                         fallback={(
-                                            <Show when={!panel.isCollapsed()}>
+                                            <Show
+                                                when={!panel.isCollapsed()}
+                                                fallback={<CollapsedEmpty />}
+                                            >
                                                 <StatusMessage
                                                     kind='empty'
                                                     size='compact'
@@ -174,5 +159,26 @@ export function TaskList() {
                 </div>
             )}
         </Panel>
+    )
+}
+
+/* 收合時放不下 StatusMessage：在第一張縮圖的位置放同尺寸虛線方塊，icon 依原因，完整文案放在提示 */
+function CollapsedEmpty() {
+    const copy = () => taskFilterEmptyCopy()
+    const icon = { size: 22, strokeWidth: 1.6 }
+
+    return (
+        <div class='flex w-full items-center justify-center rounded-lg border border-transparent p-1.5'>
+            <div
+                title={`${copy().title} · ${copy().message}`}
+                class='grid size-18 shrink-0 place-items-center rounded-md border border-dashed border-line text-fg-muted'
+            >
+                {taskStore.state.feedSearch.trim() !== ''
+                    ? <SearchX {...icon} />
+                    : taskStore.state.feedTaskFlags !== undefined
+                        ? <FunnelX {...icon} />
+                        : <Inbox {...icon} />}
+            </div>
+        </div>
     )
 }

@@ -9,8 +9,8 @@
         "decorations": true,
         "fullscreen": false,
         "dragDropEnabled": false,
-        "minWidth": 960,
-        "minHeight": 640,
+        "minWidth": 1280,
+        "minHeight": 720,
         "titleBarStyle": "Overlay",
         "hiddenTitle": true
       }

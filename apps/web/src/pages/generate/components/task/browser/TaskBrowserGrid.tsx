@@ -17,6 +17,7 @@ type TaskBrowserGridProps = {
     taskIds: Accessor<string[]>
     taskById: Accessor<ReadonlyMap<string, TaskApi.TaskListItem>>
     focusedTaskId: Accessor<string | undefined>
+    thumbnailSize: number
     selectedTaskIds: Accessor<readonly string[]>
     emptyCopy: { title: string, message: string }
     loading: boolean
@@ -58,6 +59,15 @@ export function TaskBrowserGrid(props: TaskBrowserGridProps) {
         props.onFocusTask(taskId)
     }
 
+    /* 框選放開時會多一次 click；Ctrl 點擊也要吃掉它，否則剛框選取消的又被勾回去 */
+    const toggleTaskByClick = (taskId: string) => {
+        if (dragSelection.consumeSuppressedClick()) {
+            return
+        }
+
+        props.onToggleSelected(taskId)
+    }
+
     const openTask = (taskId: string) => {
         if (dragSelection.consumeSuppressedClick()) {
             return
@@ -81,7 +91,10 @@ export function TaskBrowserGrid(props: TaskBrowserGridProps) {
             <Show
                 when={!props.loading}
                 fallback={(
-                    <div class='grid grid-cols-8 content-start gap-3 p-2'>
+                    <div
+                        class='grid content-start gap-3 p-2'
+                        style={{ 'grid-template-columns': `repeat(auto-fill, minmax(${props.thumbnailSize}px, 1fr))` }}
+                    >
                         <For each={taskSkeletonCells}>
                             {() => <TaskCardSkeleton />}
                         </For>
@@ -92,19 +105,22 @@ export function TaskBrowserGrid(props: TaskBrowserGridProps) {
                     when={!props.error || props.hasData}
                     fallback={<TaskBrowserLoadError onRetry={props.onRetry} />}
                 >
-                    <div class='grid grid-cols-8 content-start gap-3 p-2'>
+                    <div
+                        class='grid content-start gap-3 p-2'
+                        style={{ 'grid-template-columns': `repeat(auto-fill, minmax(${props.thumbnailSize}px, 1fr))` }}
+                    >
                         <Show
                             when={props.taskIds().length > 0}
                             fallback={(
                                 <Show
                                     when={!props.error}
                                     fallback={(
-                                        <div class='col-span-8'>
+                                        <div class='col-span-full'>
                                             <TaskBrowserLoadError onRetry={props.onRetry} />
                                         </div>
                                     )}
                                 >
-                                    <div class='col-span-8 flex min-h-48 items-center justify-center px-4 py-12'>
+                                    <div class='col-span-full flex min-h-48 items-center justify-center px-4 py-12'>
                                         <StatusMessage
                                             kind='empty'
                                             title={props.emptyCopy.title}
@@ -124,12 +140,13 @@ export function TaskBrowserGrid(props: TaskBrowserGridProps) {
                                         onFocusTask={() => focusTask(taskId)}
                                         onOpenViewer={() => openTask(taskId)}
                                         onToggleSelected={() => props.onToggleSelected(taskId)}
+                                        onToggleByClick={() => toggleTaskByClick(taskId)}
                                         onFlagChange={flag => props.onFlagChange(taskId, flag)}
                                     />
                                 )}
                             </For>
                             <Show when={props.error}>
-                                <div class='col-span-8'>
+                                <div class='col-span-full'>
                                     <TaskBrowserLoadError onRetry={props.onRetry} />
                                 </div>
                             </Show>
@@ -137,7 +154,7 @@ export function TaskBrowserGrid(props: TaskBrowserGridProps) {
                         <Show when={props.hasNextPage && !props.error}>
                             <div
                                 ref={loadOnScroll.setTrigger}
-                                class='col-span-8 py-2 text-center text-xs text-fg-muted'
+                                class='col-span-full py-2 text-center text-xs text-fg-muted'
                             >
                                 {props.fetchingNextPage ? t('common.loading') : ''}
                             </div>
