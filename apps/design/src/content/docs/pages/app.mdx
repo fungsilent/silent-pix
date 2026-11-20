@@ -33,7 +33,7 @@ App 最上方 36px 的全域列，同時是視窗的標題列：品牌名、模�
 <Rule component="app-header" id="title-bar">Desktop 不用作業系統的標題列，Header 就是標題列：拖曳區與品牌名等非控制項的空白可以按住拖動視窗，雙擊放大／還原；按鈕與選單照常點擊。Windows／Linux 在最右側畫三顆 46×36px 的視窗控制（縮小、放大／還原、關閉），hover 用 `bg-hover`，關閉鈕 hover 用 `bg-danger text-on-stage`。macOS 保留原生的三顆視窗鈕（由系統繪製；藍圖中的紅黃綠只是示意系統顏色，不是產品 token），Header 左側讓出位置，並把原生鈕垂直置中在 36px 的列上。Web 沒有視窗控制，拖曳區只是空白。</Rule>
 <Rule component="app-header" id="mode-menu">模式選單的觸發鈕顯示目前（或最後使用）的模式圖示與名稱加 ▾，展開後列出 Generate／Compare／Workflow 三項（選單樣式見 L0 Menu），目前模式用 selected 樣式。觸發鈕平常是 ghost，展開時 `bg-selected text-fg`；目前頁面是模式時文字 `text-fg`，在 Tools 或 Settings 頁時 `text-fg-muted`。</Rule>
 <Rule component="app-header" id="tools-menu">Tools 選單放工具類頁面，目前只有 Image Metadata；新增工具頁才加項目，不分組。觸發鈕只有文字「Tools」加 ▾；目前在工具頁時文字 `text-fg`，選單內那一項用 selected 樣式。</Rule>
-<Rule component="app-header" id="settings">Settings 是 `size-7` 的齒輪 ghost 鈕；目前在 Settings 頁時維持 `bg-selected text-fg`。主題切換在 Settings 的 Appearance 卡，不放 Header。</Rule>
+<Rule component="app-header" id="settings">Settings 是 `size-7` 的齒輪 ghost 鈕；目前在 Settings 頁時維持 `bg-selected text-fg`，再按一次關閉 Settings、回到進入前的頁面；沒有可回的頁面時回到最後使用的模式（預設 Generate），尚未設定 endpoint 時則維持在 Settings。主題切換在 Settings 的 Appearance 卡，不放 Header。</Rule>
 <Rule component="app-header" id="narrow">視窗變窄時依序收縮：服務狀態只留燈、模式選單只留圖示；仍不夠時才隱藏品牌名。不換行、不橫向捲動。</Rule>
 </ul>
 

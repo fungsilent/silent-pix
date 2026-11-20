@@ -40,6 +40,15 @@ export function Header() {
     /* 在 Tools 或 Settings 頁時，模式選單仍顯示最後使用的模式 */
     const currentMode = createMemo<(typeof modes)[number]>(previous => pageMode() ?? previous, modes[0]!)
     const onMode = () => pageMode() !== undefined
+    /* 再按一次 Settings 時回到進入前的頁面 */
+    const lastPage = createMemo<RouteName | undefined>(previous => {
+        const name = routeName()
+        return name && name !== 'settings' ? name : previous
+    })
+    const toggleSettings = () => {
+        if (routeName() !== 'settings') navigate('settings')
+        else if (platform.endpoint) navigate(lastPage() ?? currentMode().name)
+    }
 
     /* 問題清空時把展開狀態也收掉，否則下次冒出問題會直接彈開 */
     createEffect(() => {
@@ -139,7 +148,7 @@ export function Header() {
                         routeName() === 'settings' ? 'bg-selected text-fg hover:bg-selected' : 'text-fg-secondary',
                     ),
                 }}
-                onClick={() => navigate('settings')}
+                onClick={toggleSettings}
             >
                 <Settings
                     size={15}
