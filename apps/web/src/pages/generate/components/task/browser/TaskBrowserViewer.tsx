@@ -1,4 +1,4 @@
-import { FlagOff, FlagTriangleRight, HeartX } from 'lucide-solid'
+import { FlagOff, FlagTriangleRight, HeartX, LoaderCircle, RefreshCw, TriangleAlert } from 'lucide-solid'
 import { createEffect, createMemo, createSignal, For, on, onCleanup, onMount, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
@@ -38,7 +38,7 @@ export function TaskBrowserViewer(props: TaskBrowserViewerProps) {
 
     /* U／P／X 立即生效並留在目前這張；焦點在輸入框時不攔 */
     const handleKeyDown = (event: KeyboardEvent) => {
-        if (!props.taskId() || event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || isEditableTarget(event.target)) {
+        if (!props.taskId() || viewerImages().length === 0 || event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || isEditableTarget(event.target)) {
             return
         }
 
@@ -77,82 +77,68 @@ export function TaskBrowserViewer(props: TaskBrowserViewerProps) {
         }
     })
 
-    return (
-        <>
-            <Show when={props.taskId() && detail.loading()}>
-                <div
-                    class='pointer-events-none fixed inset-x-0 bottom-4 z-20 flex justify-center'
-                >
-                    <span class='rounded-md border border-line bg-surface px-3 py-2 text-xs text-fg-muted shadow-lg'>
-                        {t('task.outputs.loading')}
-                    </span>
+    /* 讀取中、失敗、沒有圖時放在 viewer 中央，不用畫面底部的浮動訊息 */
+    const status = () => {
+        if (detail.loading() || (!detail.error() && detail.task()?.id !== props.taskId())) {
+            return (
+                <LoaderCircle
+                    class='animate-spin text-stage-overlay-text'
+                    size={20}
+                    strokeWidth={1.8}
+                />
+            )
+        }
+
+        if (detail.error()) {
+            return (
+                <div class='flex max-w-[280px] flex-col items-center gap-3 text-center'>
+                    <p class='m-0 flex items-start gap-1.5 text-left text-xs leading-relaxed text-stage-overlay-text'>
+                        <TriangleAlert
+                            class='mt-1 shrink-0 text-stage-danger'
+                            size={12}
+                            strokeWidth={2}
+                        />
+                        <span class='min-w-0'>{t('task.outputs.failed')}</span>
+                    </p>
+                    <Button
+                        variant='ghost'
+                        classes={{ root: 'mt-1 border-stage-line bg-stage-control text-on-stage backdrop-blur-[8px] hover:bg-stage-control-hover hover:text-on-stage' }}
+                        onClick={() => detail.retry()}
+                    >
+                        <RefreshCw
+                            size={14}
+                            strokeWidth={1.8}
+                        />
+                        {t('common.retry')}
+                    </Button>
                 </div>
-            </Show>
-            <Show when={props.taskId() && detail.error()}>
-                <TaskViewerMessage
-                    message={t('task.outputs.failed')}
-                    onClose={props.onClose}
-                />
-            </Show>
-            <Show
-                when={props.taskId()
-                    && !detail.loading()
-                    && !detail.error()
-                    && detail.task()?.id === props.taskId()
-                    && viewerImages().length === 0}
-            >
-                <TaskViewerMessage
-                    message={t('task.outputs.empty')}
-                    onClose={props.onClose}
-                />
-            </Show>
+            )
+        }
 
-            <Show
-                when={props.taskId()
-                    && !detail.loading()
-                    && !detail.error()
-                    && detail.task()?.id === props.taskId()
-                    && viewerImages().length > 0}
-            >
-                <ImageViewer
-                    images={viewerImages()}
-                    selectedIndex={viewerIndex()}
-                    onClose={props.onClose}
-                    onSelect={setViewerIndex}
-                    review={{
-                        controls: (
-                            <ReviewFlagBar
-                                current={current()}
-                                pending={props.flagPending}
-                                onChange={setFlag}
-                            />
-                        ),
-                    }}
-                />
-            </Show>
-        </>
-    )
-}
+        return viewerImages().length === 0
+            ? <span class='text-xs text-stage-overlay-text'>{t('task.outputs.empty')}</span>
+            : undefined
+    }
 
-type TaskViewerMessageProps = {
-    message: string
-    onClose: () => void
-}
-
-function TaskViewerMessage(props: TaskViewerMessageProps) {
     return (
-        <div class='pointer-events-none fixed inset-x-0 bottom-4 z-20 flex justify-center'>
-            <div class='pointer-events-auto flex items-center gap-2 rounded-md border border-line bg-surface px-3 py-2 text-xs text-fg-muted shadow-lg'>
-                <span>{props.message}</span>
-                <Button
-                    variant='ghost'
-                    size='compact'
-                    onClick={props.onClose}
-                >
-                    {t('common.close')}
-                </Button>
-            </div>
-        </div>
+        <Show when={props.taskId()}>
+            <ImageViewer
+                images={viewerImages()}
+                selectedIndex={viewerIndex()}
+                onClose={props.onClose}
+                onSelect={setViewerIndex}
+                status={status()}
+                review={{
+                    controls: (
+                        <ReviewFlagBar
+                            current={current()}
+                            pending={props.flagPending}
+                            onChange={setFlag}
+                        />
+                    ),
+                }}
+            />
+        </Show>
     )
 }
 

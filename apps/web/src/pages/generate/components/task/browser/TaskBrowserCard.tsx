@@ -28,7 +28,8 @@ type TaskBrowserCardProps = {
 export function TaskBrowserCard(props: TaskBrowserCardProps) {
     const shortId = () => props.task.id.slice(0, 8)
     const title = () => props.task.name ?? shortId()
-    /* 點縮圖開大圖、點下方資訊選取（Detail）；兩處 Ctrl/⌘＋單擊都是切換勾選 */
+    const viewable = () => props.task.outputCount > 0
+    /* 點縮圖開大圖、點下方資訊選取（Detail）；兩處 Ctrl/⌘＋單擊都是切換勾選。 */
     const withToggle = (action: () => void) => (event: MouseEvent) => {
         if (event.ctrlKey || event.metaKey) {
             props.onToggleByClick()
@@ -54,11 +55,12 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
                 variant='ghost'
                 classes={{
                     root: cn(
-                        'block w-full min-w-0 cursor-zoom-in p-0 text-left hover:bg-transparent',
+                        'block w-full min-w-0 p-0 text-left hover:bg-transparent',
+                        viewable() && 'cursor-zoom-in',
                         props.focused && 'focus-visible:border-transparent focus-visible:ring-0',
                     ),
                 }}
-                onClick={withToggle(props.onOpenViewer)}
+                onClick={event => withToggle(viewable() ? props.onOpenViewer : props.onFocusTask)(event)}
             >
                 <TaskThumbnail
                     thumbnail={props.task.thumbnail}

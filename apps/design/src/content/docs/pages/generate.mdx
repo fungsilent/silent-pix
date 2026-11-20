@@ -136,7 +136,7 @@ Generate 左側 task 清單的單列：72px 縮圖＋名稱／狀態／建立時
 <Rule component="task-browser" id="selection-reset">搜尋或篩選變更時清空勾選；勾選中的 task 因搜尋／篩選離開目前結果時，自動從勾選移除。</Rule>
 <Rule component="task-browser" id="empty-error">空狀態與載入失敗用 L0 StatusMessage regular，在格狀區置中：完全沒有 task 是「No tasks yet / Generated tasks will appear here.」；有搜尋文字而無結果是「No matching tasks / Try another search or filter.」；沒有搜尋、只篩一個 flag 時用該 flag 的專屬文案；沒有搜尋、多個 flag 篩選無結果是「No matching tasks / Try a different task filter.」。空狀態不放按鈕。</Rule>
 <Rule component="task-browser" id="loading">首次載入以 16 張骨架卡整組替換格子。捲到底載入下一頁時格子尾端出現跨整列的「Loading...」純文字。已有資料時下一頁失敗，在格子尾端附加 regular 載入失敗訊息＋Retry，既有卡片保留；沒有資料時失敗則整個格狀區換成置中的失敗訊息。</Rule>
-<Rule component="task-browser" id="overlays">點縮圖開啟審片模式（**task-review**，縮圖上游標為 zoom-in），點下方資訊選取這個 task（右側 Detail 顯示它）；Ctrl／⌘＋單擊在兩處都是切換勾選，hover 時右上的勾選框照舊可用。卡片未選取、未勾選時 hover 整張加 `bg-hover` 底色。刪除確認 dialog 與審片模式疊在本檢視之上，各自見對應元件。</Rule>
+<Rule component="task-browser" id="overlays">點縮圖開啟審片模式（**task-review**，縮圖上游標為 zoom-in），點下方資訊選取這個 task（右側 Detail 顯示它）；沒有輸出圖的 task（輸出張數 0：queued、running、failed）縮圖不開審片模式，游標維持一般，點縮圖等同點資訊。Ctrl／⌘＋單擊在兩處都是切換勾選，hover 時右上的勾選框照舊可用。卡片未選取、未勾選時 hover 整張加 `bg-hover` 底色。刪除確認 dialog 與審片模式疊在本檢視之上，各自見對應元件。</Rule>
 </ul>
 
 #### 工具列
@@ -160,6 +160,8 @@ Generate 左側 task 清單的單列：72px 縮圖＋名稱／狀態／建立時
 <State component="task-review" state="default" label="default · controls hidden" frame="relative h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="task-review" state="hover" label="hover bottom · flag bar + strip" frame="relative h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="task-review" state="hover-single" label="hover bottom · single image" frame="relative h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-review" state="loading" label="loading outputs" frame="relative h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-review" state="error" label="outputs failed to load" frame="relative h-[520px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 </Gallery>
 
 <Rules component="task-review">
@@ -168,6 +170,7 @@ Generate 左側 task 清單的單列：72px 縮圖＋名稱／狀態／建立時
 <Rule component="task-review" id="base">外框、縮放、平移、minimap、關閉與左上的 `n / total` chip 都照 L0 Image viewer（2 張以上才顯示 chip）。</Rule>
 <Rule component="task-review" id="flag-bar">分類列與縮圖列綁在一起，平常不顯示，主圖用滿整個畫面；滑鼠在畫面下方那一區時兩者一起出現，離開就收起，沒有延遲或自動顯示的計時。兩者都浮在圖上、不推擠主圖：縮圖列在最下面（`bottom-3`，glass 底），分類列在它正上方；task 只有一張圖時沒有縮圖列，分類列直接從最底下開始（同樣 `bottom-3`）。分類列是 `h-8` 的 glass 容器（`border-stage-line bg-stage-control`），內三段 `h-7` 的 Unflag／Pin／Discard，只有 13px icon 加一個小的快捷鍵標示（U／P／X，9px），不放文字，名稱只在 hover 時以提示顯示；尺寸與 zoom-controls 同一級，不搶主圖。目前狀態那一段用實心色（Pin／Discard 用該 flag 的底色＋ink 字色，Unflag 用 `bg-on-stage/20`），其他段 Pin／Discard 用該 flag 色 25% 的底配 `text-on-stage/85`（viewer 底固定是暗的）、Unflag 為 `text-on-stage/70`；點擊或按鍵立即生效並留在目前這張。</Rule>
 <Rule component="task-review" id="navigation">←／→（與左右箭頭鈕）照 L0 Image viewer 只在這個 task 的圖之間切換，不換 task；底部縮圖列可直接跳到任一張。Esc 關閉，Browser 的選取維持在開啟的 task。快捷鍵在焦點位於輸入框時不攔。</Rule>
+<Rule component="task-review" id="loading-error">讀取這個 task 的輸出時，疊加層照常打開，只留右上關閉鈕，中央放 20px LoaderCircle（`text-stage-overlay-text`），不顯示分類列與縮圖列。讀取失敗時中央放 L0 StatusMessage regular 的讀取失敗：訊息前警告三角用 `text-stage-danger`、文字 `text-stage-overlay-text`（viewer 底固定是暗的），Retry 用 glass 鈕。不用畫面底部的浮動訊息。</Rule>
 </ul>
 
 </Rules>
@@ -482,7 +485,7 @@ Task 詳細面板的 LoRA 區：已選 LoRA 的清單與 weight。
     </div>
     <Switch name="overlay">
         <Case state="none" label="none" />
-        <Case state="review" label="task review (from browser)"><div class="absolute inset-0 z-10 flex"><Slot name="review" component="task-review" states="default,hover,hover-single" /></div></Case>
+        <Case state="review" label="task review (from browser)"><div class="absolute inset-0 z-10 flex"><Slot name="review" component="task-review" states="default,hover,hover-single,loading,error" /></div></Case>
         <Case state="viewer" label="image viewer">
             <div class="absolute inset-0 z-10 flex">
                 <Slot name="viewer" component="image-viewer" states="default,zoomed,error" />

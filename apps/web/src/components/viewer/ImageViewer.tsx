@@ -26,6 +26,7 @@ type ImageViewerProps = {
     onClose: () => void
     onSelect: (index: number) => void
     review?: ImageViewerReview
+    status?: JSX.Element
 }
 
 const glass = 'border-stage-line bg-stage-control text-on-stage hover:bg-stage-control-hover backdrop-blur-[8px]'
@@ -171,37 +172,46 @@ export function ImageViewer(props: ImageViewerProps) {
                     </Button>
                 </Show>
 
-                <ZoomStage
-                    images={props.images}
-                    selectedIndex={props.selectedIndex}
-                    zoom={zoom}
-                    onClick={closeOnBackdrop}
-                    onBackdrop
-                />
-
                 <Show
-                    when={props.review}
+                    when={!props.status}
                     fallback={(
-                        <Show when={hasMany() && zoom.isFit()}>
-                            <div class='flex h-20 shrink-0 items-center justify-center gap-2 py-2'>
-                                {thumbnails()}
-                            </div>
-                        </Show>
+                        <div class='flex min-h-0 w-full flex-1 items-center justify-center px-4'>
+                            {props.status}
+                        </div>
                     )}
                 >
-                    {review => (
-                        <div class='absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-2 pt-6 opacity-0 transition-opacity hover:opacity-100 focus-within:opacity-100'>
-                            {review().controls}
-                            <Show when={hasMany()}>
-                                <div class={cn('flex h-20 items-center justify-center gap-2 rounded-lg border p-2', glass)}>
+                    <ZoomStage
+                        images={props.images}
+                        selectedIndex={props.selectedIndex}
+                        zoom={zoom}
+                        onClick={closeOnBackdrop}
+                        onBackdrop
+                    />
+
+                    <Show
+                        when={props.review}
+                        fallback={(
+                            <Show when={hasMany() && zoom.isFit()}>
+                                <div class='flex h-20 shrink-0 items-center justify-center gap-2 py-2'>
                                     {thumbnails()}
                                 </div>
                             </Show>
-                        </div>
-                    )}
-                </Show>
+                        )}
+                    >
+                        {review => (
+                            <div class='absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-2 pt-6 opacity-0 transition-opacity hover:opacity-100 focus-within:opacity-100'>
+                                {review().controls}
+                                <Show when={hasMany()}>
+                                    <div class={cn('flex h-20 items-center justify-center gap-2 rounded-lg border p-2', glass)}>
+                                        {thumbnails()}
+                                    </div>
+                                </Show>
+                            </div>
+                        )}
+                    </Show>
 
-                <ZoomControls zoom={zoom} />
+                    <ZoomControls zoom={zoom} />
+                </Show>
             </div>
         </Portal>
     )
