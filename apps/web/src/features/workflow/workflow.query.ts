@@ -24,7 +24,7 @@ export function useRefreshWorkflowList() {
 }
 
 export function useWorkflowDetailQuery(workflowId: Accessor<string | null>) {
-    return useQuery(() => {
+    return useQuery<WorkflowApi.GetWorkflowResponse | null>(() => {
         const id = workflowId()
         const request: WorkflowApi.GetWorkflowRequest | undefined = id
             ? { workflowId: id }
@@ -36,13 +36,13 @@ export function useWorkflowDetailQuery(workflowId: Accessor<string | null>) {
                 : workflowKeys.details(),
             enabled: Boolean(request),
             staleTime: query => query.state.data === null ? Infinity : 0,
-            queryFn: async () => {
+            queryFn: async ({ signal }) => {
                 if (!request) {
                     throw new Error('Workflow detail query requires a workflow ID.')
                 }
 
                 try {
-                    return await workflowApi.detail(request)
+                    return await workflowApi.detail(request, signal)
                 }
                 catch (error) {
                     if (isWorkflowNotFound(error)) return null

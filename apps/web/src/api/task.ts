@@ -1,22 +1,18 @@
-import { getApiClient, unwrap } from '#/api/api.client'
+import { getApiClient, requestSignal, unwrap } from '#/api/api.client'
 
 import type { TaskApi } from '@silent-pix/shared'
 
 export const taskApi = {
-    list(query: TaskApi.GetTasksQuery): Promise<TaskApi.GetTasksResponse> {
-        return unwrap(getApiClient().api.task.get({ query }))
+    list(query: TaskApi.GetTasksQuery, signal: AbortSignal): Promise<TaskApi.GetTasksResponse> {
+        return unwrap(getApiClient().api.task.get({ query, fetch: { signal: requestSignal({ signal }) } }))
     },
 
     detail(request: TaskApi.GetTaskRequest): Promise<TaskApi.GetTaskResponse> {
         return unwrap(getApiClient().api.task({ taskId: request.taskId }).get())
     },
 
-
-    create(
-        request: TaskApi.CreateTaskRequest,
-        signal?: AbortSignal,
-    ): Promise<TaskApi.CreateTaskResponse> {
-        return unwrap(getApiClient().api.task.post(request, signal ? { fetch: { signal } } : {}))
+    create(request: TaskApi.CreateTaskRequest): Promise<TaskApi.CreateTaskResponse> {
+        return unwrap(getApiClient().api.task.post(request, {}))
     },
 
     rename(
@@ -33,14 +29,10 @@ export const taskApi = {
         return unwrap(getApiClient().api.task.flag.patch(request, {}))
     },
 
-    removeTasks(
-        request: TaskApi.DeleteTasksRequest,
-        signal?: AbortSignal,
-    ): Promise<TaskApi.DeleteTasksResponse> {
-        return unwrap(getApiClient().api.task.delete(
-            request,
-            signal ? { fetch: { signal } } : {},
-        ))
+    removeTasks(request: TaskApi.DeleteTasksRequest): Promise<TaskApi.DeleteTasksResponse> {
+        return unwrap(getApiClient().api.task.delete(request, {
+            fetch: { signal: requestSignal({ timeoutMs: 60_000 }) },
+        }))
     },
 
     removeTask(request: TaskApi.DeleteTaskRequest): Promise<TaskApi.DeleteTaskResponse> {

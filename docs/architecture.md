@@ -243,6 +243,10 @@ resolves to a URL path. The App root layout keeps Header and any active WebSocke
 mounted across navigation. The QueryClient outlives individual routes. Leaving a
 route unmounts its page, releasing page resources and subscriptions.
 
+API wrappers choose request deadlines. TanStack Query supplies the cancellation
+signal for cancellable reads, and `requestSignal()` combines it with the API
+deadline.
+
 TanStack Query owns Server data, loading/errors, and pagination. Solid stores own
 UI choices and connection state without copying Query data. Generate and Workflow
 each keep their TanStack Form and pending submission in a work session owned by

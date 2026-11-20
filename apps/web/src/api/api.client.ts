@@ -6,6 +6,13 @@ import type { AppApi } from '@silent-pix/shared'
 
 const requestTimeoutMs = 10_000
 
+export function requestSignal(
+    { signal, timeoutMs = requestTimeoutMs }: { signal?: AbortSignal; timeoutMs?: number } = {},
+): AbortSignal {
+    const timeout = AbortSignal.timeout(timeoutMs)
+    return signal ? AbortSignal.any([signal, timeout]) : timeout
+}
+
 export type ApiClient = Treaty.Create<Api, AppApi.ClientHeaders>
 
 export const clientId = crypto.randomUUID()
@@ -36,7 +43,7 @@ export function createApiClient(endpoint: string): ApiClient {
             return fetch(input, {
                 ...init,
                 headers,
-                signal: init?.signal ?? AbortSignal.timeout(requestTimeoutMs),
+                signal: init?.signal ?? requestSignal(),
             })
         },
     })

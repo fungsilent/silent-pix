@@ -1,4 +1,4 @@
-import { ApiError, getApiClient, toApiError, unwrap } from '#/api/api.client'
+import { ApiError, getApiClient, requestSignal, toApiError, unwrap } from '#/api/api.client'
 
 import type { Comfy, WorkflowApi } from '@silent-pix/shared'
 import type { ApiClient } from '#/api/api.client'
@@ -39,8 +39,10 @@ export const workflowApi = {
         return unwrap(getApiClient().api.workflow.get())
     },
 
-    detail(request: WorkflowApi.GetWorkflowRequest): Promise<WorkflowApi.GetWorkflowResponse> {
-        return unwrap(getApiClient().api.workflow({ workflowId: request.workflowId }).get())
+    detail(request: WorkflowApi.GetWorkflowRequest, signal: AbortSignal): Promise<WorkflowApi.GetWorkflowResponse> {
+        return unwrap(getApiClient().api.workflow({ workflowId: request.workflowId }).get({
+            fetch: { signal: requestSignal({ signal }) },
+        }))
     },
 
     create(request: WorkflowApi.CreateWorkflowRequest): Promise<WorkflowApi.CreateWorkflowResponse> {

@@ -30,10 +30,10 @@ export function useImageListQuery(
             queryKey: imageKeys.list(request),
             enabled: enabled(),
             initialPageParam: undefined as string | undefined,
-            queryFn: ({ pageParam }) => imageApi.list({
+            queryFn: ({ pageParam, signal }) => imageApi.list({
                 ...request,
                 ...(pageParam ? { cursor: pageParam } : {}),
-            }),
+            }, signal),
             getNextPageParam: lastPage => lastPage.nextCursor,
         }
     })

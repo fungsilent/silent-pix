@@ -38,9 +38,10 @@ export function useTaskFeedQuery() {
         return {
             queryKey: taskKeys.feed(request),
             initialPageParam: undefined as string | undefined,
-            queryFn: ({ pageParam }) => pageParam === undefined
-                ? taskApi.list(request)
-                : taskApi.list({ ...request, cursor: pageParam }),
+            queryFn: ({ pageParam, signal }) => taskApi.list(
+                pageParam === undefined ? request : { ...request, cursor: pageParam },
+                signal,
+            ),
             getNextPageParam: lastPage => lastPage.nextCursor,
         }
     })
@@ -141,10 +142,7 @@ export function useDeleteDiscardedTasksMutation() {
     const queryClient = useQueryClient()
 
     return useMutation(() => ({
-        mutationFn: () => taskApi.removeTasks(
-            { scope: 'discard' },
-            AbortSignal.timeout(60_000),
-        ),
+        mutationFn: () => taskApi.removeTasks({ scope: 'discard' }),
         onSuccess: result => {
             applyTasksRemoved(queryClient, result.ids)
         },
