@@ -182,7 +182,7 @@
         "clearSelection": "取消勾選",
         "gridView": "格狀檢視",
         "thumbnailSize": "縮圖大小",
-        "searchPlaceholder": "任務名稱或任務 ID…",
+        "searchPlaceholder": "任務名稱或任務 ID",
         "thumbnail": {
             "none": "沒有縮圖",
             "queued": "任務排隊中，等待縮圖",

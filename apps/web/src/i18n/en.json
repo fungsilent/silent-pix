@@ -182,7 +182,7 @@
         "clearSelection": "Clear selection",
         "gridView": "Grid view",
         "thumbnailSize": "Thumbnail size",
-        "searchPlaceholder": "task name or task ID...",
+        "searchPlaceholder": "task name or task ID",
         "thumbnail": {
             "none": "No thumbnail",
             "queued": "Queued task thumbnail pending",

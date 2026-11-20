@@ -167,7 +167,7 @@ Generate 左側 task 清單的單列：72px 縮圖＋名稱／狀態／建立時
 <ul class="ds-rules">
 <Rule component="task-review" id="base">外框、縮放、平移、minimap、關閉與左上的 `n / total` chip 都照 L0 Image viewer（2 張以上才顯示 chip）。</Rule>
 <Rule component="task-review" id="flag-bar">分類列與縮圖列綁在一起，平常不顯示，主圖用滿整個畫面；滑鼠在畫面下方那一區時兩者一起出現，離開就收起，沒有延遲或自動顯示的計時。兩者都浮在圖上、不推擠主圖：縮圖列在最下面（`bottom-3`，glass 底），分類列在它正上方；task 只有一張圖時沒有縮圖列，分類列直接從最底下開始（同樣 `bottom-3`）。分類列是 `h-8` 的 glass 容器（`border-stage-line bg-stage-control`），內三段 `h-7` 的 Unflag／Pin／Discard，只有 13px icon 加一個小的快捷鍵標示（U／P／X，9px），不放文字，名稱只在 hover 時以提示顯示；尺寸與 zoom-controls 同一級，不搶主圖。目前狀態那一段用實心色（Pin／Discard 用該 flag 的底色＋ink 字色，Unflag 用 `bg-on-stage/20`），其他段 Pin／Discard 用該 flag 色 25% 的底配 `text-on-stage/85`（viewer 底固定是暗的）、Unflag 為 `text-on-stage/70`；點擊或按鍵立即生效並留在目前這張。</Rule>
-<Rule component="task-review" id="navigation">←／→ 換上一個／下一個 task（依 Browser 目前的搜尋、篩選與排序）；task 有多張圖時，底部縮圖列在這個 task 的圖之間切換。Esc 關閉，Browser 的選取停在最後看的 task。快捷鍵在焦點位於輸入框時不攔。</Rule>
+<Rule component="task-review" id="navigation">←／→（與左右箭頭鈕）照 L0 Image viewer 只在這個 task 的圖之間切換，不換 task；底部縮圖列可直接跳到任一張。Esc 關閉，Browser 的選取維持在開啟的 task。快捷鍵在焦點位於輸入框時不攔。</Rule>
 </ul>
 
 </Rules>

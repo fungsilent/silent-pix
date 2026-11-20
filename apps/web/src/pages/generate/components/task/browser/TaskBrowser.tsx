@@ -285,6 +285,9 @@ export function TaskBrowser() {
 
                 <TaskBrowserViewer
                     taskId={viewerTaskId}
+                    task={() => taskById().get(viewerTaskId() ?? '')}
+                    flagPending={flagMutation.isPending}
+                    onFlagChange={(taskId, flag) => flagMutation.mutate({ taskIds: [taskId], flag })}
                     onClose={() => setViewerTaskId(undefined)}
                 />
                 <Show when={batchDeleteOpen()}>
