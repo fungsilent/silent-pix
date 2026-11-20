@@ -259,7 +259,6 @@
         "originOutput": "{{task}} #{{index}}",
         "add": "新增圖片",
         "unavailable": "圖片無法使用",
-        "unavailableShort": "無法使用",
         "viewFull": "檢視原尺寸",
         "openInCompare": "在比較中開啟",
         "useAsReference": "設為參考圖片"
@@ -356,7 +355,8 @@
     },
     "compare": {
         "emptyTitle": "沒有可比較的圖片",
-        "emptyMessage": "從圖片庫新增圖片，以並排比較。",
+        "emptyMessage": "從圖片庫新增圖片，在它們之間切換比較。",
+        "clearList": "清空比較清單",
         "allHidden": "所有圖片已隱藏",
         "referenceImageTitle": "圖片",
         "referenceImageAlt": "選取的參考圖片",

@@ -54,7 +54,7 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 <Rule component="zoom-controls" id="percent">倍率欄固定 `w-[54px] tabular-nums`，Fit 時顯示「Fit」，否則顯示百分比。</Rule>
 <Rule component="zoom-controls" id="limits">Fit 時 − 不可用、到 800% 時 + 不可用，皆照 L0 Stage button 停用。</Rule>
 <Rule component="zoom-controls" id="editing">點倍率切成輸入框（`bg-stage-control-hover`，只輸入數字），Enter 或失焦套用、Esc 取消。</Rule>
-<Rule component="zoom-controls" id="one-to-one">`1:1` 在 Fit 與 100% 之間切換；雙擊圖片同效。</Rule>
+<Rule component="zoom-controls" id="one-to-one">`1:1` 在 Fit 與 100% 之間切換；雙擊圖片同效。100% 指一個圖片像素對一個螢幕實體像素，依系統顯示縮放換算（例如 Windows 150% 縮放下，圖片顯示為 CSS 尺寸的 2/3），所有倍率都以此為準。</Rule>
 </ul>
 
 </Rules>

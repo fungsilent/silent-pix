@@ -22,6 +22,7 @@ type ImageViewerProps = {
     onSelect: (index: number) => void
     header?: JSX.Element | null
     thumbnailLabel?: (image: ViewerImage, index: number) => string | null
+    thumbnailBadge?: (image: ViewerImage, index: number) => number | null
 }
 
 const glass = 'border-stage-line bg-stage-control text-on-stage hover:bg-stage-control-hover backdrop-blur-[8px]'
@@ -187,6 +188,13 @@ export function ImageViewer(props: ImageViewerProps) {
                                                     </span>
                                                 )}
                                             </Show>
+                                        )}
+                                    </Show>
+                                    <Show when={props.thumbnailBadge?.(thumbnail, index())}>
+                                        {badge => (
+                                            <span class='absolute left-1.5 top-1.5 rounded-md bg-stage-overlay px-2 py-1 text-[10px] font-semibold text-stage-overlay-label tabular-nums'>
+                                                {badge()}
+                                            </span>
                                         )}
                                     </Show>
                                 </Button>

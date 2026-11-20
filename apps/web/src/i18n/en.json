@@ -260,7 +260,6 @@
         "originOutput": "{{task}} #{{index}}",
         "add": "Add images",
         "unavailable": "Image unavailable",
-        "unavailableShort": "Unavailable",
         "viewFull": "View full size",
         "openInCompare": "Open in Compare",
         "useAsReference": "Use as reference image"
@@ -357,7 +356,8 @@
     },
     "compare": {
         "emptyTitle": "No images to compare",
-        "emptyMessage": "Add images from your library to compare them side by side.",
+        "emptyMessage": "Add images from your library to switch between them.",
+        "clearList": "Clear comparison list",
         "allHidden": "All images hidden",
         "referenceImageTitle": "IMAGE",
         "referenceImageAlt": "Selected reference image",

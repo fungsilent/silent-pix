@@ -1,4 +1,4 @@
-import { Expand, Eye, EyeOff, ImagePlus, X } from 'lucide-solid'
+import { Expand, Eye, EyeOff, ImageOff, ImagePlus, ListX, X } from 'lucide-solid'
 import { createEffect, createMemo, createSignal, For, onCleanup, onMount, Show } from 'solid-js'
 
 import { resolveImageUrl } from '#/api/image'
@@ -40,6 +40,7 @@ export function CompareWorkspace() {
     })
     const selectedEntry = () => entries()[selectedIndex()]
     const hiddenCount = () => allEntries().length - entries().length
+    const position = (imageId: string) => allEntries().findIndex(entry => entry.image.id === imageId) + 1
 
     createEffect(() => {
         const visible = entries()
@@ -125,50 +126,52 @@ export function CompareWorkspace() {
         <section
             class='flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-canvas'
         >
-            <Bar.Root classes={{ root: 'border-b border-line-subtle' }}>
-                <Bar.Group>
-                    <Bar.Title>{t('header.compare')}</Bar.Title>
-                    <Bar.Meta classes={{ root: 'tabular-nums' }}>
-                        {t('compare.shownCount', { shown: entries().length, total: allEntries().length })}
-                    </Bar.Meta>
-                </Bar.Group>
-                <Bar.Actions>
-                    <Show when={hiddenCount() > 0}>
-                        <Button
-                            size='bar'
-                            onClick={compareStore.showAllCompare}
-                        >
-                            {t('common.showAll')}
-                        </Button>
-                    </Show>
-                    <Show when={allEntries().length > 0}>
-                        <Button
-                            size='bar'
-                            onClick={compareStore.clearCompare}
-                        >
-                            {t('common.clear')}
-                        </Button>
-                    </Show>
-                    <Button
-                        size='bar'
-                        variant='solid'
-                        tone='accent'
-                        classes={{ root: 'shrink-0 font-semibold' }}
-                        onClick={() => setPickerOpen(true)}
-                    >
-                        <ImagePlus
-                            size={14}
-                            strokeWidth={1.8}
-                        />
-                        {t('image.add')}
-                    </Button>
-                </Bar.Actions>
-            </Bar.Root>
-
             <Show
                 when={allEntries().length > 0}
                 fallback={<EmptyCompareState onAdd={() => setPickerOpen(true)} />}
             >
+                <Bar.Root classes={{ root: 'border-b border-line-subtle' }}>
+                    <span class='min-w-0 truncate text-xs leading-none text-fg-secondary tabular-nums'>
+                        {t('compare.shownCount', { shown: entries().length, total: allEntries().length })}
+                    </span>
+                    <Bar.Actions classes={{ root: 'shrink-0' }}>
+                        <Show when={hiddenCount() > 0 && entries().length > 0}>
+                            <Button
+                                title={t('common.showAll')}
+                                classes={{ root: 'size-7 shrink-0 p-0' }}
+                                onClick={compareStore.showAllCompare}
+                            >
+                                <Eye
+                                    size={16}
+                                    strokeWidth={1.8}
+                                />
+                            </Button>
+                        </Show>
+                        <Button
+                            title={t('compare.clearList')}
+                            classes={{ root: 'size-7 shrink-0 p-0' }}
+                            onClick={compareStore.clearCompare}
+                        >
+                            <ListX
+                                size={16}
+                                strokeWidth={1.8}
+                            />
+                        </Button>
+                        <Button
+                            variant='solid'
+                            tone='accent'
+                            title={t('image.add')}
+                            classes={{ root: 'size-7 shrink-0 p-0' }}
+                            onClick={() => setPickerOpen(true)}
+                        >
+                            <ImagePlus
+                                size={16}
+                                strokeWidth={1.8}
+                            />
+                        </Button>
+                    </Bar.Actions>
+                </Bar.Root>
+
                 <Show
                     when={entries().length > 0}
                     fallback={<AllHiddenState onShowAll={compareStore.showAllCompare} />}
@@ -182,10 +185,9 @@ export function CompareWorkspace() {
                         />
                         <Show when={selectedEntry()}>
                             {entry => (
-                                <CurrentCompareImage
-                                    entry={entry()}
-                                    index={selectedIndex()}
-                                />
+                                <CenteredText classes={{ root: 'absolute left-3 top-3 z-10 h-6 min-w-6 rounded-md bg-accent px-1.5 text-xs font-bold text-on-stage tabular-nums shadow-sm' }}>
+                                    {position(entry().image.id)}
+                                </CenteredText>
                             )}
                         </Show>
                         <Button
@@ -221,12 +223,16 @@ export function CompareWorkspace() {
                     header={(
                         <CurrentCompareImage
                             entry={selectedEntry()!}
-                            index={selectedIndex()}
+                            position={position(selectedEntry()!.image.id)}
                         />
                     )}
                     thumbnailLabel={(_, index) => {
                         const entry = entries()[index]
                         return entry ? originLabel(entry.usage) ?? entry.image.id.slice(0, 8) : null
+                    }}
+                    thumbnailBadge={(_, index) => {
+                        const entry = entries()[index]
+                        return entry ? position(entry.image.id) : null
                     }}
                     onClose={() => setExpanded(false)}
                     onSelect={selectViewerImage}
@@ -250,7 +256,7 @@ type EmptyCompareStateProps = {
 
 function EmptyCompareState(props: EmptyCompareStateProps) {
     return (
-        <div class='relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-stage-empty px-4'>
+        <div class='relative flex min-h-0 flex-1 items-center justify-center bg-surface px-4'>
             <StatusMessage
                 kind='empty'
                 title={t('compare.emptyTitle')}
@@ -306,13 +312,13 @@ type CompareThumbnailStripProps = {
 }
 
 function CompareThumbnailStrip(props: CompareThumbnailStripProps) {
+    const corner = 'absolute top-1 z-10 h-[18px] min-w-[18px] rounded border-0 px-1 py-0 text-[10px] font-bold leading-none tabular-nums backdrop-blur-[3px]'
+
     return (
-        <div class='flex h-20 shrink-0 items-center justify-center gap-2 overflow-x-auto border-t border-stage-line-subtle bg-stage-strip px-3 py-2'>
+        <div class='flex h-20 shrink-0 items-center justify-center-safe gap-2 overflow-x-auto border-t border-stage-line-subtle bg-stage-strip px-3 py-2'>
             <For each={props.entries}>
                 {(entry, index) => {
                     const selected = () => entry.image.id === props.selectedId
-                    const failed = () => props.failedImageIds.has(entry.image.id)
-                    const label = () => originLabel(entry.usage) ?? entry.image.id.slice(0, 8)
 
                     return (
                         <div class='group relative flex h-full w-auto shrink-0'>
@@ -322,70 +328,54 @@ function CompareThumbnailStrip(props: CompareThumbnailStripProps) {
                                     root: cn(
                                         'relative h-full w-auto shrink-0 overflow-hidden rounded-md p-0',
                                         selected() && 'ring-2 ring-stage-fg',
-                                        entry.hidden && 'opacity-40 grayscale',
                                     ),
                                 }}
                                 onClick={() => props.onSelect(entry.image.id)}
                             >
                                 <img
-                                    class='h-full w-auto object-contain'
+                                    class={cn('h-full w-auto object-contain', entry.hidden && 'opacity-40 grayscale')}
                                     src={resolveImageUrl(entry.image.url)}
                                     alt=''
                                     onError={() => props.onImageError(entry.image.id)}
                                 />
-                                <Show when={failed()}>
-                                    <span class='absolute inset-0 grid place-items-center bg-stage-control px-2 text-center text-[10px] text-stage-overlay-text'>
-                                        {t('image.unavailableShort')}
+                                <Show when={props.failedImageIds.has(entry.image.id)}>
+                                    <span class='absolute inset-0 grid place-items-center bg-stage-control text-stage-overlay-text'>
+                                        <ImageOff
+                                            size={16}
+                                            strokeWidth={1.8}
+                                        />
                                     </span>
                                 </Show>
-                                <span
-                                    class={cn(
-                                        'absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-stage-gradient to-transparent px-2 pb-1 pt-4 text-left text-[10px] text-on-stage',
-                                        entry.hidden && 'line-through',
-                                    )}
-                                >
-                                    {label()}
-                                </span>
-                                <CenteredText
-                                    classes={{
-                                        root: 'absolute left-1.5 top-1.5 rounded-md bg-stage-overlay px-2 py-1 text-[10px] font-semibold text-stage-overlay-label shadow-sm ring-1 ring-stage-ring tabular-nums backdrop-blur-[3px]',
-                                    }}
-                                >
-                                    {entry.hidden ? '—' : index() + 1}
-                                </CenteredText>
                             </Button>
+                            {/* 序號角兼隱藏切換：hover 時換成 eye-off；已隱藏的常駐 eye-off，點擊恢復 */}
                             <Button
                                 variant='ghost'
                                 classes={{
                                     root: cn(
-                                        'absolute left-1 top-1 z-10 size-6 rounded-md border-0 bg-stage-control-hover p-0 text-on-stage hover:bg-stage-control-hover backdrop-blur-[3px]',
-                                        entry.hidden ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-visible:opacity-100',
+                                        corner,
+                                        'left-1 group-hover:bg-stage-control-hover group-hover:text-on-stage group-hover:ring-0',
+                                        selected() ? 'bg-accent text-on-stage hover:bg-accent' : 'bg-stage-overlay text-stage-overlay-label ring-1 ring-stage-ring hover:bg-stage-overlay',
                                     ),
                                 }}
                                 onClick={() => props.onToggleHidden(entry.image.id)}
                             >
-                                {entry.hidden
-                                    ? (
-                                        <EyeOff
-                                            size={13}
-                                            strokeWidth={1.8}
-                                        />
-                                    )
-                                    : (
-                                        <Eye
-                                            size={13}
-                                            strokeWidth={1.8}
-                                        />
-                                    )}
+                                <Show when={!entry.hidden}>
+                                    <span class='group-hover:hidden'>{index() + 1}</span>
+                                </Show>
+                                <EyeOff
+                                    class={entry.hidden ? '' : 'hidden group-hover:block'}
+                                    size={11}
+                                    strokeWidth={1.8}
+                                />
                             </Button>
                             <Button
                                 variant='ghost'
-                                classes={{ root: 'absolute right-1 top-1 z-10 size-6 rounded-md border-0 bg-stage-control-hover p-0 text-on-stage opacity-0 backdrop-blur-[3px] group-hover:opacity-100 focus-visible:opacity-100 hover:bg-stage-control-hover hover:text-stage-danger' }}
+                                classes={{ root: cn(corner, 'right-1 size-[18px] bg-stage-control-hover p-0 text-on-stage opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-stage-control-hover hover:text-stage-danger') }}
                                 onClick={() => props.onRemove(entry.image.id)}
                             >
                                 <X
-                                    size={13}
-                                    strokeWidth={1.9}
+                                    size={11}
+                                    strokeWidth={1.8}
                                 />
                             </Button>
                         </div>
@@ -398,7 +388,7 @@ function CompareThumbnailStrip(props: CompareThumbnailStripProps) {
 
 type CurrentCompareImageProps = {
     entry: CompareEntry
-    index: number
+    position: number
 }
 
 function CurrentCompareImage(props: CurrentCompareImageProps) {
@@ -409,7 +399,7 @@ function CurrentCompareImage(props: CurrentCompareImageProps) {
                     root: 'h-4 min-w-4 shrink-0 rounded bg-accent px-1 text-[10px] font-bold text-on-stage',
                 }}
             >
-                {props.index + 1}
+                {props.position}
             </CenteredText>
             <span class='truncate'>{originLabel(props.entry.usage) ?? props.entry.image.id.slice(0, 8)}</span>
             <span class='shrink-0 text-on-stage/75 tabular-nums'>

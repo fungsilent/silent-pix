@@ -1,6 +1,6 @@
 ---
 title: Compare
-description: 並排比較多張圖片：中間是可縮放的目前圖片與縮圖列，右側是所選圖片的 task 或圖片資訊。
+description: 在多張圖片之間切換比較。工作區顯示可縮放的主圖與縮圖列，右側顯示所選圖片的 Task 或圖片資訊。
 sidebar:
     order: 3
 ---
@@ -17,10 +17,10 @@ import Case from '@silent-pix/blueprint/components/Case.astro'
 
 ## Compare workspace
 
-Compare 頁的整個工作區：標題列、可縮放的目前圖片、底部 compare-strip。
+Compare 頁的整個工作區：Bar、可縮放的目前圖片、底部 compare-strip。
 
 <Gallery min="720px">
-<State component="compare-workspace" state="default" label="default · 3 / 4 shown" frame="flex h-[460px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="compare-workspace" state="default" label="default · item 3 selected" frame="flex h-[460px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="compare-workspace" state="zoomed" label="zoomed · minimap" frame="flex h-[460px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="compare-workspace" state="image-error" label="image unavailable" frame="flex h-[460px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="compare-workspace" state="empty" label="empty" frame="flex h-[340px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
@@ -32,34 +32,34 @@ Compare 頁的整個工作區：標題列、可縮放的目前圖片、底部 co
 #### 工作區
 
 <ul class="ds-rules">
-<Rule component="compare-workspace" id="structure">結構：標題列（`h-12 bg-surface`，「Compare」+ `shown / total` meta）→ 目前圖片 stage（`bg-stage`）→ compare-strip。</Rule>
-<Rule component="compare-workspace" id="bar-actions">標題列動作：有隱藏項才出 Show all、有任何項目才出 Clear（兩者 soft neutral），Add images 永遠在（solid accent + `font-semibold`，開 image-picker multiple）。</Rule>
-<Rule component="compare-workspace" id="current-chip">目前圖片左上是 glass chip：accent 序號（在「可見項」中的位置）+ 來源標籤 + 尺寸；右上只有 expand（開 image-viewer compare）；左下是 zoom-controls。</Rule>
-<Rule component="compare-workspace" id="empty-guide">Empty 與 all-hidden 都是 L0 StatusMessage regular 引導（solid accent 主要動作，與標題列同一個動作），置中於 `bg-stage-empty`。all-hidden 只有標題與 Show all，縮圖列保留，讓使用者逐張取消隱藏。</Rule>
+<Rule component="compare-workspace" id="structure">結構：Bar（`h-12 bg-surface`）→ 目前圖片 stage（`bg-stage`）→ compare-strip。Bar 不放頁名，Header 的模式選單已經寫著 Compare；左側只有 `shown / total`（`text-xs text-fg-secondary`），一眼看出有沒有隱藏的圖。</Rule>
+<Rule component="compare-workspace" id="bar-actions">Bar 右側依序是中性 Eye 圖示鈕（提示「Show all」）、中性 ListX 圖示鈕（提示「Clear comparison list」）與 accent ImagePlus 圖示鈕（提示「Add images」，開 multiple picker）。Clear 只清空比較清單。Show all 在部分圖片隱藏時出現在 Bar，全部隱藏時改由中央引導提供。</Rule>
+<Rule component="compare-workspace" id="current-chip">目前圖片左上只放序號：`h-6` 的 accent 實心方塊，對應縮圖列的同一個序號；名稱與尺寸看右側 Detail，不放在圖上。右上 Expand 開啟 compare 模式的 Image viewer，左下放 zoom-controls。</Rule>
+<Rule component="compare-workspace" id="empty-guide">空清單使用與 Metadata 開啟畫面一致的全工作區引導，文字主按鈕為「Add images」。全部隱藏時保留 Bar 與縮圖列，中央使用「All images hidden」與「Show all」引導。兩種引導使用 L0 StatusMessage regular。</Rule>
+<Rule component="compare-workspace" id="selection">第一次加入圖片時選第一張，後續加入保留目前選取。隱藏或移除目前圖片時選下一張可見圖，沒有下一張就選上一張。恢復可見時保留現有選取，若當時沒有選取就選第一張可見圖。</Rule>
 <Rule component="compare-workspace" id="zoom-pan">放大後與 image-viewer 相同：圖片超出可視範圍時游標變 grab 可平移，stage 右下出現 minimap；左下 zoom-controls 顯示倍率。縮圖列不收起。</Rule>
-<Rule component="compare-workspace" id="image-error">目前圖片載入失敗時隱藏該圖，置中於 stage 放 L0 StatusMessage regular content error「Image unavailable」（image-off 圖示、不放 Retry），不出 minimap；標題列、圖片 chip 與縮圖列照常。</Rule>
+<Rule component="compare-workspace" id="image-error">目前圖片載入失敗時隱藏該圖，置中於 stage 放 L0 StatusMessage regular content error「Image unavailable」（image-off 圖示、不放 Retry），不出 minimap；Bar、序號與縮圖列照常。</Rule>
 <Rule component="compare-workspace" id="keyboard">←／→ 只在可見項間循環；有 overlay 開著時不攔。</Rule>
 </ul>
 
 #### 縮圖列
 
 <ul class="ds-rules">
-<Rule component="compare-strip" id="strip">`h-20 bg-stage-strip`、上緣 `border-stage-line-subtle`，縮圖置中、超出時橫向捲動。</Rule>
-<Rule component="compare-strip" id="index-badge">序號 badge 是在「全部項」中的位置；隱藏項 badge 顯示 `—`、整張 `opacity-40 grayscale`、標籤 `line-through`。</Rule>
+<Rule component="compare-strip" id="strip">`h-20 bg-stage-strip`、上緣 `border-stage-line-subtle`。縮圖永遠單列，能放下時置中，超出時從首張開始橫向捲動。</Rule>
+<Rule component="compare-strip" id="index-badge">主圖、縮圖與 Compare Image viewer 都用圖片在完整清單中的位置當序號，前面的圖片隱藏時，後面的序號照舊。縮圖不放名稱，只在左上放 18px 的序號角：選中為 accent，其餘 `bg-stage-overlay`。</Rule>
 <Rule component="compare-strip" id="selected">選取照 L0 stage 縮圖選取（`ring-2 ring-stage-fg`）。沒選到的縮圖不變淡，因為已隱藏的縮圖已經用了變淡。</Rule>
-<Rule component="compare-strip" id="hover-actions">每張左上 eye（隱藏切換）與右上 X（移除）在 hover 整張時才出現；已隱藏者的 eye-off 常駐。兩顆都是 `size-6 bg-stage-control-hover backdrop-blur-[3px]`，X hover 轉 `text-stage-danger`。default 的第一張為 hover 態。</Rule>
-<Rule component="compare-strip" id="unavailable">縮圖載入失敗時疊 `bg-stage-control` +「Unavailable」；沒有來源的圖以 image id 前 8 碼當標籤。</Rule>
+<Rule component="compare-strip" id="hover-actions">縮圖列刻意壓低、縮圖照圖片比例，所以每張只用兩個角：hover 整張時，序號角換成 eye-off（點擊隱藏），右上出現移除 X（hover 轉 `text-stage-danger`）；兩者都是 18px、icon 11px。已隱藏的縮圖序號角常駐 eye-off（點擊恢復），整張 `opacity-40 grayscale`。default 的第一張為 hover 態。</Rule>
+<Rule component="compare-strip" id="unavailable">縮圖載入失敗時疊 `bg-stage-control` 與置中 16px image-off icon，不放文字。</Rule>
 </ul>
 
 </Rules>
 
 ## Image detail
 
-Compare 右側面板在選到的圖不是 task 產出（上傳或參考圖）或沒有選取時使用；外框與 task-detail 相同，只列圖片本身的資訊。
+選到上傳或參考圖片時的右側 Detail；外框與 task-detail 相同，只列圖片本身的資訊。
 
 <Gallery min="440px">
 <State component="image-detail" state="image" label="reference image" frame="w-max *:border-l-0 flex h-[560px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="image-detail" state="none" label="no selection · blank" frame="w-max *:border-l-0 flex h-[560px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="image-detail" state="collapsed" label="collapsed" frame="w-max *:border-l-0 flex h-[360px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 </Gallery>
 
@@ -68,7 +68,6 @@ Compare 右側面板在選到的圖不是 task 產出（上傳或參考圖）或
 <ul class="ds-rules">
 <Rule component="image-detail" id="same-as-task-detail">寬度、收合與標題列同 task-detail（展開 350px、收合 40px、標題「Detail」），且與 task-detail 共用同一個收合狀態：在兩者之間切換時維持原本的展開或收合；內容間距 `gap-3 px-4 pb-5`，區塊之間用細分隔線。</Rule>
 <Rule component="image-detail" id="content">由上而下：ID（mono 11px）與 Created；IMAGE 區 160px 高 `bg-active` 預覽框，圖片等比置中；CONFIG 區 Width｜Height 兩欄，固定停用。</Rule>
-<Rule component="image-detail" id="no-selection">沒有選取任何圖時面板保留、內容留白，不放提示文字。</Rule>
 </ul>
 
 </Rules>
@@ -107,18 +106,25 @@ Compare 右側面板在選到的圖不是 task 產出（上傳或參考圖）或
 
 <Screen>
     <Fixed component="app-header" state="compare" />
-    <div class="flex min-h-0 flex-1 overflow-hidden">
-        <Slot name="workspace" component="compare-workspace" states="default,zoomed,image-error,all-hidden,empty" />
-        <Switch name="detail">
-            <Case state="task" label="task output"><Slot name="task-detail" component="task-detail" states="read-only,loading,error,collapsed" /></Case>
-            <Case state="image" label="uploaded / reference image"><Slot name="image-detail" component="image-detail" states="image,collapsed" /></Case>
-            <Case state="none" label="no selection"><Slot name="blank" component="image-detail" states="none,collapsed" /></Case>
-        </Switch>
-    </div>
-    <Switch name="overlay">
-        <Case state="none" label="none" />
-        <Case state="viewer" label="image viewer"><Slot name="viewer" component="image-viewer" states="compare,zoomed,error" /></Case>
-        <Case state="picker" label="add images"><Slot name="picker" component="compare-image-picker" states="multiple,loading,error,empty" /></Case>
+    <Switch name="layout">
+        <Case state="selected" label="image selected">
+            <div class="flex min-h-0 flex-1 overflow-hidden">
+                <Slot name="workspace" component="compare-workspace" states="default,zoomed,image-error" />
+                <Switch name="detail">
+                    <Case state="task" label="task output"><Slot name="task-detail" component="task-detail" states="read-only,loading,error,collapsed" /></Case>
+                    <Case state="image" label="uploaded / reference image"><Slot name="image-detail" component="image-detail" states="image,collapsed" /></Case>
+                </Switch>
+            </div>
+            <Switch name="overlay">
+                <Case state="none" label="none" />
+                <Case state="viewer" label="image viewer"><Slot name="viewer" component="image-viewer" states="compare,zoomed,error" /></Case>
+                <Case state="picker" label="add images"><Slot name="picker" component="compare-image-picker" states="multiple,loading,error,empty" /></Case>
+            </Switch>
+        </Case>
+        <Case state="unselected" label="no image selected">
+            <Slot name="workspace" component="compare-workspace" states="empty,all-hidden" />
+            <Slot name="picker" component="compare-image-picker" states="none,multiple,loading,error,empty" empty="no dialog" />
+        </Case>
     </Switch>
 </Screen>
 
@@ -127,7 +133,7 @@ Compare 右側面板在選到的圖不是 task 產出（上傳或參考圖）或
 <ul class="ds-rules">
 <Rule component="compare-screen" id="columns">Header 之下兩欄：workspace 吃掉其餘寬度，右側面板 `border-l border-line`，展開 350px、收合 40px。</Rule>
 <Rule component="compare-screen" id="detail-follows">右側面板跟著 workspace 目前選取的圖：task 產出用 Task detail 唯讀模式（不可編輯、無刪除鈕），其他圖用 Image detail；兩者外框、寬度與收合行為一致，切換時不跳動。</Rule>
-<Rule component="compare-screen" id="empty">沒有任何圖時 workspace 顯示空狀態並提供 Add images，右側面板保留但留白。</Rule>
+<Rule component="compare-screen" id="empty">沒有選取圖片時，工作區佔滿 Header 下方，包括清單為空或全部隱藏。清空後回到 Add images 引導，已有可見圖片時直接顯示上次選取。</Rule>
 <Rule component="compare-screen" id="narrow">視窗寬度 &lt; 980px 時隱藏右側面板，只留 workspace。</Rule>
 <Rule component="compare-screen" id="overlays">Image viewer（compare 模式）與 Add images 開的 image picker 蓋住整個視窗（含 Header）。</Rule>
 </ul>

@@ -26,6 +26,12 @@ const deltaModeScale: Record<number, number> = {
     2: 400,
 }
 
+/*
+ * 倍率以螢幕實體像素計：100% 是一個圖片像素對一個實體像素，換成 CSS 尺寸要除以顯示縮放。
+ * shortcut: 只在計算時讀 devicePixelRatio，視窗拖到不同縮放的螢幕時要等下一次縮放才會更新
+ */
+const pixelRatio = () => window.devicePixelRatio || 1
+
 function zoomFactor(event: WheelEvent): number {
     const pixels = event.deltaY * (deltaModeScale[event.deltaMode] ?? 1)
 
@@ -61,11 +67,11 @@ export function createImageZoom() {
             return 100
         }
 
-        return Math.min(box.width / width, box.height / height) * 100
+        return Math.min(box.width / width, box.height / height) * 100 * pixelRatio()
     }
 
     const percent = () => zoomPercent() ?? fitPercent()
-    const scale = () => percent() / 100
+    const scale = () => percent() / 100 / pixelRatio()
 
     const isFit = () => zoomPercent() === undefined
 
@@ -116,7 +122,7 @@ export function createImageZoom() {
         }
 
         // 讓游標下的那一點在縮放後留在原位
-        const nextScale = next / 100
+        const nextScale = next / 100 / pixelRatio()
         const current = offset()
         const pointX = (anchor.x - current.x) / previousScale
         const pointY = (anchor.y - current.y) / previousScale
