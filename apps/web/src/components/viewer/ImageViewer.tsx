@@ -13,16 +13,12 @@ import { overlayStore } from '#/store/overlay'
 
 import type { ViewerImage } from '#/components/viewer/ZoomStage'
 import type { OverlayId } from '#/store/overlay'
-import type { JSX } from 'solid-js'
 
 type ImageViewerProps = {
     images: ViewerImage[]
     selectedIndex: number
     onClose: () => void
     onSelect: (index: number) => void
-    header?: JSX.Element | null
-    thumbnailLabel?: (image: ViewerImage, index: number) => string | null
-    thumbnailBadge?: (image: ViewerImage, index: number) => number | null
 }
 
 const glass = 'border-stage-line bg-stage-control text-on-stage hover:bg-stage-control-hover backdrop-blur-[8px]'
@@ -97,21 +93,14 @@ export function ImageViewer(props: ImageViewerProps) {
                 class='backdrop fixed inset-0 z-50 flex select-none flex-col items-center justify-center bg-backdrop backdrop-blur-[6px]'
                 onClick={closeOnBackdrop}
             >
-                <Show
-                    when={props.header !== undefined}
-                    fallback={(
-                        <Show when={hasMany()}>
-                            <CenteredText
-                                classes={{
-                                    root: cn('absolute left-6 top-6 z-10 rounded-md border px-2.5 py-1 text-xs text-fg-secondary tabular-nums', glass),
-                                }}
-                            >
-                                {`${props.selectedIndex + 1} / ${props.images.length}`}
-                            </CenteredText>
-                        </Show>
-                    )}
-                >
-                    {props.header}
+                <Show when={hasMany()}>
+                    <CenteredText
+                        classes={{
+                            root: cn('absolute left-6 top-6 z-10 rounded-md border px-2.5 py-1 text-xs text-fg-secondary tabular-nums', glass),
+                        }}
+                    >
+                        {`${props.selectedIndex + 1} / ${props.images.length}`}
+                    </CenteredText>
                 </Show>
 
                 <div class='absolute right-6 top-6 z-10 flex items-center gap-2'>
@@ -155,7 +144,7 @@ export function ImageViewer(props: ImageViewerProps) {
                     selectedIndex={props.selectedIndex}
                     zoom={zoom}
                     onClick={closeOnBackdrop}
-                    stageDanger
+                    onBackdrop
                 />
 
                 <Show when={hasMany() && zoom.isFit()}>
@@ -179,24 +168,6 @@ export function ImageViewer(props: ImageViewerProps) {
                                         src={resolveImageUrl(thumbnail.url)}
                                         alt=''
                                     />
-                                    <Show when={props.thumbnailLabel}>
-                                        {getLabel => (
-                                            <Show when={getLabel()(thumbnail, index())}>
-                                                {label => (
-                                                    <span class='absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-stage-gradient to-transparent px-2 pb-1 pt-4 text-left text-[10px] text-stage-overlay-label'>
-                                                        {label()}
-                                                    </span>
-                                                )}
-                                            </Show>
-                                        )}
-                                    </Show>
-                                    <Show when={props.thumbnailBadge?.(thumbnail, index())}>
-                                        {badge => (
-                                            <span class='absolute left-1.5 top-1.5 rounded-md bg-stage-overlay px-2 py-1 text-[10px] font-semibold text-stage-overlay-label tabular-nums'>
-                                                {badge()}
-                                            </span>
-                                        )}
-                                    </Show>
                                 </Button>
                             )}
                         </For>

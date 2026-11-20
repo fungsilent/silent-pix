@@ -38,7 +38,7 @@ Workflow 頁最左欄：Bar（標題＋新增）與 workflow-item 列，封存�
 <Rule component="workflow-list" id="archive-group">封存區只在有封存項目時出現：一條分隔線（`my-1 border-t border-line-subtle`）＋ 區段標題「Archived」（L0 section title 樣式，`px-2.5 py-1`），下面接封存列。</Rule>
 <Rule component="workflow-list" id="loading">載入中以 8 條與列同高（34px）的 skeleton 取代所有列；Bar 與加號按鈕照常顯示。</Rule>
 <Rule component="workflow-list" id="empty">沒有任何 workflow 時清單本體留空，不放提示文字；引導由 workflow-detail 的 no-selection 狀態負責。</Rule>
-<Rule component="workflow-list" id="error">清單讀取失敗顯示在清單本體內：置中放 L0 StatusMessage compact load error「Failed to load workflows.」＋ Retry，取代所有列；Bar 與加號按鈕照常。不進 Header 的 Issue chip。</Rule>
+<Rule component="workflow-list" id="error">清單讀取失敗顯示在清單本體內：在清單頂端放 L0 StatusMessage compact load error「Failed to load workflows.」＋ Retry，取代所有列；Bar 與加號按鈕照常。不進 Header 的 Issue chip。</Rule>
 </ul>
 
 #### 列

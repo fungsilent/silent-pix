@@ -25,7 +25,7 @@ export function TaskFailure(props: TaskFailureProps) {
                 />
                 {t('task.failure.reason')}
             </span>
-            <p class='mb-1 mt-1.5 text-xs leading-relaxed text-danger-fg'>{reason()}</p>
+            <p class='mb-1 mt-1.5 text-xs leading-relaxed text-fg'>{reason()}</p>
             <Collapsible.Root>
                 <Collapsible.Trigger class='group flex items-center gap-1 border-0 bg-transparent py-1 text-[11px] text-fg-muted hover:text-fg-secondary'>
                     <ChevronRight

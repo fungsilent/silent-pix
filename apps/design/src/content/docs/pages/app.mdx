@@ -63,7 +63,7 @@ App 最上方 36px 的全域列，同時是視窗的標題列：品牌名、模�
 
 <ul class="ds-rules">
 <Rule component="app-header" id="service-status">服務狀態燈：Server／DB／Comfy 全部正常時是 `size-7` ghost 鈕內一顆 8px 的 `bg-success` 光暈點，沒有文字。有服務斷線時變成 `bg-danger/12 text-danger-fg` 的鈕，6px `bg-danger` 點加斷線的名稱（例如「Comfy down」，兩個以上時「2 down」）；從未連上時是 muted 點加「Connecting」。</Rule>
-<Rule component="app-header" id="status-popover">點狀態燈展開 `w-60` 的 Popover（靠右緣 bottom-end，見 L0 Popover）：Server／DB／Comfy 各一列，6px 狀態點、名稱、右側狀態文字（Connected／Not reachable／Unknown，斷線為 `text-danger-fg`）；下方分隔線後是 soft「Recheck」重新檢查。</Rule>
+<Rule component="app-header" id="status-popover">點狀態燈展開 `w-60` 的 Popover（靠右緣 bottom-end，見 L0 Popover）：Server／DB／Comfy 各一列，6px 狀態點、名稱、右側狀態文字（Connected／Not reachable／Unknown，一律 `text-fg-muted`；斷線由紅色狀態點表示）；下方分隔線後是 soft「Recheck」重新檢查。</Rule>
 <Rule component="app-header" id="status-source">Server 跟即時連線走。DB／Comfy 在即時連線首次建立前先用一次查詢結果墊著，之後只認即時狀態；斷線時 DB／Comfy 一律轉 unknown，不沿用最後一份結果。從未連上過時三段都是 unknown。</Rule>
 </ul>
 

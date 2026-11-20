@@ -16,7 +16,6 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 
 <Gallery min="720px">
 <State component="image-viewer" state="default" label="default · fit · thumbnails" frame="relative h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="image-viewer" state="compare" label="compare · current image chip · labelled thumbnails" frame="relative h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="image-viewer" state="zoomed" label="zoomed 200% · minimap · strip hidden" frame="relative h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="image-viewer" state="error" label="single · load error" frame="relative h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 </Gallery>
@@ -26,10 +25,10 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 <ul class="ds-rules">
 <Rule component="image-viewer" id="overlay">蓋住整個 app 的 overlay，底色 `bg-backdrop backdrop-blur-[6px]` 並淡入；底固定是暗的，不用 stage 色。點 backdrop 或 Esc 關閉；拖曳平移後放開不算點擊關閉。板上以 `absolute` 畫在固定高度的框內。</Rule>
 <Rule component="image-viewer" id="close">右上只有 close（size-8 glass、icon 16），不放其他動作。</Rule>
-<Rule component="image-viewer" id="counter">左上：2 張以上時顯示 `n / total` glass chip。從 compare 開啟時換成目前圖片 chip（accent 序號 + 來源標籤 + 尺寸，同 compare-workspace），縮圖底部疊 gradient 標籤。chip 與縮圖的標籤規則同 compare-strip：沒有來源的圖用 image id 前 8 碼。</Rule>
+<Rule component="image-viewer" id="counter">左上：2 張以上時顯示 `n / total` glass chip。</Rule>
 <Rule component="image-viewer" id="paging-strip">左右切換 `size-8` glass、icon 18，2 張以上才出現。縮圖列只在 2 張以上且 Fit 時出現，放大後收起；選取縮圖 `ring-2 ring-on-stage`（viewer 底固定暗，不用 `ring-stage-fg`）。</Rule>
 <Rule component="image-viewer" id="pan-minimap">放大到超出可視範圍時游標變 grab 可平移，右下出現 minimap（長邊 96px、`bg-stage-overlay-muted`），框出可見範圍，可點擊或拖曳跳轉。</Rule>
-<Rule component="image-viewer" id="load-error">圖片載入失敗時隱藏該圖，置中放 L0 StatusMessage regular content error「Image unavailable」（不放 Retry），不出 minimap。viewer 底固定是暗的，danger 文字與 icon 方塊的圖示改用 `text-stage-danger`（圖示用 image-off），兩種主題都讀得到。</Rule>
+<Rule component="image-viewer" id="load-error">圖片載入失敗時隱藏該圖，置中放 L0 StatusMessage regular 的圖片無法顯示（image-off 圖示＋「Image unavailable」、不放按鈕），不出 minimap。viewer 底固定是暗的，圖示方塊改用 glass（`border-stage-line bg-stage-control`），圖示與文字用 `text-stage-overlay-text`，兩種主題都讀得到；同樣維持中性。</Rule>
 <Rule component="image-viewer" id="zoom-controls">左下是 zoom-controls。</Rule>
 </ul>
 

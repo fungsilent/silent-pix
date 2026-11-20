@@ -27,7 +27,7 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 
 <ul class="ds-rules">
 <Rule component="badge" id="frame">外框固定 `h-5 rounded-md px-2 text-[0.72rem] font-medium`，底色用該 tone 的 soft 染色（`bg-*-soft text-*-fg`）；neutral 用 `bg-line text-fg-secondary`。</Rule>
-<Rule component="badge" id="tones">Tone 只表達語意：neutral 未送出／未儲存、info 進行中、success 完成、warning 降級或封存、danger 失敗。語意色只用在 badge、issue、flag，其餘 chrome 維持中性。</Rule>
+<Rule component="badge" id="tones">Tone 只表達語意：neutral 未送出／未儲存、info 進行中、success 完成、warning 降級或封存、danger 失敗。語意色只用在狀態與錯誤標示：badge、狀態點與狀態 chip、flag、Issue chip，以及錯誤的圖示、Callout 底色與欄位左紅邊；說明文字與其餘 chrome 維持中性。</Rule>
 <Rule component="badge" id="cap-trim">文字以 cap 高度裁切上下留白（`[text-box:trim-both_cap_alphabetic]`），短字在固定高度膠囊裡光學置中；與 Image count 共用同一手法。</Rule>
 <Rule component="badge" id="loading">值還在載入時保留 `h-5` 空殼並以 Skeleton mask 蓋住，不顯示任何 tone，也不冒充 Draft。</Rule>
 </ul>

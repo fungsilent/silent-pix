@@ -49,7 +49,7 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 <Rules component="field-hint">
 
 <ul class="ds-rules">
-<Rule component="field-hint" id="tones">只有 muted 與 danger 兩種 tone，`text-xs`。muted 單行 `truncate`、不加 icon；danger 前面加 12px 警告三角（與 Issue chip 同一個圖示），文字 `leading-4` 可換行不截斷，三角對齊第一行。</Rule>
+<Rule component="field-hint" id="tones">只有 muted 與 danger 兩種 tone，`text-xs`。muted 單行 `truncate`、不加 icon；danger 前面加 12px `text-danger-fg` 警告三角（與 Issue chip 同一個圖示），文字維持 `text-fg`、不轉紅（同 Callout：顏色交給圖示，不交給文字），`leading-4` 可換行不截斷，三角對齊第一行。</Rule>
 <Rule component="field-hint" id="field-error">欄位錯誤在欄位下方放 danger hint，輸入框只加左側紅邊（見 Text field 的 error 規則）；沒有輸入框的置中引導區（例如整個視窗可拖放的開啟頁）只放 hint；拖放區的錯誤留在框內（見 File drop）。Dialog 的操作失敗與讀檔失敗這類要說明原因的錯誤不用 hint，用 Callout。</Rule>
 </ul>
 

@@ -125,11 +125,11 @@ export function TaskImage(props: TaskImageProps) {
                                         fallback={<span class='text-[11px]'>PNG · JPEG</span>}
                                     >
                                         {message => (
-                                            <span class='flex items-center gap-1 text-[11px] text-danger-fg'>
+                                            <span class='flex items-center gap-1 text-[11px] text-fg'>
                                                 <TriangleAlert
                                                     size={11}
                                                     strokeWidth={2}
-                                                    class='shrink-0'
+                                                    class='shrink-0 text-danger-fg'
                                                 />
                                                 {message()}
                                             </span>

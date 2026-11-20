@@ -271,7 +271,7 @@ Task 詳細面板最上面的 identity 區：ID、名稱（inline 改名）、�
 <Rule component="task-info" id="rows">Task 詳細面板最上方的 identity 區，不帶區塊標題；列由上而下固定為 ID、Name、Status、（失敗原因）、Created、刪除鈕。標籤欄寬 74px，值欄可截斷；ID 用 mono 11px，Created 用 `fg-secondary`。</Rule>
 <Rule component="task-info" id="modes">可編輯模式（Generate）可改名與刪除；唯讀模式（Compare）名稱欄一律停用、不顯示鉛筆，也沒有刪除鈕。</Rule>
 <Rule component="task-info" id="rename">改名用 inline Editable：點名稱或鉛筆進入編輯，此時名稱 preview 與鉛筆一起消失，只剩帶 accent 外框與 ring 的輸入框；送出時去除前後空白，空字串代表清除名稱。改名送出中、draft、loading 時名稱欄停用。</Rule>
-<Rule component="task-info" id="failure">失敗原因只在 Failed 狀態出現，插在 Status 與 Created 之間：左側 2px 半透明 danger 邊線，「Failure reason」標籤前加 12px danger 警告三角，先用 danger 文字寫一句依錯誤代碼翻譯的原因（未知代碼回退成通用文案），可展開的 Details 用 muted mono 顯示錯誤代碼與最高 160px、可捲動的原始訊息；展開時 chevron 轉 90°。沒有錯誤代碼也沒有原始訊息時，原因用通用文案，Details 內只有一行「No failure reason was recorded.」。</Rule>
+<Rule component="task-info" id="failure">失敗原因只在 Failed 狀態出現，插在 Status 與 Created 之間：左側 2px 半透明 danger 邊線，「Failure reason」標籤前加 12px danger 警告三角，先用 `text-fg` 寫一句依錯誤代碼翻譯的原因（紅色只在邊線、三角與 Failed badge）（未知代碼回退成通用文案），可展開的 Details 用 muted mono 顯示錯誤代碼與最高 160px、可捲動的原始訊息；展開時 chevron 轉 90°。沒有錯誤代碼也沒有原始訊息時，原因用通用文案，Details 內只有一行「No failure reason was recorded.」。</Rule>
 <Rule component="task-info" id="draft">Draft（尚未送出的新 task）的 Status 用 neutral Badge「Draft」，ID 留白、Created 顯示 `-`，沒有刪除鈕。</Rule>
 <Rule component="task-info" id="loading">Loading（cold）逐格蓋 skeleton，ID 用空白字元、Status 用空 Badge 撐住行高，不顯示假資料。</Rule>
 <Rule component="task-info" id="delete">「Delete task」是全寬 danger soft 按鈕，按下開啟刪除確認 dialog。</Rule>
@@ -302,7 +302,7 @@ Task 詳細面板的 Image 區：img2img 的參考圖與 denoise。
 <Rule component="reference-image" id="source">來源列只在參考圖來自既有 task 的輸出時出現：可編輯模式是帶「回到來源」圖示的外框按鈕，點了選取來源 task；唯讀模式是純文字。直接上傳的檔案沒有來源列。</Rule>
 <Rule component="reference-image" id="denoise">Denoise 只在有參考圖時出現：Slider 與 64px 寬的窄數字欄並排（數字欄不顯示標籤），範圍 0.05–1、step 0.05；唯讀模式兩者都停用。</Rule>
 <Rule component="reference-image" id="empty">沒有參考圖時，可編輯模式顯示虛線 drop zone（hover 換底色，拖曳中轉 accent 外框、accent 淡底與 accent 文字）與虛線外框的「Search image library」；唯讀模式顯示 `bg-active` 虛線框與「No reference image.」。</Rule>
-<Rule component="reference-image" id="file-types">只接受 PNG 與 JPEG，型別以內容判斷；拒收時在區塊底部加一行 danger 提示：型別不符為「Use a PNG or JPEG image.」，其他為「That file cannot be used as a reference image.」。</Rule>
+<Rule component="reference-image" id="file-types">只接受 PNG 與 JPEG，型別以內容判斷；拒收時在區塊底部加一行提示（11px `text-danger-fg` 警告三角，文字 `text-fg`）：型別不符為「Use a PNG or JPEG image.」，其他為「That file cannot be used as a reference image.」。</Rule>
 <Rule component="reference-image" id="loading">Loading 時逐塊蓋 skeleton（圖框內整塊覆蓋），整段不可互動。</Rule>
 </ul>
 

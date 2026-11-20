@@ -21,7 +21,7 @@ type ZoomStageProps = {
     selectedIndex: number
     zoom: Zoom
     onClick: (event: MouseEvent) => void
-    stageDanger?: boolean
+    onBackdrop?: boolean
 }
 
 export function ZoomStage(props: ZoomStageProps) {
@@ -84,7 +84,7 @@ export function ZoomStage(props: ZoomStageProps) {
             <Show when={image() && failedUrls().has(image()!.url)}>
                 <div class='absolute inset-0 grid place-items-center px-4'>
                     <StatusMessage
-                        kind='content-error'
+                        kind='empty'
                         message={t('image.unavailable')}
                         icon={(
                             <ImageOff
@@ -92,8 +92,8 @@ export function ZoomStage(props: ZoomStageProps) {
                                 strokeWidth={1.5}
                             />
                         )}
-                        classes={props.stageDanger
-                            ? { icon: 'text-stage-danger', message: 'text-stage-danger' }
+                        classes={props.onBackdrop
+                            ? { icon: 'border-stage-line bg-stage-control text-stage-overlay-text', message: 'text-stage-overlay-text' }
                             : {}}
                     />
                 </div>

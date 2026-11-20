@@ -283,7 +283,7 @@ function ServiceStatus() {
                     <div class='flex h-8 items-center gap-2 px-2 text-xs'>
                         <span class={cn('size-1.5 shrink-0 rounded-full', dotClass[service.state])} />
                         <span class='text-fg-secondary'>{service.name}</span>
-                        <span class={cn('ml-auto', service.state === 'down' ? 'text-danger-fg' : 'text-fg-muted')}>
+                        <span class='ml-auto text-fg-muted'>
                             {t(`header.status.${service.state}`)}
                         </span>
                     </div>

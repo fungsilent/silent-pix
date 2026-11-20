@@ -37,12 +37,6 @@ type StatusMessageProps = {
         retryLabel?: string
         onRetry: () => void
     }
-    | {
-        kind: 'content-error'
-        message: string
-        /* 依內容選，例如圖片用 ImageOff；沒給就是警告三角 */
-        icon?: JSX.Element
-    }
 )
 
 export function StatusMessage(props: StatusMessageProps) {
@@ -52,17 +46,7 @@ export function StatusMessage(props: StatusMessageProps) {
         if (compact()) {
             return undefined
         }
-        if (props.kind === 'empty') {
-            return props.icon
-        }
-        return props.kind === 'content-error'
-            ? props.icon ?? (
-                <TriangleAlert
-                    size={21}
-                    strokeWidth={1.5}
-                />
-            )
-            : undefined
+        return props.kind === 'empty' ? props.icon : undefined
     }
     const action = (): StatusMessageAction | undefined => {
         if (props.kind === 'empty') {
@@ -99,23 +83,13 @@ export function StatusMessage(props: StatusMessageProps) {
                 {value => (
                     <div
                         class={cn(
-                            'grid size-12 place-items-center rounded-xl border',
-                            props.kind === 'content-error'
-                                ? 'border-danger/25 bg-danger-soft text-danger-fg'
-                                : 'border-line-subtle bg-elevated text-fg-muted',
+                            'grid size-12 place-items-center rounded-xl border border-line-subtle bg-elevated text-fg-muted',
                             props.classes?.icon,
                         )}
                     >
                         {value()}
                     </div>
                 )}
-            </Show>
-            <Show when={compact() && props.kind === 'content-error'}>
-                <TriangleAlert
-                    size={14}
-                    strokeWidth={1.8}
-                    class='text-danger-fg'
-                />
             </Show>
             <div class='flex flex-col gap-1'>
                 <Show when={title()}>
@@ -127,13 +101,20 @@ export function StatusMessage(props: StatusMessageProps) {
                     {value => (
                         <p
                             class={cn(
-                                'm-0 leading-relaxed',
+                                'm-0 leading-relaxed text-fg-muted',
                                 compact() ? 'text-[11px]' : 'text-xs',
-                                props.kind === 'content-error' ? 'text-danger-fg' : 'text-fg-muted',
+                                props.kind === 'load-error' && cn('flex items-start text-left', compact() ? 'gap-1' : 'gap-1.5'),
                                 props.classes?.message,
                             )}
                         >
-                            {value()}
+                            <Show when={props.kind === 'load-error'}>
+                                <TriangleAlert
+                                    size={compact() ? 11 : 12}
+                                    strokeWidth={2}
+                                    class={cn('shrink-0 text-danger-fg', compact() ? 'mt-[3px]' : 'mt-1')}
+                                />
+                            </Show>
+                            <span class='min-w-0'>{value()}</span>
                         </p>
                     )}
                 </Show>

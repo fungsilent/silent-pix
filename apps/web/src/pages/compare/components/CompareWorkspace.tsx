@@ -1,4 +1,4 @@
-import { Expand, Eye, EyeOff, ImageOff, ImagePlus, ListX, X } from 'lucide-solid'
+import { Eye, EyeOff, ImageOff, ImagePlus, ListX, X } from 'lucide-solid'
 import { createEffect, createMemo, createSignal, For, onCleanup, onMount, Show } from 'solid-js'
 
 import { resolveImageUrl } from '#/api/image'
@@ -7,10 +7,8 @@ import { Button } from '#/components/base/Button'
 import { CenteredText } from '#/components/base/CenteredText'
 import { StatusMessage } from '#/components/base/StatusMessage'
 import { ImagePickerDialog } from '#/components/image/ImagePickerDialog'
-import { ImageViewer } from '#/components/viewer/ImageViewer'
 import { ZoomControls } from '#/components/viewer/ZoomControls'
 import { ZoomStage } from '#/components/viewer/ZoomStage'
-import { originLabel } from '#/features/image/image.label'
 import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
 import { createImageZoom } from '#/lib/imageZoom'
@@ -23,7 +21,6 @@ import type { CompareEntry } from '#/store/compare'
 
 export function CompareWorkspace() {
     const [pickerOpen, setPickerOpen] = createSignal(false)
-    const [expanded, setExpanded] = createSignal(false)
     const [failedImageIds, setFailedImageIds] = createSignal(new Set<string>())
     const zoom = createImageZoom()
     const entries = createMemo(() => compareStore.visibleCompare())
@@ -115,12 +112,6 @@ export function CompareWorkspace() {
         setPickerOpen(false)
     }
 
-    const selectViewerImage = (index: number) => {
-        const entry = entries()[index]
-        if (entry) {
-            compareStore.selectCompare(entry.image.id)
-        }
-    }
 
     return (
         <section
@@ -137,6 +128,7 @@ export function CompareWorkspace() {
                     <Bar.Actions classes={{ root: 'shrink-0' }}>
                         <Show when={hiddenCount() > 0 && entries().length > 0}>
                             <Button
+                                variant='ghost'
                                 title={t('common.showAll')}
                                 classes={{ root: 'size-7 shrink-0 p-0' }}
                                 onClick={compareStore.showAllCompare}
@@ -148,6 +140,7 @@ export function CompareWorkspace() {
                             </Button>
                         </Show>
                         <Button
+                            variant='ghost'
                             title={t('compare.clearList')}
                             classes={{ root: 'size-7 shrink-0 p-0' }}
                             onClick={compareStore.clearCompare}
@@ -190,17 +183,6 @@ export function CompareWorkspace() {
                                 </CenteredText>
                             )}
                         </Show>
-                        <Button
-                            variant='ghost'
-                            title={t('image.viewFull')}
-                            classes={{ root: 'absolute right-3 top-3 z-10 size-8 rounded-md border border-stage-line bg-stage-control p-0 text-on-stage hover:bg-stage-control-hover backdrop-blur-[8px] hover:text-on-stage' }}
-                            onClick={() => setExpanded(true)}
-                        >
-                            <Expand
-                                size={15}
-                                strokeWidth={1.8}
-                            />
-                        </Button>
                         <ZoomControls zoom={zoom} />
                     </div>
                 </Show>
@@ -213,29 +195,6 @@ export function CompareWorkspace() {
                     onRemove={compareStore.removeCompare}
                     onSelect={compareStore.selectCompare}
                     onToggleHidden={compareStore.toggleCompareHidden}
-                />
-            </Show>
-
-            <Show when={expanded() && entries().length > 0}>
-                <ImageViewer
-                    images={images()}
-                    selectedIndex={selectedIndex()}
-                    header={(
-                        <CurrentCompareImage
-                            entry={selectedEntry()!}
-                            position={position(selectedEntry()!.image.id)}
-                        />
-                    )}
-                    thumbnailLabel={(_, index) => {
-                        const entry = entries()[index]
-                        return entry ? originLabel(entry.usage) ?? entry.image.id.slice(0, 8) : null
-                    }}
-                    thumbnailBadge={(_, index) => {
-                        const entry = entries()[index]
-                        return entry ? position(entry.image.id) : null
-                    }}
-                    onClose={() => setExpanded(false)}
-                    onSelect={selectViewerImage}
                 />
             </Show>
 
@@ -294,6 +253,12 @@ function AllHiddenState(props: AllHiddenStateProps) {
                 title={t('compare.allHidden')}
                 action={{
                     label: t('common.showAll'),
+                    icon: (
+                        <Eye
+                            size={14}
+                            strokeWidth={1.8}
+                        />
+                    ),
                     onClick: props.onShowAll,
                 }}
             />
@@ -382,29 +347,6 @@ function CompareThumbnailStrip(props: CompareThumbnailStripProps) {
                     )
                 }}
             </For>
-        </div>
-    )
-}
-
-type CurrentCompareImageProps = {
-    entry: CompareEntry
-    position: number
-}
-
-function CurrentCompareImage(props: CurrentCompareImageProps) {
-    return (
-        <div class='absolute left-3 top-3 z-10 flex max-w-[calc(100%-24px)] items-center gap-2 rounded-md border border-stage-line bg-stage-control px-2.5 py-1 text-xs text-on-stage backdrop-blur-[8px]'>
-            <CenteredText
-                classes={{
-                    root: 'h-4 min-w-4 shrink-0 rounded bg-accent px-1 text-[10px] font-bold text-on-stage',
-                }}
-            >
-                {props.position}
-            </CenteredText>
-            <span class='truncate'>{originLabel(props.entry.usage) ?? props.entry.image.id.slice(0, 8)}</span>
-            <span class='shrink-0 text-on-stage/75 tabular-nums'>
-                · {props.entry.image.width} × {props.entry.image.height}
-            </span>
         </div>
     )
 }
