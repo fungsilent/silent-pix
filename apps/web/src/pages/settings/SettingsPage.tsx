@@ -2,12 +2,13 @@ import { useQueryClient } from '@tanstack/solid-query'
 import { createSignal, Show } from 'solid-js'
 
 import { probeConnection } from '#/api/connection'
-import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
 import { Dialog } from '#/components/base/Dialog'
 import { FieldHint } from '#/components/base/FieldHint'
+import { Line } from '#/components/base/Line'
 import { SegmentGroup } from '#/components/base/SegmentGroup'
 import { StatusMessage } from '#/components/base/StatusMessage'
+import { DetailSection } from '#/components/detail'
 import { Select, Text } from '#/components/field'
 import { cn } from '#/lib/cn'
 import { localeStore, t } from '#/lib/i18n'
@@ -132,26 +133,17 @@ export function SettingsPage() {
 
     return (
         <section class='flex min-h-0 flex-1 flex-col'>
-            <Bar.Root classes={{ root: 'shrink-0 border-b border-line-subtle' }}>
-                <Bar.Group>
-                    <Bar.Title>{t('common.settings')}</Bar.Title>
-                </Bar.Group>
-            </Bar.Root>
-
-            <div class='scrollbar-thin min-h-0 flex-1 overflow-y-auto px-4 py-[18px]'>
-                <div class='mx-auto flex w-full max-w-[520px] flex-col gap-3.5'>
-                    <SettingCard
-                        title={t('settings.appearance')}
-                        description={t('settings.appearanceDescription')}
-                    >
-                        <div class='border-t border-line-subtle px-3.5 py-3'>
-                            <Select
-                                label={t('settings.language')}
-                                options={languageOptions}
-                                value={localeStore.state.locale}
-                                onChange={localeStore.setLocale}
-                            />
-                        </div>
+            <div class='scrollbar-thin min-h-0 flex-1 overflow-y-auto bg-surface px-4 pt-6 pb-5'>
+                <div class='mx-auto flex w-full max-w-[640px] flex-col gap-3'>
+                    <h2 class='m-0 mb-2 text-base font-semibold leading-6 text-fg'>{t('common.settings')}</h2>
+                    <DetailSection title={t('settings.appearance')}>
+                        <Select
+                            label={t('settings.language')}
+                            options={languageOptions}
+                            value={localeStore.state.locale}
+                            onChange={localeStore.setLocale}
+                            classes={{ root: 'flex-row items-center justify-between gap-4', trigger: 'w-[200px]' }}
+                        />
                         <SettingRow
                             label={t('settings.theme')}
                             hint={t('settings.themeHint')}
@@ -162,14 +154,9 @@ export function SettingsPage() {
                                 onChange={themeStore.setTheme}
                             />
                         </SettingRow>
-                    </SettingCard>
-                    <DevSettings
-                        mode={() => devStore.state.mode}
-                        loadingPreview={() => devStore.state.loadingPreview}
-                        onModeChange={devStore.setMode}
-                        onLoadingPreviewChange={devStore.setLoadingPreview}
-                    />
-                    {platform.kind === 'desktop' && (
+                    </DetailSection>
+                    {platform.kind === 'desktop' && (<>
+                        <Line />
                         <ConnectionSettings
                             value={serverUrlInput}
                             connectionStatus={connectionStatus}
@@ -187,7 +174,14 @@ export function SettingsPage() {
                             onSave={() => void saveConnection()}
                             onRetrySettings={() => window.location.reload()}
                         />
-                    )}
+                    </>)}
+                    <Line />
+                    <DevSettings
+                        mode={() => devStore.state.mode}
+                        loadingPreview={() => devStore.state.loadingPreview}
+                        onModeChange={devStore.setMode}
+                        onLoadingPreviewChange={devStore.setLoadingPreview}
+                    />
                 </div>
             </div>
             <ServerSaveDialog
@@ -268,25 +262,19 @@ type ConnectionSettingsProps = {
 
 function ConnectionSettings(props: ConnectionSettingsProps) {
     return (
-        <SettingCard
-            title={t('settings.connection')}
-            tag='Desktop'
-            description={t('settings.connectionDescription')}
-        >
+        <DetailSection title={t('settings.connection')}>
             <Show when={props.settingsError}>
                 {message => (
-                    <div class='border-t border-line-subtle px-3.5'>
-                        <StatusMessage
-                            kind='load-error'
-                            size='compact'
-                            message={t('settings.readSettingsError', { message: message() })}
-                            classes={{ root: 'py-3' }}
-                            onRetry={props.onRetrySettings}
-                        />
-                    </div>
+                    <StatusMessage
+                        kind='load-error'
+                        size='compact'
+                        message={t('settings.readSettingsError', { message: message() })}
+                        classes={{ root: 'py-2' }}
+                        onRetry={props.onRetrySettings}
+                    />
                 )}
             </Show>
-            <div class='flex flex-col gap-2 border-t border-line-subtle px-3.5 py-3'>
+            <div class='flex flex-col gap-2'>
                 <Text
                     label={t('settings.localServerUrl')}
                     value={props.value()}
@@ -320,7 +308,7 @@ function ConnectionSettings(props: ConnectionSettingsProps) {
                     <ConnectionState status={props.connectionStatus()} />
                 </div>
             </div>
-        </SettingCard>
+        </DetailSection>
     )
 }
 
@@ -340,36 +328,6 @@ function ConnectionState(props: { status: ConnectionStatus | undefined }) {
     )
 }
 
-/* MARK: SettingCard */
-
-type SettingCardProps = {
-    title: string
-    tag?: string
-    description: string
-    children: JSX.Element
-}
-
-function SettingCard(props: SettingCardProps) {
-    return (
-        <section class='overflow-hidden rounded-lg border border-line-subtle bg-surface'>
-            <div class='flex flex-col gap-[3px] px-3.5 py-3'>
-                <div class='flex items-center gap-2'>
-                    <h3 class='m-0 text-[13px] font-semibold leading-none text-fg'>{props.title}</h3>
-                    <Show when={props.tag}>
-                        {tag => (
-                            <span class='rounded bg-elevated px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.04em] text-fg-muted'>
-                                {tag()}
-                            </span>
-                        )}
-                    </Show>
-                </div>
-                <p class='m-0 text-[11.5px] leading-4 text-fg-muted'>{props.description}</p>
-            </div>
-            {props.children}
-        </section>
-    )
-}
-
 /* MARK: SettingRow */
 
 type SettingRowProps = {
@@ -380,9 +338,9 @@ type SettingRowProps = {
 
 function SettingRow(props: SettingRowProps) {
     return (
-        <div class='flex min-h-14 items-center justify-between gap-4 border-t border-line-subtle px-3.5 py-2.5'>
+        <div class='flex items-center justify-between gap-4'>
             <div class='flex min-w-0 flex-col gap-[3px]'>
-                <span class='text-[12.5px] leading-none text-fg-secondary'>{props.label}</span>
+                <span class='text-xs leading-none text-fg-muted'>{props.label}</span>
                 <span class='text-[11px] leading-4 text-fg-muted'>{props.hint}</span>
             </div>
             {props.children}
@@ -411,10 +369,7 @@ const previewOptions = [
 
 function DevSettings(props: DevSettingsProps) {
     return (
-        <SettingCard
-            title={t('settings.dev.title')}
-            description={t('settings.dev.description')}
-        >
+        <DetailSection title={t('settings.dev.title')}>
             <SettingRow
                 label={t('settings.dev.mode')}
                 hint={t('settings.dev.modeHint')}
@@ -438,6 +393,6 @@ function DevSettings(props: DevSettingsProps) {
                     />
                 </SettingRow>
             </Show>
-        </SettingCard>
+        </DetailSection>
     )
 }

@@ -12,23 +12,25 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 import Screen from '@silent-pix/blueprint/components/Screen.astro'
 import Slot from '@silent-pix/blueprint/components/Slot.astro'
 import Fixed from '@silent-pix/blueprint/components/Fixed.astro'
+import Switch from '@silent-pix/blueprint/components/Switch.astro'
+import Case from '@silent-pix/blueprint/components/Case.astro'
 
-## Setting card
+## Setting section
 
-設定頁的卡片：標題＋說明，下方以分隔線切出欄位區或設定列。
+設定頁的區段：小標題，下面接設定列或欄位區。
 
-<Gallery min="560px">
-<State component="setting-card" state="appearance" label="Appearance · language + theme" frame="w-full max-w-[520px]" />
+<Gallery min="680px">
+<State component="setting-section" state="appearance" label="Appearance · language + theme" frame="w-full max-w-[640px] bg-surface px-4 pt-4" />
 </Gallery>
 
-<Rules component="setting-card" part="card">
+<Rules component="setting-section" part="section">
 
 <ul class="ds-rules">
-<Rule component="setting-card" id="layout">Settings 頁的單位；頁面內容單欄、最寬 520px，卡片間距 `gap-3.5`。卡片 `rounded-lg border border-line-subtle bg-surface`。</Rule>
-<Rule component="setting-card" id="appearance">Appearance 卡兩列：Language（Select，選擇存在這台裝置）與 Theme（Segment group：Dark／Light，切換立即生效）。主題只在這裡切換，Header 不放主題鈕。</Rule>
-<Rule component="setting-card" id="header">卡頭：標題 13px semibold，可接一個 `bg-elevated` 底的大寫小 tag（目前只有 Connection 帶「Desktop」）；下方一行 11.5px muted 說明。卡頭以下每一區都以 `border-t border-line-subtle px-3.5` 起頭。</Rule>
-<Rule component="setting-card" id="blocks">區塊兩種：欄位區（`py-3`，放 L0 Select／Text 等欄位與說明）與設定列（`min-h-14 justify-between`，左側標題＋提示、右側控制項）。</Rule>
-<Rule component="setting-card" id="row-control">設定列的控制項是 segment group：`h-7` `bg-elevated` 容器，選中項用 L0 selected 樣式，未選中為 ghost `text-fg-muted`。</Rule>
+<Rule component="setting-section" id="layout">Settings 頁的單位，版面照抄 Detail layout：不用卡片框，直接放在 `bg-surface` 上；區段 `flex flex-col gap-3`，區段之間只插一條 Line（`my-1 border-t border-line-subtle`），沒有可接的下一個區段時不畫線。內容單欄、最寬 640px，外層 `gap-3`。</Rule>
+<Rule component="setting-section" id="appearance">Appearance 區兩列：Language（Select，寬 200px，選擇存在這台裝置）與 Theme（Segment group：Dark／Light，切換立即生效）。主題只在這裡切換，Header 不放主題鈕。</Rule>
+<Rule component="setting-section" id="header">區段只有標題、沒有說明，照抄 Detail 的 section 標題：`text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-title`，外包 `py-1`；不加平台 tag（Connection 只在 Desktop 出現，不需要再標示）。需要說明的內容寫在個別設定列的提示裡。</Rule>
+<Rule component="setting-section" id="blocks">區塊兩種：設定列（`justify-between`，左側 label＋提示、右側控制項，控制項維持自身寬度靠右）是預設；欄位區（欄位撐滿整欄）只給需要寬度的輸入，例如 Connection 的 URL。label 照抄 Detail row 的 `text-xs leading-none text-fg-muted`，提示 `text-[11px] leading-4 text-fg-muted`。區段內不畫分隔線，列與列只以 `gap-3` 分開。唯一和 Detail 不同的是列不用 74px 固定標籤欄：設定項多半帶提示，標籤欄放不下，所以 label 在左、控制項靠右。</Rule>
+<Rule component="setting-section" id="row-control">設定列的控制項是 segment group（`h-7` `bg-elevated` 容器，選中項用 L0 selected 樣式，未選中為 ghost `text-fg-muted`）或固定寬度的 Select；同一區段的控制項右緣對齊。</Rule>
 </ul>
 
 </Rules>
@@ -37,16 +39,16 @@ import Fixed from '@silent-pix/blueprint/components/Fixed.astro'
 
 開發用設定：模式與載入預覽。
 
-<Gallery min="560px">
-<State component="setting-card" state="dev-normal" label="Dev Settings · Normal" frame="w-full max-w-[520px]" />
-<State component="setting-card" state="dev-preview-off" label="Dev Settings · Dev · preview off" frame="w-full max-w-[520px]" />
-<State component="setting-card" state="dev-preview-on" label="Dev Settings · Dev · preview on" frame="w-full max-w-[520px]" />
+<Gallery min="680px">
+<State component="setting-section" state="dev-normal" label="Dev Settings · Normal" frame="w-full max-w-[640px] bg-surface px-4 pt-4" />
+<State component="setting-section" state="dev-preview-off" label="Dev Settings · Dev · preview off" frame="w-full max-w-[640px] bg-surface px-4 pt-4" />
+<State component="setting-section" state="dev-preview-on" label="Dev Settings · Dev · preview on" frame="w-full max-w-[640px] bg-surface px-4 pt-4" />
 </Gallery>
 
-<Rules component="setting-card" part="dev">
+<Rules component="setting-section" part="dev">
 
 <ul class="ds-rules">
-<Rule component="setting-card" id="dev-preview-row">Dev Settings 的「Loading preview」列只在 mode 為 Dev 時出現；切回 Normal 會同時關掉 preview。</Rule>
+<Rule component="setting-section" id="dev-preview-row">Dev Settings 的「Loading preview」列只在 mode 為 Dev 時出現、緊接在 Mode 下方，不另外縮排；切回 Normal 會同時關掉 preview。</Rule>
 </ul>
 
 </Rules>
@@ -55,24 +57,24 @@ import Fixed from '@silent-pix/blueprint/components/Fixed.astro'
 
 Desktop 才有的 Server 連線設定：輸入、測試、儲存。
 
-<Gallery min="560px">
-<State component="setting-card" state="connection-unset" label="Connection · not configured" frame="w-full max-w-[520px]" />
-<State component="setting-card" state="connection-read-error" label="Connection · settings read failed" frame="w-full max-w-[520px]" />
-<State component="setting-card" state="connection-testing" label="Connection · testing" frame="w-full max-w-[520px]" />
-<State component="setting-card" state="connection-connected" label="Connection · connected" frame="w-full max-w-[520px]" />
-<State component="setting-card" state="connection-failed" label="Connection · check failed" frame="w-full max-w-[520px]" />
-<State component="setting-card" state="connection-invalid" label="Connection · invalid URL" frame="w-full max-w-[520px]" />
-<State component="setting-card" state="connection-saving" label="Connection · saving" frame="w-full max-w-[520px]" />
+<Gallery min="680px">
+<State component="setting-section" state="connection-unset" label="Connection · not configured" frame="w-full max-w-[640px] bg-surface px-4 pt-4" />
+<State component="setting-section" state="connection-read-error" label="Connection · settings read failed" frame="w-full max-w-[640px] bg-surface px-4 pt-4" />
+<State component="setting-section" state="connection-testing" label="Connection · testing" frame="w-full max-w-[640px] bg-surface px-4 pt-4" />
+<State component="setting-section" state="connection-connected" label="Connection · connected" frame="w-full max-w-[640px] bg-surface px-4 pt-4" />
+<State component="setting-section" state="connection-failed" label="Connection · check failed" frame="w-full max-w-[640px] bg-surface px-4 pt-4" />
+<State component="setting-section" state="connection-invalid" label="Connection · invalid URL" frame="w-full max-w-[640px] bg-surface px-4 pt-4" />
+<State component="setting-section" state="connection-saving" label="Connection · saving" frame="w-full max-w-[640px] bg-surface px-4 pt-4" />
 </Gallery>
 
-<Rules component="setting-card" part="connection">
+<Rules component="setting-section" part="connection">
 
 <ul class="ds-rules">
-<Rule component="setting-card" id="connection-desktop-only">Connection 卡只在 Desktop 平台出現。已有儲存的 URL 時主按鈕是「Save and reload」，否則「Save and connect」；改到不同 Server 時先開確認 dialog。</Rule>
-<Rule component="setting-card" id="test-result">測試結果只有 Connected／Connection check failed 兩種，是連線狀態不是錯誤：留在按鈕右側，用 1.5 的圓點加語意 fg 色文字，不用 badge；尚未測試時不顯示，修改輸入即清除。</Rule>
-<Rule component="setting-card" id="invalid">URL 不合法時，danger Field hint 取代欄位下方的說明文字，輸入框加左側紅邊（同 Text field 的 error），不另加一行。</Rule>
-<Rule component="setting-card" id="read-error">設定讀取失敗時在欄位區上方多一區，用 compact StatusMessage 的 load-error：一句 muted 訊息＋預設 Retry，不用紅色。</Rule>
-<Rule component="setting-card" id="button-states">URL 為空、測試中或儲存中兩顆按鈕都用 L0 Button 停用樣式；進行中的那顆依 L0 pending 換成「Testing...」／「Saving...」。</Rule>
+<Rule component="setting-section" id="connection-desktop-only">Connection 區只在 Desktop 平台出現。已有儲存的 URL 時主按鈕是「Save and reload」，否則「Save and connect」；改到不同 Server 時先開確認 dialog。</Rule>
+<Rule component="setting-section" id="test-result">測試結果只有 Connected／Connection check failed 兩種，是連線狀態不是錯誤：留在按鈕右側，用 1.5 的圓點加語意 fg 色文字，不用 badge；尚未測試時不顯示，修改輸入即清除。</Rule>
+<Rule component="setting-section" id="invalid">URL 不合法時，danger Field hint 取代欄位下方的說明文字，輸入框加左側紅邊（同 Text field 的 error），不另加一行。</Rule>
+<Rule component="setting-section" id="read-error">設定讀取失敗時在欄位區上方多一區，用 compact StatusMessage 的 load-error：一句 muted 訊息＋預設 Retry，不用紅色。</Rule>
+<Rule component="setting-section" id="button-states">URL 為空、測試中或儲存中兩顆按鈕都用 L0 Button 停用樣式；進行中的那顆依 L0 pending 換成「Testing...」／「Saving...」。</Rule>
 </ul>
 
 </Rules>
@@ -102,14 +104,19 @@ Desktop 才有的 Server 連線設定：輸入、測試、儲存。
 <Screen>
     <Slot name="header" component="app-header" states="settings,no-endpoint" />
     <section class="flex min-h-0 flex-1 flex-col">
-        <div class="flex h-12 shrink-0 items-center gap-3 border-b border-line-subtle bg-surface px-4">
-            <h2 class="m-0 min-w-0 truncate text-[13px] font-semibold leading-none text-fg">Settings</h2>
-        </div>
-        <div class="scrollbar-thin min-h-0 flex-1 overflow-y-auto px-4 py-[18px]">
-            <div class="mx-auto flex w-full max-w-[520px] flex-col gap-3.5">
-                <Fixed component="setting-card" state="appearance" />
-                <Slot name="dev" component="setting-card" states="dev-normal,dev-preview-off,dev-preview-on" />
-                <Slot name="connection" component="setting-card" states="connection-connected,connection-unset,connection-testing,connection-failed,connection-invalid,connection-saving,connection-read-error" empty="browser · no Connection card" />
+        <div class="scrollbar-thin min-h-0 flex-1 overflow-y-auto bg-surface px-4 pb-5 pt-6">
+            <div class="mx-auto flex w-full max-w-[640px] flex-col gap-3">
+                <h2 class="m-0 mb-2 text-base font-semibold leading-6 text-fg">Settings</h2>
+                <Fixed component="setting-section" state="appearance" />
+                <Switch name="platform">
+                    <Case state="desktop" label="Desktop">
+                        <div class="my-1 border-t border-line-subtle"></div>
+                        <Slot name="connection" component="setting-section" states="connection-connected,connection-unset,connection-testing,connection-failed,connection-invalid,connection-saving,connection-read-error" />
+                    </Case>
+                    <Case state="browser" label="Browser · no Connection section" />
+                </Switch>
+                <div class="my-1 border-t border-line-subtle"></div>
+                <Slot name="dev" component="setting-section" states="dev-normal,dev-preview-off,dev-preview-on" />
             </div>
         </div>
     </section>
@@ -119,10 +126,10 @@ Desktop 才有的 Server 連線設定：輸入、測試、儲存。
 <Rules component="settings-screen">
 
 <ul class="ds-rules">
-<Rule component="settings-screen" id="title-bar">標題列高 48px、`border-b border-line-subtle`；內容區獨立捲動，`px-4 py-[18px]`，卡片間距 `gap-3.5`。</Rule>
-<Rule component="settings-screen" id="card-order">卡片順序固定：Appearance、Dev Settings、Connection（僅 Desktop）。</Rule>
-<Rule component="settings-screen" id="no-endpoint">Desktop 尚未設定 Server（no endpoint）時一律顯示本頁；Header 的模式選單停用、服務狀態隱藏，Tools 與 Settings 照常；Connection 卡為未設定狀態。</Rule>
-<Rule component="settings-screen" id="save-error">儲存設定失敗（例如 Desktop 設定寫不進去）時，錯誤進 Header 的 Issue chip（來源 Connection）；確認 dialog 已關閉，錯誤不放進卡片內。</Rule>
+<Rule component="settings-screen" id="title">不用頁面 Bar：本頁沒有操作，標題屬於內容。標題是內容欄的第一個元素（`text-base font-semibold`，與區段左緣對齊），隨內容一起捲動、不固定；位置由 Header 的 Settings 鈕選中狀態表示。內容區 `bg-surface`、獨立捲動，`px-4 pt-6 pb-5`；標題到第一個區段 20px。</Rule>
+<Rule component="settings-screen" id="section-order">區段順序固定：Appearance、Connection（僅 Desktop）、Dev Settings；Dev Settings 是開發用，始終放在最下面。</Rule>
+<Rule component="settings-screen" id="no-endpoint">Desktop 尚未設定 Server（no endpoint）時一律顯示本頁；Header 的模式選單停用、服務狀態隱藏，Tools 與 Settings 照常；Connection 區為未設定狀態。</Rule>
+<Rule component="settings-screen" id="save-error">儲存設定失敗（例如 Desktop 設定寫不進去）時，錯誤進 Header 的 Issue chip（來源 Connection）；確認 dialog 已關閉，錯誤不放進區段內。</Rule>
 <Rule component="settings-screen" id="server-switch">改到不同 Server 時先開確認 dialog，蓋住整個視窗（含 Header）；儲存後整個 app 重新載入。</Rule>
 </ul>
 

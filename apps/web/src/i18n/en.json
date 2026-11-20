@@ -49,7 +49,6 @@
         "saveAndReload": "Save and reload",
         "saveAndConnect": "Save and connect",
         "connection": "Connection",
-        "connectionDescription": "REST, WebSocket, and image requests all use this URL. Saving reloads the app.",
         "readSettingsError": "Could not read Desktop settings: {{message}}",
         "localServerUrl": "Local Server URL",
         "localServerUrlHint": "Use http://127.0.0.1:<port>. Saving reloads the app.",
@@ -62,7 +61,6 @@
         "saveSettingsFailed": "Could not save Desktop settings.",
         "dev": {
             "title": "Dev Settings",
-            "description": "Preview loading states for this session only. Real requests are untouched.",
             "mode": "Mode",
             "modeHint": "Dev reveals the preview controls. Reloading returns to Normal.",
             "normal": "Normal",
@@ -70,11 +68,10 @@
             "off": "Off",
             "on": "On",
             "loadingPreview": "Loading preview",
-            "loadingPreviewHint": "Show the existing loading skeletons."
+            "loadingPreviewHint": "Show the existing loading skeletons. Real requests are untouched."
         },
         "language": "Language",
         "appearance": "Appearance",
-        "appearanceDescription": "Language and theme for this device.",
         "theme": "Theme",
         "themeHint": "Applies immediately.",
         "themeDark": "Dark",
