@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createSignal, onCleanup, onMount, Show } from 'solid-js'
+import { createEffect, createMemo, createReaction, createSignal, onCleanup, onMount, Show } from 'solid-js'
 
 import {
     useDeleteDiscardedTasksMutation,
@@ -43,7 +43,8 @@ export function TaskBrowser() {
     const selectedDeleteMutation = useDeleteSelectedTasksMutation()
     const discardedDeleteMutation = useDeleteDiscardedTasksMutation()
     const [selectedTaskIds, setSelectedTaskIds] = createSignal<string[]>([])
-    const [viewerTaskId, setViewerTaskId] = createSignal<string>()
+    const [viewerOpen, setViewerOpen] = createSignal(false)
+    const closeViewerOnSelectionChange = createReaction(() => setViewerOpen(false))
     const [batchDeleteOpen, setBatchDeleteOpen] = createSignal(false)
     const [batchDeleteScope, setBatchDeleteScope] = createSignal<'selected' | 'discard'>('selected')
     const [selectionLimitWarning, setSelectionLimitWarning] = createSignal(false)
@@ -108,7 +109,7 @@ export function TaskBrowser() {
 
     /* Esc 取消勾選；有 overlay 或焦點在輸入框時不攔 */
     const handleKeyDown = (event: KeyboardEvent) => {
-        if (overlayStore.isActive() || viewerTaskId() || event.defaultPrevented || isEditableTarget(event.target)) {
+        if (overlayStore.isActive() || viewerOpen() || event.defaultPrevented || isEditableTarget(event.target)) {
             return
         }
 
@@ -127,7 +128,8 @@ export function TaskBrowser() {
 
     const openTask = (taskId: string) => {
         taskStore.selectTask(taskId)
-        setViewerTaskId(taskId)
+        closeViewerOnSelectionChange(() => taskStore.state.selectedTaskId)
+        setViewerOpen(true)
     }
 
     const applyDragSelection = (ids: string[]) => {
@@ -283,13 +285,13 @@ export function TaskBrowser() {
                     }}
                 />
 
-                <TaskBrowserViewer
-                    taskId={viewerTaskId}
-                    task={() => taskById().get(viewerTaskId() ?? '')}
-                    flagPending={flagMutation.isPending}
-                    onFlagChange={(taskId, flag) => flagMutation.mutate({ taskIds: [taskId], flag })}
-                    onClose={() => setViewerTaskId(undefined)}
-                />
+                <Show when={viewerOpen()}>
+                    <TaskBrowserViewer
+                        flagPending={flagMutation.isPending}
+                        onFlagChange={(taskId, flag) => flagMutation.mutate({ taskIds: [taskId], flag })}
+                        onClose={() => setViewerOpen(false)}
+                    />
+                </Show>
                 <Show when={batchDeleteOpen()}>
                     <TaskBatchDeleteDialog
                         open={batchDeleteOpen()}

@@ -60,6 +60,7 @@ export function Header() {
 
     return (
         <header
+            id='app-header'
             data-tauri-drag-region
             class={cn(
                 'relative flex h-9 shrink-0 items-center gap-1 border-b border-line-subtle bg-surface',

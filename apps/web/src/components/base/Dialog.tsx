@@ -6,6 +6,7 @@ import { Portal } from 'solid-js/web'
 import { Callout } from '#/components/base/Callout'
 import { cn } from '#/lib/cn'
 import { overlayRoot } from '#/lib/overlayRoot'
+import { getPlatform } from '#/lib/platform'
 import { overlayStore } from '#/store/overlay'
 
 import type { OverlayId } from '#/store/overlay'
@@ -32,6 +33,9 @@ type DialogProps = {
 
 export function Dialog(props: DialogProps) {
     let overlayId: OverlayId | undefined
+    const persistentElements = getPlatform().kind === 'desktop'
+        ? [() => document.getElementById('app-header')]
+        : undefined
 
     createEffect(() => {
         if (props.open && !overlayId) {
@@ -54,6 +58,7 @@ export function Dialog(props: DialogProps) {
     return (
         <ArkDialog.Root
             open={props.open}
+            persistentElements={persistentElements}
             closeOnEscape={!props.closeDisabled}
             closeOnInteractOutside={!props.closeDisabled}
             onOpenChange={details => props.onOpenChange(details.open)}

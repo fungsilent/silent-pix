@@ -1,5 +1,5 @@
 import { FlagOff, FlagTriangleRight, HeartX, LoaderCircle, RefreshCw, TriangleAlert } from 'lucide-solid'
-import { createEffect, createMemo, createSignal, For, on, onCleanup, onMount, Show } from 'solid-js'
+import { createEffect, createMemo, createSignal, For, onCleanup, onMount } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { ImageViewer } from '#/components/viewer/ImageViewer'
@@ -10,11 +10,9 @@ import { useGenerateDetail } from '#/pages/generate/detail'
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { LucideProps } from 'lucide-solid'
-import type { Accessor, Component } from 'solid-js'
+import type { Component } from 'solid-js'
 
 type TaskBrowserViewerProps = {
-    taskId: Accessor<string | undefined>
-    task: Accessor<TaskApi.TaskListItem | undefined>
     flagPending: boolean
     onFlagChange: (taskId: string, flag: TaskApi.TaskFlag | null) => void
     onClose: () => void
@@ -23,22 +21,19 @@ type TaskBrowserViewerProps = {
 export function TaskBrowserViewer(props: TaskBrowserViewerProps) {
     const detail = useGenerateDetail()
     const [viewerIndex, setViewerIndex] = createSignal(0)
-
-
-    createEffect(on(props.taskId, () => setViewerIndex(0)))
-
+    const viewerImages = createMemo(() => detail.task()?.images ?? [])
 
     const setFlag = (flag: TaskApi.TaskFlag | null) => {
-        const id = props.taskId()
+        const task = detail.task()
 
-        if (id && !props.flagPending) {
-            props.onFlagChange(id, flag)
+        if (task && !props.flagPending) {
+            props.onFlagChange(task.id, flag)
         }
     }
 
     /* U／P／X 立即生效並留在目前這張；焦點在輸入框時不攔 */
     const handleKeyDown = (event: KeyboardEvent) => {
-        if (!props.taskId() || viewerImages().length === 0 || event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || isEditableTarget(event.target)) {
+        if (viewerImages().length === 0 || event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || isEditableTarget(event.target)) {
             return
         }
 
@@ -54,20 +49,9 @@ export function TaskBrowserViewer(props: TaskBrowserViewerProps) {
     onCleanup(() => window.removeEventListener('keydown', handleKeyDown))
 
     const current = (): 'unflag' | TaskApi.TaskFlag => {
-        const task = props.task()
+        const task = detail.task()
         return task?.pin ? 'pin' : task?.discard ? 'discard' : 'unflag'
     }
-
-    const viewerImages = createMemo(() => {
-        const id = props.taskId()
-        const task = detail.task()
-
-        if (!id || detail.loading() || detail.error() || !task || task.id !== id) {
-            return []
-        }
-
-        return task.images
-    })
 
     createEffect(() => {
         const count = viewerImages().length
@@ -79,7 +63,7 @@ export function TaskBrowserViewer(props: TaskBrowserViewerProps) {
 
     /* 讀取中、失敗、沒有圖時放在 viewer 中央，不用畫面底部的浮動訊息 */
     const status = () => {
-        if (detail.loading() || (!detail.error() && detail.task()?.id !== props.taskId())) {
+        if (detail.loading()) {
             return (
                 <LoaderCircle
                     class='animate-spin text-stage-overlay-text'
@@ -121,24 +105,22 @@ export function TaskBrowserViewer(props: TaskBrowserViewerProps) {
     }
 
     return (
-        <Show when={props.taskId()}>
-            <ImageViewer
-                images={viewerImages()}
-                selectedIndex={viewerIndex()}
-                onClose={props.onClose}
-                onSelect={setViewerIndex}
-                status={status()}
-                review={{
-                    controls: (
-                        <ReviewFlagBar
-                            current={current()}
-                            pending={props.flagPending}
-                            onChange={setFlag}
-                        />
-                    ),
-                }}
-            />
-        </Show>
+        <ImageViewer
+            images={viewerImages()}
+            selectedIndex={viewerIndex()}
+            onClose={props.onClose}
+            onSelect={setViewerIndex}
+            status={status()}
+            review={{
+                controls: (
+                    <ReviewFlagBar
+                        current={current()}
+                        pending={props.flagPending}
+                        onChange={setFlag}
+                    />
+                ),
+            }}
+        />
     )
 }
 
