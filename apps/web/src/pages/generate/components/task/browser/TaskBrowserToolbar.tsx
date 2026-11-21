@@ -1,23 +1,22 @@
 import {
     FlagOff,
     FlagTriangleRight,
-    Grid,
     HeartX,
     Search,
-    Square,
     Trash2,
     X,
 } from 'lucide-solid'
 import { Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
-import { Slider } from '#/components/field/Slider'
 import { Text } from '#/components/field/Text'
+import { ThumbnailSizeSlider } from '#/components/image/ThumbnailSize'
 import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
 import { theme } from '#/lib/theme'
 
 import type { TaskApi } from '@silent-pix/shared'
+import type { ThumbnailGrid } from '#/components/image/ThumbnailSize'
 
 export type SelectedFlag = 'unflag' | TaskApi.TaskFlag | undefined
 
@@ -33,10 +32,7 @@ type TaskBrowserToolbarProps = {
     onDeleteAll: () => void
     deletePending: boolean
     showPermanentDelete: boolean
-    thumbnailSize: number
-    thumbnailSizeMin: number
-    thumbnailSizeMax: number
-    onThumbnailSizeChange: (size: number) => void
+    thumbnailGrid: ThumbnailGrid
 }
 
 const flagSegment = {
@@ -166,30 +162,7 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                 <Show when={props.selectedCount > 0 || props.showPermanentDelete}>
                     <span class='h-5 w-px shrink-0 bg-line-subtle' />
                 </Show>
-                <div
-                    title={t('task.thumbnailSize')}
-                    class='flex w-[112px] shrink-0 items-center gap-2 text-fg-muted'
-                >
-                    <Grid
-                        class='shrink-0'
-                        size={13}
-                        strokeWidth={1.8}
-                    />
-                    <Slider
-                        label={t('task.thumbnailSize')}
-                        value={props.thumbnailSize}
-                        min={props.thumbnailSizeMin}
-                        max={props.thumbnailSizeMax}
-                        step={10}
-                        classes={{ root: 'flex-1', track: 'h-1.5', thumb: 'size-3.5' }}
-                        onChange={props.onThumbnailSizeChange}
-                    />
-                    <Square
-                        class='shrink-0'
-                        size={13}
-                        strokeWidth={1.8}
-                    />
-                </div>
+                <ThumbnailSizeSlider grid={props.thumbnailGrid} />
             </div>
         </div>
     )

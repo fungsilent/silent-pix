@@ -1,5 +1,6 @@
 import { createEffect, createMemo, createReaction, createSignal, onCleanup, onMount, Show } from 'solid-js'
 
+import { createThumbnailGrid } from '#/components/image/ThumbnailSize'
 import {
     useDeleteDiscardedTasksMutation,
     useDeleteSelectedTasksMutation,
@@ -24,19 +25,6 @@ import type { SelectedFlag } from '#/pages/generate/components/task/browser/Task
 
 const taskSelectionLimit = 200
 
-const thumbnailSizeRange = { min: 190, max: 320, initial: 200 }
-const thumbnailSizeKey = 'silent-pix.task-thumbnail-size'
-
-function readThumbnailSize() {
-    try {
-        const value = Number(localStorage.getItem(thumbnailSizeKey))
-        return value >= thumbnailSizeRange.min && value <= thumbnailSizeRange.max ? value : thumbnailSizeRange.initial
-    }
-    catch {
-        return thumbnailSizeRange.initial
-    }
-}
-
 export function TaskBrowser() {
     const taskFeedQuery = useTaskFeedQuery()
     const flagMutation = useTaskFlagMutation()
@@ -48,14 +36,7 @@ export function TaskBrowser() {
     const [batchDeleteOpen, setBatchDeleteOpen] = createSignal(false)
     const [batchDeleteScope, setBatchDeleteScope] = createSignal<'selected' | 'discard'>('selected')
     const [selectionLimitWarning, setSelectionLimitWarning] = createSignal(false)
-    const [thumbnailSize, setThumbnailSize] = createSignal(readThumbnailSize())
-    const changeThumbnailSize = (size: number) => {
-        setThumbnailSize(size)
-        try {
-            localStorage.setItem(thumbnailSizeKey, String(size))
-        }
-        catch { /* 存不了就只在這次生效 */ }
-    }
+    const thumbnailGrid = createThumbnailGrid('silent-pix.task-browser-columns')
     const tasks = createMemo(() => taskFeedQuery.data?.pages.flatMap(page => page.items) ?? [])
     const taskById = createMemo(() => new Map(tasks().map(task => [task.id, task])))
     const taskIds = createMemo(() => tasks().map(task => task.id))
@@ -252,17 +233,14 @@ export function TaskBrowser() {
                     onDeleteAll={() => openBatchDelete('discard')}
                     deletePending={deletePending()}
                     showPermanentDelete={showPermanentDelete()}
-                    thumbnailSize={thumbnailSize()}
-                    thumbnailSizeMin={thumbnailSizeRange.min}
-                    thumbnailSizeMax={thumbnailSizeRange.max}
-                    onThumbnailSizeChange={changeThumbnailSize}
+                    thumbnailGrid={thumbnailGrid}
                 />
 
                 <TaskBrowserGrid
                     taskIds={taskIds}
                     taskById={taskById}
                     focusedTaskId={() => taskStore.state.selectedTaskId}
-                    thumbnailSize={thumbnailSize()}
+                    thumbnailGrid={thumbnailGrid}
                     selectedTaskIds={selectedTaskIds}
                     emptyCopy={taskFilterEmptyCopy()}
                     loading={taskFeedQuery.isLoading}

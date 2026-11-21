@@ -9,6 +9,7 @@ import { createLoadOnScroll } from '#/lib/loadOnScroll'
 import { TaskBrowserCard } from '#/pages/generate/components/task/browser/TaskBrowserCard'
 
 import type { TaskApi } from '@silent-pix/shared'
+import type { ThumbnailGrid } from '#/components/image/ThumbnailSize'
 import type { Accessor } from 'solid-js'
 
 const taskSkeletonCells = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
@@ -18,7 +19,7 @@ type TaskBrowserGridProps = {
     taskIds: Accessor<string[]>
     taskById: Accessor<ReadonlyMap<string, TaskApi.TaskListItem>>
     focusedTaskId: Accessor<string | undefined>
-    thumbnailSize: number
+    thumbnailGrid: ThumbnailGrid
     selectedTaskIds: Accessor<readonly string[]>
     emptyCopy: { title: string, message: string }
     loading: boolean
@@ -82,6 +83,7 @@ export function TaskBrowserGrid(props: TaskBrowserGridProps) {
             ref={element => {
                 setSelectionContainerElement(element)
                 loadOnScroll.setViewport(element)
+                props.thumbnailGrid.observe(element)
             }}
             class={cn(
                 /* 預留捲軸位置：讀取中 skeleton 不滿一頁時欄寬也和有捲軸的卡片一致 */
@@ -95,7 +97,7 @@ export function TaskBrowserGrid(props: TaskBrowserGridProps) {
                 fallback={(
                     <div
                         class='grid content-start gap-3 p-2'
-                        style={{ 'grid-template-columns': `repeat(auto-fill, minmax(${props.thumbnailSize}px, 1fr))` }}
+                        style={{ 'grid-template-columns': props.thumbnailGrid.template() }}
                     >
                         <For each={taskSkeletonCells}>
                             {() => <TaskCardSkeleton />}
@@ -109,7 +111,7 @@ export function TaskBrowserGrid(props: TaskBrowserGridProps) {
                 >
                     <div
                         class='grid content-start gap-3 p-2'
-                        style={{ 'grid-template-columns': `repeat(auto-fill, minmax(${props.thumbnailSize}px, 1fr))` }}
+                        style={{ 'grid-template-columns': props.thumbnailGrid.template() }}
                     >
                         <Show
                             when={props.taskIds().length > 0}

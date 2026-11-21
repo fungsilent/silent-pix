@@ -26,6 +26,7 @@ type DialogProps = {
         positioner?: string
         content?: string
         header?: string
+        title?: string
         body?: string
         footer?: string
     }
@@ -89,7 +90,7 @@ export function Dialog(props: DialogProps) {
                             )}
                         >
                             <div class='min-w-0'>
-                                <ArkDialog.Title class='m-0 text-base font-bold leading-tight text-fg'>
+                                <ArkDialog.Title class={cn('m-0 text-base font-bold leading-tight text-fg', props.classes?.title)}>
                                     {props.title}
                                 </ArkDialog.Title>
                                 {props.description && (
