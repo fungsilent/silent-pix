@@ -17,7 +17,7 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 <State component="skeleton" state="card" label="swap · grid cards" frame="flex rounded-lg border border-line-subtle bg-surface p-4" />
 <State component="skeleton" state="control" label="control · label kept" frame="flex rounded-lg border border-line-subtle bg-surface p-4" />
 <State component="skeleton" state="mask" label="mask · whole value" frame="flex rounded-lg border border-line-subtle bg-surface p-4" />
-<State component="skeleton" state="next-page" label="next page · text only" frame="flex flex-col rounded-lg border border-line-subtle bg-surface p-2" />
+<State component="skeleton" state="next-page" label="next page · skeleton appended" frame="flex flex-col rounded-lg border border-line-subtle bg-surface p-2" />
 </Gallery>
 
 <Rules component="skeleton">
@@ -27,7 +27,7 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 <Rule component="skeleton" id="swap">清單與格狀沒有真實內容可疊，用 **swap** 整個換成假 row／cell；假 row 沿用真 row 的外框與尺寸，換回時版面不跳。</Rule>
 <Rule component="skeleton" id="hide">**hide**（不另畫）給刻意不鋪灰的區塊（例如全黑的 image stage）上的浮動控制項：以 `invisible` 保留版位，不畫灰格。</Rule>
 <Rule component="skeleton" id="opaque">灰格不可半透明（底下的舊資料會透出來）；脈動只動底色，不動 opacity。載入中的區塊整體不可互動。</Rule>
-<Rule component="skeleton" id="next-page">已有資料、正在載入下一頁時，清單尾端只放一行純文字 `py-2 text-center text-xs text-fg-muted`「Loading...」，不用灰格。</Rule>
+<Rule component="skeleton" id="next-page">已有資料、正在載入下一頁時，清單或格狀尾端附加少量同型骨架（清單 2 列、格狀約一列的骨架卡），沿用首次載入的假 row／cell；已載入的內容不動，下一頁回來後骨架換成真內容。不用「Loading...」文字。</Rule>
 </ul>
 
 </Rules>

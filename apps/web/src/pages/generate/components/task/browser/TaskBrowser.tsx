@@ -24,7 +24,7 @@ import type { SelectedFlag } from '#/pages/generate/components/task/browser/Task
 
 const taskSelectionLimit = 200
 
-const thumbnailSizeRange = { min: 140, max: 320, initial: 200 }
+const thumbnailSizeRange = { min: 190, max: 320, initial: 200 }
 const thumbnailSizeKey = 'silent-pix.task-thumbnail-size'
 
 function readThumbnailSize() {

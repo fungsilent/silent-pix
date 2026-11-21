@@ -12,6 +12,7 @@ import type { TaskApi } from '@silent-pix/shared'
 import type { Accessor } from 'solid-js'
 
 const taskSkeletonCells = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+const nextPageSkeletonCells = [0, 1, 2, 3]
 
 type TaskBrowserGridProps = {
     taskIds: Accessor<string[]>
@@ -83,7 +84,8 @@ export function TaskBrowserGrid(props: TaskBrowserGridProps) {
                 loadOnScroll.setViewport(element)
             }}
             class={cn(
-                'scrollbar-thin relative min-h-0 flex-1 overflow-y-auto bg-surface',
+                /* 預留捲軸位置：讀取中 skeleton 不滿一頁時欄寬也和有捲軸的卡片一致 */
+                'scrollbar-thin relative min-h-0 flex-1 overflow-y-auto bg-surface [scrollbar-gutter:stable]',
                 dragSelection.tracking() && 'select-none',
             )}
             onPointerDown={dragSelection.onPointerDown}
@@ -151,13 +153,16 @@ export function TaskBrowserGrid(props: TaskBrowserGridProps) {
                                 </div>
                             </Show>
                         </Show>
+                        <Show when={props.fetchingNextPage}>
+                            <For each={nextPageSkeletonCells}>
+                                {() => <TaskCardSkeleton />}
+                            </For>
+                        </Show>
                         <Show when={props.hasNextPage && !props.error}>
                             <div
                                 ref={loadOnScroll.setTrigger}
-                                class='col-span-full py-2 text-center text-xs text-fg-muted'
-                            >
-                                {props.fetchingNextPage ? t('common.loading') : ''}
-                            </div>
+                                class='col-span-full h-px'
+                            />
                         </Show>
                     </div>
                 </Show>
@@ -200,11 +205,16 @@ function TaskBrowserLoadError(props: TaskBrowserLoadErrorProps) {
 
 function TaskCardSkeleton() {
     return (
-        <div class='min-w-0 rounded-lg p-1.5'>
+        <div class='min-w-0 rounded-lg border border-transparent p-2'>
             <Loading.Skeleton class='aspect-square w-full rounded-md' />
-            <div class='flex flex-col gap-1 px-0.5 pt-2'>
-                <Loading.Skeleton class='h-3 w-3/4' />
-                <Loading.Skeleton class='h-3 w-1/2' />
+            <div class='mt-2 flex min-w-0 flex-col gap-2 border border-transparent'>
+                <div class='flex h-7 min-w-0 items-center'>
+                    <Loading.Skeleton class='h-3 w-3/4' />
+                </div>
+                <div class='flex h-5 min-w-0 items-center justify-between gap-1'>
+                    <Loading.Skeleton class='h-5 w-12' />
+                    <Loading.Skeleton class='h-2.5 w-24' />
+                </div>
             </div>
         </div>
     )

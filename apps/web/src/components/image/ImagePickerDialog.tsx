@@ -47,6 +47,7 @@ type ImagePickerDialogProps = SharedDialogProps & (
 )
 
 const imageSkeletonCells = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+const nextPageSkeletonCells = [0, 1, 2, 3, 4]
 
 type ImageType = ImageApi.ImageUsage['type']
 type ImageTaskFlag = TaskApi.TaskFilterFlag
@@ -394,13 +395,18 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                                     onRetry={() => void query.fetchNextPage()}
                                 />
                             </Show>
+                            <Show when={query.isFetchingNextPage}>
+                                <div class='grid grid-cols-5 gap-3'>
+                                    <For each={nextPageSkeletonCells}>
+                                        {() => <Loading.Skeleton class='aspect-square' />}
+                                    </For>
+                                </div>
+                            </Show>
                             <Show when={query.hasNextPage && !query.isError}>
                                 <div
                                     ref={loadOnScroll.setTrigger}
-                                    class='py-2 text-center text-xs text-fg-muted'
-                                >
-                                    {query.isFetchingNextPage ? t('common.loading') : ''}
-                                </div>
+                                    class='h-px'
+                                />
                             </Show>
                         </Show>
                     </Show>

@@ -16,6 +16,7 @@ import { TaskRail } from '#/pages/generate/components/task/TaskRail'
 import { taskStore } from '#/store/task'
 
 const taskSkeletonRows = [0, 1, 2, 3, 4, 5]
+const nextPageSkeletonRows = [0, 1]
 
 export function TaskList() {
     const taskFeedQuery = useTaskFeedQuery()
@@ -145,13 +146,16 @@ export function TaskList() {
                                     </Show>
                                 </Show>
 
+                                <Show when={taskFeedQuery.isFetchingNextPage}>
+                                    <For each={nextPageSkeletonRows}>
+                                        {() => <TaskItemSkeleton thumbnailOnly={panel.isCollapsed()} />}
+                                    </For>
+                                </Show>
                                 <Show when={taskFeedQuery.hasNextPage && !taskFeedQuery.isError}>
                                     <div
                                         ref={loadOnScroll.setTrigger}
-                                        class='py-2 text-center text-xs text-fg-muted'
-                                    >
-                                        {taskFeedQuery.isFetchingNextPage ? t('common.loading') : ''}
-                                    </div>
+                                        class='h-px'
+                                    />
                                 </Show>
                             </Loading.Swap>
                         </PanelContent>

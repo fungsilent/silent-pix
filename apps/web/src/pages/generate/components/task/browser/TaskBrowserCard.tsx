@@ -6,7 +6,7 @@ import { CenteredText } from '#/components/base/CenteredText'
 import { TaskFlagOverlay } from '#/components/task/TaskFlagOverlay'
 import { TaskStatus } from '#/components/task/TaskStatus'
 import { cn } from '#/lib/cn'
-import { formatDateTime } from '#/lib/format'
+import { formatDate, formatTime } from '#/lib/format'
 import { TaskFlagControls } from '#/pages/generate/components/task/TaskFlag'
 import { TaskThumbnail } from '#/pages/generate/components/task/TaskThumbnail'
 
@@ -108,8 +108,10 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
                         </span>
                         <div class='flex min-w-0 items-center justify-between gap-1'>
                             <TaskStatus status={props.task.status} />
-                            <span class='truncate text-[10px] leading-none text-fg-muted'>
-                                {formatDateTime(props.task.createdAt)}
+                            {/* 日期與時間分開一點，較易讀 */}
+                            <span class='flex shrink-0 gap-1.5 text-[10px] leading-none text-fg-muted tabular-nums'>
+                                <span>{formatDate(props.task.createdAt)}</span>
+                                <span>{formatTime(props.task.createdAt)}</span>
                             </span>
                         </div>
                     </div>

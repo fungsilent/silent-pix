@@ -28,6 +28,7 @@
         "@tanstack/solid-query": "^5.105.0",
         "@tauri-apps/api": "^2.12.4",
         "clsx": "^2.1.1",
+        "date-fns": "^4.4.0",
         "exifreader": "^4.54.0",
         "i18next": "^27.1.0",
         "lucide-solid": "^1.63.0",

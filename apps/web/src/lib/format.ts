@@ -1,15 +1,14 @@
-/*
- * 一律 24 小時制。三個地方都在顯示同一種東西（建立時間），
- * 各自呼叫 toLocaleString() 的話遲早會有人拿到 AM/PM。
- */
+import { format } from 'date-fns'
+
+/* 建立時間一律 YYYY-MM-DD 與 24 小時制（本地時區），不跟語系 */
 export function formatDateTime(value: number | string): string {
-    return new Date(value).toLocaleString(undefined, { hourCycle: 'h23' })
+    return format(value, 'yyyy-MM-dd HH:mm:ss')
 }
 
 export function formatDate(value: number | string): string {
-    return new Date(value).toLocaleDateString()
+    return format(value, 'yyyy-MM-dd')
 }
 
 export function formatTime(value: number | string): string {
-    return new Date(value).toLocaleTimeString(undefined, { hourCycle: 'h23' })
+    return format(value, 'HH:mm:ss')
 }

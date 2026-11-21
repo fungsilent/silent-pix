@@ -42,7 +42,7 @@ Generate 左側可收合的 task 面板：頂端 Bar（標題 Tasks、展開到 
 <Rule component="task-list" id="filter">篩選（All／Unflag／Pin／Discard，規則見 **task-toolbar** 的篩選）直排在直條上，選中的用 selected 樣式；展開與收合都看得到、都能操作。清單欄頂端 48px 區放搜尋欄，底部有一條透明底線（`border-b border-transparent`），與 task-browser 工具列一樣是 48px 含 1px 底線，兩邊搜尋欄的位置與 baseline 一致（同 **task-toolbar**：28px 高、左側 Search icon、placeholder「task name or task ID...」），與 task-browser 共用同一個搜尋字。清單內距 8px（右側 12px 讓出捲軸），列距 4px，捲軸平常隱藏。</Rule>
 <Rule component="task-list" id="collapsed">收合等於把清單欄右側裁掉：直條不變，清單欄寬度固定為縮圖欄寬（106px＝內距 8＋列 86＋右側 12），清單是空的時也不變窄，頂端 48px 區照樣放搜尋欄，寬度跟著縮圖欄（不撐寬清單欄，placeholder 被截掉也無妨），縮圖的位置、尺寸與選取底都不動，只藏起文字與 flag 操作鈕。收合時放不下 StatusMessage：清單沒有東西時，在第一張縮圖的位置放一個同尺寸的虛線方塊（`border-dashed border-line`、muted icon 22px），依原因換 icon——沒有 task 為 Inbox、篩選無結果為 FunnelX、搜尋無結果為 SearchX，完整文案放在 hover 提示；載入失敗收合時仍留白，展開後才顯示訊息與 Retry。</Rule>
 <Rule component="task-list" id="empty-error">空狀態與載入失敗用 L0 StatusMessage compact：沒有 task 時是「No tasks yet」＋說明；只篩一個 flag 時各有專屬標題與說明（如 No pinned tasks）；多個 flag 篩選無結果時是「No matching tasks / Try a different task filter.」。載入失敗只有一句 muted 訊息＋預設 Retry 按鈕，不用紅色。</Rule>
-<Rule component="task-list" id="loading">首次載入用 6 列骨架整組替換清單（收合時用只有縮圖的骨架）。捲到底載入下一頁時，清單尾端出現置中的 12px muted「Loading...」純文字，不用骨架。已有資料時下一頁失敗，錯誤訊息＋Retry 附加在清單尾端，既有的列保留。</Rule>
+<Rule component="task-list" id="loading">首次載入用 6 列骨架整組替換清單（收合時用只有縮圖的骨架）。捲到底載入下一頁時，清單尾端附加 2 列同型骨架（收合時為只有縮圖的骨架）。已有資料時下一頁失敗，錯誤訊息＋Retry 附加在清單尾端，既有的列保留。</Rule>
 <Rule component="task-list" id="narrow">視窗寬度小於 720px 時整個面板隱藏。</Rule>
 </ul>
 
@@ -82,7 +82,7 @@ Generate 左側 task 清單的單列：72px 縮圖＋名稱／狀態／建立時
 
 <ul class="ds-rules">
 <Rule component="task-item" id="button">整列是一顆 ghost 按鈕，圓角 8px、內距 6px，縮圖與文字間距 10px。未選取時 hover 加 `bg-elevated`；選取（目前顯示在 detail 的 task）用 selected 樣式 `bg-selected`，文字提亮為 `text-fg`。</Rule>
-<Rule component="task-item" id="text-rows">三行文字對 72px 縮圖垂直置中：名稱（12px medium，單行截斷）、狀態 badge、建立日期與時間（11px muted，24 小時制，格式依語系）。日期與時間拆開放在同一行，日期靠左、時間靠右，與上方名稱及右上的 flag 鈕對齊兩側。沒有名稱時顯示 ID 前 8 碼並改用等寬字。</Rule>
+<Rule component="task-item" id="text-rows">三行文字對 72px 縮圖垂直置中：名稱（12px medium，單行截斷）、狀態 badge、建立日期與時間（11px muted；日期 `YYYY-MM-DD`，時間 24 小時制）。日期與時間拆開放在同一行，日期靠左、時間靠右，與上方名稱及右上的 flag 鈕對齊兩側。沒有名稱時顯示 ID 前 8 碼並改用等寬字。</Rule>
 <Rule component="task-item" id="flag-actions">Flag 操作鈕（Pin、Discard，各 24px）放在名稱那一行的右側，只在 hover 或列內有焦點時出現；出現時名稱讓位提早截斷，列高不變（按鈕以負邊距貼齊名稱行）。已標記的那顆用該 flag 的實心色（pin／discard 底色＋ink 字色），另一顆維持 ghost。</Rule>
 <Rule component="task-item" id="flag-pending">任何一筆 flag 更新進行中時，整個清單所有列的 flag 操作鈕一律停用（外觀依 L0 Button disabled），完成後恢復；task-card 在格狀檢視中同此規則。</Rule>
 <Rule component="task-item" id="placeholder">沒有縮圖時依狀態顯示 placeholder：底是該狀態色的斜向淡漸層（`bg-gradient-to-br from-{tone}/[0.14] to-{tone}/[0.04]`，邊框 `border-{tone}/15`），icon 用同一個 tone 的 fg 色——queued 為 warning Clock、running 為 info LoaderCircle、failed 為 danger ImageOff（這張圖沒產生出來）；done 沒縮圖時維持中性底與 muted Image。icon 22px、stroke 1.6。Placeholder 屬於有底色的容器，帶狀態色符合錯誤顏色規則；icon 與色調固定對應，不隨場合更換，task-card 與收合縮圖同此規則。</Rule>
@@ -131,11 +131,11 @@ Generate 左側 task 清單的單列：72px 縮圖＋名稱／狀態／建立時
 #### Browser
 
 <ul class="ds-rules">
-<Rule component="task-browser" id="layout">整塊 `bg-surface`、填滿可用寬高。左側保留 **task-list** 的 40px 直條（篩選與 Grid view 不變；Grid view 用 selected 樣式表示目前是格狀檢視，再按一次回到清單；頂端收合鈕在 browser 模式不放，留白），右側是工具列加格狀區：工具列固定在上方，格狀區獨立捲動（細捲軸）；卡片最小寬度由工具列的縮圖大小滑桿決定（140–320px，預設約 200px），欄數依可用寬度自動排（`repeat(auto-fill, minmax(<size>, 1fr))`），間距 12px、內距 8px。</Rule>
+<Rule component="task-browser" id="layout">整塊 `bg-surface`、填滿可用寬高。左側保留 **task-list** 的 40px 直條（篩選與 Grid view 不變；Grid view 用 selected 樣式表示目前是格狀檢視，再按一次回到清單；頂端收合鈕在 browser 模式不放，留白），右側是工具列加格狀區：工具列固定在上方，格狀區獨立捲動（細捲軸）；卡片最小寬度由工具列的縮圖大小滑桿決定（190–320px，預設約 200px；下限是最寬的狀態 badge 加日期與時間仍放得下一列），欄數依可用寬度自動排（`repeat(auto-fill, minmax(<size>, 1fr))`），間距 12px、內距 8px。卡片下方資訊為名稱一列，加上狀態 badge 靠左、10px muted 日期與時間靠右的一列；日期（`YYYY-MM-DD`）與時間之間留 6px，不用逗號串成一串。</Rule>
 <Rule component="task-browser" id="marquee">在格狀區空白處按下拖曳會畫出框選矩形（`border-accent bg-accent/15`），框到的卡片即時變成 checked；拖曳期間不選取文字。從勾選鈕或 flag 鈕起手不會開始框選。</Rule>
 <Rule component="task-browser" id="selection-reset">搜尋或篩選變更時清空勾選；勾選中的 task 因搜尋／篩選離開目前結果時，自動從勾選移除。</Rule>
 <Rule component="task-browser" id="empty-error">空狀態與載入失敗用 L0 StatusMessage regular，在格狀區置中：完全沒有 task 是「No tasks yet / Generated tasks will appear here.」；有搜尋文字而無結果是「No matching tasks / Try another search or filter.」；沒有搜尋、只篩一個 flag 時用該 flag 的專屬文案；沒有搜尋、多個 flag 篩選無結果是「No matching tasks / Try a different task filter.」。空狀態不放按鈕。</Rule>
-<Rule component="task-browser" id="loading">首次載入以 16 張骨架卡整組替換格子。捲到底載入下一頁時格子尾端出現跨整列的「Loading...」純文字。已有資料時下一頁失敗，在格子尾端附加 regular 載入失敗訊息＋Retry，既有卡片保留；沒有資料時失敗則整個格狀區換成置中的失敗訊息。</Rule>
+<Rule component="task-browser" id="loading">首次載入以 16 張骨架卡整組替換格子。捲到底載入下一頁時格子尾端附加 4 張骨架卡。已有資料時下一頁失敗，在格子尾端附加 regular 載入失敗訊息＋Retry，既有卡片保留；沒有資料時失敗則整個格狀區換成置中的失敗訊息。</Rule>
 <Rule component="task-browser" id="overlays">點縮圖開啟審片模式（**task-review**，縮圖上游標為 zoom-in），點下方資訊選取這個 task（右側 Detail 顯示它）；沒有輸出圖的 task（輸出張數 0：queued、running、failed）縮圖不開審片模式，游標維持一般，點縮圖等同點資訊。Ctrl／⌘＋單擊在兩處都是切換勾選，hover 時右上的勾選框照舊可用。卡片未選取、未勾選時 hover 整張加 `bg-hover` 底色。刪除確認 dialog 與審片模式疊在本檢視之上，各自見對應元件。</Rule>
 </ul>
 
