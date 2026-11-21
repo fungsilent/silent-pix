@@ -66,7 +66,7 @@ Compare 頁的整個工作區：Bar、可縮放的目前圖片、底部 compare-
 <Rules component="image-detail">
 
 <ul class="ds-rules">
-<Rule component="image-detail" id="same-as-task-detail">寬度、收合與標題列同 task-detail（展開 350px、收合 40px、標題「Detail」），且與 task-detail 共用同一個收合狀態：在兩者之間切換時維持原本的展開或收合；內容間距 `gap-3 px-4 pb-5`，區塊之間用細分隔線。</Rule>
+<Rule component="image-detail" id="same-as-task-detail">寬度、收合與標題列同 task-detail（展開 380px、收合 40px、標題「Detail」），且與 task-detail 共用同一個收合狀態：在兩者之間切換時維持原本的展開或收合；內容間距 `gap-3 px-4 pb-5`，區塊之間用細分隔線。</Rule>
 <Rule component="image-detail" id="content">由上而下：ID（mono 11px）與 Created；IMAGE 區 160px 高 `bg-active` 預覽框，圖片等比置中；CONFIG 區 Width｜Height 兩欄，固定停用。</Rule>
 </ul>
 
@@ -132,7 +132,7 @@ Compare 頁的整個工作區：Bar、可縮放的目前圖片、底部 compare-
 <Rules component="compare-screen">
 
 <ul class="ds-rules">
-<Rule component="compare-screen" id="columns">Header 之下兩欄：workspace 吃掉其餘寬度，右側面板 `border-l border-line`，展開 350px、收合 40px。</Rule>
+<Rule component="compare-screen" id="columns">Header 之下兩欄：workspace 吃掉其餘寬度，右側面板 `border-l border-line`，展開 380px、收合 40px。</Rule>
 <Rule component="compare-screen" id="detail-follows">右側面板跟著 workspace 目前選取的圖：task 產出用 Task detail 唯讀模式（不可編輯、無刪除鈕），其他圖用 Image detail；兩者外框、寬度與收合行為一致，切換時不跳動。</Rule>
 <Rule component="compare-screen" id="empty">沒有選取圖片時，工作區佔滿 Header 下方，包括清單為空或全部隱藏。清空後回到 Add images 引導，已有可見圖片時直接顯示上次選取。</Rule>
 <Rule component="compare-screen" id="narrow">視窗寬度 &lt; 980px 時隱藏右側面板，只留 workspace。</Rule>

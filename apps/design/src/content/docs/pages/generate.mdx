@@ -263,7 +263,7 @@ Generate 與 Compare 頁右側的 task 詳細面板，由 task-info、reference-
 <Rules component="task-detail">
 
 <ul class="ds-rules">
-<Rule component="task-detail" id="panel">頁面右側的 Task 詳細面板：展開寬 350px（36 字元 ID 能完整顯示的最小寬度）、`bg-surface`、左側 `border-line`。頂端是 48px Bar（左右內距 8px，標題「Detail」與收合鈕），下方內容可捲動、捲軸隱藏，內距左右 16px、底部 20px，區塊間距 12px。</Rule>
+<Rule component="task-detail" id="panel">頁面右側的 Task 詳細面板：展開寬 380px（36 字元 ID 加上複製圖示能完整顯示的最小寬度）、`bg-surface`、左側 `border-line`。頂端是 48px Bar（左右內距 8px，標題「Detail」與收合鈕），下方內容可捲動、捲軸隱藏，內距左右 16px、底部 20px，區塊間距 12px。</Rule>
 <Rule component="task-detail" id="order">內容順序固定：task-info → reference-image → task-config → task-lora，區塊之間以一條上下各留 4px 的 `border-line-subtle` 細線分隔；只有 task-info 不帶區塊標題。</Rule>
 <Rule component="task-detail" id="modes">兩種模式：Generate 用可編輯模式，顯示選取中的 task（view）或新 draft，四個區塊都可編輯，改的是下一次生成的設定；Compare 用唯讀模式（read-only），只顯示所選輸出圖的 task，不能改名、刪除或調整。</Rule>
 <Rule component="task-detail" id="draft">Draft 時 task-info 為 Draft、沒有參考圖、Seed 為 Random、沒有 LoRA；Workflow 預設選第一個可用的 workflow。</Rule>
@@ -278,22 +278,25 @@ Generate 與 Compare 頁右側的 task 詳細面板，由 task-info、reference-
 
 Task 詳細面板最上面的 identity 區：ID、名稱（inline 改名）、狀態、失敗原因、建立時間與刪除。
 
-<Gallery min="400px">
-<State component="task-info" state="done" label="existing task" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
-<State component="task-info" state="editing" label="editing name" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
-<State component="task-info" state="rename-pending" label="rename pending" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
-<State component="task-info" state="failed" label="failed" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
-<State component="task-info" state="failed-details" label="failed · details open" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
-<State component="task-info" state="failed-unknown" label="failed · no reason recorded" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
-<State component="task-info" state="draft" label="draft" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
-<State component="task-info" state="loading" label="loading (cold)" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
-<State component="task-info" state="read-only" label="read-only · done" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<Gallery min="420px">
+<State component="task-info" state="done" label="existing task" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="id-hover" label="ID · hover to copy" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="id-copied" label="ID · copied" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="editing" label="editing name" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="rename-pending" label="rename pending" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="failed" label="failed" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="failed-details" label="failed · details open" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="failed-unknown" label="failed · no reason recorded" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="draft" label="draft" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="loading" label="loading (cold)" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="read-only" label="read-only · done" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
 </Gallery>
 
 <Rules component="task-info">
 
 <ul class="ds-rules">
-<Rule component="task-info" id="rows">Task 詳細面板最上方的 identity 區，不帶區塊標題；列由上而下固定為 ID、Name、Status、（失敗原因）、Created、刪除鈕。標籤欄寬 74px，值欄可截斷；ID 用 mono 11px，Created 用 `fg-secondary`。</Rule>
+<Rule component="task-info" id="rows">Task 詳細面板最上方的 identity 區，不帶區塊標題；列由上而下固定為 ID、Name、Status、（失敗原因）、Created、刪除鈕。標籤欄寬 74px，值欄可截斷；ID 用 mono 11px，Created 用 `fg-secondary`，日期與時間分成兩段、中間留 6px（同 task-card），不用逗號串成一串。</Rule>
+<Rule component="task-info" id="id-copy">有 ID 時整個 ID 值可點擊複製完整 ID：hover 時值右側浮出 12px muted Copy 圖示，點擊後圖示換成 Check 約 1.5 秒再還原，不另外顯示訊息（同 metadata 複製回饋）；複製失敗走 Issue chip。唯讀模式同樣可複製；draft 與 loading 沒有 ID，不可點擊。</Rule>
 <Rule component="task-info" id="modes">可編輯模式（Generate）可改名與刪除；唯讀模式（Compare）名稱欄一律停用、不顯示鉛筆，也沒有刪除鈕。</Rule>
 <Rule component="task-info" id="rename">改名用 inline Editable：點名稱或鉛筆進入編輯，此時名稱 preview 與鉛筆一起消失，只剩帶 accent 外框與 ring 的輸入框；送出時去除前後空白，空字串代表清除名稱。改名送出中、draft、loading 時名稱欄停用。</Rule>
 <Rule component="task-info" id="failure">失敗原因只在 Failed 狀態出現，插在 Status 與 Created 之間：左側 2px 半透明 danger 邊線，「Failure reason」標籤前加 12px danger 警告三角，先用 `text-fg` 寫一句依錯誤代碼翻譯的原因（紅色只在邊線、三角與 Failed badge）（未知代碼回退成通用文案），可展開的 Details 用 muted mono 顯示錯誤代碼與最高 160px、可捲動的原始訊息；展開時 chevron 轉 90°。沒有錯誤代碼也沒有原始訊息時，原因用通用文案，Details 內只有一行「No failure reason was recorded.」。</Rule>
@@ -308,15 +311,15 @@ Task 詳細面板最上面的 identity 區：ID、名稱（inline 改名）、�
 
 Task 詳細面板的 Image 區：img2img 的參考圖與 denoise。
 
-<Gallery min="400px">
-<State component="reference-image" state="origin" label="reference from a task" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
-<State component="reference-image" state="upload" label="uploaded file" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
-<State component="reference-image" state="empty" label="empty" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
-<State component="reference-image" state="dragging" label="dragging a file" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
-<State component="reference-image" state="rejected" label="rejected file" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
-<State component="reference-image" state="loading" label="loading (cold)" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
-<State component="reference-image" state="read-only" label="read-only · reference" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
-<State component="reference-image" state="read-only-empty" label="read-only · no reference" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<Gallery min="420px">
+<State component="reference-image" state="origin" label="reference from a task" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="reference-image" state="upload" label="uploaded file" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="reference-image" state="empty" label="empty" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="reference-image" state="dragging" label="dragging a file" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="reference-image" state="rejected" label="rejected file" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="reference-image" state="loading" label="loading (cold)" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="reference-image" state="read-only" label="read-only · reference" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="reference-image" state="read-only-empty" label="read-only · no reference" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
 </Gallery>
 
 <Rules component="reference-image">
@@ -337,14 +340,14 @@ Task 詳細面板的 Image 區：img2img 的參考圖與 denoise。
 
 Task 詳細面板的 Config 區：workflow、seed、步數、尺寸、批次與 sampler。
 
-<Gallery min="400px">
-<State component="task-config" state="restorable" label="existing task · restorable seed" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
-<State component="task-config" state="draft" label="draft" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
-<State component="task-config" state="reference" label="with reference image" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
-<State component="task-config" state="archived" label="archived workflow" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
-<State component="task-config" state="option-error" label="workflow / sampler unavailable" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
-<State component="task-config" state="loading" label="loading" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
-<State component="task-config" state="read-only" label="read-only" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<Gallery min="420px">
+<State component="task-config" state="restorable" label="existing task · restorable seed" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="task-config" state="draft" label="draft" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="task-config" state="reference" label="with reference image" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="task-config" state="archived" label="archived workflow" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="task-config" state="option-error" label="workflow / sampler unavailable" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="task-config" state="loading" label="loading" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="task-config" state="read-only" label="read-only" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
 </Gallery>
 
 <Rules component="task-config">
@@ -365,13 +368,13 @@ Task 詳細面板的 Config 區：workflow、seed、步數、尺寸、批次與 
 
 Task 詳細面板的 LoRA 區：已選 LoRA 的清單與 weight。
 
-<Gallery min="400px">
-<State component="task-lora" state="items" label="2 items" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
-<State component="task-lora" state="remove-hover" label="remove button hover" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
-<State component="task-lora" state="empty" label="empty" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
-<State component="task-lora" state="loading" label="loading (cold)" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
-<State component="task-lora" state="read-only" label="read-only · 2 items" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
-<State component="task-lora" state="read-only-empty" label="read-only · empty" frame="w-[350px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<Gallery min="420px">
+<State component="task-lora" state="items" label="2 items" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="task-lora" state="remove-hover" label="remove button hover" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="task-lora" state="empty" label="empty" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="task-lora" state="loading" label="loading (cold)" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="task-lora" state="read-only" label="read-only · 2 items" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="task-lora" state="read-only-empty" label="read-only · empty" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
 </Gallery>
 
 <Rules component="task-lora">
@@ -392,23 +395,23 @@ Task 詳細面板的 LoRA 區：已選 LoRA 的清單與 weight。
 從 ComfyUI 的 LoRA 清單多選，Apply 才寫回 task。
 
 <Gallery min="720px">
-<State component="lora-picker" state="results" label="results · multi-select" frame="relative h-[480px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="lora-picker" state="loading" label="loading" frame="relative h-[480px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="lora-picker" state="error" label="load error" frame="relative h-[360px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="lora-picker" state="no-match" label="no match" frame="relative h-[360px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="lora-picker" state="empty" label="empty · none in ComfyUI" frame="relative h-[360px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="lora-picker" state="results" label="results · multi-select" frame="relative h-[600px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="lora-picker" state="loading" label="loading" frame="relative h-[600px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="lora-picker" state="error" label="load error" frame="relative h-[600px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="lora-picker" state="no-match" label="no match" frame="relative h-[600px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="lora-picker" state="empty" label="empty · none in ComfyUI" frame="relative h-[600px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 </Gallery>
 
 <Rules component="lora-picker">
 
 <ul class="ds-rules">
-<Rule component="lora-picker" id="draft-selection">開啟時複製目前選取作為暫存，開啟期間外部更新不覆蓋使用者的勾選；Cancel 或關閉不套用，Apply 才寫回。</Rule>
-<Rule component="lora-picker" id="backdrop">Backdrop 用較淡的 `bg-backdrop-muted backdrop-blur-[2px]`；dialog `w-[600px] rounded-[10px] max-h-[70vh]`，body 是 flex 欄：搜尋固定在上，清單自己捲動。</Rule>
-<Rule component="lora-picker" id="search">搜尋欄 `h-7`、左側 search icon、label 隱藏，以名稱不分大小寫的包含比對篩選。</Rule>
-<Rule component="lora-picker" id="rows">清單列是整列 ghost 按鈕：`h-12 text-sm rounded-none`、底線 `border-line-subtle`，hover `bg-elevated`；選中 `bg-accent/15 text-fg` 加 accent 45% inset 框，右側 Plus 換成 accent Check。</Rule>
-<Rule component="lora-picker" id="loading-error">載入中以 5 列 `h-12` skeleton 取代清單；載入失敗用 L0 StatusMessage compact 載入失敗（muted 訊息 + Retry，不用紅字）。</Rule>
+<Rule component="lora-picker" id="draft-selection">開啟時複製目前選取作為暫存，開啟期間外部更新不覆蓋使用者的勾選；關閉（關閉鈕或 Esc）不套用，Apply 才寫回。</Rule>
+<Rule component="lora-picker" id="backdrop">Backdrop 用較淡的 `bg-backdrop-muted backdrop-blur-[2px]`；dialog `w-[600px] rounded-[10px] max-h-[70vh]`。由上而下：48px 標題列（14px semibold 標題＋關閉鈕）、48px 工具列、自己捲動的清單、48px footer。</Rule>
+<Rule component="lora-picker" id="search">工具列與圖片選擇器同款，但 dialog 較窄，搜尋撐滿工具列剩餘寬度（`h-7`、search icon、label 隱藏，以名稱不分大小寫的包含比對篩選），右側接選取 chip「n selected ×」（× 清空勾選，沒有勾選時不顯示）。</Rule>
+<Rule component="lora-picker" id="rows">清單列與 Task list 同語言：`h-8 text-xs rounded-md`、列間 2px、沒有底線，hover `bg-hover`；左側 14px 勾選框（未選 `border-line`，選中 accent 實心＋白色 Check），選中整列 `bg-accent/15 text-fg`，不加外框。名稱分三段：子資料夾路徑（若有）與 `.safetensors` 副檔名用 muted，主檔名一般色。</Rule>
+<Rule component="lora-picker" id="loading-error">載入中以 6 列與清單列同高（`h-8`）的骨架取代清單（勾選框＋名稱條）；載入失敗用 L0 StatusMessage compact 載入失敗（muted 訊息 + Retry，不用紅字），放在清單頂端。</Rule>
 <Rule component="lora-picker" id="empty-vs-no-match">清單本來就空顯示「No LoRAs available in ComfyUI.」，搜尋後沒有結果才是「No LoRA matches the search.」，兩者都是 L0 StatusMessage compact 空結果、不放按鈕。</Rule>
-<Rule component="lora-picker" id="footer">footer 照 L0 Dialog picker，左側是已選數量。</Rule>
+<Rule component="lora-picker" id="footer">footer 只放靠右的 Apply（solid accent，一律可按：取消全部勾選再 Apply 等於清空 LoRA）；沒有 Cancel，選取數量在工具列的 chip。</Rule>
 </ul>
 
 </Rules>
@@ -505,7 +508,7 @@ Task 詳細面板的 LoRA 區：已選 LoRA 的清單與 weight。
 
 <ul class="ds-rules">
 <Rule component="generate-screen" id="columns">Header 固定 36px；其下三欄以 `border-r`／`border-l border-line` 分隔，不留縫。</Rule>
-<Rule component="generate-screen" id="widths">Task list 是 40px 直條＋清單欄：展開時清單欄 250px（合計 290px），收合時清單欄寬度由縮圖撐開；Task detail 展開 350px、收合 40px。兩側各自收合，工作區吃掉其餘寬度。</Rule>
+<Rule component="generate-screen" id="widths">Task list 是 40px 直條＋清單欄：展開時清單欄 250px（合計 290px），收合時清單欄寬度由縮圖撐開；Task detail 展開 380px、收合 40px。兩側各自收合，工作區吃掉其餘寬度。</Rule>
 <Rule component="generate-screen" id="workspace">工作區 Prompt panel 在上、Image stage 填滿剩餘高度；Stage 永遠存在，沒有圖時顯示自己的空狀態，不收掉。</Rule>
 <Rule component="generate-screen" id="browser">Task browser 取代 Task list 的清單欄與工作區，左側直條與右側 Task detail 都保留，選取的 task 兩邊同步。</Rule>
 <Rule component="generate-screen" id="browser-toolbar">Task browser 的篩選、搜尋與勾選都在工具列；各篩選下的卡片組成、空狀態文案與批次操作見 L1 Task browser，控制列的 browser 選單可逐一切換。</Rule>

@@ -21,7 +21,9 @@
         "collapse": "收合",
         "expand": "展開",
         "dismiss": "關閉",
-        "reload": "重新載入"
+        "reload": "重新載入",
+        "copyId": "複製 ID",
+        "copyFailed": "無法複製到剪貼簿。"
     },
     "header": {
         "generate": "生成",

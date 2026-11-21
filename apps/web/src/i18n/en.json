@@ -21,7 +21,9 @@
         "collapse": "Collapse",
         "expand": "Expand",
         "dismiss": "Dismiss",
-        "reload": "Reload"
+        "reload": "Reload",
+        "copyId": "Copy ID",
+        "copyFailed": "Could not copy to the clipboard."
     },
     "header": {
         "generate": "Generate",

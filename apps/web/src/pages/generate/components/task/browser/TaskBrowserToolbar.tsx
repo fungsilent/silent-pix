@@ -4,11 +4,11 @@ import {
     HeartX,
     Search,
     Trash2,
-    X,
 } from 'lucide-solid'
 import { Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
+import { SelectedCountChip } from '#/components/base/SelectedCountChip'
 import { Text } from '#/components/field/Text'
 import { ThumbnailSizeSlider } from '#/components/image/ThumbnailSize'
 import { cn } from '#/lib/cn'
@@ -70,20 +70,10 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
             </div>
 
             <Show when={props.selectedCount > 0}>
-                <span class='flex h-7 shrink-0 items-center gap-1 rounded-md bg-selected pl-2.5 pr-1 text-xs font-medium leading-none text-fg tabular-nums'>
-                    {t('common.selectedCount', { count: props.selectedCount })}
-                    <Button
-                        variant='ghost'
-                        title={t('task.clearSelection')}
-                        classes={{ root: 'size-5 rounded p-0 text-fg-muted hover:text-fg' }}
-                        onClick={props.onClearSelection}
-                    >
-                        <X
-                            size={13}
-                            strokeWidth={1.9}
-                        />
-                    </Button>
-                </span>
+                <SelectedCountChip
+                    count={props.selectedCount}
+                    onClear={props.onClearSelection}
+                />
             </Show>
 
             <div class='ml-auto flex shrink-0 items-center gap-2'>

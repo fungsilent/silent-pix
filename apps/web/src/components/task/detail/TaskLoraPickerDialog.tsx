@@ -1,9 +1,10 @@
-import { Check, Plus, Search } from 'lucide-solid'
+import { Check, Search } from 'lucide-solid'
 import { createEffect, createSignal, For, on, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { Dialog } from '#/components/base/Dialog'
 import { Loading } from '#/components/base/Loading'
+import { SelectedCountChip } from '#/components/base/SelectedCountChip'
 import { StatusMessage } from '#/components/base/StatusMessage'
 import { Text } from '#/components/field/Text'
 import { cn } from '#/lib/cn'
@@ -22,7 +23,18 @@ type TaskLoraPickerDialogProps = {
     onOpenChange: (open: boolean) => void
 }
 
-const loraSkeletonRows = [0, 1, 2, 3, 4]
+const loraSkeletonRows = [0, 1, 2, 3, 4, 5]
+
+/* ComfyUI 的名稱可能帶子資料夾（Windows 為 \）；資料夾與副檔名淡化，主檔名一般色 */
+function splitLoraName(name: string) {
+    const slash = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\'))
+    const folder = name.slice(0, slash + 1)
+    const file = name.slice(slash + 1)
+    const dot = file.lastIndexOf('.')
+    return dot > 0
+        ? { folder, base: file.slice(0, dot), extension: file.slice(dot) }
+        : { folder, base: file, extension: '' }
+}
 
 export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
     const [keyword, setKeyword] = createSignal('')
@@ -46,6 +58,9 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
         return props.options.filter(option => option.label.toLowerCase().includes(text))
     }
     const isSelected = (name: string) => selected().includes(name)
+    const toggle = (name: string) => setSelected(current => current.includes(name)
+        ? current.filter(item => item !== name)
+        : [...current, name])
 
     return (
         <Dialog
@@ -54,56 +69,62 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
             onOpenChange={props.onOpenChange}
             classes={{
                 backdrop: 'bg-backdrop-muted backdrop-blur-[2px]',
-                body: 'flex min-h-0 flex-col overflow-hidden',
-                content: 'w-[600px] max-w-full rounded-[10px] max-h-[70vh]',
+                content: 'h-[520px] w-[600px] max-w-full rounded-[10px] max-h-[70vh]',
+                header: 'h-12 items-center py-0',
+                title: 'text-sm font-semibold leading-none',
+                body: 'flex min-h-0 flex-col overflow-hidden p-0',
+                footer: 'h-12 items-center py-0',
             }}
+            /* 一律可按：取消全部勾選再 Apply 等於清空 LoRA */
             footer={(
-                <div class='flex w-full items-center justify-between gap-3'>
-                    <span class='text-xs text-fg-muted tabular-nums'>
-                        {t('common.selectedCount', { count: selected().length })}
-                    </span>
-                    <div class='flex gap-2'>
-                        <Button
-                            type='button'
-                            size='dialog'
-                            onClick={() => props.onOpenChange(false)}
-                        >
-                            {t('common.cancel')}
-                        </Button>
-                        <Button
-                            type='button'
-                            variant='solid'
-                            tone='accent'
-                            size='dialog'
-                            onClick={() => props.onApply(selected())}
-                        >
-                            {t('common.apply')}
-                        </Button>
-                    </div>
-                </div>
+                <Button
+                    type='button'
+                    variant='solid'
+                    tone='accent'
+                    size='dialog'
+                    onClick={() => props.onApply(selected())}
+                >
+                    {t('common.apply')}
+                </Button>
             )}
         >
-            <Text
-                label={t('generate.lora.search')}
-                value={keyword()}
-                placeholder={t('generate.lora.searchPlaceholder')}
-                icon={(
-                    <Search
-                        size={14}
-                        strokeWidth={1.8}
+            {/* 與圖片選擇器同款工具列：搜尋＋選取 chip；dialog 較窄，搜尋撐滿剩餘寬度 */}
+            <div class='flex h-12 shrink-0 items-center gap-3 border-b border-line-subtle px-2'>
+                <div class='flex min-w-0 flex-1'>
+                    <Text
+                        label={t('generate.lora.search')}
+                        value={keyword()}
+                        placeholder={t('generate.lora.searchPlaceholder')}
+                        icon={(
+                            <Search
+                                size={14}
+                                strokeWidth={1.7}
+                            />
+                        )}
+                        classes={{ root: 'min-w-0 flex-1', label: 'hidden' }}
+                        onInput={setKeyword}
                     />
-                )}
-                classes={{ root: 'shrink-0', label: 'hidden' }}
-                onInput={setKeyword}
-            />
+                </div>
+                <Show when={selected().length > 0}>
+                    <SelectedCountChip
+                        count={selected().length}
+                        onClear={() => setSelected([])}
+                    />
+                </Show>
+            </div>
 
-            <div class='scrollbar-thin -mx-4 mt-3 min-h-0 flex-1 overflow-y-auto px-4'>
+            <div class='scrollbar-thin min-h-0 flex-1 overflow-y-auto p-2'>
                 <Loading.Swap
                     loading={() => props.open && props.loading}
                     fallback={(
-                        <div class='flex flex-col'>
+                        <div class='flex flex-col gap-0.5'>
                             <For each={loraSkeletonRows}>
-                                {() => <Loading.Skeleton class='h-12 w-full rounded-none border-b border-line-subtle' />}
+                                {() => (
+                                    <div class='flex h-8 items-center gap-2.5 px-2'>
+                                        <Loading.Skeleton class='size-3.5 shrink-0 rounded-[3px]' />
+                                        <Loading.Skeleton class='h-3 w-1/2' />
+                                    </div>
+                                )}
                             </For>
                         </div>
                     )}
@@ -130,48 +151,49 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
                                 />
                             )}
                         >
-                            <div class='flex flex-col'>
+                            <div class='flex flex-col gap-0.5'>
                                 <For each={visibleOptions()}>
-                                    {option => (
-                                        <Button
-                                            variant='ghost'
-                                            title={option.value}
-                                            classes={{
-                                                root: cn(
-                                                    'h-12 w-full justify-between gap-3 rounded-none border-b border-line-subtle text-left text-sm',
-                                                    isSelected(option.value)
-                                                        ? 'bg-accent/15 text-fg shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--sp-accent)_45%,transparent)] hover:bg-accent/25'
-                                                        : 'hover:bg-elevated',
-                                                ),
-                                            }}
-                                            onClick={() => setSelected(current => current.includes(option.value)
-                                                ? current.filter(name => name !== option.value)
-                                                : [...current, option.value])}
-                                        >
-                                            <span class='min-w-0 truncate'>{option.label}</span>
-                                            <span
-                                                class={cn(
-                                                    'flex size-7 shrink-0 items-center justify-center rounded-md',
-                                                    isSelected(option.value) ? 'text-accent-fg' : 'text-fg-muted',
-                                                )}
+                                    {option => {
+                                        const name = splitLoraName(option.label)
+                                        const checked = () => isSelected(option.value)
+
+                                        return (
+                                            <Button
+                                                variant='ghost'
+                                                title={option.value}
+                                                classes={{
+                                                    root: cn(
+                                                        'h-8 w-full justify-start gap-2.5 rounded-md border-0 px-2 text-left text-xs',
+                                                        checked()
+                                                            ? 'bg-accent/15 text-fg hover:bg-accent/20'
+                                                            : 'text-fg-secondary hover:bg-hover hover:text-fg',
+                                                    ),
+                                                }}
+                                                onClick={() => toggle(option.value)}
                                             >
-                                                <Show
-                                                    when={isSelected(option.value)}
-                                                    fallback={(
-                                                        <Plus
-                                                            size={15}
-                                                            strokeWidth={1.8}
-                                                        />
+                                                <span
+                                                    class={cn(
+                                                        'grid size-3.5 shrink-0 place-items-center rounded-[3px] border',
+                                                        checked() ? 'border-accent bg-accent text-on-stage' : 'border-line bg-surface',
                                                     )}
                                                 >
-                                                    <Check
-                                                        size={15}
-                                                        strokeWidth={2}
-                                                    />
-                                                </Show>
-                                            </span>
-                                        </Button>
-                                    )}
+                                                    <Show when={checked()}>
+                                                        <Check
+                                                            size={10}
+                                                            strokeWidth={3.5}
+                                                        />
+                                                    </Show>
+                                                </span>
+                                                <span class='flex min-w-0'>
+                                                    <Show when={name.folder}>
+                                                        <span class='shrink-0 text-fg-muted'>{name.folder}</span>
+                                                    </Show>
+                                                    <span class='truncate'>{name.base}</span>
+                                                    <span class='shrink-0 text-fg-muted'>{name.extension}</span>
+                                                </span>
+                                            </Button>
+                                        )
+                                    }}
                                 </For>
                             </div>
                         </Show>

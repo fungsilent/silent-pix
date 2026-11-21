@@ -16,8 +16,8 @@ export function DetailPanel(props: DetailPanelProps) {
         <Panel
             classes={{
                 root: 'border-l border-line bg-surface max-[980px]:hidden',
-                // 350 是讓 ID 欄位能完整顯示 36 字元 UUID 的最小寬度
-                open: 'w-[350px]',
+                // 380 是讓 ID 欄位能完整顯示 36 字元 UUID 加上複製圖示的最小寬度
+                open: 'w-[380px]',
                 close: 'w-10',
             }}
             collapse={props.collapse}

@@ -15,6 +15,7 @@ import { Button } from '#/components/base/Button'
 import { Dialog } from '#/components/base/Dialog'
 import { FilterChips } from '#/components/base/FilterChips'
 import { Loading } from '#/components/base/Loading'
+import { SelectedCountChip } from '#/components/base/SelectedCountChip'
 import { StatusMessage } from '#/components/base/StatusMessage'
 import { Text } from '#/components/field'
 import { ImageTypeBadge } from '#/components/image/ImageTypeBadge'
@@ -248,10 +249,10 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                         when={props.mode === 'single' && selectedSingle()}
                         fallback={(
                             <Show when={props.mode === 'multiple' && selectedMultiple().length > 0}>
-                                <span class='flex h-7 shrink-0 items-center gap-1 rounded-md bg-selected pl-2.5 pr-1 text-xs font-medium leading-none text-fg tabular-nums'>
-                                    {t('common.selectedCount', { count: selectedMultiple().length })}
-                                    <ClearSelectionButton onClick={clearSelection} />
-                                </span>
+                                <SelectedCountChip
+                                    count={selectedMultiple().length}
+                                    onClear={clearSelection}
+                                />
                             </Show>
                         )}
                     >

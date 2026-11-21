@@ -1,5 +1,5 @@
-import { Trash2 } from 'lucide-solid'
-import { createSignal, Show } from 'solid-js'
+import { Check, Copy, Trash2 } from 'lucide-solid'
+import { createSignal, onCleanup, Show } from 'solid-js'
 
 import { Badge } from '#/components/base/Badge'
 import { Button } from '#/components/base/Button'
@@ -10,8 +10,9 @@ import { Editable } from '#/components/field/Editable'
 import { TaskFailure } from '#/components/task/detail/TaskFailure'
 import { TaskStatus } from '#/components/task/TaskStatus'
 import { toErrorMessage } from '#/lib/error'
-import { formatDateTime } from '#/lib/format'
+import { formatDate, formatTime } from '#/lib/format'
 import { t } from '#/lib/i18n'
+import { useIssueSource } from '#/lib/issue'
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { Accessor } from 'solid-js'
@@ -51,6 +52,25 @@ type TaskInfoProps = {
 
 export function TaskInfo(props: TaskInfoProps) {
     const [deleteOpen, setDeleteOpen] = createSignal(false)
+    const [idCopied, setIdCopied] = createSignal(false)
+    const [copyFailed, setCopyFailed] = createSignal(false)
+    let copiedTimer: number | undefined
+    onCleanup(() => window.clearTimeout(copiedTimer))
+    useIssueSource(() => copyFailed()
+        ? [{ id: 'task-id-copy', tone: 'warning' as const, field: () => t('fields.id'), message: () => t('common.copyFailed'), onDismiss: () => setCopyFailed(false) }]
+        : [])
+    const copyId = async (id: string) => {
+        try {
+            await navigator.clipboard.writeText(id)
+            setCopyFailed(false)
+            setIdCopied(true)
+            window.clearTimeout(copiedTimer)
+            copiedTimer = window.setTimeout(() => setIdCopied(false), 1500)
+        }
+        catch {
+            setCopyFailed(true)
+        }
+    }
     const [deleteError, setDeleteError] = createSignal<() => string>()
     const isCreate = () => props.mode === 'create'
     const isDraft = () => {
@@ -107,10 +127,43 @@ export function TaskInfo(props: TaskInfoProps) {
         <DetailSection inert={props.loading()}>
             <DetailRow label={t('fields.id')}>
                 <Loading.Mask loading={props.loading}>
-                    {/* cold 時用 nbsp 撐住行高，mask 才有高度；不是假資料 */}
-                    <span class='block truncate font-mono text-[11px] font-medium leading-none text-fg'>
-                        {props.data.id() ?? '\u00A0'}
-                    </span>
+                    <Show
+                        when={props.data.id()}
+                        /* cold／draft 時用 nbsp 撐住行高，mask 才有高度；不是假資料 */
+                        fallback={<span class='block font-mono text-[11px] leading-none'>{'\u00A0'}</span>}
+                    >
+                        {id => (
+                            <button
+                                type='button'
+                                title={t('common.copyId')}
+                                class='group flex min-w-0 max-w-full cursor-pointer items-center gap-1.5 border-0 bg-transparent p-0 text-left outline-none'
+                                onClick={() => void copyId(id())}
+                            >
+                                <span class='min-w-0 truncate font-mono text-[11px] font-medium leading-none text-fg'>
+                                    {id()}
+                                </span>
+                                <span
+                                    class='flex shrink-0 text-fg-muted'
+                                    classList={{ 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100': !idCopied() }}
+                                >
+                                    <Show
+                                        when={idCopied()}
+                                        fallback={(
+                                            <Copy
+                                                size={12}
+                                                strokeWidth={1.8}
+                                            />
+                                        )}
+                                    >
+                                        <Check
+                                            size={12}
+                                            strokeWidth={2}
+                                        />
+                                    </Show>
+                                </span>
+                            </button>
+                        )}
+                    </Show>
                 </Loading.Mask>
             </DetailRow>
 
@@ -171,7 +224,7 @@ export function TaskInfo(props: TaskInfoProps) {
             <DetailRow label={t('fields.created')}>
                 <Loading.Mask loading={props.loading}>
                     <span
-                        class='block text-xs leading-none'
+                        class='flex gap-1.5 text-xs leading-none tabular-nums'
                         classList={{
                             'text-fg-secondary': props.data.createdAt() != null,
                             'text-fg-muted': props.data.createdAt() == null,
@@ -181,7 +234,12 @@ export function TaskInfo(props: TaskInfoProps) {
                             when={props.data.createdAt()}
                             fallback='-'
                         >
-                            {createdAt => formatDateTime(createdAt())}
+                            {createdAt => (
+                                <>
+                                    <span>{formatDate(createdAt())}</span>
+                                    <span>{formatTime(createdAt())}</span>
+                                </>
+                            )}
                         </Show>
                     </span>
                 </Loading.Mask>
