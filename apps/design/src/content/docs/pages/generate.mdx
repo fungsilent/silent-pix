@@ -324,7 +324,7 @@ Task 詳細面板的 Image 區：img2img 的參考圖與 denoise。
 <ul class="ds-rules">
 <Rule component="reference-image" id="section">Task 詳細面板的 Image 區：img2img 的參考圖與 denoise。可編輯模式能拖放、點擊上傳、從圖庫挑選或移除；唯讀模式只顯示。</Rule>
 <Rule component="reference-image" id="frame">參考圖放在高 160px、`bg-active` 的圓角框內等比 contain；點圖開啟全螢幕 image viewer（不帶操作）。可編輯模式右上角有 24px 的移除鈕，平時是半透明 stage 底色加背景模糊，hover 轉 danger。</Rule>
-<Rule component="reference-image" id="source">來源列只在參考圖來自既有 task 的輸出時出現：可編輯模式是帶「回到來源」圖示的外框按鈕，點了選取來源 task；唯讀模式是純文字。直接上傳的檔案沒有來源列。</Rule>
+<Rule component="reference-image" id="source">來源列只在參考圖來自既有 task 時出現，內容是來源文字（task 名稱，沒有名稱時為 ID 前 8 碼並用等寬字；來自輸出時加 #n）＋與圖片選擇器卡片同款的 IN／OUT 小標。可編輯模式是外框按鈕，內容靠左、右側 ArrowUpRight「前往」圖示，點了選取來源 task；唯讀模式是同樣的文字＋小標，沒有圖示。直接上傳的檔案（最早的使用就是這個 task）沒有來源列。</Rule>
 <Rule component="reference-image" id="denoise">Denoise 只在有參考圖時出現：Slider 與 64px 寬的窄數字欄並排（數字欄不顯示標籤），範圍 0.05–1、step 0.05；唯讀模式兩者都停用。</Rule>
 <Rule component="reference-image" id="empty">沒有參考圖時，可編輯模式顯示虛線 drop zone（hover 換底色，拖曳中轉 accent 外框、accent 淡底與 accent 文字）與虛線外框的「Search image library」；唯讀模式顯示 `bg-active` 虛線框與「No reference image.」。</Rule>
 <Rule component="reference-image" id="file-types">只接受 PNG 與 JPEG，型別以內容判斷；拒收時在區塊底部加一行提示（11px `text-danger-fg` 警告三角，文字 `text-fg`）：型別不符為「Use a PNG or JPEG image.」，其他為「That file cannot be used as a reference image.」。</Rule>

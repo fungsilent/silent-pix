@@ -17,6 +17,7 @@ import { FilterChips } from '#/components/base/FilterChips'
 import { Loading } from '#/components/base/Loading'
 import { StatusMessage } from '#/components/base/StatusMessage'
 import { Text } from '#/components/field'
+import { ImageTypeBadge } from '#/components/image/ImageTypeBadge'
 import { createThumbnailGrid, ThumbnailSizeSlider } from '#/components/image/ThumbnailSize'
 import { TaskFlagOverlay } from '#/components/task/TaskFlagOverlay'
 import { originLabel } from '#/features/image/image.label'
@@ -407,16 +408,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                                                         >
                                                             {imageLabel(item)}
                                                         </span>
-                                                        <span
-                                                            class={cn(
-                                                                'shrink-0 rounded px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide',
-                                                                item.matchedUsage.type === 'input'
-                                                                    ? 'bg-info/18 text-info-fg'
-                                                                    : 'bg-elevated text-fg-muted',
-                                                            )}
-                                                        >
-                                                            {item.matchedUsage.type === 'input' ? 'in' : 'out'}
-                                                        </span>
+                                                        <ImageTypeBadge type={item.matchedUsage.type} />
                                                     </div>
                                                 </Button>
                                             )

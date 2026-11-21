@@ -1,5 +1,5 @@
 import { image } from '@silent-pix/shared'
-import { ImagePlus, RotateCcw, Search, TriangleAlert, X } from 'lucide-solid'
+import { ArrowUpRight, ImagePlus, Search, TriangleAlert, X } from 'lucide-solid'
 import { createSignal, Show } from 'solid-js'
 
 import { resolveImageUrl } from '#/api/image'
@@ -8,8 +8,9 @@ import { Loading } from '#/components/base/Loading'
 import { DetailSection } from '#/components/detail'
 import { FileDrop, Number, Slider } from '#/components/field'
 import { ImagePickerDialog } from '#/components/image/ImagePickerDialog'
+import { ImageTypeBadge } from '#/components/image/ImageTypeBadge'
 import { ImageViewer } from '#/components/viewer/ImageViewer'
-import { originLabel } from '#/features/image/image.label'
+import { originTaskLabel } from '#/features/image/image.label'
 import { t } from '#/lib/i18n'
 
 import type { FileUploadFileRejection } from '@ark-ui/solid'
@@ -284,24 +285,25 @@ function ReferenceSlot(props: ReferenceSlotProps) {
                         <Show
                             when={props.mode === 'create'}
                             fallback={(
-                                <span class='block truncate text-xs text-fg-secondary'>
-                                    {originLabel(origin())}
+                                <span class='flex min-w-0 items-center gap-2 text-xs text-fg-secondary'>
+                                    <OriginText origin={origin()} />
                                 </span>
                             )}
                         >
                             <Button
-                                classes={{ root: 'w-full border border-line bg-transparent' }}
+                                classes={{ root: 'w-full justify-start border border-line bg-transparent' }}
                                 onClick={() => {
                                     if (props.mode === 'create') {
                                         props.onSelectOrigin(origin().taskId)
                                     }
                                 }}
                             >
-                                <RotateCcw
+                                <OriginText origin={origin()} />
+                                <ArrowUpRight
+                                    class='ml-auto shrink-0'
                                     size={13}
-                                    strokeWidth={1.7}
+                                    strokeWidth={1.8}
                                 />
-                                {originLabel(origin())}
                             </Button>
                         </Show>
                     </Loading.Mask>
@@ -320,6 +322,20 @@ function ReferenceSlot(props: ReferenceSlotProps) {
                     onSelect={() => undefined}
                 />
             </Show>
+        </>
+    )
+}
+
+function OriginText(props: { origin: ImageApi.ImageUsage }) {
+    return (
+        <>
+            <span
+                class='min-w-0 truncate'
+                classList={{ 'font-mono': !props.origin.taskName }}
+            >
+                {originTaskLabel(props.origin)}
+            </span>
+            <ImageTypeBadge type={props.origin.type} />
         </>
     )
 }
