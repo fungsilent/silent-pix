@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 
 import { images, isUUID, taskImages, tasks } from '@silent-pix/db'
-import { and, asc, desc, eq, gt, inArray, like, lt, ne, or } from 'drizzle-orm'
+import { and, asc, desc, eq, gt, inArray, like, lt, or } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/sqlite-core'
 
 import { readImageMeta } from '#/lib/image/image.meta'
@@ -235,13 +235,12 @@ export const imageService = {
     },
 
     /*
-     * 這張圖最早被誰用過。excludeTaskId 是呼叫端自己——一張剛上傳的圖只有
-     * 自己這一次引用，那不構成出處，回 undefined 讓 UI 不畫來源按鈕。
+     * 圖片最早的使用即是來源；最早的就是 taskId 自己時（圖在這個 task 上傳或產生）沒有來源。
      */
     async findOrigin(
         database: Database,
         imageId: UUID,
-        excludeTaskId?: UUID,
+        taskId: UUID,
     ): Promise<ImageApi.ImageUsage | undefined> {
         const row = await database
             .select({
@@ -255,13 +254,12 @@ export const imageService = {
             .where(and(
                 eq(taskImages.imageId, imageId),
                 inArray(taskImages.type, displayTypes),
-                excludeTaskId ? ne(taskImages.taskId, excludeTaskId) : undefined,
             ))
             .orderBy(asc(taskImages.createdAt), asc(taskImages.id))
             .limit(1)
             .get()
 
-        if (!row) {
+        if (!row || row.taskId === taskId) {
             return undefined
         }
 
