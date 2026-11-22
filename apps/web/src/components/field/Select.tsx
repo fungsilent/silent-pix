@@ -1,6 +1,7 @@
 import { Select as ArkSelect, createListCollection } from '@ark-ui/solid'
 import { Check, ChevronDown } from 'lucide-solid'
 import { createMemo, For, Show } from 'solid-js'
+import { Portal } from 'solid-js/web'
 
 import { Badge } from '#/components/base/Badge'
 import { cn } from '#/lib/cn'
@@ -76,45 +77,48 @@ export function Select(props: SelectProps) {
                     </ArkSelect.Indicator>
                 </ArkSelect.Trigger>
             </ArkSelect.Control>
-            <ArkSelect.Positioner>
-                <ArkSelect.Content
-                    class={cn(
-                        'z-10 mt-1 min-w-[var(--reference-width)] overflow-hidden rounded-md border border-line bg-elevated p-1 shadow-xl',
-                        props.classes?.content,
-                    )}
-                >
-                    <ArkSelect.List>
-                        <For each={props.options}>
-                            {option => (
-                                <ArkSelect.Item
-                                    item={option}
-                                    class={cn(
-                                        'flex h-8 cursor-default items-center justify-between gap-2 rounded px-2 text-xs text-fg outline-none data-[highlighted]:bg-accent/20',
-                                        props.classes?.item,
-                                    )}
-                                >
-                                    <span class='flex min-w-0 flex-1 items-center gap-1.5'>
-                                        <ArkSelect.ItemText class='min-w-0 truncate'>
-                                            {option.label}
-                                        </ArkSelect.ItemText>
-                                        <Show when={option.badge}>
-                                            {badge => (
-                                                <Badge tone={props.badgeTone}>{badge()}</Badge>
-                                            )}
-                                        </Show>
-                                    </span>
-                                    <ArkSelect.ItemIndicator class='text-accent-fg'>
-                                        <Check
-                                            size={13}
-                                            strokeWidth={2}
-                                        />
-                                    </ArkSelect.ItemIndicator>
-                                </ArkSelect.Item>
-                            )}
-                        </For>
-                    </ArkSelect.List>
-                </ArkSelect.Content>
-            </ArkSelect.Positioner>
+            {/* 掛到 body，才不會被卡片的 overflow 切掉；高度上限是視窗內可用空間，超過就捲動 */}
+            <Portal>
+                <ArkSelect.Positioner class='z-50'>
+                    <ArkSelect.Content
+                        class={cn(
+                            'scrollbar-thin mt-1 max-h-[min(var(--available-height),320px)] min-w-[var(--reference-width)] overflow-y-auto rounded-md border border-line bg-elevated p-1 shadow-xl',
+                            props.classes?.content,
+                        )}
+                    >
+                        <ArkSelect.List class='outline-none'>
+                            <For each={props.options}>
+                                {option => (
+                                    <ArkSelect.Item
+                                        item={option}
+                                        class={cn(
+                                            'flex h-8 cursor-default items-center justify-between gap-2 rounded px-2 text-xs text-fg outline-none data-[highlighted]:bg-accent/20',
+                                            props.classes?.item,
+                                        )}
+                                    >
+                                        <span class='flex min-w-0 flex-1 items-center gap-1.5'>
+                                            <ArkSelect.ItemText class='min-w-0 truncate'>
+                                                {option.label}
+                                            </ArkSelect.ItemText>
+                                            <Show when={option.badge}>
+                                                {badge => (
+                                                    <Badge tone={props.badgeTone}>{badge()}</Badge>
+                                                )}
+                                            </Show>
+                                        </span>
+                                        <ArkSelect.ItemIndicator class='text-accent-fg'>
+                                            <Check
+                                                size={13}
+                                                strokeWidth={2}
+                                            />
+                                        </ArkSelect.ItemIndicator>
+                                    </ArkSelect.Item>
+                                )}
+                            </For>
+                        </ArkSelect.List>
+                    </ArkSelect.Content>
+                </ArkSelect.Positioner>
+            </Portal>
             <ArkSelect.HiddenSelect />
         </ArkSelect.Root>
     )
