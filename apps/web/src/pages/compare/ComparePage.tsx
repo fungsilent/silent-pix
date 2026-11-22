@@ -6,7 +6,7 @@ import { compareStore } from '#/store/compare'
 
 export function ComparePage() {
     return (
-        <div class='flex min-h-0 flex-1 overflow-hidden'>
+        <div class='flex min-h-0 flex-1 gap-1 overflow-hidden'>
             <CompareWorkspace />
             <Show when={compareStore.visibleCompare().length > 0}>
                 <CompareDetail />

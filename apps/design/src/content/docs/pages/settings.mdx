@@ -103,7 +103,8 @@ Desktop 才有的 Server 連線設定：輸入、測試、儲存。
 
 <Screen>
     <Slot name="header" component="app-header" states="settings,no-endpoint" />
-    <section class="flex min-h-0 flex-1 flex-col">
+    <div class="flex min-h-0 flex-1 gap-1 overflow-hidden bg-shell px-1 pb-1">
+    <section class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-line-subtle">
         <div class="scrollbar-thin min-h-0 flex-1 overflow-y-auto bg-surface px-4 pb-5 pt-6">
             <div class="mx-auto flex w-full max-w-[640px] flex-col gap-3">
                 <h2 class="m-0 mb-2 text-base font-semibold leading-6 text-fg">Settings</h2>
@@ -120,6 +121,7 @@ Desktop 才有的 Server 連線設定：輸入、測試、儲存。
             </div>
         </div>
     </section>
+    </div>
     <Slot name="overlay" component="settings-confirm-dialog" states="none,server-save,server-saving" empty="none" />
 </Screen>
 

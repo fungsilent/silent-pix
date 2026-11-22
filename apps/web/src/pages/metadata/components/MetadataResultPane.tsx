@@ -9,6 +9,7 @@ import { StatusMessage } from '#/components/base/StatusMessage'
 import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
 import { formatJsonText } from '#/lib/json'
+import { theme } from '#/lib/theme'
 
 import type { SegmentGroupOption } from '#/components/base/SegmentGroup'
 import type { MetadataEntry, MetadataNode, MetadataNodeValue } from '#/pages/metadata/metadata.parse'
@@ -53,7 +54,7 @@ export function MetadataResultPane(props: ResultPaneProps) {
     const empty = () => props.entries.length === 0
 
     return (
-        <section class='flex min-w-0 flex-1 flex-col bg-surface'>
+        <section class={cn(theme.card, 'flex min-w-0 flex-1 flex-col bg-surface')}>
             <Bar.Root classes={{ root: 'border-b border-line-subtle' }}>
                 <SegmentGroup
                     value={props.tab}

@@ -6,6 +6,7 @@ export const theme = {
         invalid: 'border-l-2 border-l-danger focus:border-field-border focus:border-l-danger focus:ring-danger/30',
     },
     selected: 'bg-selected text-fg hover:bg-selected',
+    card: 'overflow-hidden rounded-lg border border-line-subtle',
     /*
      * Flag 分兩件事：縮圖左上的角摺是「狀態」，常駐且不可點；
      * 行右端的兩顆是「操作」，只在 hover 整張卡／整列時出現。

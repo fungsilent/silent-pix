@@ -120,7 +120,7 @@ import Fixed from '@silent-pix/blueprint/components/Fixed.astro'
 
 <Screen>
     <Fixed component="app-header" state="metadata" />
-    <div class="flex min-h-0 flex-1 overflow-hidden">
+    <div class="flex min-h-0 flex-1 gap-1 overflow-hidden bg-shell px-1 pb-1">
         <Slot name="viewer" component="metadata-viewer" states="empty,dragging,loading,generation,generation-jump,generation-json,generation-text,raw-incomplete,missing,error,preview-failed" labels="empty · open|dragging a file over|reading|Generation · prompt copied|Generation · jumped to a linked node|Generation · API JSON open, copied|Generation · text parameters only|Raw tab · incomplete|Generation · nothing found|unsupported file|preview unavailable" />
     </div>
 </Screen>

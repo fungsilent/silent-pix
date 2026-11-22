@@ -189,7 +189,7 @@ Generate 工作區頂端的 prompt 編輯區：Positive／Negative 兩段 editor
 <Rules component="prompt-panel">
 
 <ul class="ds-rules">
-<Rule component="prompt-panel" id="bar">Generate 工作區頂端的 prompt 區：48px Bar（標題「Prompt」、Positive／Negative 切換、Generate）加上每段一個 prompt editor。整塊 `bg-surface`，底部 `border-line-subtle` 與下方 image-stage 分開。</Rule>
+<Rule component="prompt-panel" id="bar">Generate 工作區頂端的 prompt 卡片：48px Bar（標題「Prompt」、Positive／Negative 切換、Generate）加上每段一個 prompt editor。整塊 `bg-surface`，與下方 image-stage 卡片以 4px 卡片間距分開（見 app-shell）。</Rule>
 <Rule component="prompt-panel" id="toggles">Positive／Negative 是顯示切換，不是 tab，可同時開：開著用 accent soft 加 accent 外框線，收起用 neutral soft、muted 文字與 `line-subtle` 外框線。收起只隱藏該段，內容與捲動位置保留。</Rule>
 <Rule component="prompt-panel" id="generate">Generate 是這一欄唯一的 accent solid 按鈕；送出中改為「Creating...」並停用，detail 載入中也停用，停用時半透明。</Rule>
 <Rule component="prompt-panel" id="issues">不能生成時（沒有 workflow、選項載入失敗等）Generate 停用，原因只列在 Header 的 Issue chip；剛按下 Generate 被擋時，Header 的清單自動展開。</Rule>
@@ -473,20 +473,20 @@ Task 詳細面板的 LoRA 區：已選 LoRA 的清單與 weight。
 
 <Screen>
     <Slot name="header" component="app-header" states="generate,comfy-down,server-down,connecting" />
-    <div class="flex min-h-0 flex-1 overflow-hidden">
+    <div class="flex min-h-0 flex-1 gap-1 overflow-hidden bg-shell px-1 pb-1">
         <Switch name="view">
             <Case state="workspace" label="workspace">
-                <Slot name="list" component="task-list" states="default,empty,empty-pin,empty-filter,loading,error,loading-more,page-error,collapsed,collapsed-loading,collapsed-empty,collapsed-empty-filter,collapsed-no-match" />
-                <section class="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-canvas">
-                    <Slot name="prompt" component="prompt-panel" states="default,submitting,loading,issues" />
-                    <Slot name="stage" component="image-stage" states="multiple,single,empty,loading" />
+                <div class="flex min-h-0 overflow-hidden rounded-lg border border-line-subtle flex-none"><Slot name="list" component="task-list" states="default,empty,empty-pin,empty-filter,loading,error,loading-more,page-error,collapsed,collapsed-loading,collapsed-empty,collapsed-empty-filter,collapsed-no-match" /></div>
+                <section class="flex h-full min-h-0 min-w-0 flex-1 flex-col gap-1">
+                    <div class="flex min-h-0 overflow-hidden rounded-lg border border-line-subtle flex-none flex-col"><Slot name="prompt" component="prompt-panel" states="default,submitting,loading,issues" /></div>
+                    <div class="flex min-h-0 overflow-hidden rounded-lg border border-line-subtle flex-1 flex-col"><Slot name="stage" component="image-stage" states="multiple,single,empty,loading" /></div>
                 </section>
             </Case>
             <Case state="browser" label="task browser">
-                <Slot name="browser" component="task-browser" states="default,search,filter-unflag,filter-pin,filter-multi,filter-discard,selection,selection-one,marquee,discard-selection,selection-limit,empty,no-match,empty-unflag,empty-pin,empty-filter,empty-discard,loading,error,loading-more,page-error" />
+                <div class="flex min-h-0 overflow-hidden rounded-lg border border-line-subtle min-w-0 flex-1"><Slot name="browser" component="task-browser" states="default,search,filter-unflag,filter-pin,filter-multi,filter-discard,selection,selection-one,marquee,discard-selection,selection-limit,empty,no-match,empty-unflag,empty-pin,empty-filter,empty-discard,loading,error,loading-more,page-error" /></div>
             </Case>
         </Switch>
-        <Slot name="detail" component="task-detail" states="view,draft,loading,error,collapsed,failed" />
+        <div class="flex min-h-0 overflow-hidden rounded-lg border border-line-subtle flex-none"><Slot name="detail" component="task-detail" states="view,draft,loading,error,collapsed,failed" /></div>
     </div>
     <Switch name="overlay">
         <Case state="none" label="none" />

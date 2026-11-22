@@ -14,6 +14,7 @@ import { cn } from '#/lib/cn'
 import { localeStore, t } from '#/lib/i18n'
 import { useIssueSource } from '#/lib/issue'
 import { getPlatform, saveLocalServerUrl, validateLocalServerUrl } from '#/lib/platform'
+import { theme } from '#/lib/theme'
 import { routePaths } from '#/routes'
 import { devStore } from '#/store/dev'
 import { themeStore } from '#/store/theme'
@@ -132,7 +133,7 @@ export function SettingsPage() {
     }
 
     return (
-        <section class='flex min-h-0 flex-1 flex-col'>
+        <section class={cn(theme.card, 'flex min-h-0 flex-1 flex-col')}>
             <div class='scrollbar-thin min-h-0 flex-1 overflow-y-auto bg-surface px-4 pt-6 pb-5'>
                 <div class='mx-auto flex w-full max-w-[640px] flex-col gap-3'>
                     <h2 class='m-0 mb-2 text-base font-semibold leading-6 text-fg'>{t('common.settings')}</h2>

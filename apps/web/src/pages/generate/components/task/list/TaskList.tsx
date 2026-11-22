@@ -10,6 +10,7 @@ import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
 import { toFailureIssue, useIssueSource } from '#/lib/issue'
 import { createLoadOnScroll } from '#/lib/loadOnScroll'
+import { theme } from '#/lib/theme'
 import { TaskItem, TaskItemSkeleton } from '#/pages/generate/components/task/list/TaskItem'
 import { taskFilterEmptyCopy } from '#/pages/generate/components/task/TaskFilterChips'
 import { TaskRail } from '#/pages/generate/components/task/TaskRail'
@@ -38,7 +39,7 @@ export function TaskList() {
     return (
         <Panel
             classes={{
-                root: 'w-max border-r border-line max-[720px]:hidden',
+                root: cn(theme.card, 'w-max max-[720px]:hidden'),
             }}
         >
             {panel => (

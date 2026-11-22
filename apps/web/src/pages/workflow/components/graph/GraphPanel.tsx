@@ -1,7 +1,9 @@
 import { Show } from 'solid-js'
 
 import { Bar } from '#/components/base/Bar'
+import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
+import { theme } from '#/lib/theme'
 import { GraphEditor } from '#/pages/workflow/components/graph/GraphEditor'
 import { useWorkflowStore } from '#/pages/workflow/store'
 
@@ -12,7 +14,7 @@ export function GraphPanel() {
     const graphText = form.useSelector(state => state.values.graphText)
 
     return (
-        <section class='flex min-w-0 flex-1 flex-col overflow-hidden border-r border-line bg-surface'>
+        <section class={cn(theme.card, 'flex min-w-0 flex-1 flex-col bg-surface')}>
             <Bar.Root>
                 <Bar.Group>
                     <Bar.Title>{t('workflow.apiJson')}</Bar.Title>

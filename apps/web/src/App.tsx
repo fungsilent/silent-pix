@@ -65,20 +65,22 @@ function AppLayout(props: RouteSectionProps) {
     })
 
     return (
-        <main class='flex h-dvh flex-col overflow-hidden bg-canvas text-fg'>
+        <main class='flex h-dvh flex-col overflow-hidden bg-shell text-fg'>
             <Header />
-            {platform.endpoint
-                ? (
-                    <MultiProvider
-                        values={[
-                            GenerateSessionProvider,
-                            WorkflowSessionProvider,
-                        ]}
-                    >
-                        {props.children}
-                    </MultiProvider>
-                )
-                : props.children}
+            <div class='flex min-h-0 flex-1 flex-col px-1 pb-1'>
+                {platform.endpoint
+                    ? (
+                        <MultiProvider
+                            values={[
+                                GenerateSessionProvider,
+                                WorkflowSessionProvider,
+                            ]}
+                        >
+                            {props.children}
+                        </MultiProvider>
+                    )
+                    : props.children}
+            </div>
         </main>
     )
 }

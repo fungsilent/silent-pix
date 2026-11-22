@@ -7,9 +7,11 @@ import {
     useTaskFeedQuery,
     useTaskFlagMutation,
 } from '#/features/task/task.query'
+import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
 import { toFailureIssue, useIssueSource } from '#/lib/issue'
 import { isEditableTarget } from '#/lib/keyboard'
+import { theme } from '#/lib/theme'
 import { TaskBatchDeleteDialog } from '#/pages/generate/components/task/browser/TaskBatchDeleteDialog'
 import { TaskBrowserGrid } from '#/pages/generate/components/task/browser/TaskBrowserGrid'
 import { TaskBrowserToolbar } from '#/pages/generate/components/task/browser/TaskBrowserToolbar'
@@ -213,7 +215,7 @@ export function TaskBrowser() {
     const deletePending = () => selectedDeleteMutation.isPending || discardedDeleteMutation.isPending
 
     return (
-        <div class='flex h-full min-h-0 min-w-0 flex-1 overflow-hidden bg-surface'>
+        <div class={cn(theme.card, 'flex h-full min-h-0 min-w-0 flex-1 bg-surface')}>
             <TaskRail
                 gridActive
                 onFilterChange={changeFilter}

@@ -25,7 +25,7 @@ export function GenerateWorkspace() {
 
     return (
         <section
-            class='flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-canvas'
+            class='flex h-full min-h-0 min-w-0 flex-1 flex-col gap-1'
         >
             <PromptPanel />
             <ImageStage

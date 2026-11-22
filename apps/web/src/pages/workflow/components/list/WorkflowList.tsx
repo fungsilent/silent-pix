@@ -24,7 +24,7 @@ export function WorkflowList() {
     const draftName = page.form.useSelector(state => state.values.name)
 
     return (
-        <aside class='flex w-[200px] flex-none flex-col overflow-hidden border-r border-line bg-surface'>
+        <aside class={cn(theme.card, 'flex w-[200px] flex-none flex-col bg-surface')}>
             <Bar.Root classes={{ root: 'pl-3 pr-2' }}>
                 <Bar.Group>
                     <Bar.Title>{t('workflow.title')}</Bar.Title>

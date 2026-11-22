@@ -13,6 +13,7 @@ import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
 import { createImageZoom } from '#/lib/imageZoom'
 import { isEditableTarget } from '#/lib/keyboard'
+import { theme } from '#/lib/theme'
 import { compareStore } from '#/store/compare'
 import { overlayStore } from '#/store/overlay'
 
@@ -115,7 +116,7 @@ export function CompareWorkspace() {
 
     return (
         <section
-            class='flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-canvas'
+            class={cn(theme.card, 'flex min-h-0 min-w-0 flex-1 flex-col bg-canvas')}
         >
             <Show
                 when={allEntries().length > 0}

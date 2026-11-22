@@ -5,8 +5,10 @@ import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
 import { Line } from '#/components/base/Line'
 import { StatusMessage } from '#/components/base/StatusMessage'
+import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
 import { issueList, useIssueSource } from '#/lib/issue'
+import { theme } from '#/lib/theme'
 import { WorkflowInfo } from '#/pages/workflow/components/config/WorkflowInfo'
 import { WorkflowMapping } from '#/pages/workflow/components/config/WorkflowMapping'
 import {
@@ -68,7 +70,7 @@ export function WorkflowDetail() {
 
     return (
         <form
-            class='flex w-[620px] flex-none flex-col overflow-hidden bg-surface'
+            class={cn(theme.card, 'flex w-[620px] flex-none flex-col bg-surface')}
             onSubmit={event => void handleSubmit(event)}
         >
             <Bar.Root>

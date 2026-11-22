@@ -1,6 +1,8 @@
 import { Bar } from '#/components/base/Bar'
 import { CollapseButton, CollapsedBar, Panel, PanelContent } from '#/components/base/Panel'
+import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
+import { theme } from '#/lib/theme'
 
 import type { PanelCollapse } from '#/components/base/Panel'
 import type { JSX } from 'solid-js'
@@ -15,7 +17,7 @@ export function DetailPanel(props: DetailPanelProps) {
     return (
         <Panel
             classes={{
-                root: 'border-l border-line bg-surface max-[980px]:hidden',
+                root: cn(theme.card, 'bg-surface max-[980px]:hidden'),
                 // 380 是讓 ID 欄位能完整顯示 36 字元 UUID 加上複製圖示的最小寬度
                 open: 'w-[380px]',
                 close: 'w-10',

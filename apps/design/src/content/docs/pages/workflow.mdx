@@ -172,10 +172,10 @@ Workflow 頁最右欄：Bar 的 Save，下面依序是 workflow-info 與 workflo
 
 <Screen frame="relative flex h-[800px] min-w-[1180px] flex-col overflow-hidden rounded-xl border border-line bg-canvas text-fg">
     <Fixed component="app-header" state="workflow" />
-    <div class="flex min-h-0 flex-1 overflow-hidden">
-        <Slot name="list" component="workflow-list" states="default,modified,creating,archived-selected,loading,empty,error" />
-        <Slot name="graph" component="graph-editor" states="default,empty,no-selection,loading" />
-        <Slot name="detail" component="workflow-detail" states="saved,unused,modified,saving,issues,node-open,new,archived,deleted,pending,unavailable,loading,load-error,no-selection" />
+    <div class="flex min-h-0 flex-1 gap-1 overflow-hidden bg-shell px-1 pb-1">
+        <div class="flex min-h-0 overflow-hidden rounded-lg border border-line-subtle flex-none"><Slot name="list" component="workflow-list" states="default,modified,creating,archived-selected,loading,empty,error" /></div>
+        <div class="flex min-h-0 overflow-hidden rounded-lg border border-line-subtle min-w-0 flex-1"><Slot name="graph" component="graph-editor" states="default,empty,no-selection,loading" /></div>
+        <div class="flex min-h-0 overflow-hidden rounded-lg border border-line-subtle flex-none"><Slot name="detail" component="workflow-detail" states="saved,unused,modified,saving,issues,node-open,new,archived,deleted,pending,unavailable,loading,load-error,no-selection" /></div>
     </div>
     <Slot name="overlay" component="workflow-confirm-dialog" states="none,workflow-archive,workflow-delete-error,workflow-archived-pending" empty="none" />
 </Screen>

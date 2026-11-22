@@ -110,12 +110,12 @@ Compare 頁的整個工作區：Bar、可縮放的目前圖片、底部 compare-
     <Fixed component="app-header" state="compare" />
     <Switch name="layout">
         <Case state="selected" label="image selected">
-            <div class="flex min-h-0 flex-1 overflow-hidden">
-                <Slot name="workspace" component="compare-workspace" states="default,zoomed,image-error" />
-                <Switch name="detail">
+            <div class="flex min-h-0 flex-1 gap-1 overflow-hidden bg-shell px-1 pb-1">
+                <div class="flex min-h-0 overflow-hidden rounded-lg border border-line-subtle min-w-0 flex-1"><Slot name="workspace" component="compare-workspace" states="default,zoomed,image-error" /></div>
+                <div class="flex min-h-0 overflow-hidden rounded-lg border border-line-subtle flex-none"><Switch name="detail">
                     <Case state="task" label="task output"><Slot name="task-detail" component="task-detail" states="read-only,loading,error,collapsed" /></Case>
                     <Case state="image" label="uploaded / reference image"><Slot name="image-detail" component="image-detail" states="image,collapsed" /></Case>
-                </Switch>
+                </Switch></div>
             </div>
             <Switch name="overlay">
                 <Case state="none" label="none" />
@@ -123,7 +123,7 @@ Compare 頁的整個工作區：Bar、可縮放的目前圖片、底部 compare-
             </Switch>
         </Case>
         <Case state="unselected" label="no image selected">
-            <Slot name="workspace" component="compare-workspace" states="empty,all-hidden" />
+            <div class="flex min-h-0 flex-1 gap-1 overflow-hidden bg-shell px-1 pb-1"><div class="flex min-h-0 overflow-hidden rounded-lg border border-line-subtle min-w-0 flex-1"><Slot name="workspace" component="compare-workspace" states="empty,all-hidden" /></div></div>
             <Slot name="picker" component="compare-image-picker" states="none,multiple,loading,error,empty" empty="no dialog" />
         </Case>
     </Switch>

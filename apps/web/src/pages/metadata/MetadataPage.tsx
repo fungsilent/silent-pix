@@ -3,8 +3,10 @@ import { createSignal, onCleanup, onMount, Show } from 'solid-js'
 
 import { Callout } from '#/components/base/Callout'
 import { StatusMessage } from '#/components/base/StatusMessage'
+import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
 import { useIssueSource } from '#/lib/issue'
+import { theme } from '#/lib/theme'
 import { MetadataFilePanel } from '#/pages/metadata/components/MetadataFilePanel'
 import { MetadataResultPane } from '#/pages/metadata/components/MetadataResultPane'
 import MetadataWorker from '#/pages/metadata/metadata.worker?worker'
@@ -198,7 +200,7 @@ export function MetadataPage() {
     ])
 
     return (
-        <section class='relative flex min-h-0 flex-1 bg-surface'>
+        <section class='relative flex min-h-0 flex-1 gap-1'>
             <input
                 ref={element => (input = element)}
                 type='file'
@@ -268,7 +270,7 @@ type OpeningScreenProps = {
 
 function OpeningScreen(props: OpeningScreenProps) {
     return (
-        <div class='relative flex min-w-0 flex-1 items-center justify-center px-4'>
+        <div class={cn(theme.card, 'relative flex min-w-0 flex-1 items-center justify-center bg-surface px-4')}>
             <Show when={props.dragging}>
                 <DropFrame />
             </Show>

@@ -7,6 +7,7 @@ import { Loading } from '#/components/base/Loading'
 import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
 import { issueList, useIssueSource } from '#/lib/issue'
+import { theme } from '#/lib/theme'
 import { promptDefaultHeight, promptMinHeight } from '#/pages/generate/components/workspace/generate/prompt/prompt.theme'
 import { PromptEditor } from '#/pages/generate/components/workspace/generate/prompt/PromptEditor'
 import { useGenerateDetail } from '#/pages/generate/detail'
@@ -58,7 +59,7 @@ export function PromptPanel() {
     )
 
     return (
-        <section class='flex shrink-0 flex-col overflow-hidden border-b border-line-subtle bg-surface'>
+        <section class={cn(theme.card, 'flex shrink-0 flex-col bg-surface')}>
             <Bar.Root>
                 <Bar.Group>
                     <Bar.Title>{t('fields.prompt')}</Bar.Title>

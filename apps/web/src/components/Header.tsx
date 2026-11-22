@@ -63,7 +63,7 @@ export function Header() {
             id='app-header'
             data-tauri-drag-region
             class={cn(
-                'relative flex h-9 shrink-0 items-center gap-1 border-b border-line-subtle bg-surface',
+                'relative flex h-9 shrink-0 items-center gap-1 bg-shell',
                 isMacDesktop() ? 'pl-[78px]' : 'pl-3',
                 windowControls ? 'pr-0' : 'pr-3',
             )}
@@ -174,7 +174,7 @@ export function Header() {
             {/* 像 VS Code：同一層遮罩蓋滿整條標題列（含視窗控制）。只負責外觀、不攔點擊，
                 視窗控制與拖曳照常；App 控制靠上面兩組的 inert 停用 */}
             <Show when={appControlsInert()}>
-                <div class='pointer-events-none absolute inset-x-0 top-0 -bottom-px z-20 bg-backdrop' />
+                <div class='pointer-events-none absolute inset-0 z-20 bg-backdrop' />
             </Show>
 
             <Show when={windowControls}>

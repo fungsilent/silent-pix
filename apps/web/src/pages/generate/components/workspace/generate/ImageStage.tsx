@@ -8,6 +8,7 @@ import { StatusMessage } from '#/components/base/StatusMessage'
 import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
 import { isEditableTarget } from '#/lib/keyboard'
+import { theme } from '#/lib/theme'
 
 import type { ImageApi } from '@silent-pix/shared'
 
@@ -71,7 +72,7 @@ export function ImageStage(props: ImageStageProps) {
     return (
         <section
             class={cn(
-                'relative flex min-h-[240px] flex-1 flex-col overflow-hidden',
+                theme.card, 'relative flex min-h-[240px] flex-1 flex-col',
                 selectedImage() ? 'bg-stage' : 'bg-stage-empty',
             )}
             inert={props.loading}
