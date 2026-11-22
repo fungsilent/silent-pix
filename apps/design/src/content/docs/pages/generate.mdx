@@ -181,6 +181,7 @@ Generate 工作區頂端的 prompt 編輯區：Positive／Negative 兩段 editor
 
 <Gallery min="100%">
 <State component="prompt-panel" state="default" label="both open · 2 groups" frame="*:border-b-0 w-full overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="prompt-panel" state="splitter-hover" label="splitter between sections · hover" frame="*:border-b-0 w-full overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="prompt-panel" state="submitting" label="submitting · negative hidden" frame="*:border-b-0 w-full overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="prompt-panel" state="loading" label="loading" frame="*:border-b-0 w-full overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="prompt-panel" state="issues" label="blocked · Generate disabled" frame="*:border-b-0 w-full overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
@@ -190,10 +191,11 @@ Generate 工作區頂端的 prompt 編輯區：Positive／Negative 兩段 editor
 
 <ul class="ds-rules">
 <Rule component="prompt-panel" id="bar">Generate 工作區頂端的 prompt 卡片：48px Bar（標題「Prompt」、Positive／Negative 切換、Generate）加上每段一個 prompt editor。整塊 `bg-surface`，與下方 image-stage 卡片以 4px 卡片間距分開（見 app-shell）。</Rule>
-<Rule component="prompt-panel" id="toggles">Positive／Negative 是顯示切換，不是 tab，可同時開：開著用 accent soft 加 accent 外框線，收起用 neutral soft、muted 文字與 `line-subtle` 外框線。收起只隱藏該段，內容與捲動位置保留。</Rule>
+<Rule component="prompt-panel" id="toggles">Positive／Negative 是顯示切換，不是 tab，可同時開：開著用 accent soft 加 accent 外框線，收起用 neutral soft、muted 文字與 `line-subtle` 外框線。收起只隱藏該段，內容與捲動位置保留。兩段都收起時卡片只剩 Bar，下方圖片卡片長高（等於整個 prompt 收起）。</Rule>
 <Rule component="prompt-panel" id="generate">Generate 是這一欄唯一的 accent solid 按鈕；送出中改為「Creating...」並停用，detail 載入中也停用，停用時半透明。</Rule>
 <Rule component="prompt-panel" id="issues">不能生成時（沒有 workflow、選項載入失敗等）Generate 停用，原因只列在 Header 的 Issue chip；剛按下 Generate 被擋時，Header 的清單自動展開。</Rule>
-<Rule component="prompt-panel" id="editor-height">Editor 預設高 108px（4 行 × 24px 加上下 6px），可拖曳調整，最小 1 行；最大高度依開著的段數平分剩餘視窗高度，但不低於預設高度。文字區是 `elevated`，gutter 降到 `surface`，兩區才分得開。</Rule>
+<Rule component="prompt-panel" id="editor-height">Editor 不各自拖曳高度：開著的段落分配 prompt 卡片的高度，內容超出就在該段內捲動；預設每段 4 行（108px，4 × 24px 加上下 6px），最小 1 行。高度只用兩條拖曳調整（見 splitter）。文字區是 `elevated`，gutter 降到 `surface`，兩區才分得開。</Rule>
+<Rule component="prompt-panel" id="splitter">兩條拖曳，外觀與行為相同：平常看不見，hover 時游標用 `ns-resize`（與 gutter 行號拖曳同一個游標）、空隙中間出現 2px accent 線，拖曳中維持；雙擊還原預設。① 兩段之間（Positive editor 下方到 Negative 標籤之間的 12px 空隙，整段都是拖曳範圍，線在空隙正中）：調兩段的高度比例，只在兩段都開著時存在，預設平分。② prompt 卡片與 image-stage 卡片之間的 4px 間距：調 prompt 卡片整體高度，預設是每段 4 行。上下限依實際空間：每個開著的段落至少 1 行，image-stage 至少 240px；視窗變小時夾回範圍內。拖好的高度與比例記在本機。兩段都收起時 ② 停用。</Rule>
 <Rule component="prompt-panel" id="gutter">Gutter 由左而右是行號（42px，往下拖曳可把多行建成新 group）與 group 名稱欄（128px，規則見 prompt-group-cell）。</Rule>
 <Rule component="prompt-panel" id="disabled-group">停用的 group：行文字降為 `fg-secondary`，並由一整塊跨行的斜線紋蓋住。停用的 token：`fg-muted` 加 1px 實線底線（offset 4px），無背景；在停用 group 裡文字色跟隨整組，底線保留。</Rule>
 <Rule component="prompt-panel" id="loading">Loading 時每段 editor 整塊蓋 skeleton，整個內容區不可互動，Bar 保留。</Rule>

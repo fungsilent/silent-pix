@@ -4,11 +4,13 @@ import { createEffect, on, Show } from 'solid-js'
 import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
 import { Loading } from '#/components/base/Loading'
+import { Splitter } from '#/components/base/Splitter'
 import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
 import { issueList, useIssueSource } from '#/lib/issue'
+import { evenPair, splitPair } from '#/lib/splitter'
 import { theme } from '#/lib/theme'
-import { promptDefaultHeight, promptMinHeight } from '#/pages/generate/components/workspace/generate/prompt/prompt.theme'
+import { promptMinHeight } from '#/pages/generate/components/workspace/generate/prompt/prompt.theme'
 import { PromptEditor } from '#/pages/generate/components/workspace/generate/prompt/PromptEditor'
 import { useGenerateDetail } from '#/pages/generate/detail'
 import { useRuntimeIssues } from '#/pages/generate/issue.runtime'
@@ -48,18 +50,23 @@ export function PromptPanel() {
     ))
 
     const visible = (kind: PromptKind) => store.state.promptVisible[kind]
-    const openCount = () => (visible('positive') ? 1 : 0) + (visible('negative') ? 1 : 0)
-    /*
-     * 上限而非固定高度：editor 隨內容長高，超過才捲動。
-     * 地板必須等於預設高度，否則視窗矮時上限會低於下限，
-     * host 是 overflow: hidden，會直接把 editor 切掉且不出現捲軸。
-     */
-    const editorMaxHeight = () => (
-        `max(${promptDefaultHeight}px, calc((100dvh - 460px) / ${openCount() || 1}))`
-    )
+    /* 兩段之間的拖曳：總高度不變，只改比例；每段至少一行 */
+    let editors: HTMLElement | undefined
+    const startSectionDrag = () => {
+        const height = (kind: PromptKind) => renderedPromptHeight(editors, kind) ?? store.state.promptHeight[kind]
+        const start = [height('positive'), height('negative')] as const
+        return (delta: number) => {
+            const [positive, negative] = splitPair(start, delta, promptMinHeight)
+            store.setPromptHeight({ positive, negative })
+        }
+    }
+    const equalizeSections = () => {
+        const [positive, negative] = evenPair([store.state.promptHeight.positive, store.state.promptHeight.negative])
+        store.setPromptHeight({ positive, negative })
+    }
 
     return (
-        <section class={cn(theme.card, 'flex shrink-0 flex-col bg-surface')}>
+        <section class={cn(theme.card, 'flex min-h-0 flex-col bg-surface')}>
             <Bar.Root>
                 <Bar.Group>
                     <Bar.Title>{t('fields.prompt')}</Bar.Title>
@@ -96,7 +103,8 @@ export function PromptPanel() {
             </Bar.Root>
 
             <div
-                class='flex flex-col gap-1'
+                ref={element => { editors = element }}
+                class='flex min-h-0 flex-col'
                 inert={isLoading()}
             >
                 <form.Field name='positive'>
@@ -107,11 +115,18 @@ export function PromptPanel() {
                             visible={visible('positive')}
                             documentKey={`${store.state.taskId}:positive`}
                             initialDocument={field().state.value}
-                            maxHeight={editorMaxHeight()}
+                            height={store.state.promptHeight.positive}
                             onDocumentChange={field().handleChange}
                         />
                     )}
                 </form.Field>
+                <Show when={visible('positive') && visible('negative')}>
+                    <Splitter
+                        onDragStart={startSectionDrag}
+                        onReset={equalizeSections}
+                        classes={{ root: '-mt-2 h-3', line: 'inset-x-4' }}
+                    />
+                </Show>
                 <form.Field name='negative'>
                     {field => (
                         <PromptSection
@@ -120,7 +135,7 @@ export function PromptPanel() {
                             visible={visible('negative')}
                             documentKey={`${store.state.taskId}:negative`}
                             initialDocument={field().state.value}
-                            maxHeight={editorMaxHeight()}
+                            height={store.state.promptHeight.negative}
                             onDocumentChange={field().handleChange}
                         />
                     )}
@@ -128,6 +143,12 @@ export function PromptPanel() {
             </div>
         </section>
     )
+}
+
+/* 視窗變矮時 editor 會被壓縮到小於儲存值，拖曳要從畫面上的實際高度開始；量不到（未顯示）時回傳 undefined */
+export function renderedPromptHeight(root: ParentNode | undefined, kind: PromptKind): number | undefined {
+    const element = root?.querySelector<HTMLElement>(`[data-prompt-editor="${kind}"]`)
+    return element && element.offsetHeight > 0 ? element.offsetHeight : undefined
 }
 
 /* MARK: PromptToggle */
@@ -164,7 +185,7 @@ function PromptToggle(props: PromptToggleProps) {
 type PromptSectionProps = {
     documentKey: string
     isLoading: Accessor<boolean>
-    maxHeight: string
+    height: number
     initialDocument: PromptDocument
     kind: PromptKind
     visible: boolean
@@ -174,22 +195,19 @@ type PromptSectionProps = {
 function PromptSection(props: PromptSectionProps) {
     return (
         <section
-            class='flex flex-col px-4 pb-2'
+            class='flex min-h-0 flex-col px-4 pb-2'
             classList={{ hidden: !props.visible }}
         >
             <span class='pb-1.5 text-xs leading-none text-fg-muted'>
                 {promptLabel[props.kind]()}
             </span>
-            {/* 既有的 editor host 就是 mask anchor，只補 relative */}
-            <div class='relative overflow-hidden rounded-md border border-transparent bg-elevated'>
+            <div
+                data-prompt-editor={props.kind}
+                class='relative flex flex-col overflow-hidden rounded-md border border-transparent bg-elevated'
+                style={{ flex: `0 1 ${props.height}px`, 'min-height': `${promptMinHeight}px` }}
+            >
                 <PromptEditor
-                    class='resizer-hidden block w-full resize-y overflow-hidden'
-                    style={{
-                        /* 固定預設高度，內容超過就捲動；拖曳可在一行與 max-height 之間調整 */
-                        height: `${promptDefaultHeight}px`,
-                        'min-height': `${promptMinHeight}px`,
-                        'max-height': props.maxHeight,
-                    }}
+                    class='block min-h-0 w-full flex-1 overflow-hidden'
                     documentKey={props.documentKey}
                     initialDocument={props.initialDocument}
                     onDocumentChange={props.onDocumentChange}
