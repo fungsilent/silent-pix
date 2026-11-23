@@ -48,6 +48,8 @@ type ResultPaneProps = {
     copiedId: string | undefined
     onTabChange: (tab: MetadataTab) => void
     onCopy: (id: string, text: string) => void
+    canCopyTo: boolean
+    onCopyTo: () => void
 }
 
 export function MetadataResultPane(props: ResultPaneProps) {
@@ -61,6 +63,19 @@ export function MetadataResultPane(props: ResultPaneProps) {
                     options={tabOptions}
                     onChange={props.onTabChange}
                 />
+                <Bar.Actions>
+                    <span title={props.canCopyTo ? undefined : t('metadata.copyTo.unsupported')}>
+                        <Button
+                            size='bar'
+                            variant='ghost'
+                            disabled={!props.canCopyTo}
+                            classes={{ root: 'h-7 px-2.5 text-xs font-medium text-fg-secondary hover:text-fg' }}
+                            onClick={() => props.onCopyTo()}
+                        >
+                            {t('metadata.copyTo.generate')}
+                        </Button>
+                    </span>
+                </Bar.Actions>
             </Bar.Root>
 
             <Switch>

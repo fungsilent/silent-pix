@@ -5,9 +5,12 @@ import { Callout } from '#/components/base/Callout'
 import { StatusMessage } from '#/components/base/StatusMessage'
 import { t } from '#/lib/i18n'
 import { theme } from '#/lib/theme'
+import { useGenerateSession } from '#/pages/generate/session'
 import { MetadataFilePanel } from '#/pages/metadata/components/MetadataFilePanel'
 import { MetadataResultPane } from '#/pages/metadata/components/MetadataResultPane'
+import { copyFromGraph, toGenerateDraft } from '#/pages/metadata/metadata.mapping'
 import MetadataWorker from '#/pages/metadata/metadata.worker?worker'
+import { useNavigateToRoute } from '#/routes'
 import { useIssueSource } from '#/store/issue'
 import { mergeClasses } from '#/utils/style'
 
@@ -69,6 +72,20 @@ export function MetadataPage() {
         setCopiedId()
         setCopyFailed(false)
         setTooManyFiles(false)
+    }
+
+    // MARK: Copy to
+    const generateSession = useGenerateSession()
+    const navigate = useNavigateToRoute()
+    const apiEntry = () => result()?.entries.find(entry => entry.kind === 'prompt' && entry.format === 'api-graph')
+    const copyTo = () => {
+        const entry = apiEntry()
+        const fileName = file()?.name
+        if (!entry || !fileName) return
+
+        const { values, defaults } = toGenerateDraft(copyFromGraph(entry))
+        generateSession.requestDraft(values, { kind: 'metadata', fileName, defaults })
+        navigate('generate')
     }
 
     const fail = (code: PageError) => {
@@ -249,6 +266,8 @@ export function MetadataPage() {
                             copiedId={copiedId()}
                             onTabChange={setActiveTab}
                             onCopy={(id, text) => void copy(id, text)}
+                            canCopyTo={!loading() && apiEntry() !== undefined}
+                            onCopyTo={copyTo}
                         />
                         <Show when={dragging()}>
                             <DropFrame />

@@ -463,6 +463,10 @@
             "TIMEOUT": "Reading the metadata took too long. Try another image.",
             "WORKER_FAILED": "The metadata reader couldn’t load. Reload the app and try again.",
             "TOO_MANY_FILES": "Choose one image at a time."
+        },
+        "copyTo": {
+            "generate": "Copy to Generate",
+            "unsupported": "Only ComfyUI API graphs can be copied."
         }
     }
 }

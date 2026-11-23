@@ -21,7 +21,6 @@ Workflow 頁最左欄：Bar（標題＋新增）與 workflow-item 列，封存�
 <State component="workflow-list" state="default" label="default · selected + archived" frame="*:border-r-0 w-max flex h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="workflow-list" state="modified" label="selected has unsaved edits" frame="*:border-r-0 w-max flex h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="workflow-list" state="creating" label="create draft on top" frame="*:border-r-0 w-max flex h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="workflow-list" state="from-metadata" label="draft from Metadata" frame="*:border-r-0 w-max flex h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="workflow-list" state="archived-selected" label="archived workflow selected" frame="*:border-r-0 w-max flex h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="workflow-list" state="loading" label="loading" frame="*:border-r-0 w-max flex h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="workflow-list" state="empty" label="empty · no workflows" frame="*:border-r-0 w-max flex h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
@@ -50,7 +49,6 @@ Workflow 頁最左欄：Bar（標題＋新增）與 workflow-item 列，封存�
 <Rule component="workflow-item" id="archived">封存且未選取改 `text-fg-muted`；被選取後與一般選取列完全相同，封存身分由 workflow-detail 的「Read-only · archived」交代。</Rule>
 <Rule component="workflow-item" id="badge">只有選取中的列（或建立中的 draft）會帶 L0 Badge neutral：建立中顯示「Draft」，已存在且有未儲存修改顯示「Unsaved」。其他列一律不帶 badge。</Rule>
 <Rule component="workflow-item" id="untitled">Draft 名稱空白時顯示「Untitled」；名稱即時跟著 workflow-info 的輸入更新。</Rule>
-<Rule component="workflow-item" id="source">從 Metadata 建立的 draft 在名稱下多一行 11px muted 來源「from alpine.png」，列高隨內容增加；手動新增的 draft 沒有來源行。</Rule>
 </ul>
 
 </Rules>
@@ -175,7 +173,7 @@ Workflow 頁最右欄：Bar 的 Save，下面依序是 workflow-info 與 workflo
 <Screen frame="relative flex h-[800px] min-w-[1180px] flex-col overflow-hidden rounded-xl border border-line bg-canvas text-fg">
     <Fixed component="app-header" state="workflow" />
     <div class="flex min-h-0 flex-1 gap-1 overflow-hidden bg-shell px-1 pb-1">
-        <div class="flex min-h-0 overflow-hidden rounded-lg border border-line-subtle flex-none"><Slot name="list" component="workflow-list" states="default,modified,creating,archived-selected,loading,empty,error,from-metadata" /></div>
+        <div class="flex min-h-0 overflow-hidden rounded-lg border border-line-subtle flex-none"><Slot name="list" component="workflow-list" states="default,modified,creating,archived-selected,loading,empty,error" /></div>
         <div class="flex min-h-0 overflow-hidden rounded-lg border border-line-subtle min-w-0 flex-1"><Slot name="graph" component="graph-editor" states="default,empty,no-selection,loading" /></div>
         <div class="flex min-h-0 overflow-hidden rounded-lg border border-line-subtle flex-none"><Slot name="detail" component="workflow-detail" states="saved,unused,modified,saving,issues,node-open,new,archived,deleted,pending,unavailable,loading,load-error,no-selection" /></div>
     </div>

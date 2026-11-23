@@ -462,6 +462,10 @@
             "TIMEOUT": "讀取 metadata 逾時，請嘗試另一張圖片。",
             "WORKER_FAILED": "無法載入 metadata 讀取元件，請重新載入 App 後再試。",
             "TOO_MANY_FILES": "請一次選擇一張圖片。"
+        },
+        "copyTo": {
+            "generate": "Copy to Generate",
+            "unsupported": "只支援 ComfyUI API graph。"
         }
     }
 }

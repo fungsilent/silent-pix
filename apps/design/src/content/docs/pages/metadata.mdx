@@ -61,6 +61,7 @@ import Fixed from '@silent-pix/blueprint/components/Fixed.astro'
 <State component="metadata-result-bar" state="generation" label="Generation 分頁" frame="max-w-[760px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
 <State component="metadata-result-bar" state="raw" label="Raw 分頁" frame="max-w-[760px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
 <State component="metadata-result-bar" state="warning" label="部分讀取失敗" description="讀到的部分照常列出；warning 列在 Header。" frame="max-w-[760px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
+<State component="metadata-result-bar" state="copy-disabled" label="Copy to Generate 停用 · 沒有 API graph" frame="max-w-[760px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
 </Gallery>
 
 <Rules component="metadata-result-bar">
@@ -121,7 +122,7 @@ import Fixed from '@silent-pix/blueprint/components/Fixed.astro'
 <Screen>
     <Fixed component="app-header" state="metadata" />
     <div class="flex min-h-0 flex-1 gap-1 overflow-hidden bg-shell px-1 pb-1">
-        <Slot name="viewer" component="metadata-viewer" states="empty,dragging,loading,generation,copy-menu,generation-jump,generation-json,generation-text,raw-incomplete,missing,error,preview-failed" labels="empty · open|dragging a file over|reading|Generation · prompt copied|Generation · Copy to menu open|Generation · jumped to a linked node|Generation · API JSON open, copied|Generation · text parameters only|Raw tab · incomplete|Generation · nothing found|unsupported file|preview unavailable" />
+        <Slot name="viewer" component="metadata-viewer" states="empty,dragging,loading,generation,generation-jump,generation-json,generation-text,raw-incomplete,missing,error,preview-failed" labels="empty · open|dragging a file over|reading|Generation · prompt copied|Generation · jumped to a linked node|Generation · API JSON open, copied|Generation · text parameters only|Raw tab · incomplete|Generation · nothing found|unsupported file|preview unavailable" />
     </div>
 </Screen>
 
@@ -147,9 +148,8 @@ import Fixed from '@silent-pix/blueprint/components/Fixed.astro'
 <ul class="ds-rules">
 <Rule component="metadata-screen" id="separator-dot">並列的短資訊（來源與格式、連線的輸出序號）以 12px muted Dot icon（線寬 5，圓點約 3.5px）分隔，不用文字「·」。</Rule>
 <Rule component="metadata-screen" id="copy-feedback">複製後，該按鈕的圖示換成 Check 約 1.5 秒再還原，不另外顯示訊息。</Rule>
-<Rule component="metadata-screen" id="copy-to">結果區工具列右側是「Copy to ▾」（ghost，展開時 selected），選單同 L0 Menu：Generate draft、New workflow。只有讀到 ComfyUI API graph 時可用；只有文字參數、沒有生成資訊或讀取中時停用（照 L0 停用樣式），hover 說明只支援 API graph。</Rule>
-<Rule component="metadata-screen" id="copy-generate">Generate draft：從 API graph 找對應欄位寫入 Generate 的草稿並切到 Generate（已有草稿時照 Generate 的 draft-lifecycle 直接取代）——帶 seed／steps／cfg／sampler_name 的節點取 seed、steps、cfg、sampler、denoise；沿它的 positive／negative 連線取已解析的 prompt 文字；Empty Latent 類節點取寬、高、batch；LoRA loader 取名稱與權重（ComfyUI 沒有的 LoRA 標 missing）。checkpoint、VAE 等屬於 workflow 的設定不搬，草稿用目前的預設 workflow。找不到的欄位維持預設值，列在 Detail 的 Source 列。</Rule>
-<Rule component="metadata-screen" id="copy-workflow">New workflow：把整份 API graph 帶到 Workflow 頁成為建立中的 draft（名稱預設為檔名去掉副檔名，來源行標示檔名），mapping 用與 Generate draft 相同的對應自動填入，對不上的欄位照 workflow-mapping 規則顯示 issue；按 Save 才存檔。</Rule>
+<Rule component="metadata-screen" id="copy-to">結果區工具列右側是 ghost 按鈕「Copy to Generate」。只有讀到 ComfyUI API graph 時可用；只有文字參數、沒有生成資訊或讀取中時停用（照 L0 停用樣式），hover 說明只支援 API graph。</Rule>
+<Rule component="metadata-screen" id="copy-generate">按下後從 API graph 找對應欄位寫入 Generate 的草稿並切到 Generate（已有草稿時照 Generate 的 draft-lifecycle 直接取代）——帶 seed／steps／cfg／sampler_name 的節點取 seed、steps、cfg、sampler、denoise；沿它的 positive／negative 連線取已解析的 prompt 文字；Empty Latent 類節點取寬、高、batch；LoRA loader 取名稱與權重（ComfyUI 沒有的 LoRA 標 missing）。checkpoint、VAE 等屬於 workflow 的設定不搬，草稿用目前的預設 workflow。找不到的欄位維持預設值，列在 Detail 的 Source 列。</Rule>
 </ul>
 
 </Rules>
