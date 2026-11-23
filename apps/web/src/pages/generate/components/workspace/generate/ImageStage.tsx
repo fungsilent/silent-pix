@@ -16,6 +16,7 @@ type ImageStageProps = {
     images: ImageApi.ImageResource[]
     keyboardEnabled: boolean
     loading: boolean
+    source?: boolean
     selectedIndex: number
     onCompare: (image: ImageApi.ImageResource) => void
     onExpand: () => void
@@ -103,6 +104,12 @@ export function ImageStage(props: ImageStageProps) {
                             onClick={props.onExpand}
                         />
                     )}
+                </Show>
+
+                <Show when={props.source && selectedImage()}>
+                    <span class='absolute left-3 top-3 flex h-6 items-center rounded-md border border-stage-line bg-stage-control px-2 text-[11px] font-medium leading-none text-on-stage backdrop-blur-[8px]'>
+                        {t('generate.sourceImages')}
+                    </span>
                 </Show>
 
                 <Loading.Hide

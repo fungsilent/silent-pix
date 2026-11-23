@@ -8,11 +8,10 @@ import type { Accessor } from 'solid-js'
 /* 提供選取 Task 的查詢衍生值，讓 Generate 各區共用同一次查詢。 */
 export type GenerateDetail = {
     draft: Accessor<boolean>
-    /* query 失敗且沒有可用 task */
     error: Accessor<boolean>
     loading: Accessor<boolean>
-    /* cold loading 或 error 時為 undefined */
     task: Accessor<TaskApi.GetTaskResponse | undefined>
+    sourceTask: Accessor<TaskApi.GetTaskResponse | undefined>
     retry: () => void
 }
 
@@ -32,6 +31,7 @@ export function createGenerateDetail(source: GenerateDetailSource): GenerateDeta
         error: () => !isPreviewing() && source.error(),
         loading: () => isPreviewing() || source.loading(),
         task: () => isPreviewing() ? undefined : source.task(),
+        sourceTask: () => isPreviewing() ? undefined : source.sourceTask(),
         retry: source.retry,
     }
 }

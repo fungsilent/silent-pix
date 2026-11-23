@@ -9,17 +9,22 @@ import { useTaskFeedQuery, useTaskFlagMutation } from '#/data/task/task.query'
 import { t } from '#/lib/i18n'
 import { createLoadOnScroll } from '#/lib/load-on-scroll'
 import { theme } from '#/lib/theme'
-import { TaskItem, TaskItemSkeleton } from '#/pages/generate/components/task/list/TaskItem'
+import { TaskDraftItem, TaskItem, TaskItemSkeleton } from '#/pages/generate/components/task/list/TaskItem'
 import { taskFilterEmptyCopy } from '#/pages/generate/components/task/TaskFilterChips'
 import { TaskRail } from '#/pages/generate/components/task/TaskRail'
+import { useGenerateSession } from '#/pages/generate/session'
 import { toFailureIssue, useIssueSource } from '#/store/issue'
 import { taskStore } from '#/store/task'
 import { mergeClasses } from '#/utils/style'
 
+type TaskListProps = {
+    onDiscardDraft: () => void
+}
+
 const taskSkeletonRows = [0, 1, 2, 3, 4, 5]
 const nextPageSkeletonRows = [0, 1]
 
-export function TaskList() {
+export function TaskList(props: TaskListProps) {
     const taskFeedQuery = useTaskFeedQuery()
     const flagMutation = useTaskFlagMutation()
     useIssueSource(() => toFailureIssue('task-list-flag', () => t('task.title'), flagMutation.error, () => flagMutation.reset()))
@@ -32,8 +37,12 @@ export function TaskList() {
     const tasks = createMemo(() => taskFeedQuery.data?.pages.flatMap(page => page.items) ?? [])
     const taskById = createMemo(() => new Map(tasks().map(task => [task.id, task])))
     const taskIds = createMemo(() => tasks().map(task => task.id))
-    const selectTask = (taskId: string) => {
-        taskStore.selectTask(taskId)
+    const session = useGenerateSession()
+    const draftSourceLabel = () => {
+        const source = session.state.draft?.source
+        if (source?.kind === 'task') return t('task.draftFrom', { file: `task ${source.taskId.slice(0, 8)}` })
+        if (source?.kind === 'metadata') return t('task.draftFrom', { file: source.fileName })
+        return t('task.draftNew')
     }
 
     return (
@@ -79,6 +88,16 @@ export function TaskList() {
                                 content: 'gap-1',
                             }}
                         >
+                            <Show when={session.state.draft}>
+                                <TaskDraftItem
+                                    selected={taskStore.state.selectedTaskId === undefined}
+                                    thumbnailOnly={panel.isCollapsed()}
+                                    name={session.draftName()}
+                                    source={draftSourceLabel()}
+                                    onSelect={() => taskStore.clearTask()}
+                                    onDiscard={props.onDiscardDraft}
+                                />
+                            </Show>
                             <Loading.Swap
                                 loading={() => taskFeedQuery.isLoading}
                                 fallback={(
@@ -126,7 +145,7 @@ export function TaskList() {
                                                     selected={taskId === taskStore.state.selectedTaskId}
                                                     task={taskById().get(taskId)!}
                                                     thumbnailOnly={panel.isCollapsed()}
-                                                    onSelect={() => selectTask(taskId)}
+                                                    onSelect={() => taskStore.selectTask(taskId)}
                                                     onFlagChange={flag => flagMutation.mutate({
                                                         taskIds: [taskId],
                                                         flag,

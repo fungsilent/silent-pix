@@ -1,5 +1,6 @@
-import { Check, Copy, Trash2 } from 'lucide-solid'
-import { createSignal, onCleanup, Show } from 'solid-js'
+import { Collapsible } from '@ark-ui/solid'
+import { Check, ChevronRight, Copy, Trash2, TriangleAlert } from 'lucide-solid'
+import { createSignal, For, onCleanup, Show } from 'solid-js'
 
 import { Badge } from '#/components/base/Badge'
 import { Button } from '#/components/base/Button'
@@ -26,8 +27,13 @@ export type TaskInfoData = {
     createdAt: Accessor<string | undefined>
 }
 
+export type TaskDraftSource =
+    | { kind: 'task', taskId: string }
+    | { kind: 'metadata', fileName: string, defaults: { label: string, value: string }[] }
+
 export type TaskInfoCreateData = TaskInfoData & {
     draft: Accessor<boolean>
+    draftSource: Accessor<TaskDraftSource | undefined>
     imageCount: Accessor<number>
     renamePending: Accessor<boolean>
     deletePending: Accessor<boolean>
@@ -211,6 +217,29 @@ export function TaskInfo(props: TaskInfoProps) {
                 </Loading.Mask>
             </DetailRow>
 
+            <Show when={props.mode === 'create' && isDraft() ? props.data.draftSource() : undefined}>
+                {source => (
+                    <>
+                        <DetailRow label={t('fields.source')}>
+                            <span class='block truncate text-xs leading-none text-fg-secondary'>
+                                {(() => {
+                                    const current = source()
+                                    return current.kind === 'task'
+                                        ? <>{t('task.draftSourceTask')} <span class='font-mono'>{current.taskId.slice(0, 8)}</span></>
+                                        : current.fileName
+                                })()}
+                            </span>
+                        </DetailRow>
+                        {(() => {
+                            const current = source()
+                            return current.kind === 'metadata' && current.defaults.length > 0
+                                ? <DraftDefaults defaults={current.defaults} />
+                                : null
+                        })()}
+                    </>
+                )}
+            </Show>
+
             <Show
                 when={!props.loading() && !isDraft() && props.data.status() === 'failed' && props.data.id()}
                 keyed
@@ -297,5 +326,45 @@ export function TaskInfo(props: TaskInfoProps) {
                 </Dialog>
             </Show>
         </DetailSection>
+    )
+}
+
+/* 與 TaskFailure 同結構、warning 色：一句數量，Details 展開後逐欄列出維持預設值的欄位 */
+function DraftDefaults(props: { defaults: { label: string, value: string }[] }) {
+    return (
+        <div class='min-w-0 border-l-2 border-warning/50 pl-2.5'>
+            <span class='flex items-center gap-1.5 text-[11px] text-fg-muted'>
+                <TriangleAlert
+                    size={12}
+                    strokeWidth={2}
+                    class='shrink-0 text-warning-fg'
+                />
+                {t('task.draftSource.title')}
+            </span>
+            <p class='mb-1 mt-1.5 text-xs leading-relaxed text-fg'>
+                {t('task.draftSource.summary', { count: props.defaults.length })}
+            </p>
+            <Collapsible.Root>
+                <Collapsible.Trigger class='group flex items-center gap-1 border-0 bg-transparent py-1 text-[11px] text-fg-muted hover:text-fg-secondary'>
+                    <ChevronRight
+                        size={12}
+                        class='shrink-0 group-data-[state=open]:rotate-90'
+                    />
+                    {t('task.draftSource.details')}
+                </Collapsible.Trigger>
+                <Collapsible.Content>
+                    <div class='mb-1 mt-2 flex flex-col gap-2'>
+                        <For each={props.defaults}>
+                            {item => (
+                                <div class='flex min-w-0 items-center gap-2 text-xs leading-none'>
+                                    <span class='w-16 shrink-0 truncate text-fg-muted'>{item.label}</span>
+                                    <span class='min-w-0 truncate tabular-nums text-fg'>{item.value}</span>
+                                </div>
+                            )}
+                        </For>
+                    </div>
+                </Collapsible.Content>
+            </Collapsible.Root>
+        </div>
     )
 }

@@ -1,7 +1,11 @@
+import { Pencil, X } from 'lucide-solid'
+
+import { Badge } from '#/components/base/Badge'
 import { Button } from '#/components/base/Button'
 import { Loading } from '#/components/base/Loading'
 import { TaskFlagOverlay } from '#/components/task/TaskFlagOverlay'
 import { TaskStatus } from '#/components/task/TaskStatus'
+import { t } from '#/lib/i18n'
 import { theme } from '#/lib/theme'
 import { TaskFlagControls } from '#/pages/generate/components/task/TaskFlag'
 import { TaskThumbnail } from '#/pages/generate/components/task/TaskThumbnail'
@@ -84,6 +88,59 @@ export function TaskItem(props: TaskItemProps) {
                     compact
                     class='right-[7px] top-2.5 gap-0.5'
                 />
+            )}
+        </div>
+    )
+}
+
+type TaskDraftItemProps = {
+    selected: boolean
+    thumbnailOnly: boolean
+    name: string
+    source: string
+    onSelect: () => void
+    onDiscard: () => void
+}
+
+export function TaskDraftItem(props: TaskDraftItemProps) {
+    return (
+        <div class='group relative w-full'>
+            <Button
+                variant='ghost'
+                title={t('task.draft')}
+                classes={{
+                    root: mergeClasses(taskItemRootBaseClasses, props.selected ? theme.selected : 'hover:bg-elevated'),
+                }}
+                onClick={props.onSelect}
+            >
+                <span class={mergeClasses(taskThumbnailBaseClasses, 'grid place-items-center rounded-md border border-dashed border-line text-fg-muted')}>
+                    <Pencil
+                        size={22}
+                        strokeWidth={1.6}
+                    />
+                </span>
+                {!props.thumbnailOnly && (
+                    <div class='flex min-w-0 flex-1 flex-col items-start gap-1.5'>
+                        <span class='w-full min-w-0 truncate text-xs font-medium leading-none text-fg'>
+                            {props.name || t('common.untitled')}
+                        </span>
+                        <Badge tone='neutral'>{t('task.draft')}</Badge>
+                        <span class='w-full truncate text-[11px] leading-none text-fg-muted'>{props.source}</span>
+                    </div>
+                )}
+            </Button>
+            {!props.thumbnailOnly && (
+                <Button
+                    variant='ghost'
+                    title={t('task.discardDraft')}
+                    classes={{ root: 'absolute right-[7px] top-2.5 hidden size-6 rounded-md p-0 text-fg-muted hover:text-fg group-hover:flex group-focus-within:flex' }}
+                    onClick={props.onDiscard}
+                >
+                    <X
+                        size={13}
+                        strokeWidth={1.9}
+                    />
+                </Button>
             )}
         </div>
     )

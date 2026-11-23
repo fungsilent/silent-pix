@@ -155,7 +155,8 @@
         "referenceImage": "Reference image",
         "prompt": "Prompt",
         "selection": "Selection",
-        "revision": "Revision"
+        "revision": "Revision",
+        "source": "Source"
     },
     "task": {
         "title": "Tasks",
@@ -246,7 +247,18 @@
         "deleteSelectedButton_one": "Delete {{count}} task",
         "deleteSelectedButton_other": "Delete {{count}} tasks",
         "selectionLimit": "Maximum {{maximum}} tasks per batch.",
-        "useTaskSeed": "Use this task's seed"
+        "useTaskSeed": "Use this task's seed",
+        "newDraft": "New draft",
+        "draftNew": "New draft",
+        "draftFrom": "from {{file}}",
+        "draftSource": {
+            "title": "Not from the image",
+            "summary_one": "{{count}} field kept its default.",
+            "summary_other": "{{count}} fields kept their defaults.",
+            "details": "Details"
+        },
+        "draftSourceTask": "task",
+        "discardDraft": "Discard draft"
     },
     "image": {
         "title": "Image",
@@ -305,6 +317,7 @@
         "creating": "Creating...",
         "noImage": "No image",
         "previewAlt": "Selected generated preview",
+        "sourceImages": "Source",
         "lora": {
             "none": "No LoRA selected.",
             "select": "Select LoRA",

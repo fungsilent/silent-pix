@@ -18,8 +18,25 @@ import { toSubmitIssue, toValidationIssues } from '#/pages/generate/issue'
 import { taskStore } from '#/store/task'
 
 import type { TaskApi } from '@silent-pix/shared'
-import type { PromptKind, ReferenceImage } from '#/pages/generate/form'
+import type { GenerateValues, PromptKind, ReferenceImage } from '#/pages/generate/form'
 import type { GenerateIssue } from '#/pages/generate/issue'
+
+export type DraftDefaultField = 'seed' | 'steps' | 'cfg' | 'sampler' | 'width' | 'height' | 'batch' | 'denoise' | 'positive' | 'negative'
+export type DraftSource =
+    | { kind: 'new' }
+    | { kind: 'task', taskId: string }
+    | { kind: 'metadata', fileName: string, defaults: { field: DraftDefaultField, value: string }[] }
+
+type GenerateDraft = {
+    source: DraftSource
+    /* 表單載入 Task（taskId 有值）時才保留草稿快照，切回草稿時交還給表單。 */
+    parkedValues?: GenerateValues
+}
+
+function sameConfig(a: GenerateValues, b: GenerateValues): boolean {
+    const key = (values: GenerateValues) => JSON.stringify({ ...values, name: '' })
+    return key(a) === key(b)
+}
 
 type GenerateUiState = {
     submitIssues: GenerateIssue[]
@@ -28,6 +45,9 @@ type GenerateUiState = {
     promptVisible: Record<PromptKind, boolean>
     /* 兩段 editor 的高度（px），由 prompt 區的兩條拖曳調整並記在本機 */
     promptHeight: Record<PromptKind, number>
+    draft: GenerateDraft | undefined
+    /* 表單整份換內容（載入 task、回到或開新草稿）時遞增；prompt editor 以它換文件，task 轉成草稿時不變，輸入不中斷 */
+    formRevision: number
 }
 
 const promptHeightKey = 'silent-pix.prompt-height'
@@ -54,6 +74,8 @@ function createGenerateSession() {
         taskId: undefined,
         promptVisible: { positive: true, negative: true },
         promptHeight: readPromptHeight(),
+        draft: undefined,
+        formRevision: 0,
     }
 
     const uiStore = createStore(
@@ -98,15 +120,26 @@ function createGenerateSession() {
     const form = createGenerateForm(draftGenerateValues, {
         onInvalid: issues => uiStore.reportSubmitIssues(toValidationIssues(issues)),
         onSubmit: async values => {
+            if (!isSelectionLoaded()) return
+
+            const selectedTaskId = taskStore.state.selectedTaskId
+            /* TanStack Form 每次改值都會換掉 values，舊回應只處理原來的表單版本。 */
+            const submittedValues = form.state.values
             const response = await createTaskMutation.mutateAsync(toCreateTaskRequest(values))
-            taskStore.selectTask(response.id)
+
+            if (taskStore.state.selectedTaskId !== selectedTaskId || form.state.values !== submittedValues) return
+
+            batch(() => {
+                if (selectedTaskId === undefined) discardDraft()
+                taskStore.selectTask(response.id)
+            })
         },
     })
     const formSubmitting = form.useSelector(state => state.isSubmitting)
     const isSubmitting = () => formSubmitting() || createTaskMutation.isPending
 
     const submit = async () => {
-        if (isSubmitting()) return
+        if (isSubmitting() || !isSelectionLoaded()) return
 
         uiStore.clearSubmitIssues()
         try {
@@ -125,7 +158,72 @@ function createGenerateSession() {
         }
     }
 
+    // MARK: Draft
+    const isEditingDraft = () => uiStore.state.taskId === undefined && uiStore.state.draft !== undefined
+    const isSelectionLoaded = () => {
+        const selectedTaskId = taskStore.state.selectedTaskId
+        return selectedTaskId === undefined ? isEditingDraft() : uiStore.state.taskId === selectedTaskId
+    }
+    const formValues = form.useStore(state => state.values)
+    let taskBase: GenerateValues | undefined
+
+    const replaceDraft = (draft: GenerateDraft | undefined) => {
+        releaseLocalPreview(uiStore.state.draft?.parkedValues?.referenceImage)
+        uiStore.set('draft', draft)
+    }
+
+    createEffect(on(formValues, values => {
+        const taskId = uiStore.state.taskId
+        if (!taskId || taskId !== taskStore.state.selectedTaskId || !taskBase || sameConfig(values, taskBase)) return
+
+        /* 表單原地成為草稿，讓 prompt editor 繼續編輯同一份文件。 */
+        batch(() => {
+            taskBase = undefined
+            replaceDraft({ source: { kind: 'task', taskId } })
+            uiStore.set('taskId', undefined)
+            taskStore.clearTask()
+        })
+    }, { defer: true }))
+
+    /* 草稿來自 task 時的來源 task */
+    const draftSourceTaskId = () => {
+        const source = uiStore.state.draft?.source
+        return source?.kind === 'task' ? source.taskId : undefined
+    }
+
+    const draftName = () => (isEditingDraft() ? formValues().name : uiStore.state.draft?.parkedValues?.name ?? '').trim()
+
+    const requestDraft = (values: GenerateValues, source: DraftSource) => {
+        batch(() => {
+            releaseLocalPreview(form.getFieldValue('referenceImage'))
+            replaceDraft({ source })
+            uiStore.set('taskId', undefined)
+            taskBase = undefined
+            resetForm(cloneGenerateValues(values))
+            taskStore.clearTask()
+            taskStore.setBrowserOpen(false)
+        })
+    }
+
+    const startNewDraft = () => requestDraft(draftGenerateValues, { kind: 'new' })
+
+    const discardDraft = () => {
+        batch(() => {
+            if (isEditingDraft()) {
+                releaseLocalPreview(form.getFieldValue('referenceImage'))
+                resetForm(cloneGenerateValues(draftGenerateValues))
+            }
+            replaceDraft(undefined)
+        })
+    }
+
     // MARK: Load a Task or draft
+    function resetForm(values: GenerateValues) {
+        cancelReferenceImageUpload()
+        form.reset(values)
+        uiStore.set('formRevision', revision => revision + 1)
+    }
+
     let lastServerName = ''
     const loadTask = (task: TaskApi.GetTaskResponse) => {
         const serverName = task.name ?? ''
@@ -138,22 +236,33 @@ function createGenerateSession() {
             return
         }
 
-        cancelReferenceImageUpload()
-        releaseLocalPreview(form.getFieldValue('referenceImage'))
-        form.reset(toGenerateValues(task))
-        lastServerName = serverName
-        uiStore.set('taskId', task.id)
+        const values = toGenerateValues(task)
+        batch(() => {
+            if (isEditingDraft()) {
+                /* 快照接手本機預覽，直到還原或捨棄草稿。 */
+                uiStore.set('draft', 'parkedValues', cloneGenerateValues(form.state.values))
+            }
+            else {
+                releaseLocalPreview(form.getFieldValue('referenceImage'))
+            }
+            uiStore.set('taskId', task.id)
+            taskBase = cloneGenerateValues(values)
+            lastServerName = serverName
+            resetForm(values)
+        })
     }
 
     const loadDraft = () => {
-        if (uiStore.state.taskId === undefined) {
-            return
-        }
+        const values = uiStore.state.draft?.parkedValues
+        if (!values) return
 
-        cancelReferenceImageUpload()
-        releaseLocalPreview(form.getFieldValue('referenceImage'))
-        form.reset(cloneGenerateValues(draftGenerateValues))
-        uiStore.set('taskId', undefined)
+        batch(() => {
+            releaseLocalPreview(form.getFieldValue('referenceImage'))
+            uiStore.set('draft', 'parkedValues', undefined)
+            uiStore.set('taskId', undefined)
+            taskBase = undefined
+            resetForm(cloneGenerateValues(values))
+        })
     }
 
     // MARK: Reference image
@@ -166,7 +275,7 @@ function createGenerateSession() {
         pendingPreviewUrl = undefined
     }
 
-    function releaseLocalPreview(reference: ReferenceImage | null): void {
+    function releaseLocalPreview(reference: ReferenceImage | null | undefined): void {
         if (reference?.type === 'local') {
             URL.revokeObjectURL(reference.previewUrl)
         }
@@ -239,6 +348,7 @@ function createGenerateSession() {
     onCleanup(() => {
         cancelReferenceImageUpload()
         releaseLocalPreview(form.getFieldValue('referenceImage'))
+        releaseLocalPreview(uiStore.state.draft?.parkedValues?.referenceImage)
     })
 
     // MARK: LoRA selection
@@ -261,10 +371,16 @@ function createGenerateSession() {
     return {
         ...uiStore,
         form,
+        isSelectionLoaded,
         isSubmitting,
         submit,
         loadTask,
         loadDraft,
+        draftName,
+        draftSourceTaskId,
+        requestDraft,
+        startNewDraft,
+        discardDraft,
         setReferenceImage,
         clearReferenceImage,
         uploadReferenceImage,

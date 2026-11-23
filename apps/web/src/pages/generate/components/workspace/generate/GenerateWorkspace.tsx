@@ -18,12 +18,13 @@ export function GenerateWorkspace() {
     const navigate = useNavigateToRoute()
     const store = useGenerateSession()
     const detail = useGenerateDetail()
-    const images = createMemo(() => detail.task()?.images ?? [])
+    const imageTask = () => detail.task() ?? detail.sourceTask()
+    const images = createMemo(() => imageTask()?.images ?? [])
     const [selectedImageIndex, setSelectedImageIndex] = createSignal(0)
     const [expanded, setExpanded] = createSignal(false)
 
     createEffect(() => {
-        const _taskId = detail.task()?.id
+        const _taskId = imageTask()?.id
         setSelectedImageIndex(0)
         setExpanded(false)
     })
@@ -54,10 +55,11 @@ export function GenerateWorkspace() {
             <ImageStage
                 images={images()}
                 loading={detail.loading()}
+                source={detail.task() === undefined && detail.sourceTask() !== undefined}
                 keyboardEnabled={!overlayStore.isActive() && !expanded() && !detail.loading()}
                 selectedIndex={selectedImageIndex()}
                 onCompare={image => {
-                    const task = detail.task()
+                    const task = imageTask()
 
                     if (!task) {
                         return

@@ -1,9 +1,10 @@
-import { LayoutGrid } from 'lucide-solid'
+import { LayoutGrid, SquarePen } from 'lucide-solid'
 
 import { Button } from '#/components/base/Button'
 import { t } from '#/lib/i18n'
 import { theme } from '#/lib/theme'
 import { TaskFilterChips } from '#/pages/generate/components/task/TaskFilterChips'
+import { useGenerateSession } from '#/pages/generate/session'
 import { taskStore } from '#/store/task'
 import { mergeClasses } from '#/utils/style'
 
@@ -17,12 +18,26 @@ type TaskRailProps = {
 }
 
 export function TaskRail(props: TaskRailProps) {
+    const session = useGenerateSession()
     return (
         <nav class='flex w-10 shrink-0 flex-col items-center border-r border-line-subtle bg-surface'>
             <div class='flex h-12 shrink-0 items-center justify-center'>
                 {props.toggle}
             </div>
             <div class='flex flex-col items-center gap-1'>
+                <Button
+                    size='bar'
+                    variant='ghost'
+                    title={t('task.newDraft')}
+                    classes={{ root: 'size-7 shrink-0 p-0' }}
+                    onClick={() => session.startNewDraft()}
+                >
+                    <SquarePen
+                        size={15}
+                        strokeWidth={1.8}
+                    />
+                </Button>
+                <div class='my-1 h-px w-5 bg-line-subtle' />
                 <Button
                     size='bar'
                     variant='ghost'

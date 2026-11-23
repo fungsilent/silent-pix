@@ -21,6 +21,20 @@ import type { TaskImageActions, TaskImageCreateData, TaskImageReference } from '
 import type { TaskInfoActions, TaskInfoCreateData } from '#/components/task/detail/TaskInfo'
 import type { TaskLoraActions, TaskLoraCreateData } from '#/components/task/detail/TaskLora'
 import type { ReferenceImage } from '#/pages/generate/form'
+import type { DraftDefaultField } from '#/pages/generate/session'
+
+const draftFieldLabel: Record<DraftDefaultField, () => string> = {
+    seed: () => t('fields.seed'),
+    steps: () => t('fields.steps'),
+    cfg: () => t('fields.cfg'),
+    sampler: () => t('fields.sampler'),
+    width: () => t('fields.width'),
+    height: () => t('fields.height'),
+    batch: () => t('fields.batch'),
+    denoise: () => t('fields.denoise'),
+    positive: () => t('fields.positive'),
+    negative: () => t('fields.negative'),
+}
 
 export function GenerateTaskDetail() {
     const store = useGenerateSession()
@@ -73,7 +87,7 @@ export function GenerateTaskDetail() {
     const samplerOptions = () => samplerQuery.data?.options ?? []
 
     createEffect(() => {
-        if (!detail.draft()) return
+        if (!detail.draft() || !store.isSelectionLoaded()) return
 
         const options = workflowOptions()
         const first = options[0]
@@ -169,8 +183,11 @@ export function GenerateTaskDetail() {
         await deleteMutation.mutateAsync({ taskId: current.id })
     }
 
+    /* 草稿沿用來源 task 的 seed 作參考 */
+    const seedTask = () => detail.task() ?? detail.sourceTask()
+
     const onRestoreSeed = () => {
-        const restored = detail.task()?.config.seed
+        const restored = seedTask()?.config.seed
 
         if (restored) {
             form.setFieldValue('seed', restored)
@@ -192,7 +209,7 @@ export function GenerateTaskDetail() {
     const configValues = (): TaskConfigValues => ({
         workflowId: workflowId(),
         seed: seed(),
-        seedPlaceholder: detail.task()?.config.seed ?? t('common.random'),
+        seedPlaceholder: seedTask()?.config.seed ?? t('common.random'),
         steps: steps(),
         cfg: cfg(),
         width: width(),
@@ -209,6 +226,18 @@ export function GenerateTaskDetail() {
         errorMessage: () => detail.task()?.errorMessage,
         createdAt: () => detail.task()?.createdAt,
         draft: detail.draft,
+        draftSource: () => {
+            const source = store.state.draft?.source
+            if (source?.kind === 'task') return { kind: 'task', taskId: source.taskId }
+            if (source?.kind === 'metadata') {
+                return {
+                    kind: 'metadata',
+                    fileName: source.fileName,
+                    defaults: source.defaults.map(item => ({ label: draftFieldLabel[item.field](), value: item.value })),
+                }
+            }
+            return undefined
+        },
         imageCount: () => detail.task()?.images.length ?? 0,
         renamePending: () => renameMutation.isPending,
         deletePending: () => deleteMutation.isPending,
@@ -224,7 +253,7 @@ export function GenerateTaskDetail() {
         workflowOptions,
         samplerOptions,
         hasReference: () => referenceImage() !== null,
-        restorableSeed: () => detail.task()?.config.seed ?? null,
+        restorableSeed: () => seedTask()?.config.seed ?? null,
         workflowLoading: () => workflowQuery.isLoading,
         workflowError: () => workflowQuery.isError,
         samplerLoading: () => samplerQuery.isLoading,

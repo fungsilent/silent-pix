@@ -30,6 +30,7 @@ export function PromptPanel() {
     const store = useGenerateSession()
     const detail = useGenerateDetail()
     const isLoading = detail.loading
+    const canEdit = () => store.isSelectionLoaded() && !isLoading() && !detail.error()
     const form = store.form
     const isSubmitting = store.isSubmitting
     const runtimeIssues = useRuntimeIssues()
@@ -88,7 +89,7 @@ export function PromptPanel() {
                         type='submit'
                         variant='solid'
                         tone='accent'
-                        disabled={isSubmitting() || isLoading()}
+                        disabled={isSubmitting() || !canEdit()}
                         classes={{
                             root: 'shrink-0 font-semibold'
                         }}
@@ -105,7 +106,7 @@ export function PromptPanel() {
             <div
                 ref={element => { editors = element }}
                 class='flex min-h-0 flex-col'
-                inert={isLoading()}
+                inert={!canEdit()}
             >
                 <form.Field name='positive'>
                     {field => (
@@ -113,7 +114,7 @@ export function PromptPanel() {
                             isLoading={isLoading}
                             kind='positive'
                             visible={visible('positive')}
-                            documentKey={`${store.state.taskId}:positive`}
+                            documentKey={`${store.state.formRevision}:positive`}
                             initialDocument={field().state.value}
                             height={store.state.promptHeight.positive}
                             onDocumentChange={field().handleChange}
@@ -133,7 +134,7 @@ export function PromptPanel() {
                             isLoading={isLoading}
                             kind='negative'
                             visible={visible('negative')}
-                            documentKey={`${store.state.taskId}:negative`}
+                            documentKey={`${store.state.formRevision}:negative`}
                             initialDocument={field().state.value}
                             height={store.state.promptHeight.negative}
                             onDocumentChange={field().handleChange}

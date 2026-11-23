@@ -1,6 +1,6 @@
-import { createEffect, on, Show } from 'solid-js'
+import { batch, createEffect, on, Show } from 'solid-js'
 
-import { useTaskDetailQuery } from '#/data/task/task.query'
+import { useTaskDetailQuery, useTaskFeedQuery } from '#/data/task/task.query'
 import { GenerateTaskDetail } from '#/pages/generate/components/config/GenerateTaskDetail'
 import { TaskBrowser } from '#/pages/generate/components/task/browser/TaskBrowser'
 import { TaskList } from '#/pages/generate/components/task/list/TaskList'
@@ -23,14 +23,33 @@ export function GeneratePage() {
             ? taskDetailQuery.data
             : undefined
     }
+    const sourceTaskQuery = useTaskDetailQuery(session.draftSourceTaskId)
+
     const detail = createGenerateDetail({
-        draft: () => taskStore.state.selectedTaskId === undefined,
+        draft: () => taskStore.state.selectedTaskId === undefined && session.state.draft !== undefined,
         error: () => Boolean(taskStore.state.selectedTaskId)
             && taskDetailQuery.isError
             && acceptedTask() === undefined,
         loading: () => Boolean(taskStore.state.selectedTaskId) && taskDetailQuery.isLoading,
         task: acceptedTask,
+        sourceTask: () => taskStore.state.selectedTaskId === undefined ? sourceTaskQuery.data : undefined,
         retry: () => void taskDetailQuery.refetch(),
+    })
+
+    const taskFeedQuery = useTaskFeedQuery()
+    const firstTaskId = () => taskFeedQuery.data?.pages.find(page => page.items.length > 0)?.items[0]?.id
+    createEffect(() => {
+        if (taskStore.state.selectedTaskId !== undefined || session.state.draft || taskFeedQuery.isLoading) {
+            return
+        }
+
+        const taskId = firstTaskId()
+        if (taskId) {
+            taskStore.selectTask(taskId)
+        }
+        else if (taskFeedQuery.isSuccess) {
+            session.startNewDraft()
+        }
     })
 
     createEffect(on([detail.task, detail.draft], ([task, draft]) => {
@@ -42,10 +61,18 @@ export function GeneratePage() {
         }
     }))
 
+    const discardDraft = () => {
+        batch(() => {
+            session.discardDraft()
+            const taskId = firstTaskId()
+            if (taskId) taskStore.selectTask(taskId)
+        })
+    }
+
     const handleSubmit = (event: SubmitEvent) => {
         event.preventDefault()
 
-        if (!detail.loading()) {
+        if (!detail.loading() && !detail.error()) {
             void session.submit()
         }
     }
@@ -70,7 +97,7 @@ export function GeneratePage() {
                     when={taskStore.state.browserOpen}
                     fallback={(
                         <>
-                            <TaskList />
+                            <TaskList onDiscardDraft={discardDraft} />
                             <GenerateWorkspace />
                         </>
                     )}
