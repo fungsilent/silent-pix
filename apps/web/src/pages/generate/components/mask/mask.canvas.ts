@@ -1,4 +1,7 @@
 type Point = { x: number, y: number }
+type Bounds = { left: number, top: number, right: number, bottom: number }
+
+const alphaThreshold = 128
 
 function createCanvas(width: number, height: number) {
     const canvas = document.createElement('canvas')
@@ -30,12 +33,34 @@ export async function createMaskCanvas(width: number, height: number, maskUrl: s
         ctx.putImageData(pixels, 0, 0)
     }
 
+    const fullCanvas = { left: 0, top: 0, right: width, bottom: height }
+    let previewBounds: Bounds | undefined = fullCanvas
+    let previewColor: string | undefined
+
+    const markStroke = (from: Point, to: Point, size: number) => {
+        const margin = size / 2 + 1
+        const left = Math.max(0, Math.floor(Math.min(from.x, to.x) - margin))
+        const top = Math.max(0, Math.floor(Math.min(from.y, to.y) - margin))
+        const right = Math.min(width, Math.ceil(Math.max(from.x, to.x) + margin))
+        const bottom = Math.min(height, Math.ceil(Math.max(from.y, to.y) + margin))
+        if (left >= right || top >= bottom) return
+
+        previewBounds = previewBounds
+            ? {
+                left: Math.min(previewBounds.left, left),
+                top: Math.min(previewBounds.top, top),
+                right: Math.max(previewBounds.right, right),
+                bottom: Math.max(previewBounds.bottom, bottom),
+            }
+            : { left, top, right, bottom }
+    }
+
     const snapshot = () => {
         const pixels = ctx.getImageData(0, 0, width, height)
         const data = pixels.data
         let hasMask = false
         for (let i = 3; i < data.length; i += 4) {
-            if (data[i]! >= 128) {
+            if (data[i]! >= alphaThreshold) {
                 hasMask = true
                 break
             }
@@ -47,6 +72,7 @@ export async function createMaskCanvas(width: number, height: number, maskUrl: s
     const maxSnapshots = Math.max(2, Math.floor(128 * 1024 ** 2 / (width * height * 4)))
     const history = [snapshot()]
     let currentIndex = 0
+    let originalInHistory = true
     const current = () => history[currentIndex]!
 
     const commit = () => {
@@ -56,7 +82,10 @@ export async function createMaskCanvas(width: number, height: number, maskUrl: s
         if (nextPixels.every((pixel, i) => pixel === previousPixels[i])) return
 
         history.splice(currentIndex + 1, history.length, next)
-        if (history.length > maxSnapshots) history.shift()
+        if (history.length > maxSnapshots) {
+            history.shift()
+            originalInHistory = false
+        }
         currentIndex = history.length - 1
     }
 
@@ -65,6 +94,7 @@ export async function createMaskCanvas(width: number, height: number, maskUrl: s
 
         currentIndex = index
         ctx.putImageData(current().pixels, 0, 0)
+        previewBounds = fullCanvas
     }
 
     return {
@@ -73,7 +103,9 @@ export async function createMaskCanvas(width: number, height: number, maskUrl: s
             canUndo: currentIndex > 0,
             canRedo: currentIndex < history.length - 1,
         }),
+        hasChanges: () => !originalInHistory || currentIndex !== 0,
         paint(from: Point, to: Point, size: number, erase: boolean) {
+            markStroke(from, to, size)
             ctx.globalCompositeOperation = erase ? 'destination-out' : 'source-over'
             ctx.fillStyle = ctx.strokeStyle = '#fff'
             ctx.beginPath()
@@ -94,16 +126,29 @@ export async function createMaskCanvas(width: number, height: number, maskUrl: s
         redo: () => restore(currentIndex + 1),
         clear() {
             ctx.clearRect(0, 0, width, height)
+            previewBounds = fullCanvas
             commit()
         },
         drawPreview(preview: CanvasRenderingContext2D, color: string) {
-            const { width: previewWidth, height: previewHeight } = preview.canvas
-            preview.globalCompositeOperation = 'source-over'
-            preview.clearRect(0, 0, previewWidth, previewHeight)
-            preview.drawImage(canvas, 0, 0, previewWidth, previewHeight)
+            const bounds = previewColor === color ? previewBounds : fullCanvas
+            if (!bounds) return
+
+            const { left, top, right, bottom } = bounds
+            const pixels = ctx.getImageData(left, top, right - left, bottom - top)
+            for (let i = 3; i < pixels.data.length; i += 4) {
+                pixels.data[i] = pixels.data[i]! >= alphaThreshold ? 255 : 0
+            }
+            preview.putImageData(pixels, left, top)
+            preview.save()
+            preview.beginPath()
+            preview.rect(left, top, pixels.width, pixels.height)
+            preview.clip()
             preview.globalCompositeOperation = 'source-in'
             preview.fillStyle = color
-            preview.fillRect(0, 0, previewWidth, previewHeight)
+            preview.fillRect(left, top, pixels.width, pixels.height)
+            preview.restore()
+            previewBounds = undefined
+            previewColor = color
         },
         async exportPng() {
             if (!current().hasMask) return null
@@ -115,7 +160,7 @@ export async function createMaskCanvas(width: number, height: number, maskUrl: s
             const { data } = current().pixels
             const pixels = outputContext.createImageData(width, height)
             for (let i = 0; i < data.length; i += 4) {
-                const color = data[i + 3]! >= 128 ? 255 : 0
+                const color = data[i + 3]! >= alphaThreshold ? 255 : 0
                 pixels.data[i] = pixels.data[i + 1] = pixels.data[i + 2] = color
                 pixels.data[i + 3] = 255
             }

@@ -6,7 +6,7 @@ import type { Theme } from '#/store/theme'
 const lineHeight = 24
 const contentPaddingY = 6
 const lineNumberWidth = 42
-const fieldGutterWidth = 128
+const fieldGutterWidth = 144
 
 export function createWorkflowEditorTheme(theme: Theme) {
     return EditorView.theme({

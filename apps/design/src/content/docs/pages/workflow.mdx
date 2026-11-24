@@ -69,8 +69,8 @@ Workflow 頁中欄：ComfyUI API JSON 文字編輯器，含行號、mapping fiel
 <ul class="ds-rules">
 <Rule component="graph-editor" id="column">Workflow 頁中欄，佔滿 workflow-list 與 workflow-detail 之間的寬度；`bg-surface`、右側 `border-r border-line`。頂端 L0 Bar 標題「API JSON」，下方欄位 label「Graph」，再下面是編輯區。</Rule>
 <Rule component="graph-editor" id="single-editor">編輯的是 ComfyUI API 格式的 JSON 文字，不是節點圖。整塊是單一文字編輯器：左側固定的行號 gutter 與 field gutter，右側為內容；水平捲動時 gutter 保持不動。</Rule>
-<Rule component="graph-editor" id="surfaces">內容區 `bg-elevated`、gutter 降到 `bg-surface` 才分得開；行高 24px、12px monospace，行號 gutter 42px、field gutter 128px，兩者各以 `border-line-subtle` 右框分隔。</Rule>
-<Rule component="graph-editor" id="bound-lines">被 mapping 綁定的 input 行：field gutter 顯示 field 名（`text-code-string`，綁定失效時 `text-danger-fg`），整行底色 `bg-workflow-bound-soft`／失效為 `bg-workflow-broken-soft`。</Rule>
+<Rule component="graph-editor" id="surfaces">內容區 `bg-elevated`、gutter 降到 `bg-surface` 才分得開；行高 24px、12px monospace，行號 gutter 42px、field gutter 144px，兩者各以 `border-line-subtle` 右框分隔。</Rule>
+<Rule component="graph-editor" id="bound-lines">被 mapping 綁定的 input 行：field gutter 沿用 Mapping 的欄位標籤（`text-code-string`，綁定失效時 `text-danger-fg`），整行底色 `bg-workflow-bound-soft`／失效為 `bg-workflow-broken-soft`。</Rule>
 <Rule component="graph-editor" id="tokens">Token 色只有六種：第一層 key（node id）`text-accent-fg`，其他 key `text-fg`，字串 `text-code-string`，數字 `text-code-number`，`true`／`false`／`null` `text-code-literal`，標點與其他 `text-fg-muted`。</Rule>
 <Rule component="graph-editor" id="paste-format">貼上壓縮成一行的 JSON 時自動以 2 空白縮排重排，行號與標記才對得上；一般打字不重排。空文件顯示 placeholder「Paste the ComfyUI API JSON here.」。</Rule>
 <Rule component="graph-editor" id="no-selection-loading">沒有選取 workflow 時編輯區整塊換成 `bg-elevated` 置中提示；載入中以直角 skeleton 蓋滿編輯區且不可互動。封存、已刪除或 Server 不可用時內容唯讀，仍可選取及複製原文。</Rule>
@@ -134,8 +134,8 @@ Workflow 頁最右欄：Bar 的 Save，下面依序是 workflow-info 與 workflo
 #### Mapping
 
 <ul class="ds-rules">
-<Rule component="workflow-mapping" id="position">位於 workflow-detail 中 workflow-info 下方，以 L0 section title「Mapping」起頭；把每個 generator field 綁到 graph 的 node 與 input。三欄 grid：field 112px、node 彈性、input 168px，`gap-2`。</Rule>
-<Rule component="workflow-mapping" id="columns-groups">最上方一列欄名（Field／Node／Input，muted）。分組順序固定為 Sampler、Latent、Prompt、Other，組間以分隔線隔開，組名是小標題（text-xs semibold secondary）。</Rule>
+<Rule component="workflow-mapping" id="position">位於 workflow-detail 中 workflow-info 下方，以 L0 section title「Mapping」起頭；把每個 generator field 綁到 graph 的 node 與 input。三欄 grid：field 128px、node 彈性、input 168px，`gap-2`。</Rule>
+<Rule component="workflow-mapping" id="columns-groups">最上方一列欄名（Field／Node／Input，muted）。Field 欄的標籤跟隨介面語言。分組順序固定為 Sampler、Latent、Prompt、Other，組間以分隔線隔開，組名是小標題（text-xs semibold secondary）。</Rule>
 <Rule component="workflow-mapping" id="node-options">Node 選項顯示為「nodeId · 標題」，清單第一項永遠是「Not bound」。未綁定時 Input 欄是虛線空框（`border-dashed border-line`），不是停用的 Select。</Rule>
 <Rule component="workflow-mapping" id="broken-binding">綁到 graph 中已不存在的 node 或 input 時，下拉仍顯示原值並加 danger Badge「missing」，讓使用者看得到原本綁的是什麼；node 失效時 input 一併標 missing。這些問題同時列在 Header 的 Issue chip，Save 停用。</Rule>
 <Rule component="workflow-mapping" id="auto-input">換 node 時自動選該 node 的第一個 input，避免留下必定失效的綁定。</Rule>

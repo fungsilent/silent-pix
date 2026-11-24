@@ -1,8 +1,9 @@
 import { config } from '@silent-pix/shared'
 
 import { getJsonPropertyLines } from '#/lib/json'
+import { generatorFieldLabel } from '#/pages/workflow/generator-field'
 
-import type { Comfy, ConfigSchema, GeneratorField } from '@silent-pix/shared'
+import type { Comfy, ConfigSchema } from '@silent-pix/shared'
 
 export type InputLines = Map<string, Map<string, number>>
 
@@ -17,7 +18,7 @@ export function toInputLines(text: string): InputLines {
 }
 
 export type LineMark = {
-    field: GeneratorField
+    label: string
     broken: boolean
 }
 
@@ -48,7 +49,7 @@ export function toLineMarks(
         }
 
         marks.set(line, {
-            field,
+            label: generatorFieldLabel(field),
             broken: brokenFields.has(field),
         })
     }

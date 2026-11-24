@@ -67,7 +67,7 @@ class FieldMarker extends GutterMarker {
     }
 
     override eq(other: FieldMarker): boolean {
-        return other.mark.field === this.mark.field && other.mark.broken === this.mark.broken
+        return other.mark.label === this.mark.label && other.mark.broken === this.mark.broken
     }
 
     override toDOM(): HTMLElement {
@@ -76,7 +76,7 @@ class FieldMarker extends GutterMarker {
         element.className = this.mark.broken
             ? 'cm-workflow-field cm-workflow-field-broken'
             : 'cm-workflow-field'
-        element.textContent = this.mark.field
+        element.textContent = this.mark.label
 
         return element
     }

@@ -28,8 +28,24 @@ const groupOf: Record<GeneratorField, GroupLabel> = {
 
 const groupOrder = ['Sampler', 'Latent', 'Prompt', 'Other'] as const satisfies readonly GroupLabel[]
 
+const fieldLabels = {
+    seed: 'fields.seed',
+    steps: 'fields.steps',
+    cfg: 'fields.cfg',
+    samplerName: 'fields.sampler',
+    denoise: 'fields.denoise',
+    width: 'fields.width',
+    height: 'fields.height',
+    batchSize: 'fields.batch',
+    positivePrompt: 'fields.positive',
+    negativePrompt: 'fields.negative',
+    loraData: 'fields.lora',
+    referenceImagePath: 'workflow.mapping.referenceImagePath',
+    maskImagePath: 'workflow.mapping.maskImagePath',
+} as const satisfies Record<GeneratorField, string>
+
 export function generatorFieldLabel(field: GeneratorField): string {
-    return field === 'referenceImagePath' ? t('workflow.mapping.referenceImagePath') : field
+    return t(fieldLabels[field])
 }
 
 export type FieldGroup = {

@@ -48,8 +48,9 @@ export function MaskEditor(props: MaskEditorProps) {
     const [loadError, setLoadError] = createSignal<'reference' | 'mask' | 'canvas'>()
     const [exporting, setExporting] = createSignal(false)
     const [exportFailed, setExportFailed] = createSignal(false)
+    const [activePointer, setActivePointer] = createSignal<{ id: number, lastPoint: Offset | null }>()
     const ready = () => history() !== undefined
-    const canEdit = () => ready() && !exporting()
+    const canEdit = () => ready() && !exporting() && !activePointer()
     const panning = () => tool() === 'hand' || spaceHeld()
     const brushDiameter = () => size() * zoom.scaled().width / width
 
@@ -59,7 +60,6 @@ export function MaskEditor(props: MaskEditorProps) {
     let preview: CanvasRenderingContext2D | null = null
     let mask: Awaited<ReturnType<typeof createMaskCanvas>> | undefined
     let frame: number | undefined
-    let activePointer: { id: number, lastPoint: Offset | null } | undefined
     let overlayId: OverlayId | undefined
     let disposed = false
 
@@ -106,7 +106,7 @@ export function MaskEditor(props: MaskEditorProps) {
     }
 
     const runHistory = (action: HistoryAction) => {
-        if (!mask || !canEdit() || activePointer) return
+        if (!mask || !canEdit()) return
 
         mask[action]()
         setHistory(mask.state())
@@ -114,7 +114,12 @@ export function MaskEditor(props: MaskEditorProps) {
     }
 
     const finish = async () => {
-        if (!mask || !canEdit() || activePointer) return
+        if (!mask || !canEdit()) return
+
+        if (!mask.hasChanges()) {
+            props.onClose()
+            return
+        }
 
         setExporting(true)
         setExportFailed(false)
@@ -136,12 +141,12 @@ export function MaskEditor(props: MaskEditorProps) {
     })
 
     const onPointerDown: JSX.EventHandler<HTMLDivElement, PointerEvent> = event => {
-        if (event.button !== 0 || activePointer || !surface || !canEdit()) return
+        if (event.button !== 0 || !surface || !canEdit()) return
 
         if (panning()) {
             if (!zoom.overflows()) return
 
-            activePointer = { id: event.pointerId, lastPoint: null }
+            setActivePointer({ id: event.pointerId, lastPoint: null })
             setCursor(undefined)
             zoom.onPointerDown(event)
             return
@@ -150,7 +155,7 @@ export function MaskEditor(props: MaskEditorProps) {
         if (!mask || event.target !== surface) return
 
         const point = imagePoint(event, surface.getBoundingClientRect())
-        activePointer = { id: event.pointerId, lastPoint: point }
+        setActivePointer({ id: event.pointerId, lastPoint: point })
         event.currentTarget.setPointerCapture(event.pointerId)
         event.preventDefault()
         mask.paint(point, point, size(), tool() === 'eraser')
@@ -158,9 +163,10 @@ export function MaskEditor(props: MaskEditorProps) {
     }
 
     const onPointerMove: JSX.EventHandler<HTMLDivElement, PointerEvent> = event => {
-        if (!surface || (activePointer && activePointer.id !== event.pointerId)) return
+        const pointer = activePointer()
+        if (!surface || (pointer && pointer.id !== event.pointerId)) return
 
-        if (activePointer?.lastPoint === null) {
+        if (pointer?.lastPoint === null) {
             zoom.onPointerMove(event)
             return
         }
@@ -175,22 +181,23 @@ export function MaskEditor(props: MaskEditorProps) {
             setCursor(undefined)
         }
 
-        if (mask && activePointer) {
-            mask.paint(activePointer.lastPoint, point, size(), tool() === 'eraser')
-            activePointer.lastPoint = point
+        if (mask && pointer) {
+            mask.paint(pointer.lastPoint, point, size(), tool() === 'eraser')
+            pointer.lastPoint = point
             redraw()
         }
     }
 
     const endPointer = (event: PointerEvent) => {
-        if (!activePointer || activePointer.id !== event.pointerId) return
+        const pointer = activePointer()
+        if (!pointer || pointer.id !== event.pointerId) return
 
-        if (activePointer.lastPoint && mask) {
+        if (pointer.lastPoint && mask) {
             mask.commit()
             setHistory(mask.state())
         }
         zoom.endDrag()
-        activePointer = undefined
+        setActivePointer(undefined)
         if (event.pointerType !== 'mouse') setCursor(undefined)
     }
 
@@ -324,7 +331,7 @@ export function MaskEditor(props: MaskEditorProps) {
                             tool={tool()}
                             size={size()}
                             history={state()}
-                            disabled={exporting()}
+                            disabled={!canEdit()}
                             onToolChange={setTool}
                             onSizeChange={setSize}
                             onHistory={runHistory}
@@ -386,6 +393,7 @@ function MaskToolbar(props: MaskToolbarProps) {
         <div class={cn('absolute left-6 top-16 z-10 flex h-9 items-center gap-1 rounded-md border px-1 min-[620px]:top-6', glass)}>
             <Button
                 variant='ghost'
+                disabled={props.disabled}
                 title={`${t('image.mask.brush')} (B)`}
                 classes={{ root: toolClass('brush') }}
                 onClick={() => props.onToolChange('brush')}
@@ -394,6 +402,7 @@ function MaskToolbar(props: MaskToolbarProps) {
             </Button>
             <Button
                 variant='ghost'
+                disabled={props.disabled}
                 title={`${t('image.mask.eraser')} (E)`}
                 classes={{ root: toolClass('eraser') }}
                 onClick={() => props.onToolChange('eraser')}
@@ -402,6 +411,7 @@ function MaskToolbar(props: MaskToolbarProps) {
             </Button>
             <Button
                 variant='ghost'
+                disabled={props.disabled}
                 title={`${t('image.mask.hand')} (H)`}
                 classes={{ root: toolClass('hand') }}
                 onClick={() => props.onToolChange('hand')}

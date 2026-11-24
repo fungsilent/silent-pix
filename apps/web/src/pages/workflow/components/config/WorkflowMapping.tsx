@@ -26,7 +26,7 @@ export function WorkflowMapping() {
             title={t('workflow.mapping.title')}
             inert={isLoading()}
         >
-            <div class='grid grid-cols-[112px_1fr_168px] items-center gap-2 text-xs leading-none text-fg-muted'>
+            <div class='grid grid-cols-[128px_1fr_168px] items-center gap-2 text-xs leading-none text-fg-muted'>
                 <span>{t('workflow.mapping.field')}</span>
                 <span>{t('workflow.mapping.node')}</span>
                 <span>{t('workflow.mapping.input')}</span>
@@ -69,6 +69,7 @@ type MappingRowProps = {
 }
 
 function MappingRow(props: MappingRowProps) {
+    const fieldLabel = () => generatorFieldLabel(props.field)
     const selectedNode = () => props.nodeOptions.find(option => option.nodeId === props.binding?.nodeId)
 
     /*
@@ -108,20 +109,18 @@ function MappingRow(props: MappingRowProps) {
         }
 
         const node = props.nodeOptions.find(option => option.nodeId === value)
-        /* 換節點就換一個該節點真的有的 input，不然會留下一個必定失效的綁定 */
         const input = node?.inputs[0] ?? props.binding?.input ?? ''
 
         props.onChange(props.field, { nodeId: value, input })
     }
 
     return (
-        <div class='grid grid-cols-[112px_1fr_168px] items-center gap-2'>
-            {/* Field 欄留著：三欄的 grid placement 與 label 在 loading 時仍要看得見 */}
-            <DetailLabel>{props.field}</DetailLabel>
+        <div class='grid grid-cols-[128px_1fr_168px] items-center gap-2'>
+            <DetailLabel>{fieldLabel()}</DetailLabel>
 
             <Loading.Mask loading={props.loading}>
                 <Select
-                    label={t('workflow.mapping.nodeLabel', { field: generatorFieldLabel(props.field) })}
+                    label={t('workflow.mapping.nodeLabel', { field: fieldLabel() })}
                     value={props.binding?.nodeId ?? unboundValue}
                     options={nodeItems()}
                     disabled={props.readOnly}
@@ -138,7 +137,7 @@ function MappingRow(props: MappingRowProps) {
                 >
                     {binding => (
                         <Select
-                            label={t('workflow.mapping.inputLabel', { field: generatorFieldLabel(props.field) })}
+                            label={t('workflow.mapping.inputLabel', { field: fieldLabel() })}
                             value={binding().input}
                             options={inputItems()}
                             disabled={props.readOnly}
