@@ -172,8 +172,6 @@ function createGenerateSession() {
             form.setFieldValue('referenceImage', reference)
             form.setFieldValue('width', size.width)
             form.setFieldValue('height', size.height)
-            /* latent 來自 VAEEncode，多出來的 batch 不會有第二張圖 */
-            form.setFieldValue('batch', 1)
         })
     }
 

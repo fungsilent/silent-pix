@@ -13,10 +13,7 @@ export function toImageResource(image: ImageSelect): ImageApi.ImageResource {
     }
 }
 
-/*
- * mask / control 還沒有 UI，對外只承認 input 與 output 兩種身分，
- * 免得 contract 先長出前端還讀不懂的值。
- */
+/* 遮罩與控制圖不在圖庫顯示。 */
 export function toImageUsageType(type: TaskImageSelect['type']): ImageApi.ImageUsage['type'] | undefined {
     return type === 'input' || type === 'output' ? type : undefined
 }

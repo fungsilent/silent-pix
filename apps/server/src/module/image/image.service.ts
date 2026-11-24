@@ -14,7 +14,6 @@ import type { ImageApi } from '@silent-pix/shared'
 
 type ImageCursor = { usedAt: number, sortIndex: number, id: UUID }
 
-/* mask / control 還沒有 UI，對外只承認這兩種 */
 const displayTypes = ['input', 'output'] as const
 
 export const imageService = {

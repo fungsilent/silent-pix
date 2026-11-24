@@ -109,7 +109,7 @@
         0
       ],
       "on_true": [
-        "133:128",
+        "133:194",
         0
       ]
     },
@@ -122,7 +122,10 @@
     "inputs": {
       "width": 1536,
       "height": 864,
-      "batch_size": 1
+      "batch_size": [
+        "133:195",
+        0
+      ]
     },
     "class_type": "EmptyLatentImage",
     "_meta": {
@@ -307,12 +310,24 @@
   "133:194": {
     "inputs": {
       "samples": [
-        "133:121",
+        "133:128",
         0
       ],
-      "amount": 1
+      "amount": [
+        "133:195",
+        0
+      ]
     },
     "class_type": "RepeatLatentBatch",
+    "_meta": {
+      "title": "Reference Image Repeat Latent Batch"
+    }
+  },
+  "133:195": {
+    "inputs": {
+      "value": 1
+    },
+    "class_type": "PrimitiveInt",
     "_meta": {
       "title": "Batch Size"
     }
@@ -338,7 +353,7 @@
         0
       ],
       "latent_image": [
-        "133:194",
+        "133:121",
         0
       ]
     },
