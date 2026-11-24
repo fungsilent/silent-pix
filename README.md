@@ -91,6 +91,12 @@ SQLite records should prefer relative paths.
 
 ## Environment
 
+Use Node.js 24 LTS (24.14.0 or newer) for local development, or another version
+in the root [`package.json`](package.json) `engines.node` range. Server and
+database commands use Node.js package imports starting with `#/`, which older
+Node.js versions reject with `ERR_INVALID_MODULE_SPECIFIER`. Check the active
+runtime with `node --version` before running `pnpm dev`.
+
 Copy `.env.example` to `.env`; it lists every variable with its development
 default.
 

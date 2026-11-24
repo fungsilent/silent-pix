@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 $checks = @()
 $desktopPackage = Get-Content -LiteralPath (Join-Path $PSScriptRoot '..\package.json') -Raw | ConvertFrom-Json
-$minimumPnpmVersion = [version]$desktopPackage.engines.pnpm.Substring(1)
+$minimumPnpmVersion = [version]$desktopPackage.devEngines.packageManager.version.Substring(1)
 
 foreach ($tool in @('node.exe', 'pnpm.cmd', 'cargo.exe', 'rustc.exe', 'rustup.exe')) {
     $detail = 'Not found on PATH'
@@ -20,7 +20,7 @@ foreach ($tool in @('node.exe', 'pnpm.cmd', 'cargo.exe', 'rustc.exe', 'rustup.ex
             if ($ready -and $tool -eq 'pnpm.cmd') {
                 $installedPnpmVersion = [version]$detail
                 $ready = $installedPnpmVersion -ge $minimumPnpmVersion -and $installedPnpmVersion.Major -eq $minimumPnpmVersion.Major
-                if (-not $ready) { $detail += " - requires pnpm $($desktopPackage.engines.pnpm)" }
+                if (-not $ready) { $detail += " - requires pnpm $($desktopPackage.devEngines.packageManager.version)" }
             }
             if ($ready -and $tool -eq 'rustc.exe') {
                 $hostInfo = & $tool -vV 2>&1

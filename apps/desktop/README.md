@@ -34,7 +34,7 @@ Install Node.js and pnpm `^12.16.1` on that operating system as well. Running Ta
 On Windows, double-click `script/check-window.bat` to list prerequisite versions
 and missing dependencies before starting Desktop. It checks Node.js support for
 the launcher's env loader, the `pnpm.cmd` entry used by the launcher (version range
-from Desktop's `engines.pnpm`), Cargo, Rust's active MSVC host, rustup, C++ Build Tools, Windows SDK
+from Desktop's `devEngines.packageManager`), Cargo, Rust's active MSVC host, rustup, C++ Build Tools, Windows SDK
 headers, and WebView2 Runtime registration. It installs nothing, requires no
 administrator privileges. The PowerShell script returns exit code 1 if a check
 fails. The batch entry reruns the checks when any key is pressed; close the
