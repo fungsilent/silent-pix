@@ -1,0 +1,39 @@
+<section class="flex flex-col gap-3">
+                            <div class="flex flex-col gap-1 py-1">
+                                <h3 class="m-0 flex items-center gap-1.5 text-[11px] font-semibold uppercase leading-none tracking-[0.08em] text-fg-title">Image</h3>
+                            </div>
+                            <div class="contents">
+                                <div class="relative h-40 overflow-hidden rounded-md bg-active">
+                                    <img src="/landscape.svg" alt="" class="absolute inset-0 size-full object-contain">
+                                    <div class="absolute inset-0 bg-accent/50 mask-[url(/mask-sample.svg)] mask-contain mask-center mask-no-repeat"></div>
+                                    <span class="absolute left-1.5 top-1.5 rounded border border-stage-line bg-stage-control px-1.5 py-0.5 text-[9px] font-semibold uppercase leading-none tracking-wide text-on-stage backdrop-blur-[3px]">mask</span>
+                                    <span class="flex items-center justify-center gap-2 text-xs outline-none focus-visible:ring-2 focus-visible:border-accent focus-visible:ring-accent/40 border-transparent absolute right-1.5 top-1.5 size-6 rounded-md border-0 bg-stage-control p-0 text-on-stage backdrop-blur-[3px] hover:bg-danger/35 hover:text-on-stage"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>
+                                </div>
+                                <div class="relative min-w-0">
+                                    <span class="flex items-center justify-start gap-2 rounded-md px-3 py-[5px] text-xs outline-none focus-visible:ring-2 text-fg-secondary hover:bg-elevated-hover focus-visible:border-accent focus-visible:ring-accent/40 w-full border border-line bg-transparent"><span class="min-w-0 truncate">Alpine lake #2</span><span class="shrink-0 rounded px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide bg-elevated text-fg-muted">out</span><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="ml-auto shrink-0"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg></span>
+                                </div>
+                                <div class="flex min-w-0 gap-2">
+                                    <span class="flex items-center justify-center gap-2 rounded-md px-3 py-[5px] text-xs outline-none focus-visible:ring-2 text-fg-secondary hover:bg-elevated-hover focus-visible:border-accent focus-visible:ring-accent/40 border border-line bg-transparent min-w-0 flex-1"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="m11 10 3 3"/><path d="M6.5 21A3.5 3.5 0 1 0 3 17.5a2.62 2.62 0 0 1-.708 1.792A1 1 0 0 0 3 21z"/><path d="M9.969 17.031 21.378 5.624a1 1 0 0 0-3.002-3.002L6.967 14.031"/></svg>Edit mask</span>
+                                    <span class="flex size-7 flex-none items-center justify-center rounded-md border border-line bg-transparent p-0 text-fg-secondary outline-none hover:border-danger/50 hover:bg-danger/15 hover:text-danger-fg focus-visible:ring-2 focus-visible:border-accent focus-visible:ring-accent/40"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></span>
+                                </div>
+                                <div class="flex flex-col gap-1.5">
+                                    <span class="text-xs leading-none text-fg-muted">Denoise</span>
+                                    <div class="relative min-w-0">
+                                        <div class="flex items-center gap-2.5">
+                                            <div class="min-w-0 touch-none data-[disabled]:cursor-default data-[disabled]:opacity-60 flex-1">
+                                                <div class="relative flex h-5 w-full min-w-0 items-center">
+                                                    <div class="relative h-2 w-full rounded-full bg-track">
+                                                        <div class="absolute inset-y-0 left-0 right-[42.1%] h-full rounded-full bg-accent"></div>
+                                                    </div>
+                                                    <div class="absolute left-[57.9%] -translate-x-1/2 h-4 w-4 rounded-full bg-accent outline-none ring-2 ring-transparent focus:ring-accent/40"></div>
+                                                </div>
+                                            </div>
+                                            <div class="flex min-w-0 flex-col gap-1.5 w-16 flex-none">
+                                                <span class="text-xs leading-none text-fg-muted hidden">Denoise</span>
+                                                <input class="number-input min-w-0 rounded-md border border-field-border bg-field text-xs leading-none text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent/40 disabled:cursor-default disabled:border-line-subtle disabled:bg-disabled disabled:text-fg-muted h-6 px-2 text-center" type="number" value="0.6" readonly>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>

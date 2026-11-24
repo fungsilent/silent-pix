@@ -311,25 +311,29 @@ Task 詳細面板最上面的 identity 區：ID、名稱（inline 改名）、�
 
 ## Reference image
 
-Task 詳細面板的 Image 區：img2img 的參考圖與 denoise。
+Task 詳細面板的 Image 區：img2img／inpaint 的參考圖、遮罩與 denoise。
 
 <Gallery min="420px">
 <State component="reference-image" state="origin" label="reference from a task" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
 <State component="reference-image" state="upload" label="uploaded file" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="reference-image" state="mask" label="with inpaint mask" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
 <State component="reference-image" state="empty" label="empty" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
 <State component="reference-image" state="dragging" label="dragging a file" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
 <State component="reference-image" state="rejected" label="rejected file" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
 <State component="reference-image" state="loading" label="loading (cold)" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
 <State component="reference-image" state="read-only" label="read-only · reference" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
+<State component="reference-image" state="read-only-mask" label="read-only · with mask" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
 <State component="reference-image" state="read-only-empty" label="read-only · no reference" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 pt-1 pb-5" />
 </Gallery>
 
 <Rules component="reference-image">
 
 <ul class="ds-rules">
-<Rule component="reference-image" id="section">Task 詳細面板的 Image 區：img2img 的參考圖與 denoise。可編輯模式能拖放、點擊上傳、從圖庫挑選或移除；唯讀模式只顯示。</Rule>
+<Rule component="reference-image" id="section">Task 詳細面板的 Image 區：img2img／inpaint 的參考圖、遮罩與 denoise。可編輯模式能拖放、點擊上傳、從圖庫挑選或移除，並能畫遮罩；唯讀模式只顯示。</Rule>
 <Rule component="reference-image" id="frame">參考圖放在高 160px、`bg-active` 的圓角框內等比 contain；點圖開啟全螢幕 image viewer（不帶操作）。可編輯模式右上角有 24px 的移除鈕，平時是半透明 stage 底色加背景模糊，hover 轉 danger。</Rule>
 <Rule component="reference-image" id="source">來源列只在參考圖來自既有 task 時出現，內容是來源文字（task 名稱，沒有名稱時為 ID 前 8 碼並用等寬字；來自輸出時加 #n）＋與圖片選擇器卡片同款的 IN／OUT 小標。可編輯模式是外框按鈕，內容靠左、右側 ArrowUpRight「前往」圖示，點了選取來源 task；唯讀模式是同樣的文字＋小標，沒有圖示。直接上傳的檔案（最早的使用就是這個 task）沒有來源列。</Rule>
+<Rule component="reference-image" id="mask">有參考圖時，來源列（沒有來源列就是圖框）下方有一顆全寬外框按鈕「Paint mask」（Brush 圖示），開啟 mask editor。已有遮罩時圖框疊上 `bg-accent/50` 的遮罩區域、左上角加 glass 小標「MASK」，按鈕換成「Edit mask」，右側並排 28px 清除鈕（Trash，hover 轉 danger），清除不另外確認。唯讀模式只有疊圖與小標，沒有按鈕列。</Rule>
+<Rule component="reference-image" id="mask-lifecycle">遮罩跟著參考圖走：換參考圖或移除參考圖時遮罩一併清掉；從既有 task 開 draft 時遮罩與參考圖一起帶入。有遮罩就是 inpaint，沒有就是 img2img，不另設模式切換。</Rule>
 <Rule component="reference-image" id="denoise">Denoise 只在有參考圖時出現：Slider 與 64px 寬的窄數字欄並排（數字欄不顯示標籤），範圍 0.05–1、step 0.05；唯讀模式兩者都停用。</Rule>
 <Rule component="reference-image" id="empty">沒有參考圖時，可編輯模式顯示虛線 drop zone（hover 換底色，拖曳中轉 accent 外框、accent 淡底與 accent 文字）與虛線外框的「Search image library」；唯讀模式顯示 `bg-active` 虛線框與「No reference image.」。</Rule>
 <Rule component="reference-image" id="file-types">只接受 PNG 與 JPEG，型別以內容判斷；拒收時在區塊底部加一行提示（11px `text-danger-fg` 警告三角，文字 `text-fg`）：型別不符為「Use a PNG or JPEG image.」，其他為「That file cannot be used as a reference image.」。</Rule>
@@ -448,6 +452,30 @@ Task 詳細面板的 LoRA 區：已選 LoRA 的清單與 weight。
 
 </Rules>
 
+## Mask editor
+
+為參考圖畫 inpaint 遮罩的全螢幕編輯器：塗到的地方重繪，其餘保留。
+
+<Gallery min="100%">
+<State component="generate-mask-editor" state="painting" label="brush · painted mask" frame="relative h-[460px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="generate-mask-editor" state="eraser" label="eraser" frame="relative h-[460px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="generate-mask-editor" state="empty" label="no mask yet · Undo / Clear disabled" frame="relative h-[460px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+</Gallery>
+
+<Rules component="generate-mask-editor">
+
+<ul class="ds-rules">
+<Rule component="generate-mask-editor" id="entry">只從 reference-image 的「Paint mask」／「Edit mask」開啟，編輯的永遠是目前的參考圖；開啟時載入現有遮罩。</Rule>
+<Rule component="generate-mask-editor" id="layout">外框與 image viewer 相同（`bg-backdrop` 加模糊、圖片等比置中）：左上 glass 工具列、右上 glass 關閉鈕與 solid accent「Done」、左下沿用 zoom-controls；沒有翻頁與縮圖列。</Rule>
+<Rule component="generate-mask-editor" id="toolbar">工具列 36px 高、`size-7` 按鈕，依序：Brush、Eraser（二選一，選中 `bg-stage-control-hover` 加淡白 ring）｜Size 滑桿＋數值｜Undo、Redo、Clear。沒有可復原的步驟時 Undo／Redo 停用，遮罩是空的時 Clear 停用。</Rule>
+<Rule component="generate-mask-editor" id="brush">筆刷大小 4–256，單位是參考圖的實際像素，所以縮放畫面時圓圈跟著縮放；`[`／`]` 每次調 8。游標換成同大小的白色圓圈（外加一圈暗色描邊，在淺色圖上也看得見），Eraser 時改成虛線圈。筆觸是實心圓點連成的線，沒有羽化。</Rule>
+<Rule component="generate-mask-editor" id="display">遮罩顯示為 `bg-accent/50` 疊在圖上，只是顯示色；送出的是與參考圖同尺寸的黑白 PNG（白＝重繪、黑＝保留）。</Rule>
+<Rule component="generate-mask-editor" id="keys">B／E 切換 Brush／Eraser，⌘Z／⇧⌘Z（Windows 為 Ctrl）Undo／Redo；滾輪縮放、按住空白鍵拖曳平移，規則同 image viewer。</Rule>
+<Rule component="generate-mask-editor" id="commit">Done 套用並關閉；遮罩是空的時按 Done 等於清除遮罩。關閉鈕或 Esc 放棄這次的修改，不另外確認。Clear 可以 Undo。</Rule>
+</ul>
+
+</Rules>
+
 ## Confirm dialog
 
 刪除 task 前的確認：單一 task、批次刪除選取或標記的 task。
@@ -499,6 +527,7 @@ Task 詳細面板的 LoRA 區：已選 LoRA 的清單與 weight。
             </div>
         </Case>
         <Case state="lora" label="LoRA picker"><Slot name="lora" component="lora-picker" states="results,loading,error,no-match,empty" /></Case>
+        <Case state="mask" label="mask editor"><div class="absolute inset-0 z-10 flex"><Slot name="mask" component="generate-mask-editor" states="painting,eraser,empty" /></div></Case>
         <Case state="reference" label="reference image picker"><Slot name="reference" component="generate-reference-picker" states="single,loading,error,empty" /></Case>
         <Case state="delete" label="delete task"><Slot name="delete" component="generate-confirm-dialog" states="task-delete,task-delete-error" /></Case>
         <Case state="batch-delete" label="delete selected"><Fixed component="generate-confirm-dialog" state="batch-delete" /></Case>
@@ -514,7 +543,7 @@ Task 詳細面板的 LoRA 區：已選 LoRA 的清單與 weight。
 <Rule component="generate-screen" id="workspace">工作區 Prompt panel 在上、Image stage 填滿剩餘高度；Stage 永遠存在，沒有圖時顯示自己的空狀態，不收掉。</Rule>
 <Rule component="generate-screen" id="browser">Task browser 取代 Task list 的清單欄與工作區，左側直條與右側 Task detail 都保留，選取的 task 兩邊同步。</Rule>
 <Rule component="generate-screen" id="browser-toolbar">Task browser 的篩選、搜尋與勾選都在工具列；各篩選下的卡片組成、空狀態文案與批次操作見 L1 Task browser，控制列的 browser 選單可逐一切換。</Rule>
-<Rule component="generate-screen" id="overlays">Image viewer、LoRA／參考圖 picker 與刪除確認 dialog 蓋住疊加層區域（Desktop 標題列以下，見 App），關閉後回到原本狀態；Task browser 點卡片縮圖開的也是同一個 Image viewer。</Rule>
+<Rule component="generate-screen" id="overlays">Image viewer、mask editor、LoRA／參考圖 picker 與刪除確認 dialog 蓋住疊加層區域（Desktop 標題列以下，見 App），關閉後回到原本狀態；Task browser 點卡片縮圖開的也是同一個 Image viewer。</Rule>
 <Rule component="generate-screen" id="narrow">視窗變窄時先隱藏 Task detail（寬度 &lt; 980px），再隱藏 Task list（&lt; 720px），工作區永遠保留。</Rule>
 </ul>
 
