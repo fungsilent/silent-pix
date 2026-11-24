@@ -362,7 +362,7 @@ Task 詳細面板的 Config 區：workflow、seed、步數、尺寸、批次與 
 <Rule component="task-config" id="order">Task 詳細面板的 Config 區，欄位順序固定：Workflow Template、Seed、Steps｜CFG、Width｜Height、Batch、Sampler。成對欄位兩欄並排、間距 8px。</Rule>
 <Rule component="task-config" id="modes">可編輯模式全部可改；唯讀模式全部停用，Seed 也不顯示還原鈕。</Rule>
 <Rule component="task-config" id="seed">Seed 欄留空代表隨機：placeholder 是來源 task 的 seed，新 draft 則是「Random」。右側還原鈕把來源 seed 填回欄位，只在有來源 seed 時可按；沒有來源 seed 時停用，外觀依 L0 Button disabled。</Rule>
-<Rule component="task-config" id="reference-size">有參考圖時 Width、Height、Batch 停用，尺寸由參考圖決定。</Rule>
+<Rule component="task-config" id="reference-size">有參考圖時 Width、Height 停用，尺寸由參考圖決定。可編輯模式下，各種生成模式都可以設定 Batch。</Rule>
 <Rule component="task-config" id="archived">目前選的是已封存的 workflow 時，Select 值後面加 warning Badge「archived」；其他時候不出 badge。</Rule>
 <Rule component="task-config" id="option-error">Workflow 或 Sampler 清單載入失敗或為空時，只把該 Select 停用並清空值；錯誤訊息與 Retry 由 Header 的 Issue chip 顯示，不寫在欄位下方。</Rule>
 <Rule component="task-config" id="loading">Loading 以欄位為單位：欄位名稱保留，只在底部 28px 的控制項位置蓋 skeleton，整段不可互動。</Rule>

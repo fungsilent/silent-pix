@@ -304,6 +304,19 @@
       "title": "Reference Image Load"
     }
   },
+  "133:194": {
+    "inputs": {
+      "samples": [
+        "133:121",
+        0
+      ],
+      "amount": 1
+    },
+    "class_type": "RepeatLatentBatch",
+    "_meta": {
+      "title": "Batch Size"
+    }
+  },
   "99:59": {
     "inputs": {
       "seed": 0,
@@ -325,7 +338,7 @@
         0
       ],
       "latent_image": [
-        "133:121",
+        "133:194",
         0
       ]
     },

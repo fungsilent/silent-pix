@@ -28,8 +28,8 @@
         "input": "height"
     },
     "batchSize": {
-        "nodeId": "133:130",
-        "input": "batch_size"
+        "nodeId": "133:194",
+        "input": "amount"
     },
     "positivePrompt": {
         "nodeId": "50",

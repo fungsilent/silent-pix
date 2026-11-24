@@ -295,8 +295,6 @@ export const taskService = {
                         ? {
                             width: reference.metadata.width,
                             height: reference.metadata.height,
-                            /* 參考圖模式固定記錄為單張，供 Task 詳情顯示。 */
-                            batch: 1,
                         }
                         : { denoise: 1 }),
                 },

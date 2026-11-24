@@ -217,7 +217,7 @@ export function TaskConfig(props: TaskConfigProps) {
                     min={1}
                     max={16}
                     value={values().batch}
-                    disabled={!isCreate() || hasReference()}
+                    disabled={!isCreate()}
                     onChange={onBatchChange}
                 />
             </Loading.Control>
