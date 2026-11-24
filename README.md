@@ -11,24 +11,21 @@ Architecture boundaries and implementation constraints are documented so humans 
 
 ---
 
-## Stack
+## Tech Stack
 
-| Area | Decision |
+| Area | Technology |
 |---|---|
-| Monorepo | pnpm workspace |
-| Build | Turborepo |
-| Language | TypeScript |
-| Frontend | SolidJS + Vite + Tailwind CSS |
-| Frontend UI helpers | Ark UI + lucide-solid + clsx |
-| Backend | Elysia on Node.js |
-| Server events | Generic type-keyed EventServer with an Elysia WebSocket adapter |
-| Database | SQLite |
-| DB tooling | Drizzle |
-| Formatting | ESLint + @stylistic |
-| Prettier | Not used |
-| Runtime files | Filesystem |
-| Production data | Explicitly configured paths outside the repository |
-| Dev data | `./.data` |
+| Workspace and build | pnpm workspaces, Turborepo 2 |
+| Language | TypeScript 7 |
+| Web UI | SolidJS 1.9, Vite 8, Tailwind CSS 4, Ark UI 5, lucide-solid, clsx |
+| Web data and forms | TanStack Query 5, TanStack Form 1, Eden Treaty 1.4 |
+| Localization | i18next 27 |
+| Server | Elysia 1.4 on Node.js, with REST and WebSocket |
+| Shared contracts | Zod 4 |
+| Database | SQLite via libSQL, Drizzle ORM 0.45 |
+| Desktop | Tauri 2 and Rust |
+| Design blueprint | Astro 7 and Starlight 0.42 |
+| Linting and formatting | ESLint 10 and `@stylistic` 5 |
 
 ---
 
@@ -91,11 +88,22 @@ SQLite records should prefer relative paths.
 
 ## Environment
 
-Use Node.js 24 LTS (24.14.0 or newer) for local development, or another version
-in the root [`package.json`](package.json) `engines.node` range. Server and
-database commands use Node.js package imports starting with `#/`, which older
-Node.js versions reject with `ERR_INVALID_MODULE_SPECIFIER`. Check the active
-runtime with `node --version` before running `pnpm dev`.
+### Local development requirements
+
+| Tool | Version |
+|---|---|
+| Node.js | `^24.14.0 \|\| >=25.4.0` |
+| pnpm | `^12.16.1` |
+
+Node.js 24 LTS is recommended for local development. If Server or database
+commands fail with `ERR_INVALID_MODULE_SPECIFIER` for `#/` imports, check
+`node --version`. Check pnpm with `pnpm --version`. The root
+[`package.json`](package.json) declares both ranges.
+
+For native Desktop development, see the
+[Desktop prerequisites](apps/desktop/README.md#prerequisites).
+
+### Configuration
 
 Copy `.env.example` to `.env`; it lists every variable with its development
 default.
@@ -114,45 +122,55 @@ required in `.env.example`.
 
 ## Scripts
 
-```bash
-pnpm dev
-pnpm dev:web
-pnpm dev:server
-pnpm dev:desktop
+Run these commands from the repository root. For Docker Compose commands, see
+[Deployment](#deployment).
 
-pnpm build:web
-pnpm build:desktop
-pnpm typecheck
-pnpm lint
-pnpm lint:fix
-pnpm check
-pnpm clean
+### Development and builds
 
-pnpm db:generate
-pnpm db:migrate
-pnpm db:seed
-pnpm db:reset
-pnpm db:studio
-pnpm image:gc
-pnpm image:gc:offline -- --confirm-server-stopped
-```
+| Command | Purpose |
+|---|---|
+| `pnpm dev` | Starts the Web and Server development processes. |
+| `pnpm dev:web` | Starts the Web development server in browser mode. |
+| `pnpm dev:server` | Starts Server in watch mode. |
+| `pnpm dev:desktop` | Starts Vite and launches the Tauri development window. |
+| `pnpm dev:design` | Starts the Design Blueprint development server. |
+| `pnpm build:web` | Builds Web and its workspace dependencies. |
+| `pnpm build:desktop` | Builds and packages the Tauri app for the host operating system. |
+| `pnpm build:design` | Builds the Design Blueprint and validates its content and references. |
 
-`pnpm image:gc` asks the running server to perform image garbage collection.
-It does not directly access SQLite or storage and fails without fallback when
-the server is unavailable. The offline command is for explicit stopped-server
-recovery only and requires the exact confirmation flag.
+### Checks and cleanup
+
+| Command | Purpose |
+|---|---|
+| `pnpm typecheck` | Type-checks the TypeScript workspace. |
+| `pnpm lint` | Checks the repository with ESLint. |
+| `pnpm lint:fix` | Applies available ESLint fixes. |
+| `pnpm check` | Runs `pnpm typecheck` and `pnpm lint`. |
+| `pnpm check:design` | Checks Design Blueprint preview layouts in Chromium. |
+| `pnpm clean` | Deletes Git-ignored files and directories, including `.env` and `.data/`. |
+
+### Database and image maintenance
+
+| Command | Purpose |
+|---|---|
+| `pnpm db:generate` | Generates a migration from Drizzle schema changes. |
+| `pnpm db:migrate` | Applies pending database migrations. |
+| `pnpm db:seed` | Loads or updates the bundled Workflow examples. |
+| `pnpm db:reset` | Deletes all Task, Workflow, and image metadata records from SQLite. |
+| `pnpm db:studio` | Starts Drizzle Studio for inspecting the configured database. |
+| `pnpm image:gc` | Requests image garbage collection from the running Server. Fails if Server is unavailable. |
+| `pnpm image:gc:offline -- --confirm-server-stopped` | Runs image garbage collection for stopped-server recovery. Requires the exact confirmation flag. |
 
 ---
 
 ## Deployment
 
-```sh
-pnpm deploy:start
-pnpm deploy:stop
-pnpm deploy:down
-```
+| Command | Purpose |
+|---|---|
+| `pnpm deploy:start` | Builds the images, stops existing services, applies database migrations, and starts the services. |
+| `pnpm deploy:stop` | Stops the deployment services. |
+| `pnpm deploy:down` | Stops the services and removes deployment containers and networks. |
 
-Deploy start applies database migrations after stopping the old services.
 See [`deploy/README.md`](deploy/README.md) for Docker Compose deployment of optional ComfyUI, the Web UI, Caddy, and Server,
 with WSL/Docker Desktop testing, Ansible local/SSH orchestration, and a separately
 managed Cloudflare Tunnel.
