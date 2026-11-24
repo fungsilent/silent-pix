@@ -81,7 +81,7 @@ export function GenerateWorkspace() {
                     }
                 }}
                 onSelect={setSelectedImageIndex}
-                onUseAsReference={image => store.setReferenceImage({ type: 'asset', image, origin: null })}
+                onUseAsReference={image => store.setReferenceImage({ type: 'asset', image, origin: null, mask: null })}
             />
 
             <Show when={expanded()}>

@@ -49,6 +49,7 @@ export function CompareDetail() {
                     width: reference.image.width,
                     height: reference.image.height,
                     origin: reference.origin,
+                    maskUrl: reference.mask?.url ?? null,
                 }
                 : null
         },

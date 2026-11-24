@@ -3,7 +3,7 @@
     "inputs": {
       "lora_data": "[]",
       "ltx_mode": false,
-      "clip_mode": "[]",
+      "clip_mode": false,
       "lora_ui": "[]",
       "model": [
         "45:14",

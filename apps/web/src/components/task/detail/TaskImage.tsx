@@ -1,6 +1,6 @@
 import { image } from '@silent-pix/shared'
-import { ArrowUpRight, ImagePlus, Search, TriangleAlert, X } from 'lucide-solid'
-import { createSignal, Show } from 'solid-js'
+import { ArrowUpRight, Brush, Eye, ImagePlus, Search, Trash2, TriangleAlert, X } from 'lucide-solid'
+import { createEffect, createMemo, createSignal, on, Show } from 'solid-js'
 
 import { resolveImageUrl } from '#/api/image'
 import { Button } from '#/components/base/Button'
@@ -11,6 +11,7 @@ import { ImagePickerDialog } from '#/components/image/ImagePickerDialog'
 import { ImageTypeBadge } from '#/components/image/ImageTypeBadge'
 import { ImageViewer } from '#/components/viewer/ImageViewer'
 import { originTaskLabel } from '#/features/image/image.label'
+import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
 
 import type { FileUploadFileRejection } from '@ark-ui/solid'
@@ -22,6 +23,7 @@ export type TaskImageReference = {
     width: number
     height: number
     origin: ImageApi.ImageUsage | null
+    maskUrl: string | null
 }
 
 export type TaskImageData = {
@@ -39,6 +41,8 @@ export type TaskImageActions = {
     onReferenceReject: (message: () => string) => void
     onReferenceAsset: (item: ImageApi.ImageListItem) => void
     onRemoveReference: () => void
+    onEditMask: () => void
+    onClearMask: () => void
     onSelectOrigin: (taskId: string) => void
     onDenoiseChange: (value: number) => void
     setImagePickerOpen: (open: boolean) => void
@@ -171,6 +175,8 @@ export function TaskImage(props: TaskImageProps) {
                             loading={props.loading()}
                             reference={value()}
                             onRemove={onRemoveReference}
+                            onEditMask={props.actions.onEditMask}
+                            onClearMask={props.actions.onClearMask}
                             onSelectOrigin={taskId => {
                                 if (props.mode === 'create') {
                                     props.actions.onSelectOrigin(taskId)
@@ -238,6 +244,8 @@ type ReferenceSlotProps = {
     loading: boolean
     reference: TaskImageReference
     onRemove: () => void
+    onEditMask: () => void
+    onClearMask: () => void
     onSelectOrigin: (taskId: string) => void
 } | {
     mode: 'view'
@@ -247,6 +255,14 @@ type ReferenceSlotProps = {
 
 function ReferenceSlot(props: ReferenceSlotProps) {
     const [expanded, setExpanded] = createSignal(false)
+    const [maskOnly, setMaskOnly] = createSignal(false)
+    const referenceUrl = createMemo(() => props.reference.url)
+    const maskUrl = createMemo(() => props.reference.maskUrl)
+    const displayedMask = () => maskOnly() ? maskUrl() : null
+    const imageUrl = () => displayedMask() ?? referenceUrl()
+
+    createEffect(on([referenceUrl, maskUrl], () => setMaskOnly(false)))
+
     const onRemove = () => {
         if (props.mode === 'create') {
             props.onRemove()
@@ -255,13 +271,45 @@ function ReferenceSlot(props: ReferenceSlotProps) {
 
     return (
         <>
-            <div class='relative h-40 overflow-hidden rounded-md bg-active'>
+            <div class={cn('relative h-40 overflow-hidden rounded-md', displayedMask() ? 'bg-black' : 'bg-active')}>
                 <img
                     class='absolute inset-0 size-full object-contain'
-                    src={resolveImageUrl(props.reference.url)}
-                    alt={t('fields.referenceImage')}
+                    src={resolveImageUrl(imageUrl())}
+                    alt={displayedMask() ? t('image.mask.badge') : t('fields.referenceImage')}
                     onClick={() => setExpanded(true)}
                 />
+                <Show when={maskUrl()}>
+                    {url => (
+                        <>
+                            <Show when={!maskOnly()}>
+                                <div
+                                    class='pointer-events-none absolute inset-0 bg-accent/50 mask-contain mask-center mask-no-repeat mask-luminance'
+                                    style={{ 'mask-image': `url("${resolveImageUrl(url())}")` }}
+                                />
+                            </Show>
+                            <Button
+                                variant='ghost'
+                                title={maskOnly() ? t('image.mask.showOverlay') : t('image.mask.showMask')}
+                                classes={{
+                                    root: cn(
+                                        'absolute left-1.5 top-1.5 h-6 gap-1.5 px-2 py-0 text-[11px] font-semibold leading-none tracking-wide',
+                                        maskOnly()
+                                            ? 'bg-accent text-accent-fg hover:bg-accent-hover'
+                                            : 'border-stage-line bg-stage-control text-on-stage backdrop-blur-[3px] hover:bg-stage-control-hover',
+                                    ),
+                                }}
+                                onClick={() => setMaskOnly(current => !current)}
+                            >
+                                <Eye
+                                    size={13}
+                                    strokeWidth={1.8}
+                                    class='shrink-0'
+                                />
+                                {t('image.mask.badge')}
+                            </Button>
+                        </>
+                    )}
+                </Show>
                 <Show when={props.mode === 'create'}>
                     <Button
                         variant='ghost'
@@ -310,10 +358,42 @@ function ReferenceSlot(props: ReferenceSlotProps) {
                 )}
             </Show>
 
+            <Show when={props.mode === 'create' ? props : undefined}>
+                {editable => (
+                    <Loading.Mask loading={() => props.loading}>
+                        <div class='flex min-w-0 gap-2'>
+                            <Button
+                                classes={{ root: 'min-w-0 flex-1 border border-line bg-transparent' }}
+                                onClick={() => editable().onEditMask()}
+                            >
+                                <Brush
+                                    size={13}
+                                    strokeWidth={1.8}
+                                />
+                                {props.reference.maskUrl ? t('image.mask.edit') : t('image.mask.paint')}
+                            </Button>
+                            <Show when={props.reference.maskUrl}>
+                                <Button
+                                    variant='ghost'
+                                    title={t('image.mask.clear')}
+                                    classes={{ root: 'size-7 flex-none border border-line bg-transparent p-0 text-fg-secondary hover:border-danger/50 hover:bg-danger/15 hover:text-danger-fg' }}
+                                    onClick={() => editable().onClearMask()}
+                                >
+                                    <Trash2
+                                        size={13}
+                                        strokeWidth={1.8}
+                                    />
+                                </Button>
+                            </Show>
+                        </div>
+                    </Loading.Mask>
+                )}
+            </Show>
+
             <Show when={expanded()}>
                 <ImageViewer
                     images={[{
-                        url: props.reference.url,
+                        url: imageUrl(),
                         width: props.reference.width,
                         height: props.reference.height,
                     }]}

@@ -13,6 +13,11 @@ const loraSchema = z.object({
     weight: z.number().finite().min(0).max(2),
 })
 
+const maskSchema = z.discriminatedUnion('type', [
+    z.object({ type: z.literal('local'), file: z.file(), previewUrl: z.string() }),
+    z.object({ type: z.literal('asset'), image: imageApi.imageResource }),
+])
+
 /*
  * 參考圖有兩種來源，形狀不同：
  * 1. 新上傳（只有 File 與 objectURL）
@@ -26,11 +31,13 @@ const referenceImageSchema = z.discriminatedUnion('type', [
         width: z.number().int().positive(),
         height: z.number().int().positive(),
         sizeBytes: z.number().int().nonnegative(),
+        mask: maskSchema.nullable(),
     }),
     z.object({
         type: z.literal('asset'),
         image: imageApi.imageResource,
         origin: imageApi.imageUsage.nullable(),
+        mask: maskSchema.nullable(),
     }),
 ])
 
@@ -132,6 +139,7 @@ export const toGenerateValues = (task: TaskApi.GetTaskResponse): GenerateValues 
             type: 'asset',
             image: task.referenceImage.image,
             origin: task.referenceImage.origin,
+            mask: task.referenceImage.mask ? { type: 'asset', image: task.referenceImage.mask } : null,
         }
         : null,
     workflowId: task.workflowId,
@@ -150,13 +158,15 @@ function normalizeSampler(value: string): string {
 
 export function toCreateTaskRequest(values: GenerateValues): TaskApi.CreateTaskRequest {
     const reference = values.referenceImage
+    const mask = reference?.mask
     const seed = values.seed.trim()
 
-    const payloadBase = {
+    const payload: TaskApi.CreateTaskRequest['payload'] = {
         /* name 是 task 建立後的手動標籤，不從 draft / base task 帶入 */
         name: null,
         workflowId: values.workflowId,
-        maskImageId: null,
+        referenceImageId: reference?.type === 'asset' ? reference.image.id : null,
+        maskImageId: mask?.type === 'asset' ? mask.image.id : null,
         config: {
             seed: seed === '' ? null : seed,
             steps: values.steps,
@@ -175,22 +185,11 @@ export function toCreateTaskRequest(values: GenerateValues): TaskApi.CreateTaskR
         },
     }
 
-    if (reference?.type === 'local') {
-        return {
-            /* 上傳新檔案就把 File 放在外層，Eden 會因此改走 multipart */
-            payload: {
-                ...payloadBase,
-                referenceImageId: null,
-            },
-            referenceImage: reference.file,
-        }
-    }
-
     return {
-        payload: {
-            ...payloadBase,
-            referenceImageId: reference?.type === 'asset' ? reference.image.id : null,
-        },
+        payload,
+        /* Eden 遇到 File 才走 multipart。 */
+        ...(reference?.type === 'local' ? { referenceImage: reference.file } : {}),
+        ...(mask?.type === 'local' ? { maskImage: mask.file } : {}),
     }
 }
 

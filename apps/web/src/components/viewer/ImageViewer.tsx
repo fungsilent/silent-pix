@@ -8,6 +8,7 @@ import { CenteredText } from '#/components/base/CenteredText'
 import { ZoomControls } from '#/components/viewer/ZoomControls'
 import { ZoomStage } from '#/components/viewer/ZoomStage'
 import { cn } from '#/lib/cn'
+import { useHotkeys } from '#/lib/hotkey'
 import { createImageZoom } from '#/lib/imageZoom'
 import { overlayRoot } from '#/lib/overlayRoot'
 import { overlayStore } from '#/store/overlay'
@@ -85,39 +86,20 @@ export function ImageViewer(props: ImageViewerProps) {
         }
     }
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-        if (event.defaultPrevented || !overlayId || !overlayStore.isTop(overlayId)) {
-            return
-        }
-
-        if (event.key === 'Escape') {
-            event.preventDefault()
-            props.onClose()
-            return
-        }
-
-        if (event.key === 'ArrowLeft') {
-            event.preventDefault()
-            selectPrevious()
-            return
-        }
-
-        if (event.key === 'ArrowRight') {
-            event.preventDefault()
-            selectNext()
-        }
-    }
-
     onMount(() => {
         overlayId = overlayStore.open()
-        window.addEventListener('keydown', handleKeyDown)
     })
+    const viewerKey = { modifiers: 'any', allowInEditable: true, preventDefault: true } as const
+    useHotkeys([
+        { ...viewerKey, key: 'Escape', onPress: () => props.onClose() },
+        { ...viewerKey, key: 'ArrowLeft', onPress: selectPrevious },
+        { ...viewerKey, key: 'ArrowRight', onPress: selectNext },
+    ], () => overlayId !== undefined && overlayStore.isTop(overlayId))
 
     onCleanup(() => {
         if (overlayId) {
             overlayStore.close(overlayId)
         }
-        window.removeEventListener('keydown', handleKeyDown)
     })
 
     return (

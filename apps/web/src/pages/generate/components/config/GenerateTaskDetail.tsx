@@ -1,10 +1,11 @@
-import { createEffect, createSignal, on, onCleanup } from 'solid-js'
+import { createEffect, createSignal, on, onCleanup, Show } from 'solid-js'
 
 import { TaskDetail } from '#/components/task/detail/TaskDetail'
 import { useDeleteTaskMutation, useLoraListQuery, useRenameTaskMutation, useSamplerListQuery } from '#/features/task/task.query'
 import { useWorkflowListQuery } from '#/features/workflow/workflow.query'
 import { t } from '#/lib/i18n'
 import { toFailureIssue, useIssueSource } from '#/lib/issue'
+import { MaskEditor } from '#/pages/generate/components/mask/MaskEditor'
 import { useGenerateDetail } from '#/pages/generate/detail'
 import {
     referencePreviewUrl,
@@ -31,6 +32,7 @@ export function GenerateTaskDetail() {
     const deleteMutation = useDeleteTaskMutation()
     const [imagePickerOpen, setImagePickerOpen] = createSignal(false)
     const [loraPickerOpen, setLoraPickerOpen] = createSignal(false)
+    const [editingMask, setEditingMask] = createSignal<ReferenceImage>()
     const [referenceError, setReferenceError] = createSignal<() => string>()
     const [renameError, setRenameError] = createSignal<unknown>()
     useIssueSource(() => toFailureIssue('task-rename', () => t('common.detail'), renameError(), () => setRenameError()))
@@ -84,22 +86,25 @@ export function GenerateTaskDetail() {
         }
     })
 
-    const normalizeReference = (reference: ReferenceImage | null): TaskImageReference | null => {
-        if (!reference) {
-            return null
-        }
-
+    const normalizeReference = (reference: ReferenceImage): TaskImageReference => {
         const size = referenceSize(reference)
+        const mask = reference.mask
 
         return {
             url: referencePreviewUrl(reference),
             width: size.width,
             height: size.height,
             origin: reference.type === 'asset' ? reference.origin : null,
+            maskUrl: mask?.type === 'local' ? mask.previewUrl : mask?.image.url ?? null,
         }
     }
 
-    const reference = () => normalizeReference(referenceImage())
+    const reference = () => {
+        const current = referenceImage()
+        return current ? normalizeReference(current) : null
+    }
+
+    createEffect(on(referenceImage, () => setEditingMask()))
 
     let probeToken = 0
     let pendingPreviewUrl: string | undefined
@@ -157,6 +162,7 @@ export function GenerateTaskDetail() {
                 width: probe.naturalWidth,
                 height: probe.naturalHeight,
                 sizeBytes: file.size,
+                mask: null,
             })
         })
         probe.addEventListener('error', () => {
@@ -178,6 +184,7 @@ export function GenerateTaskDetail() {
             type: 'asset',
             image: item.image,
             origin: item.origin,
+            mask: null,
         })
     }
 
@@ -310,6 +317,8 @@ export function GenerateTaskDetail() {
         onReferenceReject: message => setReferenceError(() => message),
         onReferenceAsset,
         onRemoveReference,
+        onEditMask: () => setEditingMask(referenceImage() ?? undefined),
+        onClearMask: () => store.setReferenceMask(null),
         onSelectOrigin: taskStore.selectTask,
         onDenoiseChange: value => form.setFieldValue('denoise', value),
         setImagePickerOpen,
@@ -340,13 +349,30 @@ export function GenerateTaskDetail() {
     }
 
     return (
-        <TaskDetail
-            mode='create'
-            data={data}
-            actions={actions}
-            error={() => detail.error() && detail.task() === undefined}
-            loading={detail.loading}
-            onRetry={detail.retry}
-        />
+        <>
+            <TaskDetail
+                mode='create'
+                data={data}
+                actions={actions}
+                error={() => detail.error() && detail.task() === undefined}
+                loading={detail.loading}
+                onRetry={detail.retry}
+            />
+            <Show
+                when={!detail.loading() && editingMask()}
+                keyed
+            >
+                {source => (
+                    <MaskEditor
+                        reference={normalizeReference(source)}
+                        onClose={() => setEditingMask()}
+                        onDone={file => {
+                            store.setReferenceMask(file)
+                            setEditingMask()
+                        }}
+                    />
+                )}
+            </Show>
+        </>
     )
 }

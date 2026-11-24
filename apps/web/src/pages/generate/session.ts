@@ -159,6 +159,9 @@ function createGenerateSession() {
         if (reference?.type === 'local') {
             URL.revokeObjectURL(reference.previewUrl)
         }
+        if (reference?.mask?.type === 'local') {
+            URL.revokeObjectURL(reference.mask.previewUrl)
+        }
     }
 
     const setReferenceImage = (reference: ReferenceImage) => {
@@ -177,6 +180,17 @@ function createGenerateSession() {
     const clearReferenceImage = () => {
         releaseLocalPreview(form.getFieldValue('referenceImage'))
         form.setFieldValue('referenceImage', null)
+    }
+
+    const setReferenceMask = (file: File | null) => {
+        const reference = form.getFieldValue('referenceImage')
+        if (!reference) return
+
+        const mask = file ? { type: 'local' as const, file, previewUrl: URL.createObjectURL(file) } : null
+        if (reference.mask?.type === 'local') {
+            URL.revokeObjectURL(reference.mask.previewUrl)
+        }
+        form.setFieldValue('referenceImage', { ...reference, mask })
     }
 
     onCleanup(() => {
@@ -209,6 +223,7 @@ function createGenerateSession() {
         loadDraft,
         setReferenceImage,
         clearReferenceImage,
+        setReferenceMask,
         applyLoraSelection,
     }
 }
