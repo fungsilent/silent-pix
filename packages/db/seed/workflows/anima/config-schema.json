@@ -43,8 +43,12 @@
         "nodeId": "47",
         "input": "lora_data"
     },
-    "initImagePath": {
+    "referenceImagePath": {
         "nodeId": "133:179",
+        "input": "value"
+    },
+    "maskImagePath": {
+        "nodeId": "133:162",
         "input": "value"
     }
 }

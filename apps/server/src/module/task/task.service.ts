@@ -9,6 +9,7 @@ import { and, asc, count, desc, eq, inArray, like, lt, notExists, notInArray, or
 import { alias } from 'drizzle-orm/sqlite-core'
 
 import { resolveSeed } from '#/lib/comfy/comfy.prompt'
+import { readImageMeta } from '#/lib/image/image.meta'
 import { done, fail } from '#/lib/service-result'
 import { imageCleanup } from '#/module/image/image.cleanup'
 import { toImageResource } from '#/module/image/image.model'
@@ -55,6 +56,13 @@ type FindTaskOptions<HasWorkflow extends boolean = false, HasImages extends bool
     includeWorkflow?: HasWorkflow
     includeImage?: HasImages
 }
+
+type TaskImageInput = {
+    metadata: NonNullable<ReturnType<typeof readImageMeta>>
+} & (
+    | { imageId: UUID }
+    | { bytes: Uint8Array }
+)
 
 export const taskService = {
     // MARK: CRUD
@@ -150,6 +158,7 @@ export const taskService = {
         }
 
         const referenceImage = item.images.find(relation => relation.type === 'input')
+        const mask = item.images.find(relation => relation.type === 'mask')
         const referenceOrigin = referenceImage
             ? await imageService.findOrigin(database, referenceImage.imageId, taskId)
             : undefined
@@ -172,7 +181,11 @@ export const taskService = {
             prompt: item.task.config.prompt,
             images: toOutputResources(item.images),
             referenceImage: referenceImage
-                ? { image: toImageResource(referenceImage.image), origin: referenceOrigin ?? null }
+                ? {
+                    origin: referenceOrigin ?? null,
+                    image: toImageResource(referenceImage.image),
+                    mask: mask ? toImageResource(mask.image) : null,
+                }
                 : null,
         }
     },
@@ -270,44 +283,19 @@ export const taskService = {
         if (workflow.archivedAt !== null) return fail('WORKFLOW_ARCHIVED')
 
         return withImageMutation(async () => {
-            let inputImage: ImageApi.ImageResource | undefined
-            let inputImageId: UUID | undefined
-            let ingestedImageId: UUID | undefined
+            const validatedImages = await resolveTaskImageInputs(database, request, workflow.configSchema)
+            if (!validatedImages.ok) return validatedImages
 
-            if (payload.referenceImageId) {
-                // img2img: task output image
-                const existing = await imageService.findImage(
-                    database,
-                    toUUID(payload.referenceImageId, 'referenceImageId'),
-                )
-                if (!existing) return fail('REFERENCE_IMAGE_NOT_FOUND')
-
-                inputImageId = existing.id
-                inputImage = toImageResource(existing)
-            }
-            else if (request.referenceImage) {
-                // img2img: upload image
-                const imageBytes = new Uint8Array(await request.referenceImage.arrayBuffer())
-                const ingested = await imageService.ingest(database, imageBytes)
-                if (!ingested.ok) return fail(ingested.error)
-
-                inputImageId = ingested.data.image.id
-                inputImage = toImageResource(ingested.data.image)
-                if (ingested.data.created) {
-                    ingestedImageId = ingested.data.image.id
-                }
-            }
-
-            const createdAt = Date.now()
+            const { reference, mask } = validatedImages.data
             const generateConfig: GenerateConfig = {
                 config: {
                     ...payload.config,
                     seed: resolveSeed(payload.config.seed),
-                    ...(inputImage
+                    ...(reference
                         ? {
-                            width: inputImage.width,
-                            height: inputImage.height,
-                            /* latent 來自 VAEEncode，EmptyLatentImage.batch_size 在死分支上 */
+                            width: reference.metadata.width,
+                            height: reference.metadata.height,
+                            /* 參考圖模式固定記錄為單張，供 Task 詳情顯示。 */
                             batch: 1,
                         }
                         : { denoise: 1 }),
@@ -316,7 +304,38 @@ export const taskService = {
                 prompt: payload.prompt,
             }
 
+            const inputs = [
+                { type: 'input', image: reference },
+                { type: 'mask', image: mask },
+            ] as const
+            const references: { type: 'input' | 'mask', imageId: UUID }[] = []
+            const ingestedImageIds: UUID[] = []
+            let referencesCommitted = false
+
             try {
+                for (const { type, image } of inputs) {
+                    if (!image) continue
+
+                    if ('imageId' in image) {
+                        references.push({ type, imageId: image.imageId })
+                        continue
+                    }
+
+                    const ingested = await imageService.ingest(database, image.bytes)
+                    if (!ingested.ok) {
+                        return fail(type === 'mask' && ingested.error !== 'IMAGE_STORE_FAILED'
+                            ? 'MASK_IMAGE_UNSUPPORTED_TYPE'
+                            : ingested.error)
+                    }
+
+                    const imageId = ingested.data.image.id
+                    references.push({ type, imageId })
+                    if (ingested.data.created) {
+                        ingestedImageIds.push(imageId)
+                    }
+                }
+
+                const createdAt = Date.now()
                 const createdTask = await database.transaction(async transaction => {
                     const [inserted] = await transaction
                         .insert(tasks)
@@ -335,17 +354,17 @@ export const taskService = {
                         throw new Error('Task insert returned no row.')
                     }
 
-                    if (inputImageId) {
+                    for (const reference of references) {
                         await taskImageService.addReference(transaction, {
+                            ...reference,
                             taskId: inserted.id,
-                            imageId: inputImageId,
-                            type: 'input',
                             sortIndex: 0,
                         })
                     }
 
                     return inserted
                 })
+                referencesCommitted = true
 
                 return done({
                     task: castTaskModel(createdTask),
@@ -354,12 +373,12 @@ export const taskService = {
             }
             catch (error) {
                 console.error('Task create failed.', error)
-
-                if (ingestedImageId) {
-                    await imageCleanup.removeUnreferenced(database, [ingestedImageId])
-                }
-
                 return fail('CREATE_TASK_FAIL')
+            }
+            finally {
+                if (!referencesCommitted && ingestedImageIds.length > 0) {
+                    await imageCleanup.removeUnreferenced(database, ingestedImageIds)
+                }
             }
         })
     },
@@ -682,6 +701,65 @@ export const taskService = {
             value: name,
         }))
     },
+}
+
+async function resolveTaskImageInputs(
+    database: Database,
+    request: TaskApi.CreateTaskRequest,
+    configSchema: WorkflowModel['configSchema'],
+) {
+    const { payload } = request
+    let reference: TaskImageInput | undefined
+    let mask: TaskImageInput | undefined
+
+    // MARK: Reference image
+    if (payload.referenceImageId) {
+        // img2img: task output image
+        const existing = await imageService.findImage(database, toUUID(payload.referenceImageId, 'referenceImageId'))
+        if (!existing) return fail('REFERENCE_IMAGE_NOT_FOUND')
+
+        reference = { imageId: existing.id, metadata: existing }
+    }
+    else if (request.referenceImage) {
+        // img2img: upload image
+        const bytes = new Uint8Array(await request.referenceImage.arrayBuffer())
+        if (!bytes.byteLength) return fail('IMAGE_EMPTY')
+
+        const metadata = readImageMeta(bytes)
+        if (!metadata) return fail('IMAGE_UNSUPPORTED_TYPE')
+
+        reference = { bytes, metadata }
+    }
+
+    // MARK: Mask image
+    if (payload.maskImageId) {
+        // existing mask image
+        const existing = await imageService.findImage(database, toUUID(payload.maskImageId, 'maskImageId'))
+        if (!existing) return fail('MASK_IMAGE_NOT_FOUND')
+
+        mask = { imageId: existing.id, metadata: existing }
+    }
+    else if (request.maskImage) {
+        // new upload mask image
+        const bytes = new Uint8Array(await request.maskImage.arrayBuffer())
+        if (!bytes.byteLength) return fail('MASK_IMAGE_UNSUPPORTED_TYPE')
+
+        const metadata = readImageMeta(bytes)
+        if (!metadata) return fail('MASK_IMAGE_UNSUPPORTED_TYPE')
+
+        mask = { bytes, metadata }
+    }
+
+    if (mask) {
+        const { mime, width, height } = mask.metadata
+        if (!configSchema.maskImagePath) return fail('WORKFLOW_MASK_UNSUPPORTED')
+        if (mime !== 'image/png') return fail('MASK_IMAGE_UNSUPPORTED_TYPE')
+        if (!reference || width !== reference.metadata.width || height !== reference.metadata.height) {
+            return fail('MASK_SIZE_MISMATCH')
+        }
+    }
+
+    return done({ reference, mask })
 }
 
 /* 只有 output 進畫廊；輸入圖是另一個欄位，混進來會出現在縮圖與 viewer 裡 */

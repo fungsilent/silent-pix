@@ -57,6 +57,13 @@
       "when": 1788514896510,
       "tag": "0007_bumpy_changeling",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1795516341620,
+      "tag": "0008_rename_reference_image_path",
+      "breakpoints": true
     }
   ]
 }

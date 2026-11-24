@@ -328,6 +328,7 @@
             "missing": "不存在",
             "nodeLabel": "{{field}} 節點",
             "inputLabel": "{{field}} 輸入",
+            "referenceImagePath": "參考圖路徑",
             "nodeMissing": "貼上的圖中沒有節點 {{nodeId}}。",
             "inputMissing": "節點 {{nodeId}} 沒有名為 {{input}} 的輸入。",
             "inputLinked": "{{nodeId}}.{{input}} 已連接其他節點，無法寫入。"

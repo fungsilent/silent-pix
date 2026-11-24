@@ -12,8 +12,9 @@ export type GenerateConfig = TaskApi.TaskGenerateConfig
 
 /* 只存在於這一次執行，絕不寫進 tasks.config，也絕不進 log */
 export type GenerateRuntime = {
-    /* ComfyUI 看得到的絕對路徑；空字串代表 txt2img */
-    initImagePath: string
+    /* ComfyUI 看得到的絕對路徑；空字串代表未提供該圖片 */
+    referenceImagePath: string
+    maskImagePath: string
 }
 
 type GeneratorInput = {
@@ -28,15 +29,14 @@ type GeneratorInput = {
     negativePrompt: string
     loraData: string
     denoise: number
-    initImagePath: string
+    referenceImagePath: string
+    maskImagePath: string
 }
 
-/*
- * 模式由 graph 自己判定：路徑是空字串時 StringCompare 為真，switch 走 EmptyLatentImage；
- * 有路徑就走 VAEEncode。server 只負責填那個字串，不需要另一個模式旗標。
- */
+/* Graph 依參考圖與遮罩路徑選擇生成模式。 */
 export const txt2imgRuntime: GenerateRuntime = {
-    initImagePath: '',
+    referenceImagePath: '',
+    maskImagePath: '',
 }
 
 export class ComfyPromptError extends Error {
@@ -104,7 +104,8 @@ function toGeneratorInput(taskConfig: GenerateConfig, runtime: GenerateRuntime):
             other: 1,
         }))),
         denoise: taskConfig.config.denoise,
-        initImagePath: runtime.initImagePath,
+        referenceImagePath: runtime.referenceImagePath,
+        maskImagePath: runtime.maskImagePath,
     }
 }
 

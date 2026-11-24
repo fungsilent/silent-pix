@@ -3,6 +3,7 @@ import { WorkflowMappingApiError } from '#/api/workflow'
 import { toErrorMessage, toIssueMessage } from '#/lib/error'
 import { t } from '#/lib/i18n'
 import { toFailureIssue } from '#/lib/issue'
+import { generatorFieldLabel } from '#/pages/workflow/generator-field'
 
 import type { Comfy } from '@silent-pix/shared'
 import type { ZodIssue } from '#/lib/error'
@@ -68,7 +69,7 @@ export function toMappingIssues(issues: Comfy.MappingIssue[]): AppIssue[] {
     return issues.map(issue => ({
         id: `mapping-${issue.field}`,
         tone: 'error',
-        field: () => issue.field,
+        field: () => generatorFieldLabel(issue.field),
         message: () => mappingIssueMessage[issue.reason](issue),
     }))
 }

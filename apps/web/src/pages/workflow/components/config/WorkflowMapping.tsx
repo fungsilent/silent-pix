@@ -5,7 +5,7 @@ import { Loading } from '#/components/base/Loading'
 import { DetailGroup, DetailLabel, DetailSection } from '#/components/detail'
 import { Select } from '#/components/field'
 import { t } from '#/lib/i18n'
-import { fieldGroups } from '#/pages/workflow/generator-field'
+import { fieldGroups, generatorFieldLabel } from '#/pages/workflow/generator-field'
 import { useWorkflowStore } from '#/pages/workflow/store'
 
 import type { GeneratorField, Mapping } from '@silent-pix/shared'
@@ -121,7 +121,7 @@ function MappingRow(props: MappingRowProps) {
 
             <Loading.Mask loading={props.loading}>
                 <Select
-                    label={t('workflow.mapping.nodeLabel', { field: props.field })}
+                    label={t('workflow.mapping.nodeLabel', { field: generatorFieldLabel(props.field) })}
                     value={props.binding?.nodeId ?? unboundValue}
                     options={nodeItems()}
                     disabled={props.readOnly}
@@ -138,7 +138,7 @@ function MappingRow(props: MappingRowProps) {
                 >
                     {binding => (
                         <Select
-                            label={t('workflow.mapping.inputLabel', { field: props.field })}
+                            label={t('workflow.mapping.inputLabel', { field: generatorFieldLabel(props.field) })}
                             value={binding().input}
                             options={inputItems()}
                             disabled={props.readOnly}

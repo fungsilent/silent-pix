@@ -22,10 +22,15 @@ const groupOf: Record<GeneratorField, GroupLabel> = {
     positivePrompt: 'Prompt',
     negativePrompt: 'Prompt',
     loraData: 'Other',
-    initImagePath: 'Other',
+    referenceImagePath: 'Other',
+    maskImagePath: 'Other',
 }
 
 const groupOrder = ['Sampler', 'Latent', 'Prompt', 'Other'] as const satisfies readonly GroupLabel[]
+
+export function generatorFieldLabel(field: GeneratorField): string {
+    return field === 'referenceImagePath' ? t('workflow.mapping.referenceImagePath') : field
+}
 
 export type FieldGroup = {
     label: () => string

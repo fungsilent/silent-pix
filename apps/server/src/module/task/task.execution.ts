@@ -116,17 +116,23 @@ export const taskExecution = {
         taskImages: TaskImageModel[],
         workflow: WorkflowModel,
     ) {
-        let runtime = txt2imgRuntime
+        const runtime = { ...txt2imgRuntime }
         const input = taskImages.find(relation => relation.type === 'input')
         if (input) {
-            const path = absolutePath(input.image.path)
-            if (!existsSync(path)) {
+            if (!existsSync(absolutePath(input.image.path))) {
                 return fail('REFERENCE_IMAGE_FILE_MISSING')
             }
 
-            runtime = {
-                initImagePath: comfyReferencePath(input.image.path),
+            runtime.referenceImagePath = comfyReferencePath(input.image.path)
+        }
+
+        const mask = taskImages.find(relation => relation.type === 'mask')
+        if (mask) {
+            if (!existsSync(absolutePath(mask.image.path))) {
+                return fail('MASK_IMAGE_FILE_MISSING')
             }
+
+            runtime.maskImagePath = comfyReferencePath(mask.image.path)
         }
 
         return done(buildComfyPrompt(
@@ -301,6 +307,7 @@ export const taskExecution = {
 
 const executionFailures = {
     REFERENCE_IMAGE_FILE_MISSING: { message: 'Reference image file is missing from storage.' },
+    MASK_IMAGE_FILE_MISSING: { message: 'Mask image file is missing from storage.' },
     COMFY_OUTPUT_MISSING: { message: 'ComfyUI did not return any output images.' },
     IMAGE_EMPTY: { message: 'ComfyUI output could not be stored.' },
     IMAGE_UNSUPPORTED_TYPE: { message: 'ComfyUI output could not be stored.' },

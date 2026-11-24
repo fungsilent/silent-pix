@@ -14,7 +14,8 @@ export const generatorFields = [
     'positivePrompt',
     'negativePrompt',
     'loraData',
-    'initImagePath',
+    'referenceImagePath',
+    'maskImagePath',
 ] as const
 
 export const generatorField = z.enum(generatorFields)

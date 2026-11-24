@@ -156,6 +156,7 @@ export function toCreateTaskRequest(values: GenerateValues): TaskApi.CreateTaskR
         /* name 是 task 建立後的手動標籤，不從 draft / base task 帶入 */
         name: null,
         workflowId: values.workflowId,
+        maskImageId: null,
         config: {
             seed: seed === '' ? null : seed,
             steps: values.steps,

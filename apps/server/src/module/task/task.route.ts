@@ -320,4 +320,8 @@ const createFailures: Record<string, { status: 404 | 409 | 415 | 422, message: s
     REFERENCE_IMAGE_NOT_FOUND: { status: 404, message: 'Reference image not found.' },
     IMAGE_UNSUPPORTED_TYPE: { status: 415, message: 'Reference image must be a PNG or JPEG.' },
     IMAGE_EMPTY: { status: 422, message: 'Reference image is empty.' },
+    MASK_IMAGE_NOT_FOUND: { status: 404, message: 'Mask image not found.' },
+    MASK_IMAGE_UNSUPPORTED_TYPE: { status: 415, message: 'Mask must be a PNG image.' },
+    MASK_SIZE_MISMATCH: { status: 422, message: 'Mask must match the reference image size.' },
+    WORKFLOW_MASK_UNSUPPORTED: { status: 422, message: 'This workflow does not support inpainting.' },
 }

@@ -226,13 +226,14 @@ The adapter validates untrusted HTTP and WebSocket envelopes. Malformed HTTP
 responses become integration errors; invalid or unrelated socket events do not
 advance pending execution.
 
-Reference images are absolute paths to existing Silent Pix storage, without
-uploading bytes or creating a second copy. Server checks files under its storage
-root, then converts the relative path using the root visible to ComfyUI. Docker
-mounts or Windows/WSL paths can give the same bytes different absolute roots;
-path conversion preserves the target platform's separators. A missing local
-reference fails before submission; inaccessible Comfy-side paths fail in its
-loader. The graph selects txt2img/img2img from the supplied reference path.
+Server supplies reference images and masks as absolute paths to existing Silent
+Pix storage, without uploading bytes or creating a second copy. Server checks
+files under its storage root, then converts the paths using the root visible to
+ComfyUI. Docker mounts or Windows/WSL paths can give the same bytes different
+absolute roots. Path conversion preserves the target platform's separators.
+A missing local reference or mask fails before submission. Inaccessible
+ComfyUI paths fail in the loader. The Anima graph selects txt2img, img2img, or
+inpaint from the supplied paths.
 
 ## Web State
 

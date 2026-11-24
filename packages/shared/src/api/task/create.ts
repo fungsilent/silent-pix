@@ -18,8 +18,8 @@ const createTaskPayload = z.object({
     }),
     lora: z.array(taskLora),
     prompt: taskPrompt,
-    /* TRANSPORT: 既有圖片使用 id；新檔案使用 multipart referenceImage，兩者互斥。 */
     referenceImageId: z.uuid().nullable().default(null),
+    maskImageId: z.uuid().nullable().default(null),
 })
 
 /*
@@ -27,22 +27,35 @@ const createTaskPayload = z.object({
  * 帶 File 時 Eden 自動使用 multipart，Elysia formData parser 會把 payload
  * JSON.parse 回物件；未帶 File 時則是單純 JSON。兩種傳輸共用這份 contract。
  */
-const createTaskWithoutUpload = z.object({
+export const createTaskRequest = z.object({
     payload: createTaskPayload,
-    referenceImage: z.undefined().optional(),
-})
+    referenceImage: z.file().optional(),
+    maskImage: z.file().optional(),
+}).superRefine(({ payload, referenceImage, maskImage }, context) => {
+    if (payload.referenceImageId && referenceImage) {
+        context.addIssue({
+            code: 'custom',
+            path: ['referenceImage'],
+            message: 'Provide a reference image ID or upload a reference image.',
+        })
+    }
 
-const createTaskWithUpload = z.object({
-    payload: createTaskPayload.extend({
-        referenceImageId: z.null().default(null),
-    }),
-    referenceImage: z.file(),
-})
+    if (payload.maskImageId && maskImage) {
+        context.addIssue({
+            code: 'custom',
+            path: ['maskImage'],
+            message: 'Provide a mask image ID or upload a mask image.',
+        })
+    }
 
-export const createTaskRequest = z.union([
-    createTaskWithoutUpload,
-    createTaskWithUpload,
-])
+    if ((payload.maskImageId || maskImage) && !payload.referenceImageId && !referenceImage) {
+        context.addIssue({
+            code: 'custom',
+            path: ['referenceImage'],
+            message: 'A mask requires a reference image.',
+        })
+    }
+})
 
 /* MARK: response */
 

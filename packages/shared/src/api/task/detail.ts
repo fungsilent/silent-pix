@@ -33,6 +33,7 @@ export const getTaskResponse = z.object({
         image: imageResource,
         /* NOTE: 這張圖最早被誰用過；使用者剛上傳的圖沒有來源，是 null */
         origin: imageUsage.nullable(),
+        mask: imageResource.nullable(),
     }).nullable(),
 })
 

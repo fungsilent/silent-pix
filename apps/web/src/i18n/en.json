@@ -329,6 +329,7 @@
             "missing": "missing",
             "nodeLabel": "{{field}} node",
             "inputLabel": "{{field}} input",
+            "referenceImagePath": "Reference image path",
             "nodeMissing": "Node {{nodeId}} is not in the pasted graph.",
             "inputMissing": "Node {{nodeId}} has no input named {{input}}.",
             "inputLinked": "{{nodeId}}.{{input}} is wired from another node, so it cannot be written."
