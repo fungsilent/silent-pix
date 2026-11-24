@@ -4,7 +4,7 @@ import {
     taskStatuses,
 } from '#shared/contract/task'
 import { configSchema, generatorFields, isGeneratorField } from '#shared/contract/workflow/config'
-import { isGraphLink, parseApiGraph, validateMapping } from '#shared/contract/workflow/graph'
+import { isGraphLink, parseApiGraph, sameWorkflowDefinition, validateMapping } from '#shared/contract/workflow/graph'
 import { heartbeatIntervalMs, staleTimeoutMs } from '#shared/event/health'
 import { serverEvent } from '#shared/event/index'
 
@@ -13,6 +13,7 @@ export { appApi } from '#shared/api/app'
 export const comfy = {
     isGraphLink,
     parseApiGraph,
+    sameWorkflowDefinition,
     validateMapping,
 }
 export type * as Comfy from '#shared/contract/workflow/graph'

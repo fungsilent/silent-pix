@@ -102,6 +102,22 @@ export function validateMapping(value: Graph, schema: ConfigSchema): MappingIssu
     return issues
 }
 
+type WorkflowDefinition = { graph: Graph, configSchema: ConfigSchema }
+
+export function sameWorkflowDefinition(left: WorkflowDefinition, right: WorkflowDefinition): boolean {
+    return JSON.stringify(normalizeJson(left.graph)) === JSON.stringify(normalizeJson(right.graph))
+        && JSON.stringify(normalizeJson(left.configSchema)) === JSON.stringify(normalizeJson(right.configSchema))
+}
+
+/* NOTE: Object key order does not change a Workflow revision. Array order is significant. */
+function normalizeJson(value: unknown): unknown {
+    if (Array.isArray(value)) return value.map(normalizeJson)
+    if (!value || typeof value !== 'object') return value
+
+    const object = value as Record<string, unknown>
+    return Object.fromEntries(Object.keys(object).sort().map(key => [key, normalizeJson(object[key])]))
+}
+
 /* MARK: inferred types */
 
 export type Graph = z.output<typeof graph>

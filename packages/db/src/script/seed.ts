@@ -89,15 +89,24 @@ try {
 
     await databaseClient.database.transaction(async transaction => {
         for (const workflow of workflowsToSeed) {
-            const existing = await transaction.select({ id: workflows.id }).from(workflows)
+            const existing = await transaction.select({
+                graph: workflows.graph,
+                configSchema: workflows.configSchema,
+                revision: workflows.revision,
+            }).from(workflows)
                 .where(eq(workflows.id, workflow.id))
                 .get()
+
+            const revision = existing
+                ? existing.revision + (comfy.sameWorkflowDefinition(existing, workflow) ? 0 : 1)
+                : 1
 
             await transaction.insert(workflows).values({
                 id: workflow.id,
                 name: workflow.name,
                 graph: workflow.graph,
                 configSchema: workflow.configSchema,
+                revision,
                 createdAt: now,
                 updatedAt: now,
             }).onConflictDoUpdate({
@@ -106,6 +115,7 @@ try {
                     name: workflow.name,
                     graph: workflow.graph,
                     configSchema: workflow.configSchema,
+                    revision,
                     updatedAt: now,
                 },
             }).run()

@@ -211,7 +211,7 @@ export const taskExecution = {
                     }
                 }
 
-                await database.transaction(async tx => {
+                referencesCommitted = await database.transaction(async tx => {
                     const updated = await taskService.updateTask(
                         tx,
                         {
@@ -222,7 +222,7 @@ export const taskExecution = {
                         },
                         { matchStatuses: ['queued', 'running'] },
                     )
-                    if (!updated) return
+                    if (!updated) return false
 
                     await taskImageService.addReferences(
                         tx,
@@ -233,7 +233,7 @@ export const taskExecution = {
                             sortIndex: output.sortIndex,
                         })),
                     )
-                    referencesCommitted = true
+                    return true
                 })
 
                 if (referencesCommitted) {

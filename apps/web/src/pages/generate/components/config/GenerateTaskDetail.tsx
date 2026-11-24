@@ -106,79 +106,21 @@ export function GenerateTaskDetail() {
 
     createEffect(on(referenceImage, () => setEditingMask()))
 
-    let probeToken = 0
-    let pendingPreviewUrl: string | undefined
-
-    const revokePendingPreview = (previewUrl: string) => {
-        if (pendingPreviewUrl !== previewUrl) {
-            return
-        }
-
-        pendingPreviewUrl = undefined
-        URL.revokeObjectURL(previewUrl)
-    }
-
-    const releasePendingProbe = () => {
-        probeToken += 1
-        const previewUrl = pendingPreviewUrl
-
-        if (previewUrl) {
-            revokePendingPreview(previewUrl)
-        }
-    }
-
-    /* 換 task 時撤銷尚未完成的 probe，避免舊圖片完成後寫入新 task。 */
     createEffect(on(() => detail.task()?.id, () => {
-        releasePendingProbe()
         setReferenceError()
         setRenameError()
     }))
 
-    onCleanup(() => {
-        releasePendingProbe()
-    })
+    onCleanup(store.cancelReferenceImageUpload)
 
     const onReferenceFile = (file: File) => {
-        releasePendingProbe()
         setReferenceError()
-
-        const previewUrl = URL.createObjectURL(file)
-        const currentTaskId = detail.task()?.id
-        const currentProbeToken = probeToken
-        pendingPreviewUrl = previewUrl
-        const probe = new Image()
-
-        probe.addEventListener('load', () => {
-            if (currentProbeToken !== probeToken || currentTaskId !== detail.task()?.id) {
-                revokePendingPreview(previewUrl)
-                return
-            }
-
-            pendingPreviewUrl = undefined
-            store.setReferenceImage({
-                type: 'local',
-                file,
-                previewUrl,
-                width: probe.naturalWidth,
-                height: probe.naturalHeight,
-                sizeBytes: file.size,
-                mask: null,
-            })
-        })
-        probe.addEventListener('error', () => {
-            if (currentProbeToken !== probeToken || currentTaskId !== detail.task()?.id) {
-                revokePendingPreview(previewUrl)
-                return
-            }
-
-            revokePendingPreview(previewUrl)
+        store.uploadReferenceImage(file, () => {
             setReferenceError(() => () => t('image.unreadable'))
         })
-        probe.src = previewUrl
     }
 
     const onReferenceAsset = (item: ImageApi.ImageListItem) => {
-        releasePendingProbe()
         setReferenceError()
         store.setReferenceImage({
             type: 'asset',
@@ -186,11 +128,6 @@ export function GenerateTaskDetail() {
             origin: item.origin,
             mask: null,
         })
-    }
-
-    const onRemoveReference = () => {
-        releasePendingProbe()
-        store.clearReferenceImage()
     }
 
     const onNameChange = (value: string) => {
@@ -316,9 +253,12 @@ export function GenerateTaskDetail() {
         onReferenceFile,
         onReferenceReject: message => setReferenceError(() => message),
         onReferenceAsset,
-        onRemoveReference,
+        onRemoveReference: store.clearReferenceImage,
         onEditMask: () => setEditingMask(referenceImage() ?? undefined),
-        onClearMask: () => store.setReferenceMask(null),
+        onClearMask: () => {
+            const current = referenceImage()
+            if (current) store.setReferenceMask(current, null)
+        },
         onSelectOrigin: taskStore.selectTask,
         onDenoiseChange: value => form.setFieldValue('denoise', value),
         setImagePickerOpen,
@@ -367,7 +307,7 @@ export function GenerateTaskDetail() {
                         reference={normalizeReference(source)}
                         onClose={() => setEditingMask()}
                         onDone={file => {
-                            store.setReferenceMask(file)
+                            store.setReferenceMask(source, file)
                             setEditingMask()
                         }}
                     />

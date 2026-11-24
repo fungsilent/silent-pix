@@ -1,5 +1,5 @@
 import { createContextProvider } from '@solid-primitives/context'
-import { batch, onCleanup } from 'solid-js'
+import { batch, createEffect, on, onCleanup } from 'solid-js'
 
 import { ApiError } from '#/api/api.client'
 import { useCreateTaskMutation } from '#/features/task/task.query'
@@ -138,6 +138,7 @@ function createGenerateSession() {
             return
         }
 
+        cancelReferenceImageUpload()
         releaseLocalPreview(form.getFieldValue('referenceImage'))
         form.reset(toGenerateValues(task))
         lastServerName = serverName
@@ -149,12 +150,22 @@ function createGenerateSession() {
             return
         }
 
+        cancelReferenceImageUpload()
         releaseLocalPreview(form.getFieldValue('referenceImage'))
         form.reset(cloneGenerateValues(draftGenerateValues))
         uiStore.set('taskId', undefined)
     }
 
     // MARK: Reference image
+    let pendingPreviewUrl: string | undefined
+
+    function cancelReferenceImageUpload(): void {
+        if (pendingPreviewUrl === undefined) return
+
+        URL.revokeObjectURL(pendingPreviewUrl)
+        pendingPreviewUrl = undefined
+    }
+
     function releaseLocalPreview(reference: ReferenceImage | null): void {
         if (reference?.type === 'local') {
             URL.revokeObjectURL(reference.previewUrl)
@@ -167,6 +178,7 @@ function createGenerateSession() {
     const setReferenceImage = (reference: ReferenceImage) => {
         const size = referenceSize(reference)
 
+        cancelReferenceImageUpload()
         releaseLocalPreview(form.getFieldValue('referenceImage'))
         batch(() => {
             form.setFieldValue('referenceImage', reference)
@@ -176,13 +188,44 @@ function createGenerateSession() {
     }
 
     const clearReferenceImage = () => {
+        cancelReferenceImageUpload()
         releaseLocalPreview(form.getFieldValue('referenceImage'))
         form.setFieldValue('referenceImage', null)
     }
 
-    const setReferenceMask = (file: File | null) => {
-        const reference = form.getFieldValue('referenceImage')
-        if (!reference) return
+    const uploadReferenceImage = (file: File, onUnreadable: () => void) => {
+        cancelReferenceImageUpload()
+        const previewUrl = URL.createObjectURL(file)
+        const taskId = taskStore.state.selectedTaskId
+        const isCurrent = () => pendingPreviewUrl === previewUrl && taskStore.state.selectedTaskId === taskId
+        pendingPreviewUrl = previewUrl
+
+        const probe = new Image()
+        probe.addEventListener('load', () => {
+            if (!isCurrent()) return
+
+            pendingPreviewUrl = undefined
+            setReferenceImage({
+                type: 'local',
+                file,
+                previewUrl,
+                width: probe.naturalWidth,
+                height: probe.naturalHeight,
+                sizeBytes: file.size,
+                mask: null,
+            })
+        })
+        probe.addEventListener('error', () => {
+            if (!isCurrent()) return
+
+            cancelReferenceImageUpload()
+            onUnreadable()
+        })
+        probe.src = previewUrl
+    }
+
+    const setReferenceMask = (reference: ReferenceImage, file: File | null) => {
+        if (form.getFieldValue('referenceImage') !== reference) return
 
         const mask = file ? { type: 'local' as const, file, previewUrl: URL.createObjectURL(file) } : null
         if (reference.mask?.type === 'local') {
@@ -191,7 +234,10 @@ function createGenerateSession() {
         form.setFieldValue('referenceImage', { ...reference, mask })
     }
 
+    createEffect(on(() => taskStore.state.selectedTaskId, cancelReferenceImageUpload, { defer: true }))
+
     onCleanup(() => {
+        cancelReferenceImageUpload()
         releaseLocalPreview(form.getFieldValue('referenceImage'))
     })
 
@@ -221,6 +267,8 @@ function createGenerateSession() {
         loadDraft,
         setReferenceImage,
         clearReferenceImage,
+        uploadReferenceImage,
+        cancelReferenceImageUpload,
         setReferenceMask,
         applyLoraSelection,
     }

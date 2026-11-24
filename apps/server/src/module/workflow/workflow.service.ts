@@ -2,7 +2,6 @@ import { tasks, workflows } from '@silent-pix/db'
 import { comfy } from '@silent-pix/shared'
 import { and, asc, count, eq, inArray, isNull } from 'drizzle-orm'
 
-import { stringify } from '#/lib/json/json.stringify'
 import { done, fail } from '#/lib/service-result'
 import { castWorkflowModel, toWorkflowSummary } from '#/module/workflow/workflow.model'
 
@@ -128,9 +127,7 @@ export const workflowService = {
             return fail('WORKFLOW_REVISION_CONFLICT')
         }
 
-        /* 內容沒變就不推 revision，*/
-        const unchanged = stringify(current.graph) === stringify(checked.data)
-            && stringify(current.configSchema) === stringify(payload.configSchema)
+        const unchanged = comfy.sameWorkflowDefinition(current, { graph: checked.data, configSchema: payload.configSchema })
 
         const [updated] = await database
             .update(workflows)

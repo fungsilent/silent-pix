@@ -95,6 +95,9 @@ Workflow mapping validation runs inside create/update before writes. Update
 validates before lookup, archive, and revision checks, preserving mapping-error
 precedence. Failed validation produces no mutation event.
 
+Workflow saves and bundled seed updates advance the revision only when the graph
+or mappings change. Seeding is an explicit database maintenance command.
+
 Generation status helpers return guarded-write outcomes; execution publishes only
 successful state changes, including preflight failures. On completion, image
 references commit before the snapshot is published, and publication precedes
