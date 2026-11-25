@@ -410,7 +410,7 @@
         "title": "Image Metadata",
         "cantRead": "Can’t read {{name}}",
         "openTitle": "Open an image",
-        "openMessage": "Drop a PNG, JPEG or WebP file anywhere in this window. It is read on this device and never uploaded.",
+        "openMessage": "Drop a PNG or JPEG file anywhere in this window. It is read on this device and never uploaded.",
         "choose": "Choose image",
         "openImage": "Open image",
         "dropTitle": "Drop to read metadata",
@@ -457,7 +457,7 @@
         "copyFailed": "Could not copy to the clipboard.",
         "errors": {
             "FILE_TOO_LARGE": "The image is too large. Choose a smaller file.",
-            "UNSUPPORTED_IMAGE": "Choose a PNG, JPEG, or WebP image.",
+            "UNSUPPORTED_IMAGE": "Choose a PNG or JPEG image.",
             "INVALID_IMAGE": "The image or its metadata could not be read.",
             "READ_FAILED": "Could not read the file. Select it again.",
             "TIMEOUT": "Reading the metadata took too long. Try another image.",
@@ -468,7 +468,6 @@
             "generate": "Copy to Generate",
             "unsupported": "Only ComfyUI API graphs can be copied.",
             "useReference": "Use image as reference",
-            "referenceUnsupported": "This image format cannot be used as a reference.",
             "preparingImage": "Preparing the reference image…",
             "imageSize": "The reference image must be between 64 and 4096 pixels on each side."
         }

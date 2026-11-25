@@ -62,7 +62,7 @@ import Fixed from '@silent-pix/blueprint/components/Fixed.astro'
 <State component="metadata-result-bar" state="raw" label="Raw 分頁" frame="max-w-[760px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
 <State component="metadata-result-bar" state="warning" label="部分讀取失敗" description="讀到的部分照常列出；warning 列在 Header。" frame="max-w-[760px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
 <State component="metadata-result-bar" state="copy-reference" label="勾選 Use image as reference" frame="max-w-[760px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
-<State component="metadata-result-bar" state="reference-disabled" label="參考圖不可用 · WebP" frame="max-w-[760px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
+<State component="metadata-result-bar" state="reference-disabled" label="不能當參考圖 · 尺寸超出範圍" frame="max-w-[760px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
 <State component="metadata-result-bar" state="copy-disabled" label="Copy to Generate 停用 · 沒有 API graph" frame="max-w-[760px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
 <State component="metadata-result-bar" state="no-server" label="沒有 Server · 不顯示 Copy" frame="max-w-[760px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
 </Gallery>
@@ -143,7 +143,7 @@ import Fixed from '@silent-pix/blueprint/components/Fixed.astro'
 <ul class="ds-rules">
 <Rule component="metadata-screen" id="entry">從 Header 選單進入，Header 不標示任何分頁。</Rule>
 <Rule component="metadata-screen" id="open-file">開檔方式有三種：面板的開檔鈕、開啟畫面的 Choose image、把檔案拖進視窗任何位置；已開檔時拖入新檔直接取代。一次只讀一個檔案：已開檔時一次拖入多個檔案，保留目前結果，Header 的 Issue chip 加一則 warning；在開啟畫面則照讀取失敗顯示。</Rule>
-<Rule component="metadata-screen" id="keep-open">離開 Metadata（包括按 Copy to Generate）再回來時，開啟的檔案、預覽、讀取結果、目前分頁與 Use image as reference 勾選都保持原樣；讀取中離開時照常讀完，回來直接看到結果。只存在這次開啟期間，不寫入本機：關閉或重新整理 App 後回到開啟畫面、勾選回到不勾。</Rule>
+<Rule component="metadata-screen" id="keep-open">離開 Metadata（包括按 Copy to Generate）再回來時，畫面保持離開前的樣子：檔案、預覽、讀取結果、目前分頁與 Use image as reference 勾選都不變；讀取中離開，回來時直接顯示讀完的結果。關閉或重新整理 App 後回到開啟畫面，勾選回到不勾。</Rule>
 <Rule component="metadata-screen" id="loading">讀取中：左側預覽與欄位值用 L0 Skeleton，結果區用幾塊卡片 skeleton。</Rule>
 </ul>
 
@@ -152,8 +152,8 @@ import Fixed from '@silent-pix/blueprint/components/Fixed.astro'
 <ul class="ds-rules">
 <Rule component="metadata-screen" id="separator-dot">並列的短資訊（來源與格式、連線的輸出序號）以 12px muted Dot icon（線寬 5，圓點約 3.5px）分隔，不用文字「·」。</Rule>
 <Rule component="metadata-screen" id="copy-feedback">複製後，該按鈕的圖示換成 Check 約 1.5 秒再還原，不另外顯示訊息。</Rule>
-<Rule component="metadata-screen" id="copy-to">結果區工具列右側依序是勾選框「Use image as reference」與 ghost 按鈕「Copy to Generate」。按鈕只有讀到 ComfyUI API graph 時可用；沒有 API graph 時兩者都停用（照 L0 停用樣式），hover 說明只支援 API graph。勾選框的 14px 方框同 lora-picker 的勾選框；圖片不能當參考圖時（WebP、預覽失敗或尚未載入、任一邊不在 64–4096px）只停用勾選框並以 hover 說明原因，按鈕照常可用。勾選狀態照 keep-open 保留，清除檔案時也不重設；停用時視為未勾。沒有 Server 時 Generate 不存在，勾選框與按鈕都不顯示。</Rule>
-<Rule component="metadata-screen" id="copy-generate">按下後將 API graph 的生成設定帶入草稿，再切到 Generate；已有草稿時照 Generate 的 draft-lifecycle 直接取代。帶 seed／steps／cfg／sampler_name 的節點提供 seed、steps、cfg、sampler、denoise；沿 positive／negative 連線取 prompt；Empty Latent 類節點提供寬、高、batch；LoRA loader 提供名稱與權重（ComfyUI 沒有的 LoRA 標 missing）。草稿使用預設 workflow，找不到的欄位維持預設值並列在 Detail 的 Source 列。未勾 Use image as reference 時不帶參考圖，尺寸取自 graph。勾選時這張圖成為草稿的參考圖，尺寸由參考圖決定；graph 的 denoise 為 1 或找不到時改用草稿預設值（列在 Source 列），因為 denoise 1 會讓參考圖失去作用。</Rule>
+<Rule component="metadata-screen" id="copy-to">結果區工具列右側依序是勾選框「Use image as reference」與 ghost 按鈕「Copy to Generate」，勾選框的 14px 方框同 lora-picker。沒有 API graph 時兩者都停用（L0 停用樣式），hover 說明只支援 API graph。這張圖不能當參考圖時只停用勾選框並顯示為未勾，hover 說明原因，按鈕照常可按。清除檔案不改變勾選。沒有 Server 時兩者都不顯示。</Rule>
+<Rule component="metadata-screen" id="copy-generate">按下後切到 Generate，選取由這張圖帶入設定的草稿；已有草稿時照 Generate 的 draft-lifecycle 直接取代。Detail 的 Source 列顯示檔名，圖中沒有、維持預設值的欄位列在 Source 之下的「Not from the image」。有勾 Use image as reference 時，這張圖是草稿的參考圖，寬高由參考圖決定；沒勾時草稿沒有參考圖。</Rule>
 </ul>
 
 </Rules>

@@ -1,5 +1,4 @@
 import { Checkbox } from '@ark-ui/solid'
-import { image } from '@silent-pix/shared'
 import { Check } from 'lucide-solid'
 
 import { Button } from '#/components/base/Button'
@@ -9,8 +8,6 @@ import { useGenerateSession } from '#/pages/generate/session'
 import { copyFromGraph, toGenerateDraft } from '#/pages/metadata/metadata.mapping'
 import { useMetadataSession } from '#/pages/metadata/session'
 import { useNavigateToRoute } from '#/routes'
-
-const referenceMimes: readonly string[] = image.imageMimeValues
 
 /* 結果區工具列的 Use image as reference 與 Copy to Generate；需要 Generate，只在有 Server 時渲染 */
 export function MetadataCopyTo() {
@@ -23,9 +20,6 @@ export function MetadataCopyTo() {
     const referenceDisabledReason = () => {
         const graphMissing = copyDisabledReason()
         if (graphMissing) return graphMissing
-
-        const mime = session.state.result?.mime
-        if (!mime || !referenceMimes.includes(mime)) return t('metadata.copyTo.referenceUnsupported')
         if (session.state.previewFailed) return t('metadata.previewUnavailable')
 
         const size = session.state.previewSize

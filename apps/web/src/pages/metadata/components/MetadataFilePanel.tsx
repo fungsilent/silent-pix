@@ -15,7 +15,6 @@ import type { ImageMetadata } from '#/pages/metadata/metadata.parse'
 const formatLabel: Record<ImageMetadata['mime'], string> = {
     'image/png': 'PNG',
     'image/jpeg': 'JPEG',
-    'image/webp': 'WebP',
 }
 
 /* MARK: FilePanel */

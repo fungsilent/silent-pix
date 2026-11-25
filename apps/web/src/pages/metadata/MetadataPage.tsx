@@ -15,7 +15,7 @@ import { mergeClasses } from '#/utils/style'
 
 import type { MetadataError } from '#/pages/metadata/session'
 
-const acceptedFiles = 'image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp'
+const acceptedFiles = 'image/png,image/jpeg,.png,.jpg,.jpeg'
 const copiedResetMs = 1500
 
 /*

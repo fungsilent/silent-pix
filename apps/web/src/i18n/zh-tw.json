@@ -409,7 +409,7 @@
         "title": "圖片 Metadata",
         "cantRead": "無法讀取 {{name}}",
         "openTitle": "開啟圖片",
-        "openMessage": "把 PNG、JPEG 或 WebP 檔拖進視窗任何位置。檔案只在這台裝置上讀取，不會上傳。",
+        "openMessage": "把 PNG 或 JPEG 檔拖進視窗任何位置。檔案只在這台裝置上讀取，不會上傳。",
         "choose": "選擇圖片",
         "openImage": "開啟圖片",
         "dropTitle": "放開以讀取 metadata",
@@ -456,7 +456,7 @@
         "copyFailed": "無法複製到剪貼簿。",
         "errors": {
             "FILE_TOO_LARGE": "圖片太大，請選擇較小的檔案。",
-            "UNSUPPORTED_IMAGE": "請選擇 PNG、JPEG 或 WebP 圖片。",
+            "UNSUPPORTED_IMAGE": "請選擇 PNG 或 JPEG 圖片。",
             "INVALID_IMAGE": "無法讀取圖片或其中的 metadata。",
             "READ_FAILED": "無法讀取檔案，請重新選擇。",
             "TIMEOUT": "讀取 metadata 逾時，請嘗試另一張圖片。",
@@ -464,10 +464,9 @@
             "TOO_MANY_FILES": "請一次選擇一張圖片。"
         },
         "copyTo": {
-            "generate": "Copy to Generate",
+            "generate": "複製到生成",
             "unsupported": "只支援 ComfyUI API graph。",
             "useReference": "將圖片用作參考圖",
-            "referenceUnsupported": "此圖片格式無法用作參考圖。",
             "preparingImage": "正在準備參考圖…",
             "imageSize": "參考圖的寬和高都必須介於 64 至 4096 像素。"
         }

@@ -50,7 +50,7 @@ export type MetadataNode = {
 }
 
 export type ImageMetadata = {
-    mime: 'image/png' | 'image/jpeg' | 'image/webp'
+    mime: 'image/png' | 'image/jpeg'
     entries: MetadataEntry[]
     incomplete: boolean
 }
@@ -132,10 +132,6 @@ function sniffMime(bytes: Uint8Array): ImageMetadata['mime'] | undefined {
     }
     if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
         return 'image/jpeg'
-    }
-    if (bytes.length >= 12 && String.fromCharCode(...bytes.subarray(0, 4)) === 'RIFF'
-        && String.fromCharCode(...bytes.subarray(8, 12)) === 'WEBP') {
-        return 'image/webp'
     }
     return undefined
 }
