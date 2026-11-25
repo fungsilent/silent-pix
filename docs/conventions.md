@@ -284,8 +284,8 @@ stay in the owning code.
   `MultiProvider` list at the App root layout; sessions that need the Server are
   listed only when an endpoint exists. Providers for query subscriptions
   and view state stay inside the route that uses them.
-- Name a Context that coordinates a whole route `XxxPageState`, with its factory
-  in `store.ts`. Use the specific capability name for a narrower Context.
+- A Context that coordinates a whole route lives in `store.ts` and exposes
+  `XxxStoreProvider` and `useXxxStore()`. Use the specific capability name for a narrower Context.
   In larger modules, use `// MARK: <feature or operation>` to label sections.
   Keep queries, derived state, and actions together when they serve the same operation.
 

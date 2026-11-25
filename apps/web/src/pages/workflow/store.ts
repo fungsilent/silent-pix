@@ -220,12 +220,12 @@ function createWorkflowStore() {
 }
 
 // MARK: Workflow page access
-const [WorkflowPageStateProvider, readWorkflowStore] = createContextProvider(createWorkflowStore)
-export { WorkflowPageStateProvider }
+const [WorkflowStoreProvider, readWorkflowStore] = createContextProvider(createWorkflowStore)
+export { WorkflowStoreProvider }
 
 export function useWorkflowStore() {
     const page = readWorkflowStore()
-    if (!page) throw new Error('useWorkflowStore must be used within WorkflowPageStateProvider')
+    if (!page) throw new Error('useWorkflowStore must be used within WorkflowStoreProvider')
 
     return page
 }
