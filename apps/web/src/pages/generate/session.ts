@@ -9,6 +9,7 @@ import { promptDefaultHeight, promptMinHeight } from '#/pages/generate/component
 import {
     cloneGenerateValues,
     createGenerateForm,
+    createLocalReferenceImage,
     draftGenerateValues,
     referenceSize,
     toCreateTaskRequest,
@@ -314,15 +315,7 @@ function createGenerateSession() {
             if (!isCurrent()) return
 
             pendingPreviewUrl = undefined
-            setReferenceImage({
-                type: 'local',
-                file,
-                previewUrl,
-                width: probe.naturalWidth,
-                height: probe.naturalHeight,
-                sizeBytes: file.size,
-                mask: null,
-            })
+            setReferenceImage(createLocalReferenceImage(file, probe.naturalWidth, probe.naturalHeight, previewUrl))
         })
         probe.addEventListener('error', () => {
             if (!isCurrent()) return

@@ -4,20 +4,16 @@ import { createSignal, onCleanup, onMount, Show } from 'solid-js'
 import { Callout } from '#/components/base/Callout'
 import { StatusMessage } from '#/components/base/StatusMessage'
 import { t } from '#/lib/i18n'
+import { getPlatform } from '#/lib/platform'
 import { theme } from '#/lib/theme'
-import { useGenerateSession } from '#/pages/generate/session'
+import { MetadataCopyTo } from '#/pages/metadata/components/MetadataCopyTo'
 import { MetadataFilePanel } from '#/pages/metadata/components/MetadataFilePanel'
 import { MetadataResultPane } from '#/pages/metadata/components/MetadataResultPane'
-import { copyFromGraph, toGenerateDraft } from '#/pages/metadata/metadata.mapping'
-import MetadataWorker from '#/pages/metadata/metadata.worker?worker'
-import { useNavigateToRoute } from '#/routes'
+import { useMetadataSession } from '#/pages/metadata/session'
 import { useIssueSource } from '#/store/issue'
 import { mergeClasses } from '#/utils/style'
 
-import type { MetadataTab } from '#/pages/metadata/components/MetadataResultPane'
-import type { ImageMetadata, MetadataOutcome } from '#/pages/metadata/metadata.parse'
-
-type PageError = Extract<MetadataOutcome, { status: 'error' }>['code'] | 'TIMEOUT' | 'WORKER_FAILED' | 'TOO_MANY_FILES'
+import type { MetadataError } from '#/pages/metadata/session'
 
 const acceptedFiles = 'image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp'
 const copiedResetMs = 1500
@@ -27,119 +23,39 @@ const copiedResetMs = 1500
  * 檔案可以從開檔鈕選，或拖進視窗任何位置；全部在本機讀取。
  */
 export function MetadataPage() {
-    const [file, setFile] = createSignal<File>()
-    const [result, setResult] = createSignal<ImageMetadata>()
-    const [previewUrl, setPreviewUrl] = createSignal<string>()
-    const [dimensions, setDimensions] = createSignal<string>()
-    const [previewFailed, setPreviewFailed] = createSignal(false)
-    const [loading, setLoading] = createSignal(false)
-    const [error, setError] = createSignal<PageError>()
-    /* 讀檔失敗時 file 已清掉，另外留檔名給錯誤標題 */
-    const [failedName, setFailedName] = createSignal<string>()
-    const [activeTab, setActiveTab] = createSignal<MetadataTab>('generation')
+    const session = useMetadataSession()
+    const hasServer = getPlatform().endpoint !== null
+    const file = () => session.state.file
+    const result = () => session.state.result
+    /* 以下是頁面的暫時狀態：離開頁面就消失 */
     const [dragging, setDragging] = createSignal(false)
     const [copiedId, setCopiedId] = createSignal<string>()
     const [copyFailed, setCopyFailed] = createSignal(false)
     const [tooManyFiles, setTooManyFiles] = createSignal(false)
     let input: HTMLInputElement | undefined
-    let worker: Worker | undefined
-    let timeout: number | undefined
     let copiedTimer: number | undefined
 
-    const stopWorker = () => {
-        worker?.terminate()
-        worker = undefined
-        window.clearTimeout(timeout)
-        timeout = undefined
-    }
-
-    const releasePreview = () => {
-        const url = previewUrl()
-        if (url) URL.revokeObjectURL(url)
-        setPreviewUrl()
-    }
-
-    const clear = () => {
-        stopWorker()
-        releasePreview()
+    const resetFeedback = () => {
         window.clearTimeout(copiedTimer)
-        setFile()
-        setResult()
-        setDimensions()
-        setPreviewFailed(false)
-        setLoading(false)
-        setError()
         setCopiedId()
         setCopyFailed(false)
         setTooManyFiles(false)
     }
 
-    // MARK: Copy to
-    const generateSession = useGenerateSession()
-    const navigate = useNavigateToRoute()
-    const apiEntry = () => result()?.entries.find(entry => entry.kind === 'prompt' && entry.format === 'api-graph')
-    const copyTo = () => {
-        const entry = apiEntry()
-        const fileName = file()?.name
-        if (!entry || !fileName) return
-
-        const { values, defaults } = toGenerateDraft(copyFromGraph(entry))
-        generateSession.requestDraft(values, { kind: 'metadata', fileName, defaults })
-        navigate('generate')
+    const clear = () => {
+        resetFeedback()
+        session.clear()
     }
 
-    const fail = (code: PageError) => {
-        const name = file()?.name
-        clear()
-        setError(code)
-        setFailedName(name)
-    }
-
-    const selectFile = (selected: File) => {
-        clear()
-        setFile(selected)
-        setLoading(true)
-
-        try {
-            const activeWorker = new MetadataWorker()
-            worker = activeWorker
-            const failActive = (code: PageError) => {
-                if (worker === activeWorker) fail(code)
-            }
-            activeWorker.onmessage = (event: MessageEvent<MetadataOutcome>) => {
-                if (worker !== activeWorker) return
-                if (event.data.status === 'error') {
-                    fail(event.data.code)
-                    return
-                }
-
-                stopWorker()
-                setLoading(false)
-                setResult(event.data.result)
-                try {
-                    setPreviewUrl(URL.createObjectURL(new Blob([selected], { type: event.data.result.mime })))
-                } catch {
-                    setPreviewFailed(true)
-                }
-            }
-            activeWorker.onerror = () => failActive('WORKER_FAILED')
-            activeWorker.onmessageerror = () => failActive('WORKER_FAILED')
-            timeout = window.setTimeout(() => failActive('TIMEOUT'), 5000)
-            activeWorker.postMessage(selected)
-        } catch {
-            fail('WORKER_FAILED')
-        }
+    const dimensions = () => {
+        const size = session.state.previewSize
+        return size && `${size.width} × ${size.height}`
     }
 
     const openFiles = (files: FileList | null | undefined) => {
         if (!files || files.length === 0) return
-        if (files.length > 1) {
-            /* 已開檔時保留目前結果，只在 Header 的 Issue chip 提示；開啟畫面才顯示錯誤 */
-            if (file()) setTooManyFiles(true)
-            else fail('TOO_MANY_FILES')
-            return
-        }
-        selectFile(files[0]!)
+        resetFeedback()
+        if (session.openFiles(files) === 'too-many') setTooManyFiles(true)
     }
 
     const openPicker = () => input?.click()
@@ -183,11 +99,7 @@ export function MetadataPage() {
         })
     })
 
-    onCleanup(() => {
-        stopWorker()
-        releasePreview()
-        window.clearTimeout(copiedTimer)
-    })
+    onCleanup(() => window.clearTimeout(copiedTimer))
 
     const copy = async (id: string, text: string) => {
         const sourceFile = file()
@@ -236,8 +148,8 @@ export function MetadataPage() {
                 fallback={(
                     <OpeningScreen
                         dragging={dragging()}
-                        error={error()}
-                        failedName={failedName()}
+                        error={session.state.error}
+                        failedName={session.state.failedName}
                         onChoose={openPicker}
                     />
                 )}
@@ -247,27 +159,21 @@ export function MetadataPage() {
                         <MetadataFilePanel
                             file={selected}
                             mime={result()?.mime}
-                            loading={loading()}
-                            previewUrl={previewUrl()}
-                            previewFailed={previewFailed()}
+                            loading={session.state.loading}
+                            previewUrl={session.state.previewUrl}
+                            previewFailed={session.state.previewFailed}
                             dimensions={dimensions()}
                             onOpen={openPicker}
                             onClear={clear}
-                            onPreviewLoad={setDimensions}
-                            onPreviewError={() => {
-                                setPreviewFailed(true)
-                                releasePreview()
-                            }}
                         />
                         <MetadataResultPane
-                            tab={activeTab()}
+                            tab={session.state.activeTab}
                             entries={result()?.entries ?? []}
-                            loading={loading()}
+                            loading={session.state.loading}
                             copiedId={copiedId()}
-                            onTabChange={setActiveTab}
+                            onTabChange={session.setTab}
                             onCopy={(id, text) => void copy(id, text)}
-                            canCopyTo={!loading() && apiEntry() !== undefined}
-                            onCopyTo={copyTo}
+                            actions={hasServer ? <MetadataCopyTo /> : undefined}
                         />
                         <Show when={dragging()}>
                             <DropFrame />
@@ -282,7 +188,7 @@ export function MetadataPage() {
 /* MARK: OpeningScreen */
 type OpeningScreenProps = {
     dragging: boolean
-    error: PageError | undefined
+    error: MetadataError | undefined
     failedName: string | undefined
     onChoose: () => void
 }

@@ -281,7 +281,8 @@ stay in the owning code.
   When the caller already owns a stable value, pass it through a `value` prop.
 - Use `session.ts`, `XxxSessionProvider`, and `useXxxSession()` for domain work
   that must survive leaving its route. Compose those providers in the fixed
-  `MultiProvider` list at the App root layout. Providers for query subscriptions
+  `MultiProvider` list at the App root layout; sessions that need the Server are
+  listed only when an endpoint exists. Providers for query subscriptions
   and view state stay inside the route that uses them.
 - Name a Context that coordinates a whole route `XxxPageState`, with its factory
   in `store.ts`. Use the specific capability name for a narrower Context.

@@ -28,8 +28,6 @@ type FilePanelProps = {
     dimensions: string | undefined
     onOpen: () => void
     onClear: () => void
-    onPreviewLoad: (dimensions: string) => void
-    onPreviewError: () => void
 }
 
 export function MetadataFilePanel(props: FilePanelProps) {
@@ -81,8 +79,6 @@ export function MetadataFilePanel(props: FilePanelProps) {
                                         src={url()}
                                         alt={t('metadata.previewAlt')}
                                         class='max-h-full max-w-full object-contain'
-                                        onLoad={event => props.onPreviewLoad(`${event.currentTarget.naturalWidth} × ${event.currentTarget.naturalHeight}`)}
-                                        onError={() => props.onPreviewError()}
                                     />
                                 </div>
                             )}

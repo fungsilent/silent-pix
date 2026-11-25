@@ -48,8 +48,8 @@ type ResultPaneProps = {
     copiedId: string | undefined
     onTabChange: (tab: MetadataTab) => void
     onCopy: (id: string, text: string) => void
-    canCopyTo: boolean
-    onCopyTo: () => void
+    /* 工具列右側的動作；沒有時留空 */
+    actions: JSX.Element | undefined
 }
 
 export function MetadataResultPane(props: ResultPaneProps) {
@@ -63,18 +63,8 @@ export function MetadataResultPane(props: ResultPaneProps) {
                     options={tabOptions}
                     onChange={props.onTabChange}
                 />
-                <Bar.Actions>
-                    <span title={props.canCopyTo ? undefined : t('metadata.copyTo.unsupported')}>
-                        <Button
-                            size='bar'
-                            variant='ghost'
-                            disabled={!props.canCopyTo}
-                            classes={{ root: 'h-7 px-2.5 text-xs font-medium text-fg-secondary hover:text-fg' }}
-                            onClick={() => props.onCopyTo()}
-                        >
-                            {t('metadata.copyTo.generate')}
-                        </Button>
-                    </span>
+                <Bar.Actions classes={{ root: 'gap-2' }}>
+                    {props.actions}
                 </Bar.Actions>
             </Bar.Root>
 

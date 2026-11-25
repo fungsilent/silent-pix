@@ -465,7 +465,11 @@
         },
         "copyTo": {
             "generate": "Copy to Generate",
-            "unsupported": "只支援 ComfyUI API graph。"
+            "unsupported": "只支援 ComfyUI API graph。",
+            "useReference": "將圖片用作參考圖",
+            "referenceUnsupported": "此圖片格式無法用作參考圖。",
+            "preparingImage": "正在準備參考圖…",
+            "imageSize": "參考圖的寬和高都必須介於 64 至 4096 像素。"
         }
     }
 }

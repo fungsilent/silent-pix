@@ -1,8 +1,8 @@
 import { t } from '#/lib/i18n'
-import { cloneGenerateValues, draftGenerateValues } from '#/pages/generate/form'
+import { cloneGenerateValues, draftGenerateValues, referenceSize } from '#/pages/generate/form'
 
 import type { TaskApi } from '@silent-pix/shared'
-import type { GenerateValues } from '#/pages/generate/form'
+import type { GenerateValues, ReferenceImage } from '#/pages/generate/form'
 import type { DraftDefaultField } from '#/pages/generate/session'
 import type { MetadataEntry, MetadataNode, MetadataNodeValue } from '#/pages/metadata/metadata.parse'
 
@@ -197,8 +197,10 @@ function parseLoraData(value: MetadataNodeValue | undefined): { name: string, we
 
 /* MARK: Generate draft */
 /* 找到的欄位蓋過草稿預設值；找不到的列出來，連同目前採用的預設值 */
-export function toGenerateDraft(copy: GraphCopy): { values: GenerateValues, defaults: { field: DraftDefaultField, value: string }[] } {
+export function toGenerateDraft(copy: GraphCopy, referenceImage?: ReferenceImage): { values: GenerateValues, defaults: { field: DraftDefaultField, value: string }[] } {
     const values = cloneGenerateValues(draftGenerateValues)
+    const size = referenceImage && referenceSize(referenceImage)
+    values.referenceImage = referenceImage ?? null
     const defaults: { field: DraftDefaultField, value: string }[] = []
     const take = <K extends DraftDefaultField & keyof GenerateValues>(field: K, found: GenerateValues[K] | undefined, shown: () => string) => {
         if (found === undefined) defaults.push({ field, value: shown() })
@@ -210,9 +212,9 @@ export function toGenerateDraft(copy: GraphCopy): { values: GenerateValues, defa
     take('steps', copy.steps, () => String(values.steps))
     take('cfg', copy.cfg, () => String(values.cfg))
     take('sampler', copy.sampler, () => values.sampler)
-    take('denoise', copy.denoise, () => String(values.denoise))
-    take('width', copy.width, () => String(values.width))
-    take('height', copy.height, () => String(values.height))
+    take('denoise', referenceImage && copy.denoise === 1 ? undefined : copy.denoise, () => String(values.denoise))
+    take('width', size?.width ?? copy.width, () => String(values.width))
+    take('height', size?.height ?? copy.height, () => String(values.height))
     take('batch', copy.batch, () => String(values.batch))
     take('positive', copy.positive, () => firstLine(values.positive))
     take('negative', copy.negative, () => firstLine(values.negative))

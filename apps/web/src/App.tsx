@@ -10,6 +10,7 @@ import { ComparePage } from '#/pages/compare/ComparePage'
 import { GeneratePage } from '#/pages/generate/GeneratePage'
 import { GenerateSessionProvider } from '#/pages/generate/session'
 import { MetadataPage } from '#/pages/metadata/MetadataPage'
+import { MetadataSessionProvider } from '#/pages/metadata/session'
 import { SettingsPage } from '#/pages/settings/SettingsPage'
 import { WorkflowSessionProvider } from '#/pages/workflow/session'
 import { WorkflowPage } from '#/pages/workflow/WorkflowPage'
@@ -68,18 +69,18 @@ function AppLayout(props: RouteSectionProps) {
         <main class='flex h-dvh flex-col overflow-hidden bg-shell text-fg'>
             <Header />
             <div class='flex min-h-0 flex-1 flex-col px-1 pb-1'>
-                {platform.endpoint
-                    ? (
-                        <MultiProvider
-                            values={[
-                                GenerateSessionProvider,
-                                WorkflowSessionProvider,
-                            ]}
-                        >
-                            {props.children}
-                        </MultiProvider>
-                    )
-                    : props.children}
+                <MultiProvider
+                    values={[
+                        MetadataSessionProvider,
+                        ...(
+                            platform.endpoint
+                                ? [GenerateSessionProvider, WorkflowSessionProvider]
+                                : []
+                        ),
+                    ]}
+                >
+                    {props.children}
+                </MultiProvider>
             </div>
         </main>
     )

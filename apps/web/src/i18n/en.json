@@ -466,7 +466,11 @@
         },
         "copyTo": {
             "generate": "Copy to Generate",
-            "unsupported": "Only ComfyUI API graphs can be copied."
+            "unsupported": "Only ComfyUI API graphs can be copied.",
+            "useReference": "Use image as reference",
+            "referenceUnsupported": "This image format cannot be used as a reference.",
+            "preparingImage": "Preparing the reference image…",
+            "imageSize": "The reference image must be between 64 and 4096 pixels on each side."
         }
     }
 }

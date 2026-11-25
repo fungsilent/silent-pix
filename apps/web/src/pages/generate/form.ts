@@ -106,9 +106,21 @@ extra accessories, text, watermark, logo, cropped, out of frame,`,
 
 export type ReferenceImage = NonNullable<GenerateValues['referenceImage']>
 
+export function isGenerateImageSize(width: number, height: number): boolean {
+    return generateSchema.shape.width.safeParse(width).success && generateSchema.shape.height.safeParse(height).success
+}
+
+export function createLocalReferenceImage(file: File, width: number, height: number, previewUrl = URL.createObjectURL(file)): ReferenceImage {
+    return { type: 'local', file, previewUrl, width, height, sizeBytes: file.size, mask: null }
+}
+
 export function referenceSize(reference: ReferenceImage) {
     return reference.type === 'local'
-        ? { width: reference.width, height: reference.height, sizeBytes: reference.sizeBytes }
+        ? {
+            width: reference.width,
+            height: reference.height,
+            sizeBytes: reference.sizeBytes
+        }
         : {
             width: reference.image.width,
             height: reference.image.height,

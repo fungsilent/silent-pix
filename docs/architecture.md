@@ -253,21 +253,23 @@ API wrappers choose request deadlines. TanStack Query supplies the cancellation
 signal for cancellable reads, and `requestSignal()` combines it with the API
 deadline.
 
-TanStack Query owns Server data, loading/errors, and pagination. Solid stores own
-UI choices and connection state without copying Query data. Generate and Workflow
-each keep their TanStack Form and pending submission in a work session owned by
-the App root layout. Pages own Query subscriptions, synchronization with server
+TanStack Query owns Server data, loading/errors, and pagination. Solid stores
+own UI choices and connection state without copying Query data. Generate and
+Workflow each keep their TanStack Form and pending submission in a work session
+owned by the App root layout, and Metadata keeps its opened file and reading
+results in one too. Pages own Query subscriptions, synchronization with server
 data, and editor views. Navigation preserves the work, and restarting the App
 resets it. Server refreshes preserve unrelated local edits; changing theme or
 language does not rebuild editors or reset input.
 
 Local image metadata inspection runs entirely in the browser, with no Server,
-ComfyUI, or durable storage dependency. The page owns File, Worker, preview URL,
-and result lifetimes; resource release and stale-result protection stay with that
-owner. External bytes and decompressed data are bounded and validated. Copy
-preserves original payload text, including unsafe integers; parsed projections
-do not replace the original. Parser limits and rendering behavior live in code
-and the design blueprint.
+ComfyUI, or durable storage dependency. The Metadata work session owns File,
+Worker, preview URL, and result lifetimes, so leaving the page does not
+interrupt or discard a read; resource release and stale-result protection stay
+with that owner, and the page only presents them. External bytes and
+decompressed data are bounded and validated. Copy preserves original payload
+text, including unsafe integers; parsed projections do not replace the original.
+Parser limits and rendering behavior live in code and the design blueprint.
 
 Header, Settings, and local tools remain available without a configured endpoint.
 Server health queries and events start only when an endpoint exists. Local tools
