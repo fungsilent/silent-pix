@@ -1,7 +1,7 @@
 import { Show } from 'solid-js'
 
 import { DetailTitle } from '#/components/detail/DetailTitle'
-import { cn } from '#/lib/cn'
+import { mergeClasses } from '#/utils/style'
 
 import type { JSX } from 'solid-js'
 
@@ -17,7 +17,7 @@ type DetailSectionProps = {
 
 export function DetailSection(props: DetailSectionProps) {
     return (
-        <section class={cn('flex flex-col gap-3', props.classes?.root)}>
+        <section class={mergeClasses('flex flex-col gap-3', props.classes?.root)}>
             <Show when={props.title}>
                 {title => (
                     <div class='flex flex-col gap-1 py-1'>

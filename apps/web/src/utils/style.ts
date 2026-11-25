@@ -3,6 +3,6 @@ import { twMerge } from 'tailwind-merge'
 
 import type { ClassValue } from 'clsx'
 
-export function cn(...inputs: ClassValue[]): string {
+export function mergeClasses(...inputs: ClassValue[]): string {
     return twMerge(clsx(inputs))
 }

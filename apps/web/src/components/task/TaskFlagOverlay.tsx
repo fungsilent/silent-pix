@@ -1,7 +1,7 @@
 import { Show } from 'solid-js'
 
-import { cn } from '#/lib/cn'
 import { theme } from '#/lib/theme'
+import { mergeClasses } from '#/utils/style'
 
 /* MARK: TaskFlagOverlay */
 
@@ -33,7 +33,7 @@ export function TaskFlagOverlay(props: TaskFlagOverlayProps) {
             </Show>
             <Show when={props.pin || props.discard}>
                 <span
-                    class={cn(
+                    class={mergeClasses(
                         'pointer-events-none absolute left-0 top-0 border-r-transparent',
                         foldSizeClasses[props.carrier],
                         props.pin ? theme.taskFlag.pin.fold : theme.taskFlag.discard.fold,

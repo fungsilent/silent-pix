@@ -3,7 +3,7 @@ import { createSignal } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { Dialog } from '#/components/base/Dialog'
-import { useDeleteWorkflowMutation } from '#/features/workflow/workflow.query'
+import { useDeleteWorkflowMutation } from '#/data/workflow/workflow.query'
 import { toErrorMessage } from '#/lib/error'
 import { t } from '#/lib/i18n'
 import { useWorkflowStore } from '#/pages/workflow/store'

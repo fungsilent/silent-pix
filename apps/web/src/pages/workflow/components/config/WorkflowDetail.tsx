@@ -5,9 +5,7 @@ import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
 import { Line } from '#/components/base/Line'
 import { StatusMessage } from '#/components/base/StatusMessage'
-import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
-import { issueList, useIssueSource } from '#/lib/issue'
 import { theme } from '#/lib/theme'
 import { WorkflowInfo } from '#/pages/workflow/components/config/WorkflowInfo'
 import { WorkflowMapping } from '#/pages/workflow/components/config/WorkflowMapping'
@@ -19,6 +17,8 @@ import {
     toSaveIssues,
 } from '#/pages/workflow/issue'
 import { useWorkflowStore } from '#/pages/workflow/store'
+import { issueList, useIssueSource } from '#/store/issue'
+import { mergeClasses } from '#/utils/style'
 
 /*
  * 右欄，對應 TaskDetail：面板自己擁有標題列，頁面只負責排三欄。
@@ -70,7 +70,7 @@ export function WorkflowDetail() {
 
     return (
         <form
-            class={cn(theme.card, 'flex w-[620px] flex-none flex-col bg-surface')}
+            class={mergeClasses(theme.card, 'flex w-[620px] flex-none flex-col bg-surface')}
             onSubmit={event => void handleSubmit(event)}
         >
             <Bar.Root>

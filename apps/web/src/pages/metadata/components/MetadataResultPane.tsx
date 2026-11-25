@@ -6,10 +6,10 @@ import { Button } from '#/components/base/Button'
 import { Loading } from '#/components/base/Loading'
 import { SegmentGroup } from '#/components/base/SegmentGroup'
 import { StatusMessage } from '#/components/base/StatusMessage'
-import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
 import { formatJsonText } from '#/lib/json'
 import { theme } from '#/lib/theme'
+import { mergeClasses } from '#/utils/style'
 
 import type { SegmentGroupOption } from '#/components/base/SegmentGroup'
 import type { MetadataEntry, MetadataNode, MetadataNodeValue } from '#/pages/metadata/metadata.parse'
@@ -54,7 +54,7 @@ export function MetadataResultPane(props: ResultPaneProps) {
     const empty = () => props.entries.length === 0
 
     return (
-        <section class={cn(theme.card, 'flex min-w-0 flex-1 flex-col bg-surface')}>
+        <section class={mergeClasses(theme.card, 'flex min-w-0 flex-1 flex-col bg-surface')}>
             <Bar.Root classes={{ root: 'border-b border-line-subtle' }}>
                 <SegmentGroup
                     value={props.tab}
@@ -358,7 +358,7 @@ function NodeCard(props: NodeCardProps) {
     return (
         <div
             ref={props.ref}
-            class={cn(
+            class={mergeClasses(
                 'overflow-hidden rounded-md border transition-shadow',
                 props.highlighted ? 'border-accent ring-2 ring-accent/40' : 'border-line-subtle',
             )}
@@ -564,7 +564,7 @@ function CopyIconButton(props: CopyIconButtonProps) {
         <Button
             variant='ghost'
             title={props.copied ? t('metadata.copied') : t('metadata.copy')}
-            classes={{ root: cn('size-6 shrink-0 p-0', props.copied ? 'text-fg' : 'text-fg-muted', props.classes?.root) }}
+            classes={{ root: mergeClasses('size-6 shrink-0 p-0', props.copied ? 'text-fg' : 'text-fg-muted', props.classes?.root) }}
             onClick={() => props.onClick()}
         >
             <Show

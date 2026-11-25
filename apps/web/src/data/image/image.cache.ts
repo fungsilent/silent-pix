@@ -1,7 +1,7 @@
-import { imageKeys } from '#/features/image/image.key'
+import { imageKeys } from '#/data/image/image.key'
 
 import type { QueryClient } from '@tanstack/solid-query'
 
-export function invalidateImageLists(queryClient: QueryClient): void {
+export function refreshImageListCache(queryClient: QueryClient): void {
     void queryClient.invalidateQueries({ queryKey: imageKeys.lists() })
 }

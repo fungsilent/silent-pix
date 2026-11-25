@@ -1,6 +1,6 @@
 import { FileUpload } from '@ark-ui/solid'
 
-import { cn } from '#/lib/cn'
+import { mergeClasses } from '#/utils/style'
 
 import type { FileUploadFileRejection } from '@ark-ui/solid'
 import type { JSX } from 'solid-js'
@@ -26,7 +26,7 @@ export function FileDrop(props: FileDropProps) {
             maxFiles={1}
             maxFileSize={props.maxFileSize}
             disabled={props.disabled}
-            class={cn('min-w-0', props.classes?.root)}
+            class={mergeClasses('min-w-0', props.classes?.root)}
             onFileAccept={details => {
                 const file = details.files[0]
                 if (file) {
@@ -42,7 +42,7 @@ export function FileDrop(props: FileDropProps) {
         >
             {/* Dropzone 同時給拖放與點擊兩種手勢，一個元素就夠 */}
             <FileUpload.Dropzone
-                class={cn(
+                class={mergeClasses(
                     'flex flex-col items-center justify-center gap-1.5 rounded-md border border-dashed border-line px-3 py-6 text-center text-fg-muted',
                     props.invalid
                         ? 'border-danger bg-danger/10 hover:border-danger hover:bg-danger/15'

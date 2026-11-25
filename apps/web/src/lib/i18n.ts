@@ -1,7 +1,7 @@
 import { createInstance } from 'i18next'
 
 import en from '#/i18n/en.json'
-import zhTW from '#/i18n/zh-TW.json'
+import zhTW from '#/i18n/zh-tw.json'
 import { createStore } from '#/lib/store'
 
 const resources = { en: { translation: en }, 'zh-TW': { translation: zhTW } }

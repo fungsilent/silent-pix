@@ -2,8 +2,8 @@ import { RefreshCw, TriangleAlert } from 'lucide-solid'
 import { Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
-import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
+import { mergeClasses } from '#/utils/style'
 
 import type { JSX } from 'solid-js'
 
@@ -73,7 +73,7 @@ export function StatusMessage(props: StatusMessageProps) {
 
     return (
         <div
-            class={cn(
+            class={mergeClasses(
                 'flex flex-col items-center text-center',
                 compact() ? 'gap-2 px-3 py-8' : 'max-w-[280px] gap-3',
                 props.classes?.root,
@@ -82,7 +82,7 @@ export function StatusMessage(props: StatusMessageProps) {
             <Show when={icon()}>
                 {value => (
                     <div
-                        class={cn(
+                        class={mergeClasses(
                             'grid size-12 place-items-center rounded-xl border border-line-subtle bg-elevated text-fg-muted',
                             props.classes?.icon,
                         )}
@@ -94,16 +94,16 @@ export function StatusMessage(props: StatusMessageProps) {
             <div class='flex flex-col gap-1'>
                 <Show when={title()}>
                     {value => (
-                        <p class={cn('m-0 font-medium text-fg', compact() ? 'text-xs' : 'text-sm')}>{value()}</p>
+                        <p class={mergeClasses('m-0 font-medium text-fg', compact() ? 'text-xs' : 'text-sm')}>{value()}</p>
                     )}
                 </Show>
                 <Show when={props.message}>
                     {value => (
                         <p
-                            class={cn(
+                            class={mergeClasses(
                                 'm-0 leading-relaxed text-fg-muted',
                                 compact() ? 'text-[11px]' : 'text-xs',
-                                props.kind === 'load-error' && cn('flex items-start text-left', compact() ? 'gap-1' : 'gap-1.5'),
+                                props.kind === 'load-error' && mergeClasses('flex items-start text-left', compact() ? 'gap-1' : 'gap-1.5'),
                                 props.classes?.message,
                             )}
                         >
@@ -111,7 +111,7 @@ export function StatusMessage(props: StatusMessageProps) {
                                 <TriangleAlert
                                     size={compact() ? 11 : 12}
                                     strokeWidth={2}
-                                    class={cn('shrink-0 text-danger-fg', compact() ? 'mt-[3px]' : 'mt-1')}
+                                    class={mergeClasses('shrink-0 text-danger-fg', compact() ? 'mt-[3px]' : 'mt-1')}
                                 />
                             </Show>
                             <span class='min-w-0'>{value()}</span>

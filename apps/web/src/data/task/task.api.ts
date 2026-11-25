@@ -1,4 +1,4 @@
-import { getApiClient, requestSignal, unwrap } from '#/api/api.client'
+import { getApiClient, requestSignal, unwrap } from '#/lib/api-client'
 
 import type { TaskApi } from '@silent-pix/shared'
 

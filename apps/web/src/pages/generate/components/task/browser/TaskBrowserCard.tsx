@@ -5,10 +5,10 @@ import { Button } from '#/components/base/Button'
 import { CenteredText } from '#/components/base/CenteredText'
 import { TaskFlagOverlay } from '#/components/task/TaskFlagOverlay'
 import { TaskStatus } from '#/components/task/TaskStatus'
-import { cn } from '#/lib/cn'
-import { formatDate, formatTime } from '#/lib/format'
 import { TaskFlagControls } from '#/pages/generate/components/task/TaskFlag'
 import { TaskThumbnail } from '#/pages/generate/components/task/TaskThumbnail'
+import { formatDate, formatTime } from '#/utils/date'
+import { mergeClasses } from '#/utils/style'
 
 import type { TaskApi } from '@silent-pix/shared'
 
@@ -43,7 +43,7 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
         <article
             data-task-card='true'
             data-task-id={props.task.id}
-            class={cn(
+            class={mergeClasses(
                 'group relative min-w-0 rounded-lg border border-transparent p-2',
                 props.focused && !props.checked && 'bg-selected',
                 !props.focused && !props.checked && 'hover:bg-hover',
@@ -54,7 +54,7 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
             <Button
                 variant='ghost'
                 classes={{
-                    root: cn(
+                    root: mergeClasses(
                         'block w-full min-w-0 p-0 text-left hover:bg-transparent',
                         viewable() && 'cursor-zoom-in',
                         props.focused && 'focus-visible:border-transparent focus-visible:ring-0',
@@ -92,7 +92,7 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
                 <Button
                     variant='ghost'
                     classes={{
-                        root: cn(
+                        root: mergeClasses(
                             'block w-full min-w-0 p-0 text-left hover:bg-transparent',
                             props.focused && 'focus-visible:border-transparent focus-visible:ring-0',
                         ),
@@ -130,7 +130,7 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
                 variant='ghost'
                 data-marquee-control='true'
                 classes={{
-                    root: cn(
+                    root: mergeClasses(
                         'absolute right-3.5 top-3.5 size-6 rounded-md border-0 p-0 transition-opacity',
                         props.checked
                             ? 'bg-accent text-on-stage hover:bg-accent-hover'
@@ -142,7 +142,7 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
                 <Check
                     size={14}
                     strokeWidth={2}
-                    class={cn(!props.checked && 'opacity-0')}
+                    class={mergeClasses(!props.checked && 'opacity-0')}
                 />
             </Button>
         </article>

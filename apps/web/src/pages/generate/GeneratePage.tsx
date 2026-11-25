@@ -1,6 +1,6 @@
 import { createEffect, on, Show } from 'solid-js'
 
-import { useTaskDetailQuery } from '#/features/task/task.query'
+import { useTaskDetailQuery } from '#/data/task/task.query'
 import { GenerateTaskDetail } from '#/pages/generate/components/config/GenerateTaskDetail'
 import { TaskBrowser } from '#/pages/generate/components/task/browser/TaskBrowser'
 import { TaskList } from '#/pages/generate/components/task/list/TaskList'

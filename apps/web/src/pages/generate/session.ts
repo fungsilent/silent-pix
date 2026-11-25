@@ -1,9 +1,9 @@
 import { createContextProvider } from '@solid-primitives/context'
 import { batch, createEffect, on, onCleanup } from 'solid-js'
 
-import { ApiError } from '#/api/api.client'
-import { useCreateTaskMutation } from '#/features/task/task.query'
-import { useRefreshWorkflowList } from '#/features/workflow/workflow.query'
+import { useCreateTaskMutation } from '#/data/task/task.query'
+import { useRefreshWorkflowList } from '#/data/workflow/workflow.query'
+import { ApiError } from '#/lib/api-client'
 import { createStore } from '#/lib/store'
 import { promptDefaultHeight, promptMinHeight } from '#/pages/generate/components/workspace/generate/prompt/prompt.theme'
 import {

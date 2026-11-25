@@ -7,8 +7,8 @@ import { Loading } from '#/components/base/Loading'
 import { SelectedCountChip } from '#/components/base/SelectedCountChip'
 import { StatusMessage } from '#/components/base/StatusMessage'
 import { Text } from '#/components/field/Text'
-import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
+import { mergeClasses } from '#/utils/style'
 
 import type { SelectOption } from '#/components/field'
 
@@ -162,7 +162,7 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
                                                 variant='ghost'
                                                 title={option.value}
                                                 classes={{
-                                                    root: cn(
+                                                    root: mergeClasses(
                                                         'h-8 w-full justify-start gap-2.5 rounded-md border-0 px-2 text-left text-xs',
                                                         checked()
                                                             ? 'bg-accent/15 text-fg hover:bg-accent/20'
@@ -172,7 +172,7 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
                                                 onClick={() => toggle(option.value)}
                                             >
                                                 <span
-                                                    class={cn(
+                                                    class={mergeClasses(
                                                         'grid size-3.5 shrink-0 place-items-center rounded-[3px] border',
                                                         checked() ? 'border-accent bg-accent text-on-stage' : 'border-line bg-surface',
                                                     )}

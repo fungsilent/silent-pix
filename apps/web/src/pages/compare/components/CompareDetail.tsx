@@ -1,7 +1,7 @@
 import { createMemo, createSignal, Show } from 'solid-js'
 
 import { TaskDetail } from '#/components/task/detail/TaskDetail'
-import { useTaskDetailQuery } from '#/features/task/task.query'
+import { useTaskDetailQuery } from '#/data/task/task.query'
 import { t } from '#/lib/i18n'
 import { ReferenceImageDetail } from '#/pages/compare/components/ReferenceImageDetail'
 import { compareStore } from '#/store/compare'

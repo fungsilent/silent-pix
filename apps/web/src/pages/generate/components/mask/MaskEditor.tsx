@@ -2,20 +2,20 @@ import { Brush, Check, Eraser, Hand, LoaderCircle, Redo2, Trash2, TriangleAlert,
 import { createSignal, onCleanup, onMount, Show } from 'solid-js'
 import { Portal } from 'solid-js/web'
 
-import { resolveImageUrl } from '#/api/image'
 import { Button } from '#/components/base/Button'
 import { Slider } from '#/components/field'
 import { ZoomControls } from '#/components/viewer/ZoomControls'
-import { cn } from '#/lib/cn'
-import { useHotkeys } from '#/lib/hotkey'
+import { resolveImageUrl } from '#/data/image/image.api'
 import { t } from '#/lib/i18n'
-import { createImageZoom } from '#/lib/imageZoom'
-import { overlayRoot } from '#/lib/overlayRoot'
+import { createImageZoom } from '#/lib/image-zoom'
+import { useHotkeys } from '#/lib/keyboard'
+import { overlayRoot } from '#/lib/overlay-root'
 import { createMaskCanvas } from '#/pages/generate/components/mask/mask.canvas'
 import { overlayStore } from '#/store/overlay'
+import { mergeClasses } from '#/utils/style'
 
 import type { ViewerImage } from '#/components/viewer/ZoomStage'
-import type { Offset } from '#/lib/imageZoom'
+import type { Offset } from '#/lib/image-zoom'
 import type { OverlayId } from '#/store/overlay'
 import type { JSX } from 'solid-js'
 
@@ -314,7 +314,7 @@ export function MaskEditor(props: MaskEditorProps) {
                                     </p>
                                     <Button
                                         variant='ghost'
-                                        classes={{ root: cn('h-7 py-0 hover:bg-stage-control-hover', glass) }}
+                                        classes={{ root: mergeClasses('h-7 py-0 hover:bg-stage-control-hover', glass) }}
                                         onClick={() => void loadImages()}
                                     >
                                         {t('common.retry')}
@@ -353,7 +353,7 @@ export function MaskEditor(props: MaskEditorProps) {
                     <Button
                         variant='ghost'
                         title={t('common.close')}
-                        classes={{ root: cn('size-8 rounded-md p-0 hover:bg-stage-control-hover', glass) }}
+                        classes={{ root: mergeClasses('size-8 rounded-md p-0 hover:bg-stage-control-hover', glass) }}
                         onClick={props.onClose}
                     >
                         <X size={16} />
@@ -381,7 +381,7 @@ type MaskToolbarProps = {
 }
 
 function MaskToolbar(props: MaskToolbarProps) {
-    const toolClass = (tool: MaskTool) => cn(
+    const toolClass = (tool: MaskTool) => mergeClasses(
         'size-7 shrink-0 rounded p-0',
         props.tool === tool
             ? 'bg-on-stage/20 text-on-stage hover:bg-on-stage/20'
@@ -390,7 +390,7 @@ function MaskToolbar(props: MaskToolbarProps) {
     const sizeDisabled = () => props.tool === 'hand' || props.disabled
 
     return (
-        <div class={cn('absolute left-6 top-16 z-10 flex h-9 items-center gap-1 rounded-md border px-1 min-[620px]:top-6', glass)}>
+        <div class={mergeClasses('absolute left-6 top-16 z-10 flex h-9 items-center gap-1 rounded-md border px-1 min-[620px]:top-6', glass)}>
             <Button
                 variant='ghost'
                 disabled={props.disabled}
@@ -419,7 +419,7 @@ function MaskToolbar(props: MaskToolbarProps) {
                 <Hand size={15} />
             </Button>
             <span class={separator} />
-            <span class={cn('pl-1 text-xs', sizeDisabled() ? 'text-on-stage/40' : 'text-on-stage/70')}>{t('image.mask.size')}</span>
+            <span class={mergeClasses('pl-1 text-xs', sizeDisabled() ? 'text-on-stage/40' : 'text-on-stage/70')}>{t('image.mask.size')}</span>
             <Slider
                 label={t('image.mask.size')}
                 disabled={sizeDisabled()}
@@ -436,7 +436,7 @@ function MaskToolbar(props: MaskToolbarProps) {
                 }}
                 onChange={props.onSizeChange}
             />
-            <span class={cn('w-8 text-right text-xs tabular-nums', sizeDisabled() ? 'text-on-stage/40' : 'text-on-stage')}>{props.size}</span>
+            <span class={mergeClasses('w-8 text-right text-xs tabular-nums', sizeDisabled() ? 'text-on-stage/40' : 'text-on-stage')}>{props.size}</span>
             <span class={separator} />
             <Button
                 variant='ghost'

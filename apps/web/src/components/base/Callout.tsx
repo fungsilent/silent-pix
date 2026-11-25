@@ -1,7 +1,7 @@
 import { TriangleAlert } from 'lucide-solid'
 import { Show } from 'solid-js'
 
-import { cn } from '#/lib/cn'
+import { mergeClasses } from '#/utils/style'
 
 import type { JSX } from 'solid-js'
 
@@ -17,7 +17,7 @@ export function Callout(props: CalloutProps) {
 
     return (
         <div
-            class={cn(
+            class={mergeClasses(
                 'flex min-w-0 items-start gap-2 break-words border-danger/25 bg-danger-soft text-left text-xs leading-4',
                 attached() ? 'shrink-0 border-t px-4 py-2' : 'rounded-md border px-3 py-2.5',
                 props.class,
@@ -26,7 +26,7 @@ export function Callout(props: CalloutProps) {
             <TriangleAlert
                 size={attached() ? 12 : 14}
                 strokeWidth={2}
-                class={cn('shrink-0 text-danger-fg', attached() ? 'mt-0.5' : 'mt-px')}
+                class={mergeClasses('shrink-0 text-danger-fg', attached() ? 'mt-0.5' : 'mt-px')}
             />
             <div class='min-w-0'>
                 <Show

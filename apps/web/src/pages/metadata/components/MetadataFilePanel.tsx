@@ -6,9 +6,9 @@ import { Button } from '#/components/base/Button'
 import { Line } from '#/components/base/Line'
 import { Loading } from '#/components/base/Loading'
 import { DetailRow, DetailSection } from '#/components/detail'
-import { cn } from '#/lib/cn'
 import { localeStore, t } from '#/lib/i18n'
 import { theme } from '#/lib/theme'
+import { mergeClasses } from '#/utils/style'
 
 import type { ImageMetadata } from '#/pages/metadata/metadata.parse'
 
@@ -36,7 +36,7 @@ export function MetadataFilePanel(props: FilePanelProps) {
     const size = () => formatSize(props.file.size, localeStore.state.locale)
 
     return (
-        <aside class={cn(theme.card, 'flex h-full w-[300px] flex-none flex-col bg-surface')}>
+        <aside class={mergeClasses(theme.card, 'flex h-full w-[300px] flex-none flex-col bg-surface')}>
             <Bar.Root classes={{ root: 'px-2' }}>
                 <Bar.Title classes={{ root: 'pl-2' }}>{t('metadata.title')}</Bar.Title>
                 <Bar.Actions classes={{ root: 'gap-1' }}>

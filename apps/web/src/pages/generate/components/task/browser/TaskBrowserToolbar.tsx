@@ -11,9 +11,9 @@ import { Button } from '#/components/base/Button'
 import { SelectedCountChip } from '#/components/base/SelectedCountChip'
 import { Text } from '#/components/field/Text'
 import { ThumbnailSizeSlider } from '#/components/image/ThumbnailSize'
-import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
 import { theme } from '#/lib/theme'
+import { mergeClasses } from '#/utils/style'
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { ThumbnailGrid } from '#/components/image/ThumbnailSize'
@@ -46,7 +46,7 @@ const flagSegment = {
  * 右側是「動作」（flag 三段、刪除），最右固定是縮圖大小滑桿。
  */
 export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
-    const segment = (flag: 'unflag' | TaskApi.TaskFlag) => cn(
+    const segment = (flag: 'unflag' | TaskApi.TaskFlag) => mergeClasses(
         'h-6 gap-1.5 rounded px-2.5 text-xs font-medium',
         props.selectedFlag === flag ? flagSegment[flag].active : flagSegment[flag].idle,
     )

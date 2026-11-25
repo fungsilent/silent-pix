@@ -2,17 +2,17 @@ import { image } from '@silent-pix/shared'
 import { ArrowUpRight, Brush, Eye, ImagePlus, Search, Trash2, TriangleAlert, X } from 'lucide-solid'
 import { createEffect, createMemo, createSignal, on, Show } from 'solid-js'
 
-import { resolveImageUrl } from '#/api/image'
 import { Button } from '#/components/base/Button'
 import { Loading } from '#/components/base/Loading'
 import { DetailSection } from '#/components/detail'
 import { FileDrop, Number, Slider } from '#/components/field'
+import { originTaskLabel } from '#/components/image/image.label'
 import { ImagePickerDialog } from '#/components/image/ImagePickerDialog'
 import { ImageTypeBadge } from '#/components/image/ImageTypeBadge'
 import { ImageViewer } from '#/components/viewer/ImageViewer'
-import { originTaskLabel } from '#/features/image/image.label'
-import { cn } from '#/lib/cn'
+import { resolveImageUrl } from '#/data/image/image.api'
 import { t } from '#/lib/i18n'
+import { mergeClasses } from '#/utils/style'
 
 import type { FileUploadFileRejection } from '@ark-ui/solid'
 import type { ImageApi } from '@silent-pix/shared'
@@ -271,7 +271,7 @@ function ReferenceSlot(props: ReferenceSlotProps) {
 
     return (
         <>
-            <div class={cn('relative h-40 overflow-hidden rounded-md', displayedMask() ? 'bg-black' : 'bg-active')}>
+            <div class={mergeClasses('relative h-40 overflow-hidden rounded-md', displayedMask() ? 'bg-black' : 'bg-active')}>
                 <img
                     class='absolute inset-0 size-full object-contain'
                     src={resolveImageUrl(imageUrl())}
@@ -291,7 +291,7 @@ function ReferenceSlot(props: ReferenceSlotProps) {
                                 variant='ghost'
                                 title={maskOnly() ? t('image.mask.showOverlay') : t('image.mask.showMask')}
                                 classes={{
-                                    root: cn(
+                                    root: mergeClasses(
                                         'absolute left-1.5 top-1.5 h-6 gap-1.5 px-2 py-0 text-[11px] font-semibold leading-none tracking-wide',
                                         maskOnly()
                                             ? 'bg-accent text-accent-fg hover:bg-accent-hover'

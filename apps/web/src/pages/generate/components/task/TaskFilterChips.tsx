@@ -1,9 +1,9 @@
 import { FlagOff, FlagTriangleRight, HeartX, ListFilter } from 'lucide-solid'
 
 import { FilterChips } from '#/components/base/FilterChips'
-import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
 import { taskStore } from '#/store/task'
+import { mergeClasses } from '#/utils/style'
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { LucideProps } from 'lucide-solid'
@@ -41,7 +41,7 @@ export function TaskFilterChips(props: TaskFilterChipsProps) {
             onChange={props.onChange}
             {...(props.presentation ? { presentation: props.presentation } : {})}
             classes={{
-                root: cn('px-2 pb-1', props.classes?.root),
+                root: mergeClasses('px-2 pb-1', props.classes?.root),
             }}
         />
     )

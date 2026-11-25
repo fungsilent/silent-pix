@@ -1,10 +1,9 @@
 import { createEffect, createSignal, on, onCleanup, Show } from 'solid-js'
 
 import { TaskDetail } from '#/components/task/detail/TaskDetail'
-import { useDeleteTaskMutation, useLoraListQuery, useRenameTaskMutation, useSamplerListQuery } from '#/features/task/task.query'
-import { useWorkflowListQuery } from '#/features/workflow/workflow.query'
+import { useDeleteTaskMutation, useLoraListQuery, useRenameTaskMutation, useSamplerListQuery } from '#/data/task/task.query'
+import { useWorkflowListQuery } from '#/data/workflow/workflow.query'
 import { t } from '#/lib/i18n'
-import { toFailureIssue, useIssueSource } from '#/lib/issue'
 import { MaskEditor } from '#/pages/generate/components/mask/MaskEditor'
 import { useGenerateDetail } from '#/pages/generate/detail'
 import {
@@ -12,6 +11,7 @@ import {
     referenceSize,
 } from '#/pages/generate/form'
 import { useGenerateSession } from '#/pages/generate/session'
+import { toFailureIssue, useIssueSource } from '#/store/issue'
 import { taskStore } from '#/store/task'
 
 import type { ImageApi } from '@silent-pix/shared'

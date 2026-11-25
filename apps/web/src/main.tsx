@@ -1,9 +1,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/solid-query'
 import { render } from 'solid-js/web'
 
-import { initializeApiClient } from '#/api/api.client'
 import { App } from '#/App'
 import { StatusMessage } from '#/components/base/StatusMessage'
+import { initializeApiClient } from '#/lib/api-client'
 import { shouldRetryQuery } from '#/lib/error'
 import { i18nReady, t } from '#/lib/i18n'
 import { initializePlatform } from '#/lib/platform'

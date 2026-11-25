@@ -1,7 +1,7 @@
 import { Menu as ArkMenu } from '@ark-ui/solid'
 import { Portal } from 'solid-js/web'
 
-import { cn } from '#/lib/cn'
+import { mergeClasses } from '#/utils/style'
 
 import type { JSX } from 'solid-js'
 
@@ -23,7 +23,7 @@ export function Menu(props: MenuProps) {
             {/* 選完項目焦點會還給觸發鈕並被判成 focus-visible；桌面選單列不顯示焦點框 */}
             <ArkMenu.Trigger
                 disabled={props.disabled}
-                class={cn(
+                class={mergeClasses(
                     'flex items-center justify-center rounded-md border border-transparent outline-none',
                     'data-[state=open]:bg-selected data-[state=open]:text-fg',
                     'hover:bg-hover',
@@ -36,7 +36,7 @@ export function Menu(props: MenuProps) {
             <Portal>
                 <ArkMenu.Positioner class='z-50'>
                     <ArkMenu.Content
-                        class={cn(
+                        class={mergeClasses(
                             'flex w-[212px] flex-col rounded-md border border-line bg-elevated p-1 shadow-popover outline-none',
                             props.classes?.content,
                         )}
@@ -63,7 +63,7 @@ export function MenuItem(props: MenuItemProps) {
     return (
         <ArkMenu.Item
             value={props.value}
-            class={cn(
+            class={mergeClasses(
                 'flex h-8 items-center gap-2 rounded px-2 text-xs text-fg outline-none',
                 '[&_svg]:shrink-0 [&_svg]:text-fg-muted data-[highlighted]:bg-hover',
                 props.current && 'bg-selected data-[highlighted]:bg-selected [&_svg]:text-fg',

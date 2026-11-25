@@ -2,8 +2,8 @@ import { toErrorMessage, toIssueMessage } from '#/lib/error'
 import { t } from '#/lib/i18n'
 
 import type { ZodIssue } from '#/lib/error'
-import type { AppIssue } from '#/lib/issue'
 import type { GenerateValues } from '#/pages/generate/form'
+import type { AppIssue } from '#/store/issue'
 
 export type GenerateIssue = AppIssue
 

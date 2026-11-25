@@ -6,10 +6,8 @@ import {
     useDeleteSelectedTasksMutation,
     useTaskFeedQuery,
     useTaskFlagMutation,
-} from '#/features/task/task.query'
-import { cn } from '#/lib/cn'
+} from '#/data/task/task.query'
 import { t } from '#/lib/i18n'
-import { toFailureIssue, useIssueSource } from '#/lib/issue'
 import { isEditableTarget } from '#/lib/keyboard'
 import { theme } from '#/lib/theme'
 import { TaskBatchDeleteDialog } from '#/pages/generate/components/task/browser/TaskBatchDeleteDialog'
@@ -18,12 +16,14 @@ import { TaskBrowserToolbar } from '#/pages/generate/components/task/browser/Tas
 import { TaskBrowserViewer } from '#/pages/generate/components/task/browser/TaskBrowserViewer'
 import { taskFilterEmptyCopy } from '#/pages/generate/components/task/TaskFilterChips'
 import { TaskRail } from '#/pages/generate/components/task/TaskRail'
+import { toFailureIssue, useIssueSource } from '#/store/issue'
 import { overlayStore } from '#/store/overlay'
 import { taskStore } from '#/store/task'
+import { mergeClasses } from '#/utils/style'
 
 import type { TaskApi } from '@silent-pix/shared'
-import type { AppIssue } from '#/lib/issue'
 import type { SelectedFlag } from '#/pages/generate/components/task/browser/TaskBrowserToolbar'
+import type { AppIssue } from '#/store/issue'
 
 const taskSelectionLimit = 200
 
@@ -215,7 +215,7 @@ export function TaskBrowser() {
     const deletePending = () => selectedDeleteMutation.isPending || discardedDeleteMutation.isPending
 
     return (
-        <div class={cn(theme.card, 'flex h-full min-h-0 min-w-0 flex-1 bg-surface')}>
+        <div class={mergeClasses(theme.card, 'flex h-full min-h-0 min-w-0 flex-1 bg-surface')}>
             <TaskRail
                 gridActive
                 onFilterChange={changeFilter}

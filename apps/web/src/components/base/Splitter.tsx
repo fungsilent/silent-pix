@@ -1,6 +1,6 @@
 import { createSignal } from 'solid-js'
 
-import { cn } from '#/lib/cn'
+import { mergeClasses } from '#/utils/style'
 
 type SplitterProps = {
     /* 拖曳方向：y 是上下（調高度，橫線），x 是左右（調寬度，直線）；預設 y */
@@ -45,12 +45,12 @@ export function Splitter(props: SplitterProps) {
 
     return (
         <div
-            class={cn('group relative shrink-0 touch-none', !props.disabled && (horizontal() ? 'cursor-ew-resize' : 'cursor-ns-resize'), props.classes?.root)}
+            class={mergeClasses('group relative shrink-0 touch-none', !props.disabled && (horizontal() ? 'cursor-ew-resize' : 'cursor-ns-resize'), props.classes?.root)}
             onPointerDown={onPointerDown}
             onDblClick={() => !props.disabled && props.onReset()}
         >
             <span
-                class={cn(
+                class={mergeClasses(
                     'pointer-events-none absolute rounded-full bg-accent opacity-0',
                     horizontal() ? 'left-1/2 w-0.5 -translate-x-1/2' : 'top-1/2 h-0.5 -translate-y-1/2',
                     !props.disabled && 'group-hover:opacity-100',

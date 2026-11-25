@@ -1,11 +1,11 @@
 import { LayoutGrid } from 'lucide-solid'
 
 import { Button } from '#/components/base/Button'
-import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
 import { theme } from '#/lib/theme'
 import { TaskFilterChips } from '#/pages/generate/components/task/TaskFilterChips'
 import { taskStore } from '#/store/task'
+import { mergeClasses } from '#/utils/style'
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { JSX } from 'solid-js'
@@ -27,7 +27,7 @@ export function TaskRail(props: TaskRailProps) {
                     size='bar'
                     variant='ghost'
                     title={t('task.gridView')}
-                    classes={{ root: cn('size-7 shrink-0 p-0', props.gridActive && theme.selected) }}
+                    classes={{ root: mergeClasses('size-7 shrink-0 p-0', props.gridActive && theme.selected) }}
                     onClick={() => taskStore.setBrowserOpen(!props.gridActive)}
                 >
                     <LayoutGrid

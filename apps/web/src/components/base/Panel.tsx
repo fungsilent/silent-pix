@@ -3,8 +3,8 @@ import { ChevronsLeft, ChevronsRight } from 'lucide-solid'
 import { createSignal } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
-import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
+import { mergeClasses } from '#/utils/style'
 
 import type { Accessor, JSX } from 'solid-js'
 
@@ -68,7 +68,7 @@ export function Panel(props: PanelProps) {
 
     return (
         <aside
-            class={cn(
+            class={mergeClasses(
                 'flex-none overflow-hidden bg-surface',
                 props.classes?.root,
                 isCollapsed() ? props.classes?.close : props.classes?.open,
@@ -142,12 +142,12 @@ type PanelContentProps = {
 
 export function PanelContent(props: PanelContentProps) {
     return (
-        <ScrollArea.Root class={cn('relative min-h-0 flex-1 overflow-hidden', props.classes?.root)}>
+        <ScrollArea.Root class={mergeClasses('relative min-h-0 flex-1 overflow-hidden', props.classes?.root)}>
             <ScrollArea.Viewport
                 ref={props.viewportRef}
-                class={cn('scrollbar-hidden h-full w-full', props.classes?.viewport)}
+                class={mergeClasses('scrollbar-hidden h-full w-full', props.classes?.viewport)}
             >
-                <ScrollArea.Content class={cn('flex !min-w-0 flex-col gap-2 p-2 pr-3', props.classes?.content)}>
+                <ScrollArea.Content class={mergeClasses('flex !min-w-0 flex-col gap-2 p-2 pr-3', props.classes?.content)}>
                     {props.children}
                 </ScrollArea.Content>
             </ScrollArea.Viewport>

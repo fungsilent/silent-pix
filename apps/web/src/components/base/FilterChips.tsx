@@ -1,6 +1,6 @@
 import { Button } from '#/components/base/Button'
-import { cn } from '#/lib/cn'
 import { theme } from '#/lib/theme'
+import { mergeClasses } from '#/utils/style'
 
 import type { LucideProps } from 'lucide-solid'
 import type { Component } from 'solid-js'
@@ -69,7 +69,7 @@ export function FilterChips<Value extends string>(props: FilterChipsProps<Value>
 
     return (
         <div
-            class={cn(
+            class={mergeClasses(
                 'flex shrink-0 items-center gap-1',
                 props.classes?.root,
             )}
@@ -78,7 +78,7 @@ export function FilterChips<Value extends string>(props: FilterChipsProps<Value>
                 variant='ghost'
                 title={props.presentation === 'icon' ? props.allOption.label() : undefined}
                 classes={{
-                    root: cn(
+                    root: mergeClasses(
                         'h-7 gap-1.5 rounded-md px-2 text-[11px] font-medium',
                         props.presentation === 'icon' && 'w-7 px-0',
                         props.values === undefined
@@ -95,7 +95,7 @@ export function FilterChips<Value extends string>(props: FilterChipsProps<Value>
                     variant='ghost'
                     title={props.presentation === 'icon' ? option.label() : undefined}
                     classes={{
-                        root: cn(
+                        root: mergeClasses(
                             'h-7 gap-1.5 rounded-md px-2 text-[11px] font-medium',
                             props.presentation === 'icon' && 'w-7 px-0',
                             active(option.value)

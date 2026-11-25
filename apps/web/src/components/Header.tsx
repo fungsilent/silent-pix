@@ -5,14 +5,14 @@ import { Button } from '#/components/base/Button'
 import { IssueChip } from '#/components/base/IssueChip'
 import { Menu, MenuItem } from '#/components/base/Menu'
 import { Popover } from '#/components/base/Popover'
-import { useHealthQuery } from '#/features/app/app.query'
-import { cn } from '#/lib/cn'
+import { useHealthQuery } from '#/data/app/app.query'
 import { t } from '#/lib/i18n'
-import { appIssues, issueList } from '#/lib/issue'
 import { currentWindow, getPlatform, isMacDesktop } from '#/lib/platform'
 import { useCurrentRouteName, useNavigateToRoute } from '#/routes'
 import { appStore, serviceHealth } from '#/store/app'
+import { appIssues, issueList } from '#/store/issue'
 import { overlayStore } from '#/store/overlay'
+import { mergeClasses } from '#/utils/style'
 
 import type { RouteName } from '#/routes'
 import type { JSX } from 'solid-js'
@@ -62,7 +62,7 @@ export function Header() {
         <header
             id='app-header'
             data-tauri-drag-region
-            class={cn(
+            class={mergeClasses(
                 'relative flex h-9 shrink-0 items-center gap-1 bg-shell',
                 isMacDesktop() ? 'pl-[78px]' : 'pl-3',
                 windowControls ? 'pr-0' : 'pr-3',
@@ -83,7 +83,7 @@ export function Header() {
 
                 <Menu
                     disabled={!platform.endpoint}
-                    classes={{ trigger: cn(menuTrigger, onMode() ? 'text-fg' : 'text-fg-muted') }}
+                    classes={{ trigger: mergeClasses(menuTrigger, onMode() ? 'text-fg' : 'text-fg-muted') }}
                     trigger={(
                         <>
                             {currentMode().icon()}
@@ -110,7 +110,7 @@ export function Header() {
                 </Menu>
 
                 <Menu
-                    classes={{ trigger: cn(menuTrigger, routeName() === 'metadata' ? 'text-fg' : 'text-fg-muted') }}
+                    classes={{ trigger: mergeClasses(menuTrigger, routeName() === 'metadata' ? 'text-fg' : 'text-fg-muted') }}
                     trigger={(
                         <>
                             {t('header.tools')}
@@ -158,7 +158,7 @@ export function Header() {
                     variant='ghost'
                     title={t('common.settings')}
                     classes={{
-                        root: cn(
+                        root: mergeClasses(
                             'size-7 shrink-0 p-0',
                             routeName() === 'settings' ? 'bg-selected text-fg hover:bg-selected' : 'text-fg-secondary',
                         ),
@@ -215,7 +215,7 @@ function WindowControls() {
             <button
                 type='button'
                 title={t('header.close')}
-                class={cn(control, 'hover:bg-danger hover:text-on-stage')}
+                class={mergeClasses(control, 'hover:bg-danger hover:text-on-stage')}
                 onClick={currentWindow.close}
             >
                 <X
@@ -276,7 +276,7 @@ function ServiceStatus() {
         <Popover
             placement='bottom-end'
             classes={{
-                trigger: cn(
+                trigger: mergeClasses(
                     'flex h-7 shrink-0 items-center justify-center gap-1.5 rounded-md text-xs',
                     allUp() ? 'w-7' : 'px-2',
                     down().length > 0
@@ -288,9 +288,9 @@ function ServiceStatus() {
             trigger={(
                 <Show
                     when={!allUp()}
-                    fallback={<span class={cn('size-2 shrink-0 rounded-full', dotClass.up)} />}
+                    fallback={<span class={mergeClasses('size-2 shrink-0 rounded-full', dotClass.up)} />}
                 >
-                    <span class={cn('size-1.5 shrink-0 rounded-full', down().length > 0 ? dotClass.down : dotClass.unknown)} />
+                    <span class={mergeClasses('size-1.5 shrink-0 rounded-full', down().length > 0 ? dotClass.down : dotClass.unknown)} />
                     {down().length === 0
                         ? t('header.status.connecting')
                         : down().length === 1
@@ -302,7 +302,7 @@ function ServiceStatus() {
             <For each={services()}>
                 {service => (
                     <div class='flex h-8 items-center gap-2 px-2 text-xs'>
-                        <span class={cn('size-1.5 shrink-0 rounded-full', dotClass[service.state])} />
+                        <span class={mergeClasses('size-1.5 shrink-0 rounded-full', dotClass[service.state])} />
                         <span class='text-fg-secondary'>{service.name}</span>
                         <span class='ml-auto text-fg-muted'>
                             {t(`header.status.${service.state}`)}

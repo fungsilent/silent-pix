@@ -1,9 +1,9 @@
 import { Clock, Image as ImageIcon, ImageOff, LoaderCircle } from 'lucide-solid'
 import { Match, Switch } from 'solid-js'
 
-import { resolveImageUrl } from '#/api/image'
-import { cn } from '#/lib/cn'
+import { resolveImageUrl } from '#/data/image/image.api'
 import { t } from '#/lib/i18n'
+import { mergeClasses } from '#/utils/style'
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { JSX } from 'solid-js'
@@ -54,7 +54,7 @@ export function TaskThumbnail(props: TaskThumbnailProps) {
 
     return (
         <div
-            class={cn(
+            class={mergeClasses(
                 'relative overflow-hidden rounded-md border',
                 props.thumbnail
                     ? 'border-line-subtle bg-elevated'
@@ -65,7 +65,7 @@ export function TaskThumbnail(props: TaskThumbnailProps) {
             {props.thumbnail
                 ? (
                     <img
-                        class={cn('size-full object-cover', props.classes?.image)}
+                        class={mergeClasses('size-full object-cover', props.classes?.image)}
                         src={resolveImageUrl(props.thumbnail)}
                         alt={props.alt}
                         draggable={false}
@@ -73,7 +73,7 @@ export function TaskThumbnail(props: TaskThumbnailProps) {
                 )
                 : (
                     <div
-                        class={cn(
+                        class={mergeClasses(
                             'flex size-full items-center justify-center',
                             props.classes?.placeholder,
                         )}

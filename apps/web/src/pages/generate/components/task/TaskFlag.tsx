@@ -1,8 +1,8 @@
 import { FlagTriangleRight, HeartX } from 'lucide-solid'
 
 import { Button } from '#/components/base/Button'
-import { cn } from '#/lib/cn'
 import { theme } from '#/lib/theme'
+import { mergeClasses } from '#/utils/style'
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { JSX } from 'solid-js'
@@ -26,7 +26,7 @@ type TaskFlagControlsProps = {
 export function TaskFlagControls(props: TaskFlagControlsProps) {
     return (
         <div
-            class={cn(
+            class={mergeClasses(
                 'absolute flex opacity-0 group-hover:opacity-100 group-focus-within:opacity-100',
                 props.class,
             )}
@@ -75,7 +75,7 @@ function TaskFlagButton(props: TaskFlagButtonProps) {
             data-marquee-control='true'
             disabled={props.pending}
             classes={{
-                root: cn(
+                root: mergeClasses(
                     'shrink-0 rounded-md border-0 p-0',
                     props.compact ? 'size-6' : 'size-7',
                     props.active ? props.activeClass : theme.taskFlag.inactive,

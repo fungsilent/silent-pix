@@ -4,10 +4,10 @@ import { createEffect, onCleanup, Show } from 'solid-js'
 import { Portal } from 'solid-js/web'
 
 import { Callout } from '#/components/base/Callout'
-import { cn } from '#/lib/cn'
-import { overlayRoot } from '#/lib/overlayRoot'
+import { overlayRoot } from '#/lib/overlay-root'
 import { getPlatform } from '#/lib/platform'
 import { overlayStore } from '#/store/overlay'
+import { mergeClasses } from '#/utils/style'
 
 import type { OverlayId } from '#/store/overlay'
 import type { JSX } from 'solid-js'
@@ -66,31 +66,31 @@ export function Dialog(props: DialogProps) {
         >
             <Portal mount={overlayRoot()}>
                 <ArkDialog.Backdrop
-                    class={cn(
+                    class={mergeClasses(
                         'pointer-events-auto absolute inset-0 z-40 bg-backdrop',
                         props.classes?.backdrop,
                     )}
                 />
                 <ArkDialog.Positioner
-                    class={cn(
+                    class={mergeClasses(
                         'pointer-events-auto absolute inset-0 z-50 flex max-h-full items-center justify-center overflow-y-auto p-4',
                         props.classes?.positioner,
                     )}
                 >
                     <ArkDialog.Content
-                        class={cn(
+                        class={mergeClasses(
                             'flex max-h-full w-full max-w-lg flex-col overflow-hidden rounded-lg border border-line bg-surface text-fg-secondary shadow-2xl outline-none',
                             props.classes?.content,
                         )}
                     >
                         <div
-                            class={cn(
+                            class={mergeClasses(
                                 'flex shrink-0 items-start justify-between gap-4 border-b border-line-subtle px-4 py-3',
                                 props.classes?.header,
                             )}
                         >
                             <div class='min-w-0'>
-                                <ArkDialog.Title class={cn('m-0 text-base font-bold leading-tight text-fg', props.classes?.title)}>
+                                <ArkDialog.Title class={mergeClasses('m-0 text-base font-bold leading-tight text-fg', props.classes?.title)}>
                                     {props.title}
                                 </ArkDialog.Title>
                                 {props.description && (
@@ -110,7 +110,7 @@ export function Dialog(props: DialogProps) {
                             </ArkDialog.CloseTrigger>
                         </div>
                         <div
-                            class={cn(
+                            class={mergeClasses(
                                 'min-h-0 flex-1 overflow-y-auto p-4',
                                 props.classes?.body,
                             )}
@@ -122,7 +122,7 @@ export function Dialog(props: DialogProps) {
                         </Show>
                         {props.footer && (
                             <div
-                                class={cn(
+                                class={mergeClasses(
                                     'flex shrink-0 justify-end gap-2 border-t border-line-subtle px-4 py-3',
                                     props.classes?.footer,
                                 )}

@@ -1,7 +1,7 @@
 import { createMemo } from 'solid-js'
 
-import { useLoraListQuery, useSamplerListQuery, useTaskFeedQuery } from '#/features/task/task.query'
-import { useWorkflowListQuery } from '#/features/workflow/workflow.query'
+import { useLoraListQuery, useSamplerListQuery, useTaskFeedQuery } from '#/data/task/task.query'
+import { useWorkflowListQuery } from '#/data/workflow/workflow.query'
 import { toErrorMessage } from '#/lib/error'
 import { t } from '#/lib/i18n'
 import { generateFieldLabel } from '#/pages/generate/issue'

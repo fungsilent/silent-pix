@@ -1,4 +1,4 @@
-import { cn } from '#/lib/cn'
+import { mergeClasses } from '#/utils/style'
 
 type CenteredTextValue = string | number
 
@@ -11,7 +11,7 @@ type CenteredTextProps = {
 
 export function CenteredText(props: CenteredTextProps) {
     return (
-        <span class={cn('inline-grid place-items-center whitespace-nowrap leading-none', props.classes?.root)}>
+        <span class={mergeClasses('inline-grid place-items-center whitespace-nowrap leading-none', props.classes?.root)}>
             <span class='block [text-box:trim-both_cap_alphabetic]'>
                 {props.children}
             </span>

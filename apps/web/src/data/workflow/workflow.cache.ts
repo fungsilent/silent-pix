@@ -1,4 +1,4 @@
-import { workflowKeys } from '#/features/workflow/workflow.key'
+import { workflowKeys } from '#/data/workflow/workflow.key'
 
 import type { WorkflowApi } from '@silent-pix/shared'
 import type { QueryClient } from '@tanstack/solid-query'
@@ -6,7 +6,7 @@ import type { QueryClient } from '@tanstack/solid-query'
 type WorkflowList = WorkflowApi.GetWorkflowsResponse
 type WorkflowSummary = WorkflowApi.WorkflowSummary
 
-export function cacheWorkflowSaved(
+export function updateSavedWorkflowCache(
     queryClient: QueryClient,
     workflow: WorkflowApi.GetWorkflowResponse,
 ): WorkflowApi.GetWorkflowResponse | null {
@@ -14,17 +14,17 @@ export function cacheWorkflowSaved(
     if (queryClient.getQueryData(queryKey) === null) return null
 
     queryClient.setQueryData(queryKey, workflow)
-    applyWorkflowSummary(queryClient, toSummary(workflow))
+    updateWorkflowSummaryCache(queryClient, toSummary(workflow))
 
     return workflow
 }
 
-export function cacheWorkflowRemoved(
+export function updateArchivedOrDeletedWorkflowCache(
     queryClient: QueryClient,
     result: WorkflowApi.DeleteWorkflowResponse,
 ): void {
     if (result.disposition === 'deleted') {
-        applyWorkflowRemoved(queryClient, result.id)
+        removeWorkflowCache(queryClient, result.id)
 
         return
     }
@@ -39,12 +39,12 @@ export function cacheWorkflowRemoved(
             ? { ...current, archivedAt: summary.archivedAt, revision: summary.revision }
             : current,
     )
-    applyWorkflowSummary(queryClient, summary)
+    updateWorkflowSummaryCache(queryClient, summary)
 
     void queryClient.invalidateQueries({ queryKey })
 }
 
-export function applyWorkflowSummary(
+export function updateWorkflowSummaryCache(
     queryClient: QueryClient,
     summary: WorkflowSummary,
 ): void {
@@ -62,7 +62,7 @@ export function applyWorkflowSummary(
     })
 }
 
-export function applyWorkflowRemoved(
+export function removeWorkflowCache(
     queryClient: QueryClient,
     workflowId: string,
 ): void {
@@ -82,7 +82,7 @@ export function applyWorkflowRemoved(
     })
 }
 
-export function isCachedWorkflowCurrent(
+export function isWorkflowDetailCacheCurrent(
     queryClient: QueryClient,
     summary: WorkflowSummary,
 ): boolean {

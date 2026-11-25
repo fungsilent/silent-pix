@@ -4,8 +4,8 @@ import { createMemo, For, Show } from 'solid-js'
 import { Portal } from 'solid-js/web'
 
 import { Badge } from '#/components/base/Badge'
-import { cn } from '#/lib/cn'
 import { theme } from '#/lib/theme'
+import { mergeClasses } from '#/utils/style'
 
 import type { BadgeTone } from '#/components/base/Badge'
 
@@ -48,14 +48,14 @@ export function Select(props: SelectProps) {
                     props.onChange?.(value)
                 }
             }}
-            class={cn('flex min-w-0 flex-col gap-1.5', props.classes?.root)}
+            class={mergeClasses('flex min-w-0 flex-col gap-1.5', props.classes?.root)}
         >
-            <ArkSelect.Label class={cn('text-xs leading-none text-fg-muted', props.classes?.label)}>
+            <ArkSelect.Label class={mergeClasses('text-xs leading-none text-fg-muted', props.classes?.label)}>
                 {props.label}
             </ArkSelect.Label>
             <ArkSelect.Control>
                 <ArkSelect.Trigger
-                    class={cn(
+                    class={mergeClasses(
                         'flex h-7 w-full min-w-0 items-center justify-between gap-2 rounded-md border border-field-border bg-field px-3 text-left text-xs leading-none text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent/40',
                         theme.field.disabled,
                         props.classes?.trigger,
@@ -81,7 +81,7 @@ export function Select(props: SelectProps) {
             <Portal>
                 <ArkSelect.Positioner class='z-50'>
                     <ArkSelect.Content
-                        class={cn(
+                        class={mergeClasses(
                             'scrollbar-thin mt-1 max-h-[min(var(--available-height),320px)] min-w-[var(--reference-width)] overflow-y-auto rounded-md border border-line bg-elevated p-1 shadow-xl',
                             props.classes?.content,
                         )}
@@ -91,7 +91,7 @@ export function Select(props: SelectProps) {
                                 {option => (
                                     <ArkSelect.Item
                                         item={option}
-                                        class={cn(
+                                        class={mergeClasses(
                                             'flex h-8 cursor-default items-center justify-between gap-2 rounded px-2 text-xs text-fg outline-none data-[highlighted]:bg-accent/20',
                                             props.classes?.item,
                                         )}

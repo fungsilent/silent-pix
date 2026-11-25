@@ -2,16 +2,16 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-solid'
 import { For, onCleanup, onMount, Show } from 'solid-js'
 import { Portal } from 'solid-js/web'
 
-import { resolveImageUrl } from '#/api/image'
 import { Button } from '#/components/base/Button'
 import { CenteredText } from '#/components/base/CenteredText'
 import { ZoomControls } from '#/components/viewer/ZoomControls'
 import { ZoomStage } from '#/components/viewer/ZoomStage'
-import { cn } from '#/lib/cn'
-import { useHotkeys } from '#/lib/hotkey'
-import { createImageZoom } from '#/lib/imageZoom'
-import { overlayRoot } from '#/lib/overlayRoot'
+import { resolveImageUrl } from '#/data/image/image.api'
+import { createImageZoom } from '#/lib/image-zoom'
+import { useHotkeys } from '#/lib/keyboard'
+import { overlayRoot } from '#/lib/overlay-root'
 import { overlayStore } from '#/store/overlay'
+import { mergeClasses } from '#/utils/style'
 
 import type { ViewerImage } from '#/components/viewer/ZoomStage'
 import type { OverlayId } from '#/store/overlay'
@@ -57,7 +57,7 @@ export function ImageViewer(props: ImageViewerProps) {
                 <Button
                     variant='ghost'
                     classes={{
-                        root: cn(
+                        root: mergeClasses(
                             'relative h-full w-auto shrink-0 overflow-hidden rounded-md p-0',
                             index() === props.selectedIndex
                                 ? 'opacity-100 ring-2 ring-on-stage'
@@ -111,7 +111,7 @@ export function ImageViewer(props: ImageViewerProps) {
                 <Show when={hasMany()}>
                     <CenteredText
                         classes={{
-                            root: cn('absolute left-6 top-6 z-10 rounded-md border px-2.5 py-1 text-xs text-fg-secondary tabular-nums', glass),
+                            root: mergeClasses('absolute left-6 top-6 z-10 rounded-md border px-2.5 py-1 text-xs text-fg-secondary tabular-nums', glass),
                         }}
                     >
                         {`${props.selectedIndex + 1} / ${props.images.length}`}
@@ -121,7 +121,7 @@ export function ImageViewer(props: ImageViewerProps) {
                 <div class='absolute right-6 top-6 z-10 flex items-center gap-2'>
                     <Button
                         variant='ghost'
-                        classes={{ root: cn('size-8 rounded-md border p-0', glass) }}
+                        classes={{ root: mergeClasses('size-8 rounded-md border p-0', glass) }}
                         onClick={() => props.onClose()}
                     >
                         <X
@@ -134,7 +134,7 @@ export function ImageViewer(props: ImageViewerProps) {
                 <Show when={hasMany()}>
                     <Button
                         variant='ghost'
-                        classes={{ root: cn('absolute left-6 top-1/2 z-10 size-8 -translate-y-1/2 rounded-md border p-0', glass) }}
+                        classes={{ root: mergeClasses('absolute left-6 top-1/2 z-10 size-8 -translate-y-1/2 rounded-md border p-0', glass) }}
                         onClick={selectPrevious}
                     >
                         <ChevronLeft
@@ -144,7 +144,7 @@ export function ImageViewer(props: ImageViewerProps) {
                     </Button>
                     <Button
                         variant='ghost'
-                        classes={{ root: cn('absolute right-6 top-1/2 z-10 size-8 -translate-y-1/2 rounded-md border p-0', glass) }}
+                        classes={{ root: mergeClasses('absolute right-6 top-1/2 z-10 size-8 -translate-y-1/2 rounded-md border p-0', glass) }}
                         onClick={selectNext}
                     >
                         <ChevronRight
@@ -184,7 +184,7 @@ export function ImageViewer(props: ImageViewerProps) {
                             <div class='absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-2 pt-6 opacity-0 transition-opacity hover:opacity-100 focus-within:opacity-100'>
                                 {review().controls}
                                 <Show when={hasMany()}>
-                                    <div class={cn('flex h-20 items-center justify-center gap-2 rounded-lg border p-2', glass)}>
+                                    <div class={mergeClasses('flex h-20 items-center justify-center gap-2 rounded-lg border p-2', glass)}>
                                         {thumbnails()}
                                     </div>
                                 </Show>

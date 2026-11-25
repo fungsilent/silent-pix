@@ -1,7 +1,7 @@
 import { Field } from '@ark-ui/solid'
 
-import { cn } from '#/lib/cn'
 import { theme } from '#/lib/theme'
+import { mergeClasses } from '#/utils/style'
 
 type NumberProps = {
     label: string
@@ -20,8 +20,8 @@ type NumberProps = {
 
 export function Number(props: NumberProps) {
     return (
-        <Field.Root class={cn('flex min-w-0 flex-col gap-1.5', props.classes?.root)}>
-            <Field.Label class={cn('text-xs leading-none text-fg-muted', props.classes?.label)}>
+        <Field.Root class={mergeClasses('flex min-w-0 flex-col gap-1.5', props.classes?.root)}>
+            <Field.Label class={mergeClasses('text-xs leading-none text-fg-muted', props.classes?.label)}>
                 {props.label}
             </Field.Label>
             <Field.Input
@@ -31,7 +31,7 @@ export function Number(props: NumberProps) {
                 max={props.max}
                 step={props.step}
                 disabled={props.disabled}
-                class={cn(
+                class={mergeClasses(
                     'number-input h-7 min-w-0 rounded-md border border-field-border bg-field px-3 text-xs leading-none text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent/40',
                     theme.field.disabled,
                     props.classes?.input,

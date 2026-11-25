@@ -40,9 +40,10 @@ become task lifecycle authority.
 | `packages/db` | SQLite client, Drizzle schema/migrations, and maintenance scripts |
 | `packages/env` | Node-only base env loading and path resolution for Server and database scripts |
 
-Web uses Eden Treaty through its API modules. The composed Server `Api` is a
-type-only dependency; Server runtime code and backend-only configuration do not
-enter the browser. Web never accesses SQLite or ComfyUI directly. Its native
+Web creates its Eden Treaty client in `lib/api-client.ts` and calls endpoints
+through the domain API modules in `data`. The composed Server `Api` is a
+type-only dependency. Server runtime code and backend-only configuration stay
+on the Server. Web never accesses SQLite or ComfyUI directly. Its native
 bridge exposes no arbitrary commands or filesystem paths; Desktop owns native
 settings persistence and validation.
 
@@ -166,9 +167,10 @@ envelope once before publication or point-to-point send. Server outbound events
 and Web inbound events use the shared aggregate contract. Exact event payloads
 are owned by `packages/shared/src/event`.
 
-The Web event feature owns URL construction, connection lifecycle, parsing,
-connection status, reconnect recovery, and exhaustive dispatch. App startup only
-starts and cleans up that feature. Domain features own their cache handlers.
+The Web `app/server-events.ts` module owns URL construction, connection lifecycle,
+parsing, connection status, reconnect recovery, and exhaustive dispatch. App
+startup starts and cleans up the connection. Domain modules in `data` own their
+cache handlers.
 Task creation seeds the actor's feed/detail caches; remote creation events seed
 other clients. Reconnection invalidates Task, Workflow, and Image list queries.
 

@@ -1,5 +1,5 @@
 import { CenteredText } from '#/components/base/CenteredText'
-import { cn } from '#/lib/cn'
+import { mergeClasses } from '#/utils/style'
 
 export type BadgeTone =
     | 'danger'
@@ -25,7 +25,7 @@ export function Badge(props: BadgeProps) {
     return (
         <CenteredText
             classes={{
-                root: cn(
+                root: mergeClasses(
                     'h-5 shrink-0 rounded-md px-2 text-[0.72rem] font-medium',
                     toneClass[props.tone ?? 'neutral'],
                 ),

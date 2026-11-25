@@ -1,4 +1,4 @@
-import { cn } from '#/lib/cn'
+import { mergeClasses } from '#/utils/style'
 
 import type { JSX } from 'solid-js'
 
@@ -9,7 +9,7 @@ type DetailLabelProps = {
 
 export function DetailLabel(props: DetailLabelProps) {
     return (
-        <span class={cn('truncate text-xs leading-none text-fg-muted', props.class)}>
+        <span class={mergeClasses('truncate text-xs leading-none text-fg-muted', props.class)}>
             {props.children}
         </span>
     )

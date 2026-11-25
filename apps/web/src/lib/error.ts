@@ -1,4 +1,4 @@
-import { ApiError, networkErrorCode } from '#/api/api.client'
+import { ApiError, networkErrorCode } from '#/lib/api-client'
 import { t } from '#/lib/i18n'
 
 import type { ZodError } from 'zod'

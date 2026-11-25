@@ -1,14 +1,14 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/solid-query'
 
-import { taskApi } from '#/api/task'
-import { invalidateImageLists } from '#/features/image/image.cache'
+import { refreshImageListCache } from '#/data/image/image.cache'
+import { taskApi } from '#/data/task/task.api'
 import {
-    cacheCreatedTaskResponse,
-    cacheTaskFlagsPatched,
-    cacheTaskRenamed,
-} from '#/features/task/task.cache'
-import { applyTasksRemoved } from '#/features/task/task.event'
-import { taskKeys } from '#/features/task/task.key'
+    updateCreatedTaskCache,
+    updateRenamedTaskCache,
+    updateTaskFlagsCache,
+} from '#/data/task/task.cache'
+import { applyTasksRemoved } from '#/data/task/task.event'
+import { taskKeys } from '#/data/task/task.key'
 import { compareStore } from '#/store/compare'
 import { taskStore } from '#/store/task'
 
@@ -92,8 +92,8 @@ export function useCreateTaskMutation() {
         mutationKey: taskKeys.create(),
         mutationFn: (request: TaskApi.CreateTaskRequest) => taskApi.create(request),
         onSuccess: task => {
-            cacheCreatedTaskResponse(queryClient, task)
-            invalidateImageLists(queryClient)
+            updateCreatedTaskCache(queryClient, task)
+            refreshImageListCache(queryClient)
         },
     }))
 }
@@ -106,9 +106,9 @@ export function useRenameTaskMutation() {
             request: TaskApi.RenameTaskParams & TaskApi.RenameTaskRequest,
         ) => taskApi.rename(request),
         onSuccess: task => {
-            cacheTaskRenamed(queryClient, task)
+            updateRenamedTaskCache(queryClient, task)
             compareStore.updateTaskName(task.id, task.name)
-            invalidateImageLists(queryClient)
+            refreshImageListCache(queryClient)
         },
     }))
 }
@@ -119,8 +119,8 @@ export function useTaskFlagMutation() {
     return useMutation(() => ({
         mutationFn: (request: TaskApi.UpdateTaskFlagsRequest) => taskApi.setFlags(request),
         onSuccess: result => {
-            cacheTaskFlagsPatched(queryClient, result.tasks)
-            invalidateImageLists(queryClient)
+            updateTaskFlagsCache(queryClient, result.tasks)
+            refreshImageListCache(queryClient)
         },
     }))
 }

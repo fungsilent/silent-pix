@@ -1,14 +1,14 @@
 import { ChevronLeft, ChevronRight, Columns2, Expand, Image as ImageIcon, ImagePlus } from 'lucide-solid'
 import { For, onCleanup, onMount, Show } from 'solid-js'
 
-import { resolveImageUrl } from '#/api/image'
 import { Button } from '#/components/base/Button'
 import { Loading } from '#/components/base/Loading'
 import { StatusMessage } from '#/components/base/StatusMessage'
-import { cn } from '#/lib/cn'
+import { resolveImageUrl } from '#/data/image/image.api'
 import { t } from '#/lib/i18n'
 import { isEditableTarget } from '#/lib/keyboard'
 import { theme } from '#/lib/theme'
+import { mergeClasses } from '#/utils/style'
 
 import type { ImageApi } from '@silent-pix/shared'
 
@@ -71,7 +71,7 @@ export function ImageStage(props: ImageStageProps) {
 
     return (
         <section
-            class={cn(
+            class={mergeClasses(
                 theme.card, 'relative flex min-h-[240px] flex-1 flex-col',
                 selectedImage() ? 'bg-stage' : 'bg-stage-empty',
             )}
@@ -112,7 +112,7 @@ export function ImageStage(props: ImageStageProps) {
                     <Button
                         variant='ghost'
                         title={t('image.viewFull')}
-                        classes={{ root: cn('size-8 rounded-md border p-0', glass) }}
+                        classes={{ root: mergeClasses('size-8 rounded-md border p-0', glass) }}
                         onClick={props.onExpand}
                     >
                         <Expand
@@ -123,7 +123,7 @@ export function ImageStage(props: ImageStageProps) {
                     <Button
                         variant='ghost'
                         title={t('image.openInCompare')}
-                        classes={{ root: cn('size-8 rounded-md border p-0', glass) }}
+                        classes={{ root: mergeClasses('size-8 rounded-md border p-0', glass) }}
                         onClick={() => {
                             const image = selectedImage()
                             if (image) {
@@ -140,7 +140,7 @@ export function ImageStage(props: ImageStageProps) {
                     <Button
                         variant='ghost'
                         title={t('image.useAsReference')}
-                        classes={{ root: cn('size-8 rounded-md border p-0', glass) }}
+                        classes={{ root: mergeClasses('size-8 rounded-md border p-0', glass) }}
                         onClick={() => {
                             const image = selectedImage()
                             if (image) {
@@ -158,7 +158,7 @@ export function ImageStage(props: ImageStageProps) {
                 <Show when={hasMany()}>
                     <Button
                         variant='ghost'
-                        classes={{ root: cn('absolute left-3 top-1/2 size-8 -translate-y-1/2 rounded-md border p-0', glass) }}
+                        classes={{ root: mergeClasses('absolute left-3 top-1/2 size-8 -translate-y-1/2 rounded-md border p-0', glass) }}
                         onClick={selectPrevious}
                     >
                         <ChevronLeft
@@ -168,7 +168,7 @@ export function ImageStage(props: ImageStageProps) {
                     </Button>
                     <Button
                         variant='ghost'
-                        classes={{ root: cn('absolute right-3 top-1/2 size-8 -translate-y-1/2 rounded-md border p-0', glass) }}
+                        classes={{ root: mergeClasses('absolute right-3 top-1/2 size-8 -translate-y-1/2 rounded-md border p-0', glass) }}
                         onClick={selectNext}
                     >
                         <ChevronRight
@@ -186,7 +186,7 @@ export function ImageStage(props: ImageStageProps) {
                             <Button
                                 variant='ghost'
                                 classes={{
-                                    root: cn(
+                                    root: mergeClasses(
                                         'h-full w-auto shrink-0 overflow-hidden rounded-md p-0',
                                         index() === props.selectedIndex
                                             ? 'opacity-100 ring-2 ring-stage-fg'

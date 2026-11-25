@@ -2,7 +2,7 @@ import { comfy } from '@silent-pix/shared'
 import { createContextProvider } from '@solid-primitives/context'
 import { createEffect, createMemo, on } from 'solid-js'
 
-import { useWorkflowDetailQuery, useWorkflowListQuery } from '#/features/workflow/workflow.query'
+import { useWorkflowDetailQuery, useWorkflowListQuery } from '#/data/workflow/workflow.query'
 import { t } from '#/lib/i18n'
 import { toLineMarks as createLineMarks } from '#/pages/workflow/components/graph/graph.document'
 import { parseGraphText } from '#/pages/workflow/graph'

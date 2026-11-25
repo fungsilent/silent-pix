@@ -1,4 +1,4 @@
-import { getApiClient, getApiEndpoint, requestSignal, unwrap } from '#/api/api.client'
+import { getApiClient, getApiEndpoint, requestSignal, unwrap } from '#/lib/api-client'
 
 import type { ImageApi } from '@silent-pix/shared'
 

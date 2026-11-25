@@ -7,8 +7,8 @@ import { Loading } from '#/components/base/Loading'
 import { DetailSection } from '#/components/detail'
 import { Number, Slider } from '#/components/field'
 import { TaskLoraPickerDialog } from '#/components/task/detail/TaskLoraPickerDialog'
-import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
+import { mergeClasses } from '#/utils/style'
 
 import type { SelectOption } from '#/components/field'
 import type { Accessor } from 'solid-js'
@@ -105,7 +105,7 @@ export function TaskLora(props: TaskLoraProps) {
                                 <div class='flex flex-col gap-2 rounded-lg border border-line bg-surface px-2.5 py-2'>
                                     <div class='flex h-6 items-center gap-1.5'>
                                         <span
-                                            class={cn(
+                                            class={mergeClasses(
                                                 'min-w-0 flex-1 truncate text-xs leading-none',
                                                 isCreate() ? 'text-fg' : 'text-fg-secondary',
                                             )}

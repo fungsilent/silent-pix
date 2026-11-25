@@ -1,6 +1,6 @@
 import { Show } from 'solid-js'
 
-import { cn } from '#/lib/cn'
+import { mergeClasses } from '#/utils/style'
 
 import type { JSX } from 'solid-js'
 
@@ -14,7 +14,7 @@ type DetailGroupProps = {
 
 export function DetailGroup(props: DetailGroupProps) {
     return (
-        <div class={cn('flex flex-col gap-3', props.classes?.root)}>
+        <div class={mergeClasses('flex flex-col gap-3', props.classes?.root)}>
             <Show when={props.title}>
                 {title => (
                     <h4 class='m-0 text-xs font-semibold leading-none text-fg-secondary'>

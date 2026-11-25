@@ -1,6 +1,6 @@
 import { createSignal, onCleanup } from 'solid-js'
 
-import { ApiError, networkErrorCode } from '#/api/api.client'
+import { ApiError, networkErrorCode } from '#/lib/api-client'
 import { toErrorMessage } from '#/lib/error'
 
 import type { Accessor } from 'solid-js'

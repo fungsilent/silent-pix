@@ -1,7 +1,7 @@
 import { Field } from '@ark-ui/solid'
 
-import { cn } from '#/lib/cn'
 import { theme } from '#/lib/theme'
+import { mergeClasses } from '#/utils/style'
 
 import type { JSX } from 'solid-js'
 
@@ -27,15 +27,15 @@ type TextProps = {
 
 export function Text(props: TextProps) {
     return (
-        <Field.Root class={cn('flex min-w-0 flex-col gap-1.5', props.classes?.root)}>
-            <Field.Label class={cn('text-xs leading-none text-fg-muted', props.classes?.label)}>
+        <Field.Root class={mergeClasses('flex min-w-0 flex-col gap-1.5', props.classes?.root)}>
+            <Field.Label class={mergeClasses('text-xs leading-none text-fg-muted', props.classes?.label)}>
                 {props.label}
             </Field.Label>
-            <div class={cn('flex min-w-0 items-center gap-2', props.classes?.control)}>
-                <div class={cn('relative flex min-w-0 flex-1 items-center', props.classes?.field)}>
+            <div class={mergeClasses('flex min-w-0 items-center gap-2', props.classes?.control)}>
+                <div class={mergeClasses('relative flex min-w-0 flex-1 items-center', props.classes?.field)}>
                     {props.icon && (
                         <span
-                            class={cn('pointer-events-none absolute left-3 flex text-fg-muted', props.classes?.icon)}
+                            class={mergeClasses('pointer-events-none absolute left-3 flex text-fg-muted', props.classes?.icon)}
                         >
                             {props.icon}
                         </span>
@@ -45,7 +45,7 @@ export function Text(props: TextProps) {
                         value={props.value}
                         disabled={props.disabled}
                         placeholder={props.placeholder}
-                        class={cn(
+                        class={mergeClasses(
                             'h-7 w-full min-w-0 rounded-md border border-field-border bg-field px-3 text-xs leading-none text-fg outline-none placeholder:text-fg-muted focus:border-accent focus:ring-2 focus:ring-accent/40',
                             theme.field.disabled,
                             props.invalid && theme.field.invalid,
@@ -56,7 +56,7 @@ export function Text(props: TextProps) {
                     />
                 </div>
                 {props.action && (
-                    <div class={cn('shrink-0', props.classes?.action)}>
+                    <div class={mergeClasses('shrink-0', props.classes?.action)}>
                         {props.action}
                     </div>
                 )}

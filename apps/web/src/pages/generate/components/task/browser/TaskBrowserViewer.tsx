@@ -3,10 +3,10 @@ import { createEffect, createMemo, createSignal, For, onCleanup, onMount } from 
 
 import { Button } from '#/components/base/Button'
 import { ImageViewer } from '#/components/viewer/ImageViewer'
-import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
 import { isEditableTarget } from '#/lib/keyboard'
 import { useGenerateDetail } from '#/pages/generate/detail'
+import { mergeClasses } from '#/utils/style'
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { LucideProps } from 'lucide-solid'
@@ -153,7 +153,7 @@ function ReviewFlagBar(props: ReviewFlagBarProps) {
                         title={item.label()}
                         disabled={props.pending}
                         classes={{
-                            root: cn(
+                            root: mergeClasses(
                                 'h-7 gap-1.5 rounded border-0 px-2',
                                 props.current === item.flag ? reviewTone[item.flag].active : reviewTone[item.flag].idle,
                             ),

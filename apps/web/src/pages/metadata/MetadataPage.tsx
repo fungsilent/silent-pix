@@ -3,13 +3,13 @@ import { createSignal, onCleanup, onMount, Show } from 'solid-js'
 
 import { Callout } from '#/components/base/Callout'
 import { StatusMessage } from '#/components/base/StatusMessage'
-import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
-import { useIssueSource } from '#/lib/issue'
 import { theme } from '#/lib/theme'
 import { MetadataFilePanel } from '#/pages/metadata/components/MetadataFilePanel'
 import { MetadataResultPane } from '#/pages/metadata/components/MetadataResultPane'
 import MetadataWorker from '#/pages/metadata/metadata.worker?worker'
+import { useIssueSource } from '#/store/issue'
+import { mergeClasses } from '#/utils/style'
 
 import type { MetadataTab } from '#/pages/metadata/components/MetadataResultPane'
 import type { ImageMetadata, MetadataOutcome } from '#/pages/metadata/metadata.parse'
@@ -270,7 +270,7 @@ type OpeningScreenProps = {
 
 function OpeningScreen(props: OpeningScreenProps) {
     return (
-        <div class={cn(theme.card, 'relative flex min-w-0 flex-1 items-center justify-center bg-surface px-4')}>
+        <div class={mergeClasses(theme.card, 'relative flex min-w-0 flex-1 items-center justify-center bg-surface px-4')}>
             <Show when={props.dragging}>
                 <DropFrame />
             </Show>

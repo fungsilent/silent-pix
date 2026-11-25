@@ -1,4 +1,4 @@
-import { loraKeys, samplerKeys } from '#/features/task/task.query'
+import { loraKeys, samplerKeys } from '#/data/task/task.query'
 import { appStore } from '#/store/app'
 
 import type { Event } from '@silent-pix/shared'

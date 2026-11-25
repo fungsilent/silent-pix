@@ -2,11 +2,11 @@ import { Button } from '#/components/base/Button'
 import { Loading } from '#/components/base/Loading'
 import { TaskFlagOverlay } from '#/components/task/TaskFlagOverlay'
 import { TaskStatus } from '#/components/task/TaskStatus'
-import { cn } from '#/lib/cn'
-import { formatDate, formatTime } from '#/lib/format'
 import { theme } from '#/lib/theme'
 import { TaskFlagControls } from '#/pages/generate/components/task/TaskFlag'
 import { TaskThumbnail } from '#/pages/generate/components/task/TaskThumbnail'
+import { formatDate, formatTime } from '#/utils/date'
+import { mergeClasses } from '#/utils/style'
 
 import type { TaskApi } from '@silent-pix/shared'
 
@@ -30,7 +30,7 @@ export function TaskItem(props: TaskItemProps) {
             <Button
                 variant='ghost'
                 classes={{
-                    root: cn(
+                    root: mergeClasses(
                         taskItemRootBaseClasses,
                         props.selected
                             ? theme.selected
@@ -96,9 +96,9 @@ type TaskItemSkeletonProps = {
 export function TaskItemSkeleton(props: TaskItemSkeletonProps) {
     return (
         <div
-            class={cn(taskItemRootBaseClasses, 'pointer-events-none')}
+            class={mergeClasses(taskItemRootBaseClasses, 'pointer-events-none')}
         >
-            <Loading.Skeleton class={cn(taskThumbnailBaseClasses, 'border-transparent rounded-md')} />
+            <Loading.Skeleton class={mergeClasses(taskThumbnailBaseClasses, 'border-transparent rounded-md')} />
 
             {!props.thumbnailOnly && (
                 <div class='flex min-w-0 flex-1 flex-col items-start gap-1.5'>

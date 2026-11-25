@@ -1,9 +1,9 @@
 import {
-    applyWorkflowRemoved,
-    applyWorkflowSummary,
-    isCachedWorkflowCurrent,
-} from '#/features/workflow/workflow.cache'
-import { workflowKeys } from '#/features/workflow/workflow.key'
+    isWorkflowDetailCacheCurrent,
+    removeWorkflowCache,
+    updateWorkflowSummaryCache,
+} from '#/data/workflow/workflow.cache'
+import { workflowKeys } from '#/data/workflow/workflow.key'
 
 import type { Event } from '@silent-pix/shared'
 import type { QueryClient } from '@tanstack/solid-query'
@@ -17,9 +17,9 @@ export function handleWorkflowChanged(
     queryClient: QueryClient,
     event: Event.Workflow.Changed,
 ): void {
-    applyWorkflowSummary(queryClient, event.workflow)
+    updateWorkflowSummaryCache(queryClient, event.workflow)
 
-    if (isCachedWorkflowCurrent(queryClient, event.workflow)) {
+    if (isWorkflowDetailCacheCurrent(queryClient, event.workflow)) {
         return
     }
 
@@ -32,5 +32,5 @@ export function handleWorkflowRemoved(
     queryClient: QueryClient,
     event: Event.Workflow.Removed,
 ): void {
-    applyWorkflowRemoved(queryClient, event.workflowId)
+    removeWorkflowCache(queryClient, event.workflowId)
 }

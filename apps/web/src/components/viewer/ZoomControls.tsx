@@ -4,7 +4,7 @@ import { createSignal, Show } from 'solid-js'
 import { Button } from '#/components/base/Button'
 import { t } from '#/lib/i18n'
 
-import type { createImageZoom } from '#/lib/imageZoom'
+import type { createImageZoom } from '#/lib/image-zoom'
 
 type Zoom = ReturnType<typeof createImageZoom>
 

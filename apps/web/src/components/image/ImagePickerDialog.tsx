@@ -10,7 +10,6 @@ import {
 } from 'lucide-solid'
 import { createEffect, createSignal, For, Show } from 'solid-js'
 
-import { resolveImageUrl } from '#/api/image'
 import { Button } from '#/components/base/Button'
 import { Dialog } from '#/components/base/Dialog'
 import { FilterChips } from '#/components/base/FilterChips'
@@ -18,14 +17,15 @@ import { Loading } from '#/components/base/Loading'
 import { SelectedCountChip } from '#/components/base/SelectedCountChip'
 import { StatusMessage } from '#/components/base/StatusMessage'
 import { Text } from '#/components/field'
+import { originLabel } from '#/components/image/image.label'
 import { ImageTypeBadge } from '#/components/image/ImageTypeBadge'
 import { createThumbnailGrid, ThumbnailSizeSlider } from '#/components/image/ThumbnailSize'
 import { TaskFlagOverlay } from '#/components/task/TaskFlagOverlay'
-import { originLabel } from '#/features/image/image.label'
-import { useImageListQuery } from '#/features/image/image.query'
-import { cn } from '#/lib/cn'
+import { resolveImageUrl } from '#/data/image/image.api'
+import { useImageListQuery } from '#/data/image/image.query'
 import { t } from '#/lib/i18n'
-import { createLoadOnScroll } from '#/lib/loadOnScroll'
+import { createLoadOnScroll } from '#/lib/load-on-scroll'
+import { mergeClasses } from '#/utils/style'
 
 import type { ImageApi, TaskApi } from '@silent-pix/shared'
 import type { LucideProps } from 'lucide-solid'
@@ -344,7 +344,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                                                     variant='ghost'
                                                     disabled={disabled()}
                                                     classes={{
-                                                        root: cn(
+                                                        root: mergeClasses(
                                                             'group block w-full min-w-0 rounded-lg border border-transparent p-2 text-left hover:bg-hover',
                                                             selected() && 'border-accent bg-accent/20 ring-2 ring-accent/40 hover:bg-accent/20',
                                                             disabled() && 'hover:bg-transparent',
@@ -371,7 +371,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                                                         </Show>
                                                         <Show when={!disabled()}>
                                                             <span
-                                                                class={cn(
+                                                                class={mergeClasses(
                                                                     'absolute right-1 top-1 grid size-7 place-items-center rounded-md',
                                                                     selected()
                                                                         ? 'bg-accent text-[10px] font-bold text-on-stage'

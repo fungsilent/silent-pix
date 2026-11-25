@@ -1,7 +1,6 @@
 import { useQueryClient } from '@tanstack/solid-query'
 import { createSignal, Show } from 'solid-js'
 
-import { probeConnection } from '#/api/connection'
 import { Button } from '#/components/base/Button'
 import { Dialog } from '#/components/base/Dialog'
 import { FieldHint } from '#/components/base/FieldHint'
@@ -10,14 +9,15 @@ import { SegmentGroup } from '#/components/base/SegmentGroup'
 import { StatusMessage } from '#/components/base/StatusMessage'
 import { DetailSection } from '#/components/detail'
 import { Select, Text } from '#/components/field'
-import { cn } from '#/lib/cn'
+import { probeConnection } from '#/data/app/app.api'
 import { localeStore, t } from '#/lib/i18n'
-import { useIssueSource } from '#/lib/issue'
 import { getPlatform, saveLocalServerUrl, validateLocalServerUrl } from '#/lib/platform'
 import { theme } from '#/lib/theme'
 import { routePaths } from '#/routes'
 import { devStore } from '#/store/dev'
+import { useIssueSource } from '#/store/issue'
 import { themeStore } from '#/store/theme'
+import { mergeClasses } from '#/utils/style'
 
 import type { SegmentGroupOption } from '#/components/base/SegmentGroup'
 import type { LocalServerUrl } from '#/lib/platform'
@@ -133,7 +133,7 @@ export function SettingsPage() {
     }
 
     return (
-        <section class={cn(theme.card, 'flex min-h-0 flex-1 flex-col')}>
+        <section class={mergeClasses(theme.card, 'flex min-h-0 flex-1 flex-col')}>
             <div class='scrollbar-thin min-h-0 flex-1 overflow-y-auto bg-surface px-4 pt-6 pb-5'>
                 <div class='mx-auto flex w-full max-w-[640px] flex-col gap-3'>
                     <h2 class='m-0 mb-2 text-base font-semibold leading-6 text-fg'>{t('common.settings')}</h2>
@@ -319,8 +319,8 @@ function ConnectionState(props: { status: ConnectionStatus | undefined }) {
             {status => {
                 const connected = status() === 'connected'
                 return (
-                    <span class={cn('flex items-center gap-1.5 text-[11px]', connected ? 'text-success-fg' : 'text-danger-fg')}>
-                        <span class={cn('size-1.5 shrink-0 rounded-full', connected ? 'bg-success' : 'bg-danger')} />
+                    <span class={mergeClasses('flex items-center gap-1.5 text-[11px]', connected ? 'text-success-fg' : 'text-danger-fg')}>
+                        <span class={mergeClasses('size-1.5 shrink-0 rounded-full', connected ? 'bg-success' : 'bg-danger')} />
                         {connected ? t('settings.connected') : t('settings.connectionFailed')}
                     </span>
                 )

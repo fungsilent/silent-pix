@@ -5,16 +5,16 @@ import { Loading } from '#/components/base/Loading'
 import { CollapseButton, Panel, PanelContent } from '#/components/base/Panel'
 import { StatusMessage } from '#/components/base/StatusMessage'
 import { Text } from '#/components/field/Text'
-import { useTaskFeedQuery, useTaskFlagMutation } from '#/features/task/task.query'
-import { cn } from '#/lib/cn'
+import { useTaskFeedQuery, useTaskFlagMutation } from '#/data/task/task.query'
 import { t } from '#/lib/i18n'
-import { toFailureIssue, useIssueSource } from '#/lib/issue'
-import { createLoadOnScroll } from '#/lib/loadOnScroll'
+import { createLoadOnScroll } from '#/lib/load-on-scroll'
 import { theme } from '#/lib/theme'
 import { TaskItem, TaskItemSkeleton } from '#/pages/generate/components/task/list/TaskItem'
 import { taskFilterEmptyCopy } from '#/pages/generate/components/task/TaskFilterChips'
 import { TaskRail } from '#/pages/generate/components/task/TaskRail'
+import { toFailureIssue, useIssueSource } from '#/store/issue'
 import { taskStore } from '#/store/task'
+import { mergeClasses } from '#/utils/style'
 
 const taskSkeletonRows = [0, 1, 2, 3, 4, 5]
 const nextPageSkeletonRows = [0, 1]
@@ -39,7 +39,7 @@ export function TaskList() {
     return (
         <Panel
             classes={{
-                root: cn(theme.card, 'w-max max-[720px]:hidden'),
+                root: mergeClasses(theme.card, 'w-max max-[720px]:hidden'),
             }}
         >
             {panel => (
@@ -54,7 +54,7 @@ export function TaskList() {
                         gridActive={false}
                         onFilterChange={taskStore.setFeedTaskFlags}
                     />
-                    <div class={cn('flex min-h-0 min-w-0 flex-col', panel.isCollapsed() ? 'w-[106px]' : 'w-[250px]')}>
+                    <div class={mergeClasses('flex min-h-0 min-w-0 flex-col', panel.isCollapsed() ? 'w-[106px]' : 'w-[250px]')}>
                         {/* 透明底線：與 Task browser 工具列同樣是 48px 含 1px 底線，搜尋欄位置與 baseline 一致 */}
                         <div class='flex h-12 shrink-0 items-center border-b border-transparent px-2'>
                             <div class='flex w-0 min-w-full'>

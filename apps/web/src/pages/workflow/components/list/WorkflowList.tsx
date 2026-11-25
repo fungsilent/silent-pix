@@ -8,10 +8,10 @@ import { Line } from '#/components/base/Line'
 import { Loading } from '#/components/base/Loading'
 import { StatusMessage } from '#/components/base/StatusMessage'
 import { DetailTitle } from '#/components/detail'
-import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
 import { theme } from '#/lib/theme'
 import { useWorkflowStore } from '#/pages/workflow/store'
+import { mergeClasses } from '#/utils/style'
 
 const listSkeletonRows = [0, 1, 2, 3, 4, 5, 6, 7]
 
@@ -24,7 +24,7 @@ export function WorkflowList() {
     const draftName = page.form.useSelector(state => state.values.name)
 
     return (
-        <aside class={cn(theme.card, 'flex w-[200px] flex-none flex-col bg-surface')}>
+        <aside class={mergeClasses(theme.card, 'flex w-[200px] flex-none flex-col bg-surface')}>
             <Bar.Root classes={{ root: 'pl-3 pr-2' }}>
                 <Bar.Group>
                     <Bar.Title>{t('workflow.title')}</Bar.Title>
@@ -128,7 +128,7 @@ function Row(props: RowProps) {
 
     return (
         <div
-            class={cn(
+            class={mergeClasses(
                 'flex h-[34px] shrink-0 items-center gap-2 rounded-md px-2.5',
                 selected()
                     ? theme.selected

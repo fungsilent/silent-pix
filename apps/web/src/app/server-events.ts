@@ -1,13 +1,13 @@
 import { createEventClient } from '@silent-pix/event/client'
 import { event } from '@silent-pix/shared'
 
-import { clientId, getApiEndpoint } from '#/api/api.client'
-import { handleHealthSnapshot } from '#/features/app/app.event'
-import { invalidateImageLists } from '#/features/image/image.cache'
-import { handleTaskChanged, handleTaskCreated, handleTaskRemoved } from '#/features/task/task.event'
-import { taskKeys } from '#/features/task/task.key'
-import { handleWorkflowChanged, handleWorkflowRemoved } from '#/features/workflow/workflow.event'
-import { workflowKeys } from '#/features/workflow/workflow.key'
+import { handleHealthSnapshot } from '#/data/app/app.event'
+import { refreshImageListCache } from '#/data/image/image.cache'
+import { handleTaskChanged, handleTaskCreated, handleTaskRemoved } from '#/data/task/task.event'
+import { taskKeys } from '#/data/task/task.key'
+import { handleWorkflowChanged, handleWorkflowRemoved } from '#/data/workflow/workflow.event'
+import { workflowKeys } from '#/data/workflow/workflow.key'
+import { clientId, getApiEndpoint } from '#/lib/api-client'
 import { appStore } from '#/store/app'
 
 import type { Event } from '@silent-pix/shared'
@@ -37,7 +37,7 @@ export function startServerEvents(queryClient: QueryClient): () => void {
                 /* 斷線期間錯過的事件，相關 domain 都要補 */
                 void queryClient.invalidateQueries({ queryKey: taskKeys.all })
                 void queryClient.invalidateQueries({ queryKey: workflowKeys.all })
-                void invalidateImageLists(queryClient)
+                void refreshImageListCache(queryClient)
                 return
             }
 

@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/solid-query'
 
-import { ApiError } from '#/api/api.client'
-import { workflowApi } from '#/api/workflow'
-import { applyWorkflowRemoved, cacheWorkflowRemoved, cacheWorkflowSaved } from '#/features/workflow/workflow.cache'
-import { workflowKeys } from '#/features/workflow/workflow.key'
+import { workflowApi } from '#/data/workflow/workflow.api'
+import { removeWorkflowCache, updateArchivedOrDeletedWorkflowCache, updateSavedWorkflowCache } from '#/data/workflow/workflow.cache'
+import { workflowKeys } from '#/data/workflow/workflow.key'
+import { ApiError } from '#/lib/api-client'
 
 import type { WorkflowApi } from '@silent-pix/shared'
 import type { Accessor } from 'solid-js'
@@ -59,7 +59,7 @@ export function useCreateWorkflowMutation() {
 
     return useMutation(() => ({
         mutationFn: async (request: WorkflowApi.CreateWorkflowRequest) =>
-            cacheWorkflowSaved(queryClient, await workflowApi.create(request)),
+            updateSavedWorkflowCache(queryClient, await workflowApi.create(request)),
     }))
 }
 
@@ -69,7 +69,7 @@ export function useDeleteWorkflowMutation() {
     return useMutation(() => ({
         mutationFn: (request: WorkflowApi.GetWorkflowRequest) => workflowApi.remove(request),
         onSuccess: (result: WorkflowApi.DeleteWorkflowResponse) => {
-            cacheWorkflowRemoved(queryClient, result)
+            updateArchivedOrDeletedWorkflowCache(queryClient, result)
         },
     }))
 }
@@ -80,9 +80,9 @@ export function useUpdateWorkflowMutation() {
     return useMutation(() => ({
         mutationFn: async (
             request: WorkflowApi.UpdateWorkflowParams & WorkflowApi.UpdateWorkflowRequest,
-        ) => cacheWorkflowSaved(queryClient, await workflowApi.update(request)),
+        ) => updateSavedWorkflowCache(queryClient, await workflowApi.update(request)),
         onError: (error, { workflowId }) => {
-            if (isWorkflowNotFound(error)) applyWorkflowRemoved(queryClient, workflowId)
+            if (isWorkflowNotFound(error)) removeWorkflowCache(queryClient, workflowId)
         },
     }))
 }

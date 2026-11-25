@@ -1,4 +1,4 @@
-import { taskKeys } from '#/features/task/task.key'
+import { taskKeys } from '#/data/task/task.key'
 
 import type { Event, ImageApi, TaskApi } from '@silent-pix/shared'
 import type { InfiniteData, QueryClient } from '@tanstack/solid-query'
@@ -11,7 +11,7 @@ type FeedWriteResult = {
     invalidate: boolean
 }
 
-export function cacheCreatedTaskResponse(
+export function updateCreatedTaskCache(
     queryClient: QueryClient,
     task: TaskApi.CreateTaskResponse,
 ): void {
@@ -26,10 +26,10 @@ export function cacheCreatedTaskResponse(
         taskKeys.detail({ taskId: task.id }),
         current => current ?? currentTask,
     )
-    cacheTaskCreated(queryClient, latestSnapshot ?? toTaskSnapshot(task))
+    updateCreatedTaskSnapshotCache(queryClient, latestSnapshot ?? toTaskSnapshot(task))
 }
 
-export function cacheTaskRenamed(
+export function updateRenamedTaskCache(
     queryClient: QueryClient,
     task: TaskApi.RenameTaskResponse,
 ): void {
@@ -51,7 +51,7 @@ export function cacheTaskRenamed(
         ))
 }
 
-export function cacheTaskCreated(
+export function updateCreatedTaskSnapshotCache(
     queryClient: QueryClient,
     task: Event.Task.Snapshot,
 ): void {
@@ -65,7 +65,7 @@ export function cacheTaskCreated(
         : updateTaskFeed(current, scope, toTaskListItem(task)))
 }
 
-export function cacheTaskChanged(
+export function updateTaskSnapshotCache(
     queryClient: QueryClient,
     task: Event.Task.Snapshot,
 ): void {
@@ -83,7 +83,7 @@ export function cacheTaskChanged(
     )
 }
 
-export function cacheTaskFlagsPatched(
+export function updateTaskFlagsCache(
     queryClient: QueryClient,
     tasks: TaskApi.TaskFlagState[],
 ): void {
@@ -180,7 +180,7 @@ export function cacheTaskFlagsPatched(
     })
 }
 
-export function cacheTasksRemoved(
+export function removeTaskCache(
     queryClient: QueryClient,
     taskIds: string[],
 ): void {

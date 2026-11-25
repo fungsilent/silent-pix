@@ -1,6 +1,6 @@
 import { splitProps } from 'solid-js'
 
-import { cn } from '#/lib/cn'
+import { mergeClasses } from '#/utils/style'
 
 import type { JSX } from 'solid-js'
 
@@ -19,7 +19,7 @@ type ButtonProps = JSX.ButtonHTMLAttributes<HTMLButtonElement> & {
 
 /*
  * variant 表示視覺重量，tone 表示 semantic color；classes.root 只補尺寸與版位。
- * 真要覆蓋顏色也可以——cn() 走 twMerge，後面的會蓋掉前面的。
+ * 真要覆蓋顏色也可以——mergeClasses() 走 twMerge，後面的會蓋掉前面的。
  */
 const variantClass: Record<ButtonVariant, Record<ButtonTone, string>> = {
     ghost: {
@@ -60,7 +60,7 @@ export function Button(props: ButtonProps) {
         <button
             {...rest}
             type={local.type ?? 'button'}
-            class={cn(
+            class={mergeClasses(
                 'flex items-center justify-center gap-2 rounded-md border border-transparent px-3 py-[5px] text-xs outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40',
                 'disabled:opacity-60',
                 local.size && sizeClass[local.size],

@@ -1,7 +1,6 @@
 import { Eye, EyeOff, ImageOff, ImagePlus, ListX, X } from 'lucide-solid'
 import { createEffect, createMemo, createSignal, For, onCleanup, onMount, Show } from 'solid-js'
 
-import { resolveImageUrl } from '#/api/image'
 import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
 import { CenteredText } from '#/components/base/CenteredText'
@@ -9,13 +8,14 @@ import { StatusMessage } from '#/components/base/StatusMessage'
 import { ImagePickerDialog } from '#/components/image/ImagePickerDialog'
 import { ZoomControls } from '#/components/viewer/ZoomControls'
 import { ZoomStage } from '#/components/viewer/ZoomStage'
-import { cn } from '#/lib/cn'
+import { resolveImageUrl } from '#/data/image/image.api'
 import { t } from '#/lib/i18n'
-import { createImageZoom } from '#/lib/imageZoom'
+import { createImageZoom } from '#/lib/image-zoom'
 import { isEditableTarget } from '#/lib/keyboard'
 import { theme } from '#/lib/theme'
 import { compareStore } from '#/store/compare'
 import { overlayStore } from '#/store/overlay'
+import { mergeClasses } from '#/utils/style'
 
 import type { ImageApi } from '@silent-pix/shared'
 import type { CompareEntry } from '#/store/compare'
@@ -116,7 +116,7 @@ export function CompareWorkspace() {
 
     return (
         <section
-            class={cn(theme.card, 'flex min-h-0 min-w-0 flex-1 flex-col bg-canvas')}
+            class={mergeClasses(theme.card, 'flex min-h-0 min-w-0 flex-1 flex-col bg-canvas')}
         >
             <Show
                 when={allEntries().length > 0}
@@ -291,7 +291,7 @@ function CompareThumbnailStrip(props: CompareThumbnailStripProps) {
                             <Button
                                 variant='ghost'
                                 classes={{
-                                    root: cn(
+                                    root: mergeClasses(
                                         'relative h-full w-auto shrink-0 overflow-hidden rounded-md p-0',
                                         selected() && 'ring-2 ring-stage-fg',
                                     ),
@@ -299,7 +299,7 @@ function CompareThumbnailStrip(props: CompareThumbnailStripProps) {
                                 onClick={() => props.onSelect(entry.image.id)}
                             >
                                 <img
-                                    class={cn('h-full w-auto object-contain', entry.hidden && 'opacity-40 grayscale')}
+                                    class={mergeClasses('h-full w-auto object-contain', entry.hidden && 'opacity-40 grayscale')}
                                     src={resolveImageUrl(entry.image.url)}
                                     alt=''
                                     onError={() => props.onImageError(entry.image.id)}
@@ -317,7 +317,7 @@ function CompareThumbnailStrip(props: CompareThumbnailStripProps) {
                             <Button
                                 variant='ghost'
                                 classes={{
-                                    root: cn(
+                                    root: mergeClasses(
                                         corner,
                                         'left-1 group-hover:bg-stage-control-hover group-hover:text-on-stage group-hover:ring-0',
                                         selected() ? 'bg-accent text-on-stage hover:bg-accent' : 'bg-stage-overlay text-stage-overlay-label ring-1 ring-stage-ring hover:bg-stage-overlay',
@@ -336,7 +336,7 @@ function CompareThumbnailStrip(props: CompareThumbnailStripProps) {
                             </Button>
                             <Button
                                 variant='ghost'
-                                classes={{ root: cn(corner, 'right-1 size-[18px] bg-stage-control-hover p-0 text-on-stage opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-stage-control-hover hover:text-stage-danger') }}
+                                classes={{ root: mergeClasses(corner, 'right-1 size-[18px] bg-stage-control-hover p-0 text-on-stage opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-stage-control-hover hover:text-stage-danger') }}
                                 onClick={() => props.onRemove(entry.image.id)}
                             >
                                 <X

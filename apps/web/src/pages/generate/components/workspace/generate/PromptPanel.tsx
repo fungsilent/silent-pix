@@ -5,9 +5,7 @@ import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
 import { Loading } from '#/components/base/Loading'
 import { Splitter } from '#/components/base/Splitter'
-import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
-import { issueList, useIssueSource } from '#/lib/issue'
 import { evenPair, splitPair } from '#/lib/splitter'
 import { theme } from '#/lib/theme'
 import { promptMinHeight } from '#/pages/generate/components/workspace/generate/prompt/prompt.theme'
@@ -15,6 +13,8 @@ import { PromptEditor } from '#/pages/generate/components/workspace/generate/pro
 import { useGenerateDetail } from '#/pages/generate/detail'
 import { useRuntimeIssues } from '#/pages/generate/issue.runtime'
 import { useGenerateSession } from '#/pages/generate/session'
+import { issueList, useIssueSource } from '#/store/issue'
+import { mergeClasses } from '#/utils/style'
 
 import type { PromptDocument } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
 import type { PromptKind } from '#/pages/generate/form'
@@ -66,7 +66,7 @@ export function PromptPanel() {
     }
 
     return (
-        <section class={cn(theme.card, 'flex min-h-0 flex-col bg-surface')}>
+        <section class={mergeClasses(theme.card, 'flex min-h-0 flex-col bg-surface')}>
             <Bar.Root>
                 <Bar.Group>
                     <Bar.Title>{t('fields.prompt')}</Bar.Title>
@@ -164,7 +164,7 @@ function PromptToggle(props: PromptToggleProps) {
             size='bar'
             tone={props.visible ? 'accent' : 'neutral'}
             classes={{
-                root: cn(
+                root: mergeClasses(
                     'gap-1.5 leading-none outline outline-1 outline-offset-0',
                     props.visible
                         ? 'outline-accent/40'

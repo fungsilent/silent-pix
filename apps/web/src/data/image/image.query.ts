@@ -1,10 +1,10 @@
 import { useInfiniteQuery } from '@tanstack/solid-query'
 
-import { imageApi } from '#/api/image'
-import { imageKeys } from '#/features/image/image.key'
+import { imageApi } from '#/data/image/image.api'
+import { imageKeys } from '#/data/image/image.key'
 
 import type { ImageApi } from '@silent-pix/shared'
-import type { ImageListQueryInput } from '#/features/image/image.key'
+import type { ImageListQueryInput } from '#/data/image/image.key'
 import type { Accessor } from 'solid-js'
 
 const imageListLimit = 30

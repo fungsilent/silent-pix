@@ -3,11 +3,11 @@ import { For, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { Popover } from '#/components/base/Popover'
-import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
-import { sortIssues } from '#/lib/issue'
+import { sortIssues } from '#/store/issue'
+import { mergeClasses } from '#/utils/style'
 
-import type { AppIssue, IssueTone } from '#/lib/issue'
+import type { AppIssue, IssueTone } from '#/store/issue'
 
 type IssueChipProps = {
     issues: AppIssue[]
@@ -36,7 +36,7 @@ export function IssueChip(props: IssueChipProps) {
                 open={props.open}
                 placement='bottom-end'
                 classes={{
-                    trigger: cn(
+                    trigger: mergeClasses(
                         'issue-chip group flex h-7 shrink-0 items-center gap-1.5 rounded-md border pl-[9px] pr-2 text-xs leading-none transition-colors duration-[140ms] ease-out',
                         chipToneClass[tone()],
                     ),
@@ -65,7 +65,7 @@ export function IssueChip(props: IssueChipProps) {
                     {issue => (
                         <div class='flex items-start gap-2 px-2.5 py-2 [&+&]:border-t [&+&]:border-line-subtle'>
                             <TriangleAlert
-                                class={cn('mt-px shrink-0', iconToneClass[issue.tone])}
+                                class={mergeClasses('mt-px shrink-0', iconToneClass[issue.tone])}
                                 size={12}
                                 strokeWidth={2}
                             />

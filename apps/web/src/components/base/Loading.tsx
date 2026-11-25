@@ -1,7 +1,7 @@
 import { Show } from 'solid-js'
 
-import { cn } from '#/lib/cn'
 import { isColdLoading } from '#/store/dev'
+import { mergeClasses } from '#/utils/style'
 
 import type { Accessor, JSX } from 'solid-js'
 
@@ -48,7 +48,7 @@ function Mask(props: WrapProps) {
     const loading = isColdLoading(() => props.loading())
 
     return (
-        <div class={cn('relative min-w-0', props.class)}>
+        <div class={mergeClasses('relative min-w-0', props.class)}>
             {props.children}
             <Show when={loading()}>
                 <Skeleton class='absolute inset-0' />
@@ -66,7 +66,7 @@ function Control(props: WrapProps) {
     const loading = isColdLoading(() => props.loading())
 
     return (
-        <div class={cn('relative min-w-0', props.class)}>
+        <div class={mergeClasses('relative min-w-0', props.class)}>
             {props.children}
             <Show when={loading()}>
                 <Skeleton class='absolute inset-x-0 bottom-0 h-7' />
@@ -97,7 +97,7 @@ function Hide(props: WrapProps) {
 function Skeleton(props: SkeletonProps) {
     return (
         <span
-            class={cn('skeleton pointer-events-none block rounded-md', props.class)}
+            class={mergeClasses('skeleton pointer-events-none block rounded-md', props.class)}
         />
     )
 }

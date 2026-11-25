@@ -1,7 +1,7 @@
 import { SegmentGroup as ArkSegmentGroup } from '@ark-ui/solid'
 import { For, Show } from 'solid-js'
 
-import { cn } from '#/lib/cn'
+import { mergeClasses } from '#/utils/style'
 
 import type { JSX } from 'solid-js'
 
@@ -27,7 +27,7 @@ export function SegmentGroup<Value extends string>(props: SegmentGroupProps<Valu
             value={props.value}
             disabled={props.disabled}
             orientation='horizontal'
-            class={cn('flex h-7 w-fit shrink-0 items-center gap-0.5 rounded-md border border-line-subtle bg-elevated p-px', props.classes?.root)}
+            class={mergeClasses('flex h-7 w-fit shrink-0 items-center gap-0.5 rounded-md border border-line-subtle bg-elevated p-px', props.classes?.root)}
             onValueChange={details => {
                 const option = props.options.find(item => item.value === details.value)
                 if (option) props.onChange(option.value)
@@ -37,7 +37,7 @@ export function SegmentGroup<Value extends string>(props: SegmentGroupProps<Valu
                 {option => (
                     <ArkSegmentGroup.Item
                         value={option.value}
-                        class={cn(
+                        class={mergeClasses(
                             'flex h-6 items-center justify-center rounded border border-transparent px-2.5 font-medium',
                             option.icon ? 'gap-1.5 text-xs' : 'min-w-[50px] text-[11.5px]',
                             'bg-transparent text-fg-muted hover:bg-hover',

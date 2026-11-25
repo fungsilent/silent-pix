@@ -1,7 +1,7 @@
 import { Popover as ArkPopover } from '@ark-ui/solid'
 import { Portal } from 'solid-js/web'
 
-import { cn } from '#/lib/cn'
+import { mergeClasses } from '#/utils/style'
 
 import type { JSX } from 'solid-js'
 
@@ -25,7 +25,7 @@ export function Popover(props: PopoverProps) {
             onOpenChange={details => props.onOpenChange?.(details.open)}
         >
             <ArkPopover.Trigger
-                class={cn(
+                class={mergeClasses(
                     'outline-none',
                     props.classes?.trigger,
                 )}
@@ -35,7 +35,7 @@ export function Popover(props: PopoverProps) {
             <Portal>
                 <ArkPopover.Positioner class='z-50'>
                     <ArkPopover.Content
-                        class={cn(
+                        class={mergeClasses(
                             'popover flex max-w-[calc(100vw-2rem)] flex-col rounded-md border border-line bg-elevated p-1 shadow-popover outline-none',
                             props.classes?.content,
                         )}

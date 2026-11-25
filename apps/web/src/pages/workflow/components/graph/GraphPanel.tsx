@@ -1,11 +1,11 @@
 import { Show } from 'solid-js'
 
 import { Bar } from '#/components/base/Bar'
-import { cn } from '#/lib/cn'
 import { t } from '#/lib/i18n'
 import { theme } from '#/lib/theme'
 import { GraphEditor } from '#/pages/workflow/components/graph/GraphEditor'
 import { useWorkflowStore } from '#/pages/workflow/store'
+import { mergeClasses } from '#/utils/style'
 
 /* 中欄，對應 PromptPanel：面板自己擁有標題列與欄位標籤 */
 export function GraphPanel() {
@@ -14,7 +14,7 @@ export function GraphPanel() {
     const graphText = form.useSelector(state => state.values.graphText)
 
     return (
-        <section class={cn(theme.card, 'flex min-w-0 flex-1 flex-col bg-surface')}>
+        <section class={mergeClasses(theme.card, 'flex min-w-0 flex-1 flex-col bg-surface')}>
             <Bar.Root>
                 <Bar.Group>
                     <Bar.Title>{t('workflow.apiJson')}</Bar.Title>

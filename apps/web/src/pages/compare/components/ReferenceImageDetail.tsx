@@ -1,9 +1,9 @@
-import { resolveImageUrl } from '#/api/image'
 import { Line } from '#/components/base/Line'
 import { DetailPanel, DetailRow, DetailSection } from '#/components/detail'
 import { Number } from '#/components/field'
-import { formatDateTime } from '#/lib/format'
+import { resolveImageUrl } from '#/data/image/image.api'
 import { t } from '#/lib/i18n'
+import { formatDateTime } from '#/utils/date'
 
 import type { ImageApi } from '@silent-pix/shared'
 import type { PanelCollapse } from '#/components/base/Panel'

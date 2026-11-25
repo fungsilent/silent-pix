@@ -1,7 +1,7 @@
-import { ApiError, getApiClient, requestSignal, toApiError, unwrap } from '#/api/api.client'
+import { ApiError, getApiClient, requestSignal, toApiError, unwrap } from '#/lib/api-client'
 
 import type { Comfy, WorkflowApi } from '@silent-pix/shared'
-import type { ApiClient } from '#/api/api.client'
+import type { ApiClient } from '#/lib/api-client'
 
 export class WorkflowMappingApiError extends ApiError {
     readonly issues: Comfy.MappingIssue[]

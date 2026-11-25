@@ -187,11 +187,15 @@ operations. Exact fields belong to the shared API contract.
 
 ## Query Caches and Events
 
-API wrappers expose plain Promise functions without Solid or TanStack Query.
-Domain features own Query hooks, keys, pagination, and cache updates. Components
-consume hooks. Hooks read needed store state directly; do not thread store values
-through callers solely to reach a hook. Request construction belongs in the
-owning query module.
+Each `data/<domain>` directory keeps its API wrapper with its Query hooks, keys,
+pagination, and cache updates. Use domain names such as `app` for directories
+and operation names such as `health` for individual calls. API wrappers expose
+plain Promise functions without Solid or TanStack Query. Components consume hooks.
+Hooks read needed store state directly. Keep request construction in the owning
+query module.
+
+Name cache commands `update…Cache` for applying data, `remove…Cache` for removing
+records, and `refresh…Cache` for invalidating queries so they can refetch.
 
 Mutation `onSuccess` and the matching event handler call the same idempotent
 cache operation. Applying an already-applied result is a no-op. Preserve unchanged
@@ -232,8 +236,12 @@ ordinary browser/component markup and third-party behavior remain intact.
 App composes app-level chrome such as Header. Shared primitives live under
 `components`; page-specific components stay under their page. Shared fields stay
 generic; domain grouping and actions belong to domain UI. Component-specific
-logic stays beside its component, page-wide logic at the page root, and browser
-utilities move to `lib` only for a clear shared responsibility.
+logic stays beside its component and page-wide logic at the page root.
+Page-independent capabilities with a defined API belong in `lib`, even when
+they have one current consumer. Examples include keyboard shortcuts, image zoom,
+drag selection, and splitter sizing. Put small stateless operations such as date
+formatting and class composition in `utils`. The `store` directory owns
+cross-page UI state.
 
 Keep short single-consumer components, helpers, types, and fixtures local. Split
 for reuse, distinct responsibility, or isolated complexity, not file length or
@@ -309,10 +317,11 @@ API wrappers retain raw status/code/message and never translate transport errors
 message for unknown codes. Stored diagnostics render as text; do not infer a
 specific integration failure from a generic generation error.
 
-Mounted pages/panels register reactive issue sources through `useIssueSource()`;
-cleanup removes them on unmount. Use `toFailureIssue()` for dismissible operation
-failures with a translated source label. It suppresses Server-unreachable failures,
-which the service status already shows. Error placement is specified by the blueprint.
+Mounted pages and panels register reactive issue sources with `useIssueSource()`
+from `store/issue.ts`. Cleanup removes them on unmount. Use `toFailureIssue()` for
+dismissible operation failures with a translated source label. It suppresses
+Server-unreachable failures, which the service status already shows. Error
+placement is specified by the blueprint.
 
 ### Browser Utilities
 
@@ -362,9 +371,19 @@ Use domain names that reveal responsibility and side effects, such as `taskId`,
 `workflowId`, `createdAt`, and `relativePath`. Familiar abbreviations such as
 `id`, `url`, `api`, `db`, `dto`, and `env` are fine.
 
-File names describe the responsibility when a separate owner is justified:
+Source directories use kebab-case. Use UpperCamelCase for component files named
+after their main component, such as `ImageViewer.tsx`. Use kebab-case for all
+other source file names, including TSX entry points such as `main.tsx` and modules
+such as `drag-selection.ts`.
+Toolchain-defined filenames such as `Cargo.toml` and Drizzle migration files
+follow their toolchain's naming conventions.
+
+Keep the domain first in domain-qualified file names. Separate the domain,
+any qualifier, and the role with dots, and use kebab-case within each segment.
+Examples include `workflow.api.ts`, `task.cache.ts`, and `task.image.service.ts`.
 
 ```text
+<domain>.api.ts
 <domain>.route.ts
 <domain>.service.ts
 <domain>.model.ts

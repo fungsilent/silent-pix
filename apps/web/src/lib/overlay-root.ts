@@ -1,5 +1,5 @@
-import { cn } from '#/lib/cn'
 import { getPlatform } from '#/lib/platform'
+import { mergeClasses } from '#/utils/style'
 
 let root: HTMLElement | undefined
 
@@ -11,7 +11,7 @@ let root: HTMLElement | undefined
 export function overlayRoot(): HTMLElement {
     if (!root) {
         root = document.createElement('div')
-        root.className = cn(
+        root.className = mergeClasses(
             'pointer-events-none fixed inset-x-0 bottom-0 z-50',
             getPlatform().kind === 'desktop' ? 'top-9' : 'top-0',
         )

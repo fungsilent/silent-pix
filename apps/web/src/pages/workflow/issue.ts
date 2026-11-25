@@ -1,15 +1,15 @@
-import { ApiError } from '#/api/api.client'
-import { WorkflowMappingApiError } from '#/api/workflow'
+import { WorkflowMappingApiError } from '#/data/workflow/workflow.api'
+import { ApiError } from '#/lib/api-client'
 import { toErrorMessage, toIssueMessage } from '#/lib/error'
 import { t } from '#/lib/i18n'
-import { toFailureIssue } from '#/lib/issue'
 import { generatorFieldLabel } from '#/pages/workflow/generator-field'
+import { toFailureIssue } from '#/store/issue'
 
 import type { Comfy } from '@silent-pix/shared'
 import type { ZodIssue } from '#/lib/error'
-import type { AppIssue } from '#/lib/issue'
 import type { WorkflowFormValues } from '#/pages/workflow/form'
 import type { GraphParse } from '#/pages/workflow/graph'
+import type { AppIssue } from '#/store/issue'
 
 const fieldLabel: Record<keyof WorkflowFormValues, () => string> = {
     name: () => t('fields.name'),

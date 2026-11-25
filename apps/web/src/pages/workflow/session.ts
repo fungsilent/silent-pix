@@ -1,16 +1,16 @@
 import { createContextProvider } from '@solid-primitives/context'
 import { batch } from 'solid-js'
 
-import { ApiError } from '#/api/api.client'
-import { useCreateWorkflowMutation, useRefreshWorkflowList, useUpdateWorkflowMutation } from '#/features/workflow/workflow.query'
+import { useCreateWorkflowMutation, useRefreshWorkflowList, useUpdateWorkflowMutation } from '#/data/workflow/workflow.query'
+import { ApiError } from '#/lib/api-client'
 import { createStore } from '#/lib/store'
 import { cloneWorkflowValues, createWorkflowForm, emptyWorkflowValues, toWorkflowValues } from '#/pages/workflow/form'
 import { parseGraphText } from '#/pages/workflow/graph'
 import { toValidationIssues } from '#/pages/workflow/issue'
 
 import type { WorkflowApi } from '@silent-pix/shared'
-import type { AppIssue } from '#/lib/issue'
 import type { WorkflowFormValues } from '#/pages/workflow/form'
+import type { AppIssue } from '#/store/issue'
 
 type WorkflowSessionState = {
     selectedId: string | null

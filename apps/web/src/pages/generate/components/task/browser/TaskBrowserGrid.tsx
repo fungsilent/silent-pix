@@ -2,11 +2,11 @@ import { createSignal, For, Show } from 'solid-js'
 
 import { Loading } from '#/components/base/Loading'
 import { StatusMessage } from '#/components/base/StatusMessage'
-import { cn } from '#/lib/cn'
-import { createDragSelection } from '#/lib/dragSelection'
+import { createDragSelection } from '#/lib/drag-selection'
 import { t } from '#/lib/i18n'
-import { createLoadOnScroll } from '#/lib/loadOnScroll'
+import { createLoadOnScroll } from '#/lib/load-on-scroll'
 import { TaskBrowserCard } from '#/pages/generate/components/task/browser/TaskBrowserCard'
+import { mergeClasses } from '#/utils/style'
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { ThumbnailGrid } from '#/components/image/ThumbnailSize'
@@ -85,7 +85,7 @@ export function TaskBrowserGrid(props: TaskBrowserGridProps) {
                 loadOnScroll.setViewport(element)
                 props.thumbnailGrid.observe(element)
             }}
-            class={cn(
+            class={mergeClasses(
                 /* 預留捲軸位置：讀取中 skeleton 不滿一頁時欄寬也和有捲軸的卡片一致 */
                 'scrollbar-thin relative min-h-0 flex-1 overflow-y-auto bg-surface [scrollbar-gutter:stable]',
                 dragSelection.tracking() && 'select-none',

@@ -1,7 +1,7 @@
 import { TriangleAlert } from 'lucide-solid'
 import { Show } from 'solid-js'
 
-import { cn } from '#/lib/cn'
+import { mergeClasses } from '#/utils/style'
 
 import type { JSX } from 'solid-js'
 
@@ -17,9 +17,9 @@ export function FieldHint(props: FieldHintProps) {
     return (
         <Show
             when={props.tone === 'danger'}
-            fallback={<p class={cn('m-0 min-w-0 truncate text-xs text-fg-muted', props.class)}>{props.children}</p>}
+            fallback={<p class={mergeClasses('m-0 min-w-0 truncate text-xs text-fg-muted', props.class)}>{props.children}</p>}
         >
-            <p class={cn('m-0 flex min-w-0 items-start gap-1.5 text-xs leading-4 text-fg', props.class)}>
+            <p class={mergeClasses('m-0 flex min-w-0 items-start gap-1.5 text-xs leading-4 text-fg', props.class)}>
                 <TriangleAlert
                     size={12}
                     strokeWidth={2}

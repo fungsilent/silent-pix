@@ -1,12 +1,12 @@
 import { ImageOff } from 'lucide-solid'
 import { createEffect, createSignal, For, Show } from 'solid-js'
 
-import { resolveImageUrl } from '#/api/image'
 import { StatusMessage } from '#/components/base/StatusMessage'
-import { cn } from '#/lib/cn'
+import { resolveImageUrl } from '#/data/image/image.api'
 import { t } from '#/lib/i18n'
+import { mergeClasses } from '#/utils/style'
 
-import type { createImageZoom, Offset, Size } from '#/lib/imageZoom'
+import type { createImageZoom, Offset, Size } from '#/lib/image-zoom'
 
 export type ViewerImage = {
     url: string
@@ -55,7 +55,7 @@ export function ZoomStage(props: ZoomStageProps) {
             <For each={props.images}>
                 {(source, index) => (
                     <img
-                        class={cn(
+                        class={mergeClasses(
                             'absolute max-w-none select-none',
                             index() === props.selectedIndex && !failedUrls().has(source.url)
                                 ? 'opacity-100'
