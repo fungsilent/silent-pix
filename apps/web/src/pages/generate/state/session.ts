@@ -11,17 +11,16 @@ import { promptDefaultHeight, promptMinHeight } from '#/pages/generate/component
 import {
     cloneGenerateValues,
     createGenerateForm,
-    createLocalReferenceImage,
     draftGenerateValues,
-    referenceSize,
     toCreateTaskRequest,
     toGenerateValues,
 } from '#/pages/generate/form'
 import { toSubmitIssue, toValidationIssues } from '#/pages/generate/issue'
+import { createReferenceImage } from '#/pages/generate/state/referenceImage'
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { TaskFeedFilter } from '#/data/task/task.query'
-import type { GenerateValues, PromptKind, ReferenceImage } from '#/pages/generate/form'
+import type { GenerateValues, PromptKind } from '#/pages/generate/form'
 import type { GenerateIssue } from '#/pages/generate/issue'
 
 export type DraftDefaultField = 'seed' | 'steps' | 'cfg' | 'sampler' | 'width' | 'height' | 'batch' | 'denoise' | 'positive' | 'negative'
@@ -176,6 +175,7 @@ function createGenerateSession() {
             })
         },
     })
+    const referenceImage = createReferenceImage({ form, selectedTaskId: () => uiStore.state.selectedTaskId })
     const formSubmitting = form.useSelector(state => state.isSubmitting)
     const isSubmitting = () => formSubmitting() || createTaskMutation.isPending
 
@@ -209,7 +209,7 @@ function createGenerateSession() {
     let taskBase: GenerateValues | undefined
 
     const replaceDraft = (draft: GenerateDraft | undefined) => {
-        releaseLocalPreview(uiStore.state.draft?.parkedValues?.referenceImage)
+        referenceImage.release(uiStore.state.draft?.parkedValues?.referenceImage)
         uiStore.set('draft', draft)
     }
 
@@ -236,7 +236,7 @@ function createGenerateSession() {
 
     const requestDraft = (values: GenerateValues, source: DraftSource) => {
         batch(() => {
-            releaseLocalPreview(form.getFieldValue('referenceImage'))
+            referenceImage.release(form.getFieldValue('referenceImage'))
             replaceDraft({ source })
             uiStore.set('taskId', undefined)
             taskBase = undefined
@@ -251,7 +251,7 @@ function createGenerateSession() {
     const discardDraft = () => {
         batch(() => {
             if (isEditingDraft()) {
-                releaseLocalPreview(form.getFieldValue('referenceImage'))
+                referenceImage.release(form.getFieldValue('referenceImage'))
                 resetForm(cloneGenerateValues(draftGenerateValues))
             }
             replaceDraft(undefined)
@@ -260,7 +260,7 @@ function createGenerateSession() {
 
     // MARK: Load a Task or draft
     function resetForm(values: GenerateValues) {
-        cancelReferenceImageUpload()
+        referenceImage.cancelUpload()
         form.reset(values)
         uiStore.set('formRevision', revision => revision + 1)
     }
@@ -284,7 +284,7 @@ function createGenerateSession() {
                 uiStore.set('draft', 'parkedValues', cloneGenerateValues(form.state.values))
             }
             else {
-                releaseLocalPreview(form.getFieldValue('referenceImage'))
+                referenceImage.release(form.getFieldValue('referenceImage'))
             }
             uiStore.set('taskId', task.id)
             taskBase = cloneGenerateValues(values)
@@ -298,7 +298,7 @@ function createGenerateSession() {
         if (!values) return
 
         batch(() => {
-            releaseLocalPreview(form.getFieldValue('referenceImage'))
+            referenceImage.release(form.getFieldValue('referenceImage'))
             uiStore.set('draft', 'parkedValues', undefined)
             uiStore.set('taskId', undefined)
             taskBase = undefined
@@ -306,83 +306,7 @@ function createGenerateSession() {
         })
     }
 
-    // MARK: Reference image
-    let pendingPreviewUrl: string | undefined
-
-    function cancelReferenceImageUpload(): void {
-        if (pendingPreviewUrl === undefined) return
-
-        URL.revokeObjectURL(pendingPreviewUrl)
-        pendingPreviewUrl = undefined
-    }
-
-    function releaseLocalPreview(reference: ReferenceImage | null | undefined): void {
-        if (reference?.type === 'local') {
-            URL.revokeObjectURL(reference.previewUrl)
-        }
-        if (reference?.mask?.type === 'local') {
-            URL.revokeObjectURL(reference.mask.previewUrl)
-        }
-    }
-
-    const setReferenceImage = (reference: ReferenceImage) => {
-        const size = referenceSize(reference)
-
-        cancelReferenceImageUpload()
-        releaseLocalPreview(form.getFieldValue('referenceImage'))
-        batch(() => {
-            form.setFieldValue('referenceImage', reference)
-            form.setFieldValue('width', size.width)
-            form.setFieldValue('height', size.height)
-        })
-    }
-
-    const clearReferenceImage = () => {
-        cancelReferenceImageUpload()
-        releaseLocalPreview(form.getFieldValue('referenceImage'))
-        form.setFieldValue('referenceImage', null)
-    }
-
-    const uploadReferenceImage = (file: File, onUnreadable: () => void) => {
-        cancelReferenceImageUpload()
-        const previewUrl = URL.createObjectURL(file)
-        const taskId = uiStore.state.selectedTaskId
-        const isCurrent = () => pendingPreviewUrl === previewUrl && uiStore.state.selectedTaskId === taskId
-        pendingPreviewUrl = previewUrl
-
-        const probe = new Image()
-        probe.addEventListener('load', () => {
-            if (!isCurrent()) return
-
-            pendingPreviewUrl = undefined
-            setReferenceImage(createLocalReferenceImage(file, probe.naturalWidth, probe.naturalHeight, previewUrl))
-        })
-        probe.addEventListener('error', () => {
-            if (!isCurrent()) return
-
-            cancelReferenceImageUpload()
-            onUnreadable()
-        })
-        probe.src = previewUrl
-    }
-
-    const setReferenceMask = (reference: ReferenceImage, file: File | null) => {
-        if (form.getFieldValue('referenceImage') !== reference) return
-
-        const mask = file ? { type: 'local' as const, file, previewUrl: URL.createObjectURL(file) } : null
-        if (reference.mask?.type === 'local') {
-            URL.revokeObjectURL(reference.mask.previewUrl)
-        }
-        form.setFieldValue('referenceImage', { ...reference, mask })
-    }
-
-    createEffect(on(() => uiStore.state.selectedTaskId, cancelReferenceImageUpload, { defer: true }))
-
-    onCleanup(() => {
-        cancelReferenceImageUpload()
-        releaseLocalPreview(form.getFieldValue('referenceImage'))
-        releaseLocalPreview(uiStore.state.draft?.parkedValues?.referenceImage)
-    })
+    onCleanup(() => referenceImage.release(uiStore.state.draft?.parkedValues?.referenceImage))
 
     // MARK: LoRA selection
     const applyLoraSelection = (names: string[]) => {
@@ -415,11 +339,11 @@ function createGenerateSession() {
         requestDraft,
         startNewDraft,
         discardDraft,
-        setReferenceImage,
-        clearReferenceImage,
-        uploadReferenceImage,
-        cancelReferenceImageUpload,
-        setReferenceMask,
+        setReferenceImage: referenceImage.set,
+        clearReferenceImage: referenceImage.clear,
+        uploadReferenceImage: referenceImage.upload,
+        cancelReferenceImageUpload: referenceImage.cancelUpload,
+        setReferenceMask: referenceImage.setMask,
         applyLoraSelection,
     }
 }
