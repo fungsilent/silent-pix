@@ -10,10 +10,7 @@ type ReferenceImageOptions = {
     selectedTaskId: Accessor<string | undefined>
 }
 
-/*
- * 參考圖與遮罩的本機預覽是 object URL：建立、上傳中的探測、換掉或移除時的 revoke 都集中在這裡。
- * 草稿暫存值（parkedValues）裡的參考圖仍由 session 在切換草稿時交給 release。
- */
+/* 參考圖與遮罩的 object URL：建立與 revoke。parkedValues 的參考圖由 session 交給 release */
 export function createReferenceImage(options: ReferenceImageOptions) {
     const { form } = options
     let pendingPreviewUrl: string | undefined

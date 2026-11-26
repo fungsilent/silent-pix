@@ -1,6 +1,6 @@
 import { task } from '@silent-pix/shared'
 import { createContextProvider } from '@solid-primitives/context'
-import { batch, createEffect, mergeProps, on, onCleanup } from 'solid-js'
+import { batch, createEffect, createSignal, mergeProps, on, onCleanup } from 'solid-js'
 
 import { subscribeTasksRemoved } from '#/data/task/task.event'
 import { useCreateTaskMutation } from '#/data/task/task.query'
@@ -31,9 +31,17 @@ export type DraftSource =
 
 type GenerateDraft = {
     source: DraftSource
-    /* 表單載入 Task（taskId 有值）時才保留草稿快照，切回草稿時交還給表單。 */
+    /* 表單顯示 task 時暫存的草稿值 */
     parkedValues?: GenerateValues
 }
+
+/*
+ * 表單目前顯示的內容；與 selectedTaskId 相等才算載入完成。
+ * base：判斷改動的基準。serverName：上次同步的 Server 名稱；表單名稱未改動時才跟隨 Server 改名。
+ */
+type FormOwner =
+    | { kind: 'draft' }
+    | { kind: 'task', taskId: string, base: GenerateValues, serverName: string }
 
 function sameConfig(a: GenerateValues, b: GenerateValues): boolean {
     const key = (values: GenerateValues) => JSON.stringify({ ...values, name: '' })
@@ -47,7 +55,6 @@ type GenerateUiState = {
     browserOpen: boolean
     submitIssues: GenerateIssue[]
     submitToken: number
-    taskId: string | undefined
     draft: GenerateDraft | undefined
     /* 表單整份換內容（載入 task、回到或開新草稿）時遞增；prompt editor 以它換文件，task 轉成草稿時不變，輸入不中斷 */
     formRevision: number
@@ -61,7 +68,6 @@ function createGenerateSession() {
         browserOpen: false,
         submitIssues: [],
         submitToken: 0,
-        taskId: undefined,
         draft: undefined,
         formRevision: 0,
     }
@@ -158,13 +164,15 @@ function createGenerateSession() {
     }
 
     // MARK: Draft
-    const isEditingDraft = () => uiStore.state.taskId === undefined && uiStore.state.draft !== undefined
+    /* store 會淺層合併物件，需整個替換 */
+    const [formOwner, setFormOwner] = createSignal<FormOwner>({ kind: 'draft' })
+    const isEditingDraft = () => formOwner().kind === 'draft' && uiStore.state.draft !== undefined
     const isSelectionLoaded = () => {
         const selectedTaskId = uiStore.state.selectedTaskId
-        return selectedTaskId === undefined ? isEditingDraft() : uiStore.state.taskId === selectedTaskId
+        const owner = formOwner()
+        return selectedTaskId === undefined ? isEditingDraft() : owner.kind === 'task' && owner.taskId === selectedTaskId
     }
     const formValues = form.useStore(state => state.values)
-    let taskBase: GenerateValues | undefined
 
     const replaceDraft = (draft: GenerateDraft | undefined) => {
         referenceImage.release(uiStore.state.draft?.parkedValues?.referenceImage)
@@ -172,14 +180,13 @@ function createGenerateSession() {
     }
 
     createEffect(on(formValues, values => {
-        const taskId = uiStore.state.taskId
-        if (!taskId || taskId !== uiStore.state.selectedTaskId || !taskBase || sameConfig(values, taskBase)) return
+        const owner = formOwner()
+        if (owner.kind !== 'task' || owner.taskId !== uiStore.state.selectedTaskId || sameConfig(values, owner.base)) return
 
         /* 表單原地成為草稿，讓 prompt editor 繼續編輯同一份文件。 */
         batch(() => {
-            taskBase = undefined
-            replaceDraft({ source: { kind: 'task', taskId } })
-            uiStore.set('taskId', undefined)
+            replaceDraft({ source: { kind: 'task', taskId: owner.taskId } })
+            setFormOwner({ kind: 'draft' })
             uiStore.clearTask()
         })
     }, { defer: true }))
@@ -196,8 +203,7 @@ function createGenerateSession() {
         batch(() => {
             referenceImage.release(form.getFieldValue('referenceImage'))
             replaceDraft({ source })
-            uiStore.set('taskId', undefined)
-            taskBase = undefined
+            setFormOwner({ kind: 'draft' })
             resetForm(cloneGenerateValues(values))
             uiStore.clearTask()
             uiStore.setBrowserOpen(false)
@@ -223,15 +229,15 @@ function createGenerateSession() {
         uiStore.set('formRevision', revision => revision + 1)
     }
 
-    let lastServerName = ''
     const loadTask = (task: TaskApi.GetTaskResponse) => {
         const serverName = task.name ?? ''
-        if (uiStore.state.taskId === task.id) {
+        const owner = formOwner()
+        if (owner.kind === 'task' && owner.taskId === task.id) {
             // 跨路由保留名稱基準，只有使用者沒改過名稱才跟隨 Server。
-            if (serverName !== lastServerName && form.getFieldValue('name') === lastServerName) {
+            if (serverName !== owner.serverName && form.getFieldValue('name') === owner.serverName) {
                 form.setFieldValue('name', serverName)
             }
-            lastServerName = serverName
+            setFormOwner({ ...owner, serverName })
             return
         }
 
@@ -244,9 +250,7 @@ function createGenerateSession() {
             else {
                 referenceImage.release(form.getFieldValue('referenceImage'))
             }
-            uiStore.set('taskId', task.id)
-            taskBase = cloneGenerateValues(values)
-            lastServerName = serverName
+            setFormOwner({ kind: 'task', taskId: task.id, base: cloneGenerateValues(values), serverName })
             resetForm(values)
         })
     }
@@ -258,8 +262,7 @@ function createGenerateSession() {
         batch(() => {
             referenceImage.release(form.getFieldValue('referenceImage'))
             uiStore.set('draft', 'parkedValues', undefined)
-            uiStore.set('taskId', undefined)
-            taskBase = undefined
+            setFormOwner({ kind: 'draft' })
             resetForm(cloneGenerateValues(values))
         })
     }
@@ -285,7 +288,7 @@ function createGenerateSession() {
 
     return {
         ...uiStore,
-        /* 對外仍是同一個 state：prompt 版面偏好由 promptLayout 管，讀取路徑不變 */
+        /* 合併 promptLayout 的 state */
         state: mergeProps(uiStore.state, promptLayout.state),
         togglePromptVisible: promptLayout.togglePromptVisible,
         setPromptHeight: promptLayout.setPromptHeight,

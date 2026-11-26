@@ -26,7 +26,7 @@ function readPromptHeight(): Record<PromptKind, number> {
     return defaultPromptHeight()
 }
 
-/* Prompt 兩段的顯示與高度：純版面偏好，和表單、task 無關。由 Generate session 組合後對外 */
+/* Prompt 兩段的顯示與高度 */
 export function createPromptLayout() {
     return createStore<PromptLayoutState, {
         togglePromptVisible: (kind: PromptKind) => void
