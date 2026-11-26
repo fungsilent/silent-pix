@@ -121,8 +121,8 @@ Workflow 頁最右欄：Bar 的 Save，下面依序是 workflow-info 與 workflo
 #### 詳細欄
 
 <ul class="ds-rules">
-<Rule component="workflow-detail" id="column">Workflow 頁最右欄，固定寬 380px（同 Generate 的 task-detail）、`bg-surface`；頂端 L0 Bar 標題「Detail」，下方可捲動內容（`px-4 pb-5 gap-3`）依序放 workflow-info、分隔線、workflow-mapping。Graph 不屬於本欄，在中欄 graph-editor。</Rule>
-<Rule component="workflow-detail" id="three-columns">頁面三欄並排：workflow-list（200px）→ graph-editor（彈性）→ workflow-detail（380px）；整頁最窄 940px，更窄時整頁水平捲動而不擠壓欄寬。</Rule>
+<Rule component="workflow-detail" id="column">Workflow 頁最右欄，固定寬 480px（Mapping 三欄表格放得下常見節點名的寬度，其餘留給 graph-editor）、`bg-surface`；頂端 L0 Bar 標題「Detail」，下方可捲動內容（`px-4 pb-5 gap-3`）依序放 workflow-info、分隔線、workflow-mapping。Graph 不屬於本欄，在中欄 graph-editor。</Rule>
+<Rule component="workflow-detail" id="three-columns">頁面三欄並排：workflow-list（200px）→ graph-editor（彈性）→ workflow-detail（480px）；整頁最窄 1060px，更窄時整頁水平捲動而不擠壓欄寬。</Rule>
 <Rule component="workflow-detail" id="bar-actions">Bar 右側（有選取時）只有 Save。Save 是 bar 尺寸的 accent solid、semibold；沒有修改、儲存中、載入中、版本衝突、名稱空白、graph 無法解析或 mapping 有問題時停用（`opacity-60`），儲存中文案換成「Saving」。</Rule>
 <Rule component="workflow-detail" id="issue-chip">名稱必填、graph 解析、mapping 失效與儲存失敗都進 Header 的 Issue chip，來源分別標 Name／Graph／Mapping／Save；Workflow detail 本身不放 chip，只靠欄位標記（例如 missing Badge）與 Save 停用表示。清單讀取失敗由 Opening screen 顯示。</Rule>
 <Rule component="workflow-detail" id="archived">封存的 workflow 整欄唯讀：Save 換成 muted 文字「Read-only · archived」，workflow-info 名稱與 workflow-mapping 全部 disabled。</Rule>
@@ -149,13 +149,13 @@ Workflow 頁最右欄：Bar 的 Save，下面依序是 workflow-info 與 workflo
 #### Mapping
 
 <ul class="ds-rules">
-<Rule component="workflow-mapping" id="position">位於 workflow-detail 中 workflow-info 下方，把每個 generator field 綁到 graph 的 node 與 input。依分組拆成四個區段，固定順序 Sampler、Latent、Prompt、Other；每段以 L0 section title 起頭，段與段之間的分隔同 task-detail 的區段（`my-1 border-t border-line-subtle`），沒有另外的「Mapping」總標題或欄名列。</Rule>
-<Rule component="workflow-mapping" id="field">每個 field 照 task-config 的欄位排法：field 標籤在上（跟隨介面語言），下面一列兩個等寬 Select：Node、Input，`gap-2`（同 task-config 的成對欄位）。不合併成一個「node › input」選擇器：L0 Select 不分組，合併後的平面清單在節點多的 graph 會太長。</Rule>
+<Rule component="workflow-mapping" id="position">位於 workflow-detail 中 workflow-info 下方，把每個 generator field 綁到 graph 的 node 與 input。整個 Mapping 是一張三欄表格：Field（寬度等於最長的 field 標籤，跟隨介面語言，不截斷）、Node（彈性）、Input 136px，欄距 `gap-x-2`、列距 `gap-y-3`；所有列共用同一組欄寬，上下對齊。依分組拆成四個區段，固定順序 Sampler、Latent、Prompt、Other；每段以 L0 section title 起頭，段與段之間的分隔同 task-detail 的區段（`my-1 border-t border-line-subtle`），沒有另外的「Mapping」總標題或分組小標題。</Rule>
+<Rule component="workflow-mapping" id="field">欄名列（Field／Node／Input，muted）只出現一次，在第一個區段標題下方。每個 field 一列：標籤、Node Select、Input Select；欄名一次就說清楚兩個 Select 各是什麼，不在 Select 內加前綴。</Rule>
 <Rule component="workflow-mapping" id="node-options">Node 選項顯示為「nodeId · 標題」，清單第一項永遠是「Not bound」。未綁定時 Input 位置是虛線空框（`border-dashed border-line`），不是停用的 Select。</Rule>
-<Rule component="workflow-mapping" id="broken-binding">綁到 graph 中已不存在的 node 或 input 時，下拉仍顯示原值並加 danger Badge「missing」，讓使用者看得到原本綁的是什麼；node 失效時 input 一併標 missing。這些問題同時列在 Header 的 Issue chip，Save 停用。</Rule>
+<Rule component="workflow-mapping" id="broken-binding">綁到 graph 中已不存在的 node 或 input 時，下拉仍顯示原值並加 danger Badge「missing」，讓使用者看得到原本綁的是什麼；node 失效時 input 一併標 missing。Input 欄加上 badge 後較長的名稱會被截斷，完整名稱見下拉清單與 Issue chip 的訊息，不為這個錯誤狀態加寬欄位。這些問題同時列在 Header 的 Issue chip，Save 停用。</Rule>
 <Rule component="workflow-mapping" id="auto-input">換 node 時自動選該 node 的第一個 input，避免留下必定失效的綁定。</Rule>
 <Rule component="workflow-mapping" id="read-only">Archived workflow 或 Server 不可用時整區唯讀：每個 Select 改 disabled 外觀，佈局不變。</Rule>
-<Rule component="workflow-mapping" id="loading">載入中同 task-config：區段標題與 field 標籤保留，Node 與 Input 兩格各自蓋上 28px 的 skeleton 遮罩。</Rule>
+<Rule component="workflow-mapping" id="loading">載入中區段標題、欄名與 field 標籤保留，Node 與 Input 兩格各自蓋上 skeleton 遮罩。</Rule>
 </ul>
 
 </Rules>
@@ -185,7 +185,7 @@ Workflow 頁最右欄：Bar 的 Save，下面依序是 workflow-info 與 workflo
 
 ## Screen
 
-<Screen frame="relative flex h-[800px] min-w-[940px] flex-col overflow-hidden rounded-xl border border-line bg-canvas text-fg">
+<Screen frame="relative flex h-[800px] min-w-[1060px] flex-col overflow-hidden rounded-xl border border-line bg-canvas text-fg">
     <Fixed component="app-header" state="workflow" />
     <Switch name="layout">
         <Case state="workspace" label="has workflows">
@@ -206,7 +206,7 @@ Workflow 頁最右欄：Bar 的 Save，下面依序是 workflow-info 與 workflo
 
 <ul class="ds-rules">
 <Rule component="workflow-screen" id="columns">Header 之下三欄不收合、不留縫，以 `border-r border-line` 分隔；Graph editor 吃掉其餘寬度。</Rule>
-<Rule component="workflow-screen" id="min-width">有 workflow 時三欄永遠同時存在，最小總寬 940px；視窗更窄時整頁水平捲動，不隱藏任何一欄。</Rule>
+<Rule component="workflow-screen" id="min-width">有 workflow 時三欄永遠同時存在，最小總寬 1060px；視窗更窄時整頁水平捲動，不隱藏任何一欄。</Rule>
 <Rule component="workflow-screen" id="selection-sync">列表的選取與詳細面板同步：建立中的 Draft 置頂並選取；有未儲存修改時列表項目標「Unsaved」、詳細面板的 Save 啟用。</Rule>
 <Rule component="workflow-screen" id="empty-loading-error">載入中三欄各自顯示骨架。沒有任何 Workflow 或列表讀取失敗時，三欄整個換成 Opening screen。</Rule>
 <Rule component="workflow-screen" id="dialog-cover">封存或刪除確認 dialog 蓋住疊加層區域（Desktop 標題列以下，見 App）。</Rule>
