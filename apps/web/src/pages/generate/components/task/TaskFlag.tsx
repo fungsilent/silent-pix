@@ -19,15 +19,11 @@ type TaskFlagControlsProps = {
     class?: string
 }
 
-/*
- * 操作：兩顆都要在才切換得了，所以 active 與 inactive 一起顯示。
- * 兩顆都只在 hover／focus 整張卡或整列時浮現，常駐的視覺訊號交給角摺。
- */
 export function TaskFlagControls(props: TaskFlagControlsProps) {
     return (
         <div
             class={mergeClasses(
-                'absolute flex opacity-0 group-hover:opacity-100 group-focus-within:opacity-100',
+                'absolute flex opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 touch:opacity-100',
                 props.class,
             )}
         >

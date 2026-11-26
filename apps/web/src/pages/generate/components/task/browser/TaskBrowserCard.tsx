@@ -101,7 +101,7 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
                 >
                     <div class='flex min-w-0 flex-col gap-2'>
                         <span
-                            class='flex h-7 min-w-0 items-center truncate text-xs font-medium text-fg group-hover:pr-15'
+                            class='flex h-7 min-w-0 items-center truncate text-xs font-medium text-fg group-hover:mr-15 touch:mr-15'
                             classList={{ 'font-mono': !props.task.name }}
                         >
                             {title()}

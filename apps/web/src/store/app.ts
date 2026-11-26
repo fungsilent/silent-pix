@@ -7,12 +7,16 @@ type AppState = {
     connection: EventConnectionStatus
     snapshot: Event.Health.Snapshot | undefined
     hasConnected: boolean
+    mobile: boolean
 }
+
+const mobileQuery = window.matchMedia('(max-width: 639px)')
 
 const initialState: AppState = {
     connection: 'disconnected',
     snapshot: undefined,
     hasConnected: false,
+    mobile: mobileQuery.matches,
 }
 
 export const appStore = createStore(initialState, store => ({
@@ -28,6 +32,8 @@ export const appStore = createStore(initialState, store => ({
         store.set('snapshot', snapshot)
     },
 }))
+
+mobileQuery.addEventListener('change', event => appStore.set('mobile', event.matches))
 
 /*
  * WS 一斷就視為未知，不得沿用最後一份快照——

@@ -62,7 +62,7 @@ export function TaskItem(props: TaskItemProps) {
 
                 {!props.thumbnailOnly && (
                     <div class='flex min-w-0 flex-1 flex-col items-start gap-1.5'>
-                        <div class='flex w-full min-w-0 items-center group-focus-within:pr-[52px] group-hover:pr-[52px]'>
+                        <div class='flex w-full min-w-0 items-center group-focus-within:pr-[52px] group-hover:pr-[52px] touch:pr-[52px]'>
                             <span
                                 class='min-w-0 truncate text-xs font-medium leading-none text-fg'
                                 classList={{ 'font-mono': !props.task.name }}
@@ -133,7 +133,7 @@ export function TaskDraftItem(props: TaskDraftItemProps) {
                 <Button
                     variant='ghost'
                     title={t('task.discardDraft')}
-                    classes={{ root: 'absolute right-[7px] top-2.5 hidden size-6 rounded-md p-0 text-fg-muted hover:text-fg group-hover:flex group-focus-within:flex' }}
+                    classes={{ root: 'absolute right-[7px] top-2.5 hidden size-6 rounded-md p-0 text-fg-muted hover:text-fg group-hover:flex group-focus-within:flex touch:flex' }}
                     onClick={props.onDiscard}
                 >
                     <X
