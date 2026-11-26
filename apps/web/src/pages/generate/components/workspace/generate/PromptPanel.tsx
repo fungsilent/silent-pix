@@ -27,21 +27,21 @@ const promptLabel: Record<PromptKind, () => string> = {
 }
 
 export function PromptPanel() {
-    const store = useGenerateSession()
+    const generateSession = useGenerateSession()
     const detail = useGenerateDetail()
     const isLoading = detail.loading
-    const canEdit = () => store.isSelectionLoaded() && !isLoading() && !detail.error()
-    const form = store.form
-    const isSubmitting = store.isSubmitting
+    const canEdit = () => generateSession.isSelectionLoaded() && !isLoading() && !detail.error()
+    const form = generateSession.form
+    const isSubmitting = generateSession.isSubmitting
     const runtimeIssues = useRuntimeIssues()
-    const issues = () => [...runtimeIssues(), ...store.state.submitIssues]
+    const issues = () => [...runtimeIssues(), ...generateSession.state.submitIssues]
     useIssueSource(issues)
     /*
      * 只有「剛按下 Generate」才自動展開 Header 的清單。常駐來源（選項載入失敗）會讓計數在
      * 使用者什麼都沒做時變動，那時候彈開等於無故打擾。chip 只顯示數字，所以一則也展開。
      */
     createEffect(on(
-        () => store.state.submitToken,
+        () => generateSession.state.submitToken,
         token => {
             if (token > 0 && issues().length > 0) {
                 issueList.setOpen(true)
@@ -50,20 +50,20 @@ export function PromptPanel() {
         { defer: true },
     ))
 
-    const visible = (kind: PromptKind) => store.state.promptVisible[kind]
+    const visible = (kind: PromptKind) => generateSession.state.promptVisible[kind]
     /* 兩段之間的拖曳：總高度不變，只改比例；每段至少一行 */
     let editors: HTMLElement | undefined
     const startSectionDrag = () => {
-        const height = (kind: PromptKind) => renderedPromptHeight(editors, kind) ?? store.state.promptHeight[kind]
+        const height = (kind: PromptKind) => renderedPromptHeight(editors, kind) ?? generateSession.state.promptHeight[kind]
         const start = [height('positive'), height('negative')] as const
         return (delta: number) => {
             const [positive, negative] = splitPair(start, delta, promptMinHeight)
-            store.setPromptHeight({ positive, negative })
+            generateSession.setPromptHeight({ positive, negative })
         }
     }
     const equalizeSections = () => {
-        const [positive, negative] = evenPair([store.state.promptHeight.positive, store.state.promptHeight.negative])
-        store.setPromptHeight({ positive, negative })
+        const [positive, negative] = evenPair([generateSession.state.promptHeight.positive, generateSession.state.promptHeight.negative])
+        generateSession.setPromptHeight({ positive, negative })
     }
 
     return (
@@ -74,12 +74,12 @@ export function PromptPanel() {
                     <PromptToggle
                         kind='positive'
                         visible={visible('positive')}
-                        onClick={() => store.togglePromptVisible('positive')}
+                        onClick={() => generateSession.togglePromptVisible('positive')}
                     />
                     <PromptToggle
                         kind='negative'
                         visible={visible('negative')}
-                        onClick={() => store.togglePromptVisible('negative')}
+                        onClick={() => generateSession.togglePromptVisible('negative')}
                     />
                 </Bar.Group>
 
@@ -114,9 +114,9 @@ export function PromptPanel() {
                             isLoading={isLoading}
                             kind='positive'
                             visible={visible('positive')}
-                            documentKey={`${store.state.formRevision}:positive`}
+                            documentKey={`${generateSession.state.formRevision}:positive`}
                             initialDocument={field().state.value}
-                            height={store.state.promptHeight.positive}
+                            height={generateSession.state.promptHeight.positive}
                             onDocumentChange={field().handleChange}
                         />
                     )}
@@ -134,9 +134,9 @@ export function PromptPanel() {
                             isLoading={isLoading}
                             kind='negative'
                             visible={visible('negative')}
-                            documentKey={`${store.state.formRevision}:negative`}
+                            documentKey={`${generateSession.state.formRevision}:negative`}
                             initialDocument={field().state.value}
-                            height={store.state.promptHeight.negative}
+                            height={generateSession.state.promptHeight.negative}
                             onDocumentChange={field().handleChange}
                         />
                     )}

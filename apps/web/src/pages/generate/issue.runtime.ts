@@ -12,11 +12,11 @@ import type { GenerateIssue } from '#/pages/generate/issue'
 import type { Accessor } from 'solid-js'
 
 export function useRuntimeIssues(): Accessor<GenerateIssue[]> {
-    const store = useGenerateSession()
-    const workflowId = store.form.useSelector(({ values }) => values.workflowId)
+    const generateSession = useGenerateSession()
+    const workflowId = generateSession.form.useSelector(({ values }) => values.workflowId)
     const workflowQuery = useWorkflowListQuery()
     const samplerQuery = useSamplerListQuery()
-    const taskFeedQuery = useTaskFeedQuery()
+    const taskFeedQuery = useTaskFeedQuery(generateSession.feedFilter)
     /* 只讀快取狀態，真正的抓取仍由 Generate detail 的 LoRA picker 開啟時觸發 */
     const loraQuery = useLoraListQuery(() => false)
 

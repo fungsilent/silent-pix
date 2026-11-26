@@ -9,8 +9,6 @@ import {
 } from '#/data/task/task.cache'
 import { applyTasksRemoved } from '#/data/task/task.event'
 import { taskKeys } from '#/data/task/task.key'
-import { compareStore } from '#/store/compare'
-import { taskStore } from '#/store/task'
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { Accessor } from 'solid-js'
@@ -25,10 +23,15 @@ export const loraKeys = {
     list: () => [...loraKeys.all, 'list'] as const,
 }
 
-export function useTaskFeedQuery() {
+export type TaskFeedFilter = {
+    search: string
+    taskFlags: TaskApi.TaskFilterFlag[] | undefined
+}
+
+export function useTaskFeedQuery(filter: Accessor<TaskFeedFilter>) {
     return useInfiniteQuery(() => {
-        const search = taskStore.state.feedSearch.trim()
-        const taskFlags = taskStore.state.feedTaskFlags
+        const search = filter().search.trim()
+        const taskFlags = filter().taskFlags
         const request: Omit<TaskApi.GetTasksQuery, 'cursor'> = {
             limit: 30,
             ...(taskFlags ? { taskFlags } : {}),
@@ -107,7 +110,6 @@ export function useRenameTaskMutation() {
         ) => taskApi.rename(request),
         onSuccess: task => {
             updateRenamedTaskCache(queryClient, task)
-            compareStore.updateTaskName(task.id, task.name)
             refreshImageListCache(queryClient)
         },
     }))

@@ -12,7 +12,6 @@ import {
 import { useGenerateDetail } from '#/pages/generate/state/detail'
 import { useGenerateSession } from '#/pages/generate/state/session'
 import { toFailureIssue, useIssueSource } from '#/store/issue'
-import { taskStore } from '#/store/task'
 
 import type { ImageApi } from '@silent-pix/shared'
 import type { TaskConfigActions, TaskConfigCreateData, TaskConfigValues } from '#/components/task/detail/TaskConfig'
@@ -37,8 +36,8 @@ const draftFieldLabel: Record<DraftDefaultField, () => string> = {
 }
 
 export function GenerateTaskDetail() {
-    const store = useGenerateSession()
-    const form = store.form
+    const generateSession = useGenerateSession()
+    const form = generateSession.form
     const detail = useGenerateDetail()
     const samplerQuery = useSamplerListQuery()
     const workflowQuery = useWorkflowListQuery()
@@ -87,7 +86,7 @@ export function GenerateTaskDetail() {
     const samplerOptions = () => samplerQuery.data?.options ?? []
 
     createEffect(() => {
-        if (!detail.draft() || !store.isSelectionLoaded()) return
+        if (!detail.draft() || !generateSession.isSelectionLoaded()) return
 
         const options = workflowOptions()
         const first = options[0]
@@ -125,18 +124,18 @@ export function GenerateTaskDetail() {
         setRenameError()
     }))
 
-    onCleanup(store.cancelReferenceImageUpload)
+    onCleanup(generateSession.cancelReferenceImageUpload)
 
     const onReferenceFile = (file: File) => {
         setReferenceError()
-        store.uploadReferenceImage(file, () => {
+        generateSession.uploadReferenceImage(file, () => {
             setReferenceError(() => () => t('image.unreadable'))
         })
     }
 
     const onReferenceAsset = (item: ImageApi.ImageListItem) => {
         setReferenceError()
-        store.setReferenceImage({
+        generateSession.setReferenceImage({
             type: 'asset',
             image: item.image,
             origin: item.origin,
@@ -227,7 +226,7 @@ export function GenerateTaskDetail() {
         createdAt: () => detail.task()?.createdAt,
         draft: detail.draft,
         draftSource: () => {
-            const source = store.state.draft?.source
+            const source = generateSession.state.draft?.source
             if (source?.kind === 'task') return { kind: 'task', taskId: source.taskId }
             if (source?.kind === 'metadata') {
                 return {
@@ -282,13 +281,13 @@ export function GenerateTaskDetail() {
         onReferenceFile,
         onReferenceReject: message => setReferenceError(() => message),
         onReferenceAsset,
-        onRemoveReference: store.clearReferenceImage,
+        onRemoveReference: generateSession.clearReferenceImage,
         onEditMask: () => setEditingMask(referenceImage() ?? undefined),
         onClearMask: () => {
             const current = referenceImage()
-            if (current) store.setReferenceMask(current, null)
+            if (current) generateSession.setReferenceMask(current, null)
         },
-        onSelectOrigin: taskStore.selectTask,
+        onSelectOrigin: generateSession.selectTask,
         onDenoiseChange: value => form.setFieldValue('denoise', value),
         setImagePickerOpen,
     }
@@ -306,7 +305,7 @@ export function GenerateTaskDetail() {
     const loraActions: TaskLoraActions = {
         onWeightChange: onLoraWeightChange,
         onRemove: onRemoveLora,
-        onSelection: store.applyLoraSelection,
+        onSelection: generateSession.applyLoraSelection,
         onRetry: () => { void loraQuery.refetch() },
         setPickerOpen: setLoraPickerOpen,
     }
@@ -336,7 +335,7 @@ export function GenerateTaskDetail() {
                         reference={normalizeReference(source)}
                         onClose={() => setEditingMask()}
                         onDone={file => {
-                            store.setReferenceMask(source, file)
+                            generateSession.setReferenceMask(source, file)
                             setEditingMask()
                         }}
                     />

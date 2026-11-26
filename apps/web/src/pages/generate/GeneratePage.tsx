@@ -7,13 +7,12 @@ import { TaskList } from '#/pages/generate/components/task/list/TaskList'
 import { GenerateWorkspace } from '#/pages/generate/components/workspace/generate/GenerateWorkspace'
 import { createGenerateDetail, GenerateDetailProvider } from '#/pages/generate/state/detail'
 import { useGenerateSession } from '#/pages/generate/state/session'
-import { taskStore } from '#/store/task'
 
 export function GeneratePage() {
-    const taskDetailQuery = useTaskDetailQuery(() => taskStore.state.selectedTaskId)
-    const session = useGenerateSession()
+    const generateSession = useGenerateSession()
+    const taskDetailQuery = useTaskDetailQuery(() => generateSession.state.selectedTaskId)
     const acceptedTask = () => {
-        const selectedTaskId = taskStore.state.selectedTaskId
+        const selectedTaskId = generateSession.state.selectedTaskId
 
         if (!selectedTaskId) {
             return undefined
@@ -23,49 +22,49 @@ export function GeneratePage() {
             ? taskDetailQuery.data
             : undefined
     }
-    const sourceTaskQuery = useTaskDetailQuery(session.draftSourceTaskId)
+    const sourceTaskQuery = useTaskDetailQuery(generateSession.draftSourceTaskId)
 
     const detail = createGenerateDetail({
-        draft: () => taskStore.state.selectedTaskId === undefined && session.state.draft !== undefined,
-        error: () => Boolean(taskStore.state.selectedTaskId)
+        draft: () => generateSession.state.selectedTaskId === undefined && generateSession.state.draft !== undefined,
+        error: () => Boolean(generateSession.state.selectedTaskId)
             && taskDetailQuery.isError
             && acceptedTask() === undefined,
-        loading: () => Boolean(taskStore.state.selectedTaskId) && taskDetailQuery.isLoading,
+        loading: () => Boolean(generateSession.state.selectedTaskId) && taskDetailQuery.isLoading,
         task: acceptedTask,
-        sourceTask: () => taskStore.state.selectedTaskId === undefined ? sourceTaskQuery.data : undefined,
+        sourceTask: () => generateSession.state.selectedTaskId === undefined ? sourceTaskQuery.data : undefined,
         retry: () => void taskDetailQuery.refetch(),
     })
 
-    const taskFeedQuery = useTaskFeedQuery()
+    const taskFeedQuery = useTaskFeedQuery(generateSession.feedFilter)
     const firstTaskId = () => taskFeedQuery.data?.pages.find(page => page.items.length > 0)?.items[0]?.id
     createEffect(() => {
-        if (taskStore.state.selectedTaskId !== undefined || session.state.draft || taskFeedQuery.isLoading) {
+        if (generateSession.state.selectedTaskId !== undefined || generateSession.state.draft || taskFeedQuery.isLoading) {
             return
         }
 
         const taskId = firstTaskId()
         if (taskId) {
-            taskStore.selectTask(taskId)
+            generateSession.selectTask(taskId)
         }
         else if (taskFeedQuery.isSuccess) {
-            session.startNewDraft()
+            generateSession.startNewDraft()
         }
     })
 
     createEffect(on([detail.task, detail.draft], ([task, draft]) => {
         if (draft) {
-            session.loadDraft()
+            generateSession.loadDraft()
         }
         else if (task) {
-            session.loadTask(task)
+            generateSession.loadTask(task)
         }
     }))
 
     const discardDraft = () => {
         batch(() => {
-            session.discardDraft()
+            generateSession.discardDraft()
             const taskId = firstTaskId()
-            if (taskId) taskStore.selectTask(taskId)
+            if (taskId) generateSession.selectTask(taskId)
         })
     }
 
@@ -73,7 +72,7 @@ export function GeneratePage() {
         event.preventDefault()
 
         if (!detail.loading() && !detail.error()) {
-            void session.submit()
+            void generateSession.submit()
         }
     }
 
@@ -94,7 +93,7 @@ export function GeneratePage() {
                 onSubmit={handleSubmit}
             >
                 <Show
-                    when={taskStore.state.browserOpen}
+                    when={generateSession.state.browserOpen}
                     fallback={(
                         <>
                             <TaskList onDiscardDraft={discardDraft} />

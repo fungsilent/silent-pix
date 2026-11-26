@@ -23,10 +23,10 @@ const copiedResetMs = 1500
  * 檔案可以從開檔鈕選，或拖進視窗任何位置；全部在本機讀取。
  */
 export function MetadataPage() {
-    const session = useMetadataSession()
+    const metadataSession = useMetadataSession()
     const hasServer = getPlatform().endpoint !== null
-    const file = () => session.state.file
-    const result = () => session.state.result
+    const file = () => metadataSession.state.file
+    const result = () => metadataSession.state.result
     /* 以下是頁面的暫時狀態：離開頁面就消失 */
     const [dragging, setDragging] = createSignal(false)
     const [copiedId, setCopiedId] = createSignal<string>()
@@ -44,18 +44,18 @@ export function MetadataPage() {
 
     const clear = () => {
         resetFeedback()
-        session.clear()
+        metadataSession.clear()
     }
 
     const dimensions = () => {
-        const size = session.state.previewSize
+        const size = metadataSession.state.previewSize
         return size && `${size.width} × ${size.height}`
     }
 
     const openFiles = (files: FileList | null | undefined) => {
         if (!files || files.length === 0) return
         resetFeedback()
-        if (session.openFiles(files) === 'too-many') setTooManyFiles(true)
+        if (metadataSession.openFiles(files) === 'too-many') setTooManyFiles(true)
     }
 
     const openPicker = () => input?.click()
@@ -148,8 +148,8 @@ export function MetadataPage() {
                 fallback={(
                     <OpeningScreen
                         dragging={dragging()}
-                        error={session.state.error}
-                        failedName={session.state.failedName}
+                        error={metadataSession.state.error}
+                        failedName={metadataSession.state.failedName}
                         onChoose={openPicker}
                     />
                 )}
@@ -159,19 +159,19 @@ export function MetadataPage() {
                         <MetadataFilePanel
                             file={selected}
                             mime={result()?.mime}
-                            loading={session.state.loading}
-                            previewUrl={session.state.previewUrl}
-                            previewFailed={session.state.previewFailed}
+                            loading={metadataSession.state.loading}
+                            previewUrl={metadataSession.state.previewUrl}
+                            previewFailed={metadataSession.state.previewFailed}
                             dimensions={dimensions()}
                             onOpen={openPicker}
                             onClear={clear}
                         />
                         <MetadataResultPane
-                            tab={session.state.activeTab}
+                            tab={metadataSession.state.activeTab}
                             entries={result()?.entries ?? []}
-                            loading={session.state.loading}
+                            loading={metadataSession.state.loading}
                             copiedId={copiedId()}
-                            onTabChange={session.setTab}
+                            onTabChange={metadataSession.setTab}
                             onCopy={(id, text) => void copy(id, text)}
                             actions={hasServer ? <MetadataCopyTo /> : undefined}
                         />

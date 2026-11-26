@@ -1,10 +1,15 @@
+import { createContextProvider } from '@solid-primitives/context'
+
 import { createStore } from '#/lib/store'
 
 import type { ImageApi } from '@silent-pix/shared'
 
+/* 只存 Compare 讀的欄位；task 名稱等由 task detail query 提供 */
+export type CompareUsage = Pick<ImageApi.ImageUsage, 'type' | 'taskId'>
+
 export type CompareEntry = {
     image: ImageApi.ImageResource
-    usage: ImageApi.ImageUsage | null
+    usage: CompareUsage | null
     hidden: boolean
 }
 
@@ -13,42 +18,28 @@ type CompareState = {
     selectedCompareImageId: string | null
 }
 
-const initialState: CompareState = {
+const initialState = (): CompareState => ({
     compare: [],
     selectedCompareImageId: null,
-}
+})
 
-export const compareStore = createStore(initialState, store => ({
+const createCompareSession = () => createStore(initialState(), store => ({
     addCompare(entries: CompareEntry[]) {
         const existingIds = new Set(store.state.compare.map(entry => entry.image.id))
-        const additions = entries.filter(entry => !existingIds.has(entry.image.id))
+        /* 呼叫者可能傳入較寬的 usage（例如 picker 的 matchedUsage），只投影出要存的欄位 */
+        const additions = entries
+            .filter(entry => !existingIds.has(entry.image.id))
+            .map(entry => ({
+                image: entry.image,
+                usage: entry.usage && { type: entry.usage.type, taskId: entry.usage.taskId },
+                hidden: entry.hidden,
+            }))
 
         if (additions.length === 0) {
             return
         }
 
         store.set('compare', current => [...current, ...additions])
-    },
-
-    updateTaskName(taskId: string, name: string | null) {
-        store.set('compare', current => {
-            let changed = false
-            const updated = current.map(entry => {
-                const usage = entry.usage
-
-                if (!usage || usage.taskId !== taskId || usage.taskName === name) {
-                    return entry
-                }
-
-                changed = true
-                return {
-                    ...entry,
-                    usage: { ...usage, taskName: name },
-                }
-            })
-
-            return changed ? updated : current
-        })
     },
 
     selectCompare(imageId: string) {
@@ -133,3 +124,14 @@ export const compareStore = createStore(initialState, store => ({
         return store.state.compare.find(entry => entry.image.id === store.state.selectedCompareImageId)
     },
 }))
+
+// MARK: Compare session access
+const [CompareSessionProvider, readCompareSession] = createContextProvider(createCompareSession)
+export { CompareSessionProvider }
+
+export function useCompareSession() {
+    const session = readCompareSession()
+    if (!session) throw new Error('useCompareSession must be used within CompareSessionProvider')
+
+    return session
+}

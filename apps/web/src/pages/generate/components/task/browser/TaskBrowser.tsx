@@ -16,9 +16,9 @@ import { TaskBrowserToolbar } from '#/pages/generate/components/task/browser/Tas
 import { TaskBrowserViewer } from '#/pages/generate/components/task/browser/TaskBrowserViewer'
 import { taskFilterEmptyCopy } from '#/pages/generate/components/task/TaskFilterChips'
 import { TaskRail } from '#/pages/generate/components/task/TaskRail'
+import { useGenerateSession } from '#/pages/generate/state/session'
 import { toFailureIssue, useIssueSource } from '#/store/issue'
 import { overlayStore } from '#/store/overlay'
-import { taskStore } from '#/store/task'
 import { mergeClasses } from '#/utils/style'
 
 import type { TaskApi } from '@silent-pix/shared'
@@ -28,7 +28,8 @@ import type { AppIssue } from '#/store/issue'
 const taskSelectionLimit = 200
 
 export function TaskBrowser() {
-    const taskFeedQuery = useTaskFeedQuery()
+    const generateSession = useGenerateSession()
+    const taskFeedQuery = useTaskFeedQuery(generateSession.feedFilter)
     const flagMutation = useTaskFlagMutation()
     const selectedDeleteMutation = useDeleteSelectedTasksMutation()
     const discardedDeleteMutation = useDeleteDiscardedTasksMutation()
@@ -106,12 +107,12 @@ export function TaskBrowser() {
     onCleanup(() => window.removeEventListener('keydown', handleKeyDown))
 
     const focusTask = (taskId: string) => {
-        taskStore.selectTask(taskId)
+        generateSession.selectTask(taskId)
     }
 
     const openTask = (taskId: string) => {
-        taskStore.selectTask(taskId)
-        closeViewerOnSelectionChange(() => taskStore.state.selectedTaskId)
+        generateSession.selectTask(taskId)
+        closeViewerOnSelectionChange(() => generateSession.state.selectedTaskId)
         setViewerOpen(true)
     }
 
@@ -143,13 +144,13 @@ export function TaskBrowser() {
     const changeFilter = (taskFlags: TaskApi.TaskFilterFlag[] | undefined) => {
         setSelectedTaskIds([])
         setSelectionLimitWarning(false)
-        taskStore.setFeedTaskFlags(taskFlags)
+        generateSession.setFeedTaskFlags(taskFlags)
     }
 
     const changeSearch = (search: string) => {
         setSelectedTaskIds([])
         setSelectionLimitWarning(false)
-        taskStore.setFeedSearch(search)
+        generateSession.setFeedSearch(search)
     }
 
     createEffect(() => {
@@ -165,7 +166,7 @@ export function TaskBrowser() {
     })
 
     const showPermanentDelete = () => {
-        const taskFlags = taskStore.state.feedTaskFlags
+        const taskFlags = generateSession.state.feedTaskFlags
         return taskFlags?.length === 1 && taskFlags[0] === 'discard'
     }
 
@@ -224,7 +225,7 @@ export function TaskBrowser() {
                 class='flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-surface'
             >
                 <TaskBrowserToolbar
-                    search={taskStore.state.feedSearch}
+                    search={generateSession.state.feedSearch}
                     selectedCount={selectedTaskIds().length}
                     selectedFlag={selectedFlag()}
                     onSearchChange={changeSearch}
@@ -241,10 +242,10 @@ export function TaskBrowser() {
                 <TaskBrowserGrid
                     taskIds={taskIds}
                     taskById={taskById}
-                    focusedTaskId={() => taskStore.state.selectedTaskId}
+                    focusedTaskId={() => generateSession.state.selectedTaskId}
                     thumbnailGrid={thumbnailGrid}
                     selectedTaskIds={selectedTaskIds}
-                    emptyCopy={taskFilterEmptyCopy()}
+                    emptyCopy={taskFilterEmptyCopy(generateSession.feedFilter())}
                     loading={taskFeedQuery.isLoading}
                     hasData={taskFeedQuery.data !== undefined}
                     error={taskFeedQuery.isError}

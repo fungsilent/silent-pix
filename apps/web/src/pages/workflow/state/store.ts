@@ -16,8 +16,8 @@ import type { GraphParse } from '#/pages/workflow/graph'
 import type { WorkflowNodeOption } from '#/pages/workflow/node-option'
 
 function createWorkflowStore() {
-    const session = useWorkflowSession()
-    const { form, isModified, isSubmitting, state } = session
+    const workflowSession = useWorkflowSession()
+    const { form, isModified, isSubmitting, state } = workflowSession
 
     // MARK: Workflow selection
     const listQuery = useWorkflowListQuery()
@@ -76,12 +76,12 @@ function createWorkflowStore() {
 
     const applyRemoved = (workflowId: string) => {
         if (state.selectedId === workflowId) {
-            session.selectWorkflow(summaries().find(item => item.id !== workflowId)?.id ?? null)
+            workflowSession.selectWorkflow(summaries().find(item => item.id !== workflowId)?.id ?? null)
         }
     }
 
-    createEffect(on([record, session.isDefaultValue, isDeleted], ([current, isDefault, deleted]) => {
-        if (current && isDefault && !deleted) session.loadWorkflow(current)
+    createEffect(on([record, workflowSession.isDefaultValue, isDeleted], ([current, isDefault, deleted]) => {
+        if (current && isDefault && !deleted) workflowSession.loadWorkflow(current)
     }))
 
     createEffect(on([remoteId, missingFromList], ([id, missing]) => {
@@ -101,7 +101,7 @@ function createWorkflowStore() {
         ([loaded, options, selectedId, modified, deleted]) => {
             if (!loaded || modified || (selectedId !== null && (!deleted || options.some(item => item.id === selectedId)))) return
 
-            session.selectWorkflow(options[0]?.id ?? null)
+            workflowSession.selectWorkflow(options[0]?.id ?? null)
         },
     ))
 
@@ -190,14 +190,14 @@ function createWorkflowStore() {
             && mappingIssues.length === 0
     }
 
-    const submit = () => canSave() ? session.submit() : undefined
+    const submit = () => canSave() ? workflowSession.submit() : undefined
 
     return {
         state,
         form,
         listQuery,
         detailQuery,
-        dismissSaveError: session.dismissSaveError,
+        dismissSaveError: workflowSession.dismissSaveError,
         refreshWorkflowList,
         summaries,
         selection,
@@ -210,8 +210,8 @@ function createWorkflowStore() {
         isReadOnly,
         isSubmitting,
         draftLabel,
-        selectWorkflow: session.selectWorkflow,
-        startCreate: session.startCreate,
+        selectWorkflow: workflowSession.selectWorkflow,
+        startCreate: workflowSession.startCreate,
         setMapping,
         applyRemoved,
         canSave,

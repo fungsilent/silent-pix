@@ -5,7 +5,6 @@ import { t } from '#/lib/i18n'
 import { theme } from '#/lib/theme'
 import { TaskFilterChips } from '#/pages/generate/components/task/TaskFilterChips'
 import { useGenerateSession } from '#/pages/generate/state/session'
-import { taskStore } from '#/store/task'
 import { mergeClasses } from '#/utils/style'
 
 import type { TaskApi } from '@silent-pix/shared'
@@ -18,7 +17,7 @@ type TaskRailProps = {
 }
 
 export function TaskRail(props: TaskRailProps) {
-    const session = useGenerateSession()
+    const generateSession = useGenerateSession()
     return (
         <nav class='flex w-10 shrink-0 flex-col items-center border-r border-line-subtle bg-surface'>
             <div class='flex h-12 shrink-0 items-center justify-center'>
@@ -30,7 +29,7 @@ export function TaskRail(props: TaskRailProps) {
                     variant='ghost'
                     title={t('task.newDraft')}
                     classes={{ root: 'size-7 shrink-0 p-0' }}
-                    onClick={() => session.startNewDraft()}
+                    onClick={() => generateSession.startNewDraft()}
                 >
                     <SquarePen
                         size={15}
@@ -43,7 +42,7 @@ export function TaskRail(props: TaskRailProps) {
                     variant='ghost'
                     title={t('task.gridView')}
                     classes={{ root: mergeClasses('size-7 shrink-0 p-0', props.gridActive && theme.selected) }}
-                    onClick={() => taskStore.setBrowserOpen(!props.gridActive)}
+                    onClick={() => generateSession.setBrowserOpen(!props.gridActive)}
                 >
                     <LayoutGrid
                         size={15}
@@ -52,7 +51,7 @@ export function TaskRail(props: TaskRailProps) {
                 </Button>
                 <div class='my-1 h-px w-5 bg-line-subtle' />
                 <TaskFilterChips
-                    values={taskStore.state.feedTaskFlags}
+                    values={generateSession.state.feedTaskFlags}
                     onChange={props.onFilterChange}
                     presentation='icon'
                     classes={{ root: 'flex-col px-0 pb-0' }}

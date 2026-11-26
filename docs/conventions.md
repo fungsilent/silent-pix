@@ -191,8 +191,9 @@ Each `data/<domain>` directory keeps its API wrapper with its Query hooks, keys,
 pagination, and cache updates. Use domain names such as `app` for directories
 and operation names such as `health` for individual calls. API wrappers expose
 plain Promise functions without Solid or TanStack Query. Components consume hooks.
-Hooks read needed store state directly. Keep request construction in the owning
-query module.
+Hooks read needed global store state directly; session and route store values
+reach them as accessor arguments from the caller. Keep request construction in
+the owning query module.
 
 Name cache commands `update…Cache` for applying data, `remove…Cache` for removing
 records, and `refresh…Cache` for invalidating queries so they can refetch.
@@ -240,8 +241,14 @@ logic stays beside its component and page-wide logic at the page root.
 Page-independent capabilities with a defined API belong in `lib`, even when
 they have one current consumer. Examples include keyboard shortcuts, image zoom,
 drag selection, and splitter sizing. Put small stateless operations such as date
-formatting and class composition in `utils`. The `store` directory owns
-cross-page UI state.
+formatting and class composition in `utils`.
+
+State owners use four terms. A Solid store is the `createStore` primitive from
+`lib/store.ts` that any owner may use. A global store is a module singleton in
+`store/` for App-wide state that belongs to no page, such as connection,
+issues, overlays, dev tools, and theme. A session is page work that survives
+leaving the route, in `state/session.ts`. A route store is a Context that
+coordinates one route and unmounts with it, in `state/store.ts`.
 
 A page folder separates code by lifetime. `XxxPage.tsx` is the route entry.
 `state/` holds Providers whose state outlives a single component: the session,
@@ -265,10 +272,10 @@ for reuse, distinct responsibility, or isolated complexity, not file length or
 symmetry. Shared Task detail UI and page-specific adapters retain the ownership
 boundaries in AGENTS.md rather than making generic fields domain-aware.
 
-The component acquiring query/store data owns that access and passes narrow
-props to children. Children define their contracts and do not read the same
-parent-owned source again. A hook that itself needs shared store state reads it
-directly.
+The component acquiring query data or state from a store or session owns that
+access and passes narrow props to children. Children define their contracts and
+do not read the same parent-owned source again. A hook that itself needs global
+store state reads it directly.
 
 Read Solid store state through `store.state`, with actions flattened on the
 returned store. Use TanStack Form for editable values, with reactive
@@ -299,8 +306,10 @@ stay in the owning code.
 - Use `state/session.ts`, `XxxSessionProvider`, and `useXxxSession()` for domain work
   that must survive leaving its route. Compose those providers in the fixed
   `MultiProvider` list at the App root layout; sessions that need the Server are
-  listed only when an endpoint exists. Providers for query subscriptions
-  and view state stay inside the route that uses them.
+  listed only when an endpoint exists. Name the variable holding a session after
+  its domain, such as `generateSession`, never a bare `session` or `store`.
+  Providers for query subscriptions and view state stay inside the route that
+  uses them.
 - A Context that coordinates a whole route lives in `state/store.ts` and exposes
   `XxxStoreProvider` and `useXxxStore()`. Use the specific capability name for a narrower Context.
   In larger modules, use `// MARK: <feature or operation>` to label sections.

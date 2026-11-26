@@ -1,6 +1,8 @@
+import { task } from '@silent-pix/shared'
 import { createContextProvider } from '@solid-primitives/context'
 import { batch, createEffect, on, onCleanup } from 'solid-js'
 
+import { subscribeTasksRemoved } from '#/data/task/task.event'
 import { useCreateTaskMutation } from '#/data/task/task.query'
 import { useRefreshWorkflowList } from '#/data/workflow/workflow.query'
 import { ApiError } from '#/lib/api-client'
@@ -16,9 +18,9 @@ import {
     toGenerateValues,
 } from '#/pages/generate/form'
 import { toSubmitIssue, toValidationIssues } from '#/pages/generate/issue'
-import { taskStore } from '#/store/task'
 
 import type { TaskApi } from '@silent-pix/shared'
+import type { TaskFeedFilter } from '#/data/task/task.query'
 import type { GenerateValues, PromptKind, ReferenceImage } from '#/pages/generate/form'
 import type { GenerateIssue } from '#/pages/generate/issue'
 
@@ -40,6 +42,10 @@ function sameConfig(a: GenerateValues, b: GenerateValues): boolean {
 }
 
 type GenerateUiState = {
+    selectedTaskId: string | undefined
+    feedTaskFlags: TaskApi.TaskFilterFlag[] | undefined
+    feedSearch: string
+    browserOpen: boolean
     submitIssues: GenerateIssue[]
     submitToken: number
     taskId: string | undefined
@@ -70,6 +76,10 @@ function readPromptHeight(): Record<PromptKind, number> {
 
 function createGenerateSession() {
     const initialState: GenerateUiState = {
+        selectedTaskId: undefined,
+        feedTaskFlags: undefined,
+        feedSearch: '',
+        browserOpen: false,
         submitIssues: [],
         submitToken: 0,
         taskId: undefined,
@@ -91,6 +101,29 @@ function createGenerateSession() {
             }
 
             return {
+                clearTask() {
+                    store.set('selectedTaskId', undefined)
+                },
+
+                selectTask(taskId: string) {
+                    store.set('selectedTaskId', taskId)
+                },
+
+                setFeedTaskFlags(flags: TaskApi.TaskFilterFlag[] | undefined) {
+                    const normalized = flags && flags.length > 0 && flags.length < task.filterFlags.length
+                        ? task.filterFlags.filter(flag => flags.includes(flag))
+                        : undefined
+                    store.set('feedTaskFlags', normalized)
+                },
+
+                setFeedSearch(search: string) {
+                    store.set('feedSearch', search)
+                },
+
+                setBrowserOpen(open: boolean) {
+                    store.set('browserOpen', open)
+                },
+
                 clearSubmitIssues() {
                     store.set('submitIssues', [])
                 },
@@ -115,6 +148,13 @@ function createGenerateSession() {
         },
     )
 
+    const feedFilter = (): TaskFeedFilter => ({ search: uiStore.state.feedSearch, taskFlags: uiStore.state.feedTaskFlags })
+
+    onCleanup(subscribeTasksRemoved(taskIds => {
+        const selectedTaskId = uiStore.state.selectedTaskId
+        if (selectedTaskId !== undefined && taskIds.includes(selectedTaskId)) uiStore.clearTask()
+    }))
+
     // MARK: Generate Task
     const createTaskMutation = useCreateTaskMutation()
     const refreshWorkflowList = useRefreshWorkflowList()
@@ -123,16 +163,16 @@ function createGenerateSession() {
         onSubmit: async values => {
             if (!isSelectionLoaded()) return
 
-            const selectedTaskId = taskStore.state.selectedTaskId
+            const selectedTaskId = uiStore.state.selectedTaskId
             /* TanStack Form 每次改值都會換掉 values，舊回應只處理原來的表單版本。 */
             const submittedValues = form.state.values
             const response = await createTaskMutation.mutateAsync(toCreateTaskRequest(values))
 
-            if (taskStore.state.selectedTaskId !== selectedTaskId || form.state.values !== submittedValues) return
+            if (uiStore.state.selectedTaskId !== selectedTaskId || form.state.values !== submittedValues) return
 
             batch(() => {
                 if (selectedTaskId === undefined) discardDraft()
-                taskStore.selectTask(response.id)
+                uiStore.selectTask(response.id)
             })
         },
     })
@@ -162,7 +202,7 @@ function createGenerateSession() {
     // MARK: Draft
     const isEditingDraft = () => uiStore.state.taskId === undefined && uiStore.state.draft !== undefined
     const isSelectionLoaded = () => {
-        const selectedTaskId = taskStore.state.selectedTaskId
+        const selectedTaskId = uiStore.state.selectedTaskId
         return selectedTaskId === undefined ? isEditingDraft() : uiStore.state.taskId === selectedTaskId
     }
     const formValues = form.useStore(state => state.values)
@@ -175,14 +215,14 @@ function createGenerateSession() {
 
     createEffect(on(formValues, values => {
         const taskId = uiStore.state.taskId
-        if (!taskId || taskId !== taskStore.state.selectedTaskId || !taskBase || sameConfig(values, taskBase)) return
+        if (!taskId || taskId !== uiStore.state.selectedTaskId || !taskBase || sameConfig(values, taskBase)) return
 
         /* 表單原地成為草稿，讓 prompt editor 繼續編輯同一份文件。 */
         batch(() => {
             taskBase = undefined
             replaceDraft({ source: { kind: 'task', taskId } })
             uiStore.set('taskId', undefined)
-            taskStore.clearTask()
+            uiStore.clearTask()
         })
     }, { defer: true }))
 
@@ -201,8 +241,8 @@ function createGenerateSession() {
             uiStore.set('taskId', undefined)
             taskBase = undefined
             resetForm(cloneGenerateValues(values))
-            taskStore.clearTask()
-            taskStore.setBrowserOpen(false)
+            uiStore.clearTask()
+            uiStore.setBrowserOpen(false)
         })
     }
 
@@ -306,8 +346,8 @@ function createGenerateSession() {
     const uploadReferenceImage = (file: File, onUnreadable: () => void) => {
         cancelReferenceImageUpload()
         const previewUrl = URL.createObjectURL(file)
-        const taskId = taskStore.state.selectedTaskId
-        const isCurrent = () => pendingPreviewUrl === previewUrl && taskStore.state.selectedTaskId === taskId
+        const taskId = uiStore.state.selectedTaskId
+        const isCurrent = () => pendingPreviewUrl === previewUrl && uiStore.state.selectedTaskId === taskId
         pendingPreviewUrl = previewUrl
 
         const probe = new Image()
@@ -336,7 +376,7 @@ function createGenerateSession() {
         form.setFieldValue('referenceImage', { ...reference, mask })
     }
 
-    createEffect(on(() => taskStore.state.selectedTaskId, cancelReferenceImageUpload, { defer: true }))
+    createEffect(on(() => uiStore.state.selectedTaskId, cancelReferenceImageUpload, { defer: true }))
 
     onCleanup(() => {
         cancelReferenceImageUpload()
@@ -364,6 +404,7 @@ function createGenerateSession() {
     return {
         ...uiStore,
         form,
+        feedFilter,
         isSelectionLoaded,
         isSubmitting,
         submit,

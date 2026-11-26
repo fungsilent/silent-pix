@@ -7,6 +7,7 @@ import { startServerEvents } from '#/app/server-events'
 import { Header } from '#/components/Header'
 import { getPlatform } from '#/lib/platform'
 import { ComparePage } from '#/pages/compare/ComparePage'
+import { CompareSessionProvider } from '#/pages/compare/state/session'
 import { GeneratePage } from '#/pages/generate/GeneratePage'
 import { GenerateSessionProvider } from '#/pages/generate/state/session'
 import { MetadataPage } from '#/pages/metadata/MetadataPage'
@@ -74,7 +75,11 @@ function AppLayout(props: RouteSectionProps) {
                         MetadataSessionProvider,
                         ...(
                             platform.endpoint
-                                ? [GenerateSessionProvider, WorkflowSessionProvider]
+                                ? [
+                                    GenerateSessionProvider,
+                                    CompareSessionProvider,
+                                    WorkflowSessionProvider,
+                                ]
                                 : []
                         ),
                     ]}

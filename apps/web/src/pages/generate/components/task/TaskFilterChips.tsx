@@ -2,10 +2,10 @@ import { FlagOff, FlagTriangleRight, HeartX, ListFilter } from 'lucide-solid'
 
 import { FilterChips } from '#/components/base/FilterChips'
 import { t } from '#/lib/i18n'
-import { taskStore } from '#/store/task'
 import { mergeClasses } from '#/utils/style'
 
 import type { TaskApi } from '@silent-pix/shared'
+import type { TaskFeedFilter } from '#/data/task/task.query'
 import type { LucideProps } from 'lucide-solid'
 import type { Component } from 'solid-js'
 
@@ -51,10 +51,10 @@ export function TaskFilterChips(props: TaskFilterChipsProps) {
  * 目前 feed 篩選下的空狀態文案，Task list 與 Task browser 共用：
  * 有搜尋字串 → 搜尋無結果；只篩一個 flag → 該 flag 專屬文案；多個 flag → 篩選無結果；都沒有 → 尚無 task。
  */
-export function taskFilterEmptyCopy() {
-    const flags = taskStore.state.feedTaskFlags
+export function taskFilterEmptyCopy(filter: TaskFeedFilter) {
+    const flags = filter.taskFlags
 
-    if (taskStore.state.feedSearch.trim() !== '') {
+    if (filter.search.trim() !== '') {
         return { title: t('task.empty.noMatchTitle'), message: t('task.empty.searchMessage') }
     }
 

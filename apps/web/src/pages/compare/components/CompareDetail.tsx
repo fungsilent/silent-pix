@@ -4,7 +4,7 @@ import { TaskDetail } from '#/components/task/detail/TaskDetail'
 import { useTaskDetailQuery } from '#/data/task/task.query'
 import { t } from '#/lib/i18n'
 import { ReferenceImageDetail } from '#/pages/compare/components/ReferenceImageDetail'
-import { compareStore } from '#/store/compare'
+import { useCompareSession } from '#/pages/compare/state/session'
 
 import type { TaskConfigData, TaskConfigValues } from '#/components/task/detail/TaskConfig'
 import type { TaskDetailViewData } from '#/components/task/detail/TaskDetail'
@@ -15,7 +15,8 @@ import type { TaskLoraData } from '#/components/task/detail/TaskLora'
 export function CompareDetail() {
     const [collapsed, setCollapsed] = createSignal(false)
     const collapse = { collapsed, setCollapsed }
-    const selected = createMemo(() => compareStore.selectedCompare())
+    const compareSession = useCompareSession()
+    const selected = createMemo(() => compareSession.selectedCompare())
     const taskId = createMemo(() => {
         const usage = selected()?.usage
         return usage?.type === 'output' ? usage.taskId : undefined

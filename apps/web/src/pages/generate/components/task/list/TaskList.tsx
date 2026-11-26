@@ -14,8 +14,9 @@ import { taskFilterEmptyCopy } from '#/pages/generate/components/task/TaskFilter
 import { TaskRail } from '#/pages/generate/components/task/TaskRail'
 import { useGenerateSession } from '#/pages/generate/state/session'
 import { toFailureIssue, useIssueSource } from '#/store/issue'
-import { taskStore } from '#/store/task'
 import { mergeClasses } from '#/utils/style'
+
+import type { TaskFeedFilter } from '#/data/task/task.query'
 
 type TaskListProps = {
     onDiscardDraft: () => void
@@ -25,7 +26,8 @@ const taskSkeletonRows = [0, 1, 2, 3, 4, 5]
 const nextPageSkeletonRows = [0, 1]
 
 export function TaskList(props: TaskListProps) {
-    const taskFeedQuery = useTaskFeedQuery()
+    const generateSession = useGenerateSession()
+    const taskFeedQuery = useTaskFeedQuery(generateSession.feedFilter)
     const flagMutation = useTaskFlagMutation()
     useIssueSource(() => toFailureIssue('task-list-flag', () => t('task.title'), flagMutation.error, () => flagMutation.reset()))
     const loadOnScroll = createLoadOnScroll({
@@ -37,9 +39,8 @@ export function TaskList(props: TaskListProps) {
     const tasks = createMemo(() => taskFeedQuery.data?.pages.flatMap(page => page.items) ?? [])
     const taskById = createMemo(() => new Map(tasks().map(task => [task.id, task])))
     const taskIds = createMemo(() => tasks().map(task => task.id))
-    const session = useGenerateSession()
     const draftSourceLabel = () => {
-        const source = session.state.draft?.source
+        const source = generateSession.state.draft?.source
         if (source?.kind === 'task') return t('task.draftFrom', { file: `task ${source.taskId.slice(0, 8)}` })
         if (source?.kind === 'metadata') return t('task.draftFrom', { file: source.fileName })
         return t('task.draftNew')
@@ -61,7 +62,7 @@ export function TaskList(props: TaskListProps) {
                             />
                         )}
                         gridActive={false}
-                        onFilterChange={taskStore.setFeedTaskFlags}
+                        onFilterChange={generateSession.setFeedTaskFlags}
                     />
                     <div class={mergeClasses('flex min-h-0 min-w-0 flex-col', panel.isCollapsed() ? 'w-[106px]' : 'w-[250px]')}>
                         {/* 透明底線：與 Task browser 工具列同樣是 48px 含 1px 底線，搜尋欄位置與 baseline 一致 */}
@@ -69,7 +70,7 @@ export function TaskList(props: TaskListProps) {
                             <div class='flex w-0 min-w-full'>
                                 <Text
                                     label={t('task.search')}
-                                    value={taskStore.state.feedSearch}
+                                    value={generateSession.state.feedSearch}
                                     placeholder={t('task.searchPlaceholder')}
                                     icon={(
                                         <Search
@@ -78,7 +79,7 @@ export function TaskList(props: TaskListProps) {
                                         />
                                     )}
                                     classes={{ root: 'min-w-0 flex-1', label: 'hidden' }}
-                                    onInput={taskStore.setFeedSearch}
+                                    onInput={generateSession.setFeedSearch}
                                 />
                             </div>
                         </div>
@@ -88,13 +89,13 @@ export function TaskList(props: TaskListProps) {
                                 content: 'gap-1',
                             }}
                         >
-                            <Show when={session.state.draft}>
+                            <Show when={generateSession.state.draft}>
                                 <TaskDraftItem
-                                    selected={taskStore.state.selectedTaskId === undefined}
+                                    selected={generateSession.state.selectedTaskId === undefined}
                                     thumbnailOnly={panel.isCollapsed()}
-                                    name={session.draftName()}
+                                    name={generateSession.draftName()}
                                     source={draftSourceLabel()}
-                                    onSelect={() => taskStore.clearTask()}
+                                    onSelect={() => generateSession.clearTask()}
                                     onDiscard={props.onDiscardDraft}
                                 />
                             </Show>
@@ -128,13 +129,13 @@ export function TaskList(props: TaskListProps) {
                                         fallback={(
                                             <Show
                                                 when={!panel.isCollapsed()}
-                                                fallback={<CollapsedEmpty />}
+                                                fallback={<CollapsedEmpty filter={generateSession.feedFilter()} />}
                                             >
                                                 <StatusMessage
                                                     kind='empty'
                                                     size='compact'
-                                                    title={taskFilterEmptyCopy().title}
-                                                    message={taskFilterEmptyCopy().message}
+                                                    title={taskFilterEmptyCopy(generateSession.feedFilter()).title}
+                                                    message={taskFilterEmptyCopy(generateSession.feedFilter()).message}
                                                 />
                                             </Show>
                                         )}
@@ -142,10 +143,10 @@ export function TaskList(props: TaskListProps) {
                                         <For each={taskIds()}>
                                             {taskId => (
                                                 <TaskItem
-                                                    selected={taskId === taskStore.state.selectedTaskId}
+                                                    selected={taskId === generateSession.state.selectedTaskId}
                                                     task={taskById().get(taskId)!}
                                                     thumbnailOnly={panel.isCollapsed()}
-                                                    onSelect={() => taskStore.selectTask(taskId)}
+                                                    onSelect={() => generateSession.selectTask(taskId)}
                                                     onFlagChange={flag => flagMutation.mutate({
                                                         taskIds: [taskId],
                                                         flag,
@@ -187,8 +188,8 @@ export function TaskList(props: TaskListProps) {
 }
 
 /* 收合時放不下 StatusMessage：在第一張縮圖的位置放同尺寸虛線方塊，icon 依原因，完整文案放在提示 */
-function CollapsedEmpty() {
-    const copy = () => taskFilterEmptyCopy()
+function CollapsedEmpty(props: { filter: TaskFeedFilter }) {
+    const copy = () => taskFilterEmptyCopy(props.filter)
     const icon = { size: 22, strokeWidth: 1.6 }
 
     return (
@@ -197,9 +198,9 @@ function CollapsedEmpty() {
                 title={`${copy().title} · ${copy().message}`}
                 class='grid size-18 shrink-0 place-items-center rounded-md border border-dashed border-line text-fg-muted'
             >
-                {taskStore.state.feedSearch.trim() !== ''
+                {props.filter.search.trim() !== ''
                     ? <SearchX {...icon} />
-                    : taskStore.state.feedTaskFlags !== undefined
+                    : props.filter.taskFlags !== undefined
                         ? <FunnelX {...icon} />
                         : <Inbox {...icon} />}
             </div>
