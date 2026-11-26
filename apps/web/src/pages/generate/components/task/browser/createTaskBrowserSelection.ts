@@ -9,9 +9,7 @@ import type { Accessor } from 'solid-js'
 export const taskSelectionLimit = 200
 
 type TaskBrowserSelectionOptions = {
-    tasks: Accessor<TaskApi.TaskListItem[]>
     taskById: Accessor<Map<string, TaskApi.TaskListItem>>
-    /* feed 已有資料；還沒載入時不剔除選取 */
     loaded: Accessor<boolean>
     viewerOpen: Accessor<boolean>
 }
@@ -20,16 +18,6 @@ type TaskBrowserSelectionOptions = {
 export function createTaskBrowserSelection(options: TaskBrowserSelectionOptions) {
     const [selectedTaskIds, setSelectedTaskIds] = createSignal<string[]>([])
     const [selectionLimitWarning, setSelectionLimitWarning] = createSignal(false)
-
-    /* Search/filter can make a selected card leave the loaded view. */
-    createEffect(() => {
-        const visibleIds = new Set(options.tasks().map(task => task.id))
-
-        setSelectedTaskIds(current => {
-            const next = current.filter(id => visibleIds.has(id))
-            return next.length === current.length ? current : next
-        })
-    })
 
     createEffect(() => {
         if (selectedTaskIds().length < taskSelectionLimit) {

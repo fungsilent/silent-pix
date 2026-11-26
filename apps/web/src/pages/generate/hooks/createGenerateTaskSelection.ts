@@ -1,6 +1,6 @@
 import { batch, createEffect, on } from 'solid-js'
 
-import { useTaskDetailQuery, useTaskFeedQuery } from '#/data/task/task.query'
+import { useTaskDetailQuery, useTaskFeedFirstId, useTaskFeedQuery } from '#/data/task/task.query'
 import { createGenerateDetail } from '#/pages/generate/state/detail'
 import { useGenerateSession } from '#/pages/generate/state/session'
 
@@ -33,8 +33,10 @@ export function createGenerateTaskSelection() {
     })
 
     const taskFeedQuery = useTaskFeedQuery(generateSession.feedFilter)
-    const firstTaskId = () => taskFeedQuery.data?.pages.find(page => page.items.length > 0)?.items[0]?.id
+    const firstTaskId = useTaskFeedFirstId(generateSession.feedFilter)
     createEffect(() => {
+        /* feed 更新時重跑；選哪筆由 firstTaskId 讀 cache 決定 */
+        void taskFeedQuery.data
         if (generateSession.state.selectedTaskId !== undefined || generateSession.state.draft || taskFeedQuery.isLoading) {
             return
         }

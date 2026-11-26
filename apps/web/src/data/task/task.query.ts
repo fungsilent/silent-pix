@@ -11,6 +11,7 @@ import { applyTasksRemoved } from '#/data/task/task.event'
 import { taskKeys } from '#/data/task/task.key'
 
 import type { TaskApi } from '@silent-pix/shared'
+import type { InfiniteData } from '@tanstack/solid-query'
 import type { Accessor } from 'solid-js'
 
 export const samplerKeys = {
@@ -28,15 +29,19 @@ export type TaskFeedFilter = {
     taskFlags: TaskApi.TaskFilterFlag[] | undefined
 }
 
+function taskFeedRequest(filter: TaskFeedFilter): Omit<TaskApi.GetTasksQuery, 'cursor'> {
+    const search = filter.search.trim()
+
+    return {
+        limit: 30,
+        ...(filter.taskFlags ? { taskFlags: filter.taskFlags } : {}),
+        ...(search ? { search } : {}),
+    }
+}
+
 export function useTaskFeedQuery(filter: Accessor<TaskFeedFilter>) {
     return useInfiniteQuery(() => {
-        const search = filter().search.trim()
-        const taskFlags = filter().taskFlags
-        const request: Omit<TaskApi.GetTasksQuery, 'cursor'> = {
-            limit: 30,
-            ...(taskFlags ? { taskFlags } : {}),
-            ...(search ? { search } : {}),
-        }
+        const request = taskFeedRequest(filter())
 
         return {
             queryKey: taskKeys.feed(request),
@@ -48,6 +53,14 @@ export function useTaskFeedQuery(filter: Accessor<TaskFeedFilter>) {
             getNextPageParam: lastPage => lastPage.nextCursor,
         }
     })
+}
+
+export function useTaskFeedFirstId(filter: Accessor<TaskFeedFilter>) {
+    const queryClient = useQueryClient()
+
+    return () => queryClient
+        .getQueryData<InfiniteData<TaskApi.GetTasksResponse, string | undefined>>(taskKeys.feed(taskFeedRequest(filter())))
+        ?.pages.find(page => page.items.length > 0)?.items[0]?.id
 }
 
 export function useTaskDetailQuery(taskId: Accessor<string | undefined>) {

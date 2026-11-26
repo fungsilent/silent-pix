@@ -39,7 +39,6 @@ export function TaskBrowser() {
     const taskById = createMemo(() => new Map(tasks().map(task => [task.id, task])))
     const taskIds = createMemo(() => tasks().map(task => task.id))
     const selection = createTaskBrowserSelection({
-        tasks,
         taskById,
         loaded: () => Boolean(taskFeedQuery.data),
         viewerOpen,

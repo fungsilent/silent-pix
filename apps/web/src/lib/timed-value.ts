@@ -4,6 +4,7 @@ import { createSignal, onCleanup } from 'solid-js'
 export function createTimedValue<T>(duration = 1500) {
     const [value, setValue] = createSignal<T>()
     let timer: number | undefined
+    let disposed = false
 
     const clear = () => {
         window.clearTimeout(timer)
@@ -11,12 +12,16 @@ export function createTimedValue<T>(duration = 1500) {
     }
 
     const show = (next: T) => {
+        if (disposed) return
         setValue(() => next)
         window.clearTimeout(timer)
         timer = window.setTimeout(() => setValue(undefined), duration)
     }
 
-    onCleanup(() => window.clearTimeout(timer))
+    onCleanup(() => {
+        disposed = true
+        window.clearTimeout(timer)
+    })
 
     return { value, show, clear }
 }
