@@ -1,6 +1,6 @@
 ---
 title: Workflow
-description: 管理 ComfyUI workflow：左側清單、中間 API JSON 編輯器、右側名稱與 field mapping。
+description: 管理 ComfyUI workflow：左側清單、中間 API JSON 編輯器、右側名稱與 field mapping；沒有 workflow 時是開啟畫面。
 sidebar:
     order: 4
 ---
@@ -12,6 +12,28 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 import Screen from '@silent-pix/blueprint/components/Screen.astro'
 import Slot from '@silent-pix/blueprint/components/Slot.astro'
 import Fixed from '@silent-pix/blueprint/components/Fixed.astro'
+import Switch from '@silent-pix/blueprint/components/Switch.astro'
+import Case from '@silent-pix/blueprint/components/Case.astro'
+
+## Opening screen
+
+沒有任何 workflow 時取代三欄的整個工作區；清單讀不到時也在這裡。
+
+<Gallery min="520px">
+<State component="workflow-opening-screen" state="default" label="no workflows" frame="flex h-[360px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="workflow-opening-screen" state="error" label="list load error" frame="flex h-[360px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+</Gallery>
+
+<Rules component="workflow-opening-screen">
+
+<ul class="ds-rules">
+<Rule component="workflow-opening-screen" id="opening-screen">沒有任何 workflow（也沒有建立中的 draft）時沒有三欄，整個工作區是開啟畫面，同 Metadata 尚未開檔：L0 StatusMessage regular guide，Workflow 圖示方塊、標題「No workflows yet」、一句說明 workflow 是什麼、accent「Add workflow」（Plus 圖示）。</Rule>
+<Rule component="workflow-opening-screen" id="add">按 Add workflow 建立 draft：出現三欄，draft 在清單最上方並選取。刪掉最後一個 workflow 後回到開啟畫面。</Rule>
+<Rule component="workflow-opening-screen" id="load-error">清單讀取失敗時無法判斷有沒有 workflow，同樣不顯示三欄：開啟畫面換成 L0 StatusMessage regular load error「Failed to load workflows.」＋ Retry，沒有 Add workflow。不進 Header 的 Issue chip。</Rule>
+<Rule component="workflow-opening-screen" id="loading">首次載入時還不知道有沒有 workflow，三欄照常顯示各自的骨架；結果為空才換成開啟畫面。</Rule>
+</ul>
+
+</Rules>
 
 ## Workflow list
 
@@ -23,8 +45,6 @@ Workflow 頁最左欄：Bar（標題＋新增）與 workflow-item 列，封存�
 <State component="workflow-list" state="creating" label="create draft on top" frame="*:border-r-0 w-max flex h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="workflow-list" state="archived-selected" label="archived workflow selected" frame="*:border-r-0 w-max flex h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="workflow-list" state="loading" label="loading" frame="*:border-r-0 w-max flex h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="workflow-list" state="empty" label="empty · no workflows" frame="*:border-r-0 w-max flex h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="workflow-list" state="error" label="load error" frame="*:border-r-0 w-max flex h-[420px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 </Gallery>
 
 <Rules component="workflow-list">
@@ -33,18 +53,16 @@ Workflow 頁最左欄：Bar（標題＋新增）與 workflow-item 列，封存�
 
 <ul class="ds-rules">
 <Rule component="workflow-list" id="column">Workflow 頁最左欄，固定寬 200px、`bg-surface`、右側 `border-r border-line`；頂端是 L0 Bar（左右內距收為 `pl-3 pr-2`），標題「Workflows」，右側一顆 28px 方形 ghost 加號按鈕開始建立新 workflow。</Rule>
-<Rule component="workflow-list" id="body">清單本體 `px-2 pb-3`、列距 `gap-2`，可垂直捲動；列本身見 workflow-item。</Rule>
+<Rule component="workflow-list" id="body">清單本體 `px-2 pb-3`、列距 `gap-0.5`，可垂直捲動；列本身見 workflow-item。</Rule>
 <Rule component="workflow-list" id="order">排序：建立中的 draft 永遠在最上方，其後是未封存的 workflow，最後是封存區。</Rule>
 <Rule component="workflow-list" id="archive-group">封存區只在有封存項目時出現：一條分隔線（`my-1 border-t border-line-subtle`）＋ 區段標題「Archived」（L0 section title 樣式，`px-2.5 py-1`），下面接封存列。</Rule>
-<Rule component="workflow-list" id="loading">載入中以 8 條與列同高（34px）的 skeleton 取代所有列；Bar 與加號按鈕照常顯示。</Rule>
-<Rule component="workflow-list" id="empty">沒有任何 workflow 時清單本體留空，不放提示文字；引導由 workflow-detail 的 no-selection 狀態負責。</Rule>
-<Rule component="workflow-list" id="error">清單讀取失敗顯示在清單本體內：在清單頂端放 L0 StatusMessage compact load error「Failed to load workflows.」＋ Retry，取代所有列；Bar 與加號按鈕照常。不進 Header 的 Issue chip。</Rule>
+<Rule component="workflow-list" id="loading">載入中以 8 條與列同高（32px）的 skeleton 取代所有列；Bar 與加號按鈕照常顯示。</Rule>
 </ul>
 
 #### 列
 
 <ul class="ds-rules">
-<Rule component="workflow-item" id="row">整列可點，只放名稱；高 34px、`rounded-md px-2.5`、名稱 `text-xs` 單行截斷。</Rule>
+<Rule component="workflow-item" id="row">整列可點，只放名稱；高 32px、`rounded-md px-2.5`、名稱 `text-xs` 單行截斷。</Rule>
 <Rule component="workflow-item" id="colors">未選取為 `text-fg-secondary`，hover 換 `bg-elevated`；選取用 L0 selected 樣式（`bg-selected text-fg`），hover 不再變色。</Rule>
 <Rule component="workflow-item" id="archived">封存且未選取改 `text-fg-muted`；被選取後與一般選取列完全相同，封存身分由 workflow-detail 的「Read-only · archived」交代。</Rule>
 <Rule component="workflow-item" id="badge">只有選取中的列（或建立中的 draft）會帶 L0 Badge neutral：建立中顯示「Draft」，已存在且有未儲存修改顯示「Unsaved」。其他列一律不帶 badge。</Rule>
@@ -60,20 +78,19 @@ Workflow 頁中欄：ComfyUI API JSON 文字編輯器，含行號、mapping fiel
 <Gallery min="640px">
 <State component="graph-editor" state="default" label="bound / broken marks · tokens" frame="*:border-r-0 flex h-[460px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="graph-editor" state="empty" label="empty document · placeholder" frame="*:border-r-0 flex h-[240px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="graph-editor" state="no-selection" label="no selection" frame="*:border-r-0 flex h-[240px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="graph-editor" state="loading" label="loading" frame="*:border-r-0 flex h-[240px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 </Gallery>
 
 <Rules component="graph-editor">
 
 <ul class="ds-rules">
-<Rule component="graph-editor" id="column">Workflow 頁中欄，佔滿 workflow-list 與 workflow-detail 之間的寬度；`bg-surface`、右側 `border-r border-line`。頂端 L0 Bar 標題「API JSON」，下方欄位 label「Graph」，再下面是編輯區。</Rule>
+<Rule component="graph-editor" id="column">Workflow 頁中欄，佔滿 workflow-list 與 workflow-detail 之間的寬度；`bg-surface`、右側 `border-r border-line`。頂端 L0 Bar 標題「API JSON」，編輯區直接接在 Bar 下方，不另放欄位 label。</Rule>
 <Rule component="graph-editor" id="single-editor">編輯的是 ComfyUI API 格式的 JSON 文字，不是節點圖。整塊是單一文字編輯器：左側固定的行號 gutter 與 field gutter，右側為內容；水平捲動時 gutter 保持不動。</Rule>
-<Rule component="graph-editor" id="surfaces">內容區 `bg-elevated`、gutter 降到 `bg-surface` 才分得開；行高 24px、12px monospace，行號 gutter 42px、field gutter 144px，兩者各以 `border-line-subtle` 右框分隔。</Rule>
+<Rule component="graph-editor" id="surfaces">內容區 `bg-elevated`、gutter 降到 `bg-surface` 才分得開；行高 24px、12px monospace，行號 gutter 42px；field gutter 寬度剛好放下最長的綁定 field 標籤，沒有任何綁定時整欄不顯示。兩者各以 `border-line-subtle` 右框分隔。</Rule>
 <Rule component="graph-editor" id="bound-lines">被 mapping 綁定的 input 行：field gutter 沿用 Mapping 的欄位標籤（`text-code-string`，綁定失效時 `text-danger-fg`），整行底色 `bg-workflow-bound-soft`／失效為 `bg-workflow-broken-soft`。</Rule>
 <Rule component="graph-editor" id="tokens">Token 色只有六種：第一層 key（node id）`text-accent-fg`，其他 key `text-fg`，字串 `text-code-string`，數字 `text-code-number`，`true`／`false`／`null` `text-code-literal`，標點與其他 `text-fg-muted`。</Rule>
 <Rule component="graph-editor" id="paste-format">貼上壓縮成一行的 JSON 時自動以 2 空白縮排重排，行號與標記才對得上；一般打字不重排。空文件顯示 placeholder「Paste the ComfyUI API JSON here.」。</Rule>
-<Rule component="graph-editor" id="no-selection-loading">沒有選取 workflow 時編輯區整塊換成 `bg-elevated` 置中提示；載入中以直角 skeleton 蓋滿編輯區且不可互動。封存、已刪除或 Server 不可用時內容唯讀，仍可選取及複製原文。</Rule>
+<Rule component="graph-editor" id="loading-read-only">有 workflow 時一定有選取，沒有「未選取」狀態（沒有 workflow 時見 Opening screen）。載入中以直角 skeleton 蓋滿編輯區且不可互動。封存、已刪除或 Server 不可用時內容唯讀，仍可選取及複製原文。</Rule>
 <Rule component="graph-editor" id="issues-elsewhere">JSON 無法解析、格式不是 API graph（例如 UI workflow 格式）等問題不在編輯器內標示，而是進 Header 的 Issue chip（來源 Graph）。</Rule>
 </ul>
 
@@ -81,10 +98,9 @@ Workflow 頁中欄：ComfyUI API JSON 文字編輯器，含行號、mapping fiel
 
 ## Workflow detail
 
-Workflow 頁最右欄：Bar 的 Save，下面依序是 workflow-info 與 workflow-mapping；沒有選取時是引導訊息。
+Workflow 頁最右欄：Bar 的 Save，下面依序是 workflow-info 與 workflow-mapping 的四個區段。
 
 <Gallery min="700px">
-<State component="workflow-detail" state="no-selection" label="no selection" frame="w-max flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="workflow-detail" state="saved" label="saved · nothing to save" frame="w-max flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="workflow-detail" state="unused" label="saved · no task uses it" description="沒有 task 使用時，破壞性按鈕是 Delete。" frame="w-max flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="workflow-detail" state="modified" label="modified · Save enabled" frame="w-max flex h-[560px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
@@ -105,13 +121,12 @@ Workflow 頁最右欄：Bar 的 Save，下面依序是 workflow-info 與 workflo
 #### 詳細欄
 
 <ul class="ds-rules">
-<Rule component="workflow-detail" id="column">Workflow 頁最右欄，固定寬 620px、`bg-surface`；頂端 L0 Bar 標題「Detail」，下方可捲動內容（`px-4 pb-5 gap-3`）依序放 workflow-info、分隔線、workflow-mapping。Graph 不屬於本欄，在中欄 graph-editor。</Rule>
-<Rule component="workflow-detail" id="three-columns">頁面三欄並排：workflow-list（200px）→ graph-editor（彈性）→ workflow-detail（620px）；整頁最窄 1180px，更窄時整頁水平捲動而不擠壓欄寬。</Rule>
-<Rule component="workflow-detail" id="no-selection">沒有選取時整欄只剩 Bar 與 L0 StatusMessage regular guide：Workflow 圖示方塊、標題「No workflow selected」、說明一句、accent「Add workflow」按鈕；Bar 右側不放任何動作。</Rule>
+<Rule component="workflow-detail" id="column">Workflow 頁最右欄，固定寬 380px（同 Generate 的 task-detail）、`bg-surface`；頂端 L0 Bar 標題「Detail」，下方可捲動內容（`px-4 pb-5 gap-3`）依序放 workflow-info、分隔線、workflow-mapping。Graph 不屬於本欄，在中欄 graph-editor。</Rule>
+<Rule component="workflow-detail" id="three-columns">頁面三欄並排：workflow-list（200px）→ graph-editor（彈性）→ workflow-detail（380px）；整頁最窄 940px，更窄時整頁水平捲動而不擠壓欄寬。</Rule>
 <Rule component="workflow-detail" id="bar-actions">Bar 右側（有選取時）只有 Save。Save 是 bar 尺寸的 accent solid、semibold；沒有修改、儲存中、載入中、版本衝突、名稱空白、graph 無法解析或 mapping 有問題時停用（`opacity-60`），儲存中文案換成「Saving」。</Rule>
-<Rule component="workflow-detail" id="issue-chip">名稱必填、graph 解析、mapping 失效與儲存失敗都進 Header 的 Issue chip，來源分別標 Name／Graph／Mapping／Save；Workflow detail 本身不放 chip，只靠欄位標記（例如 missing Badge）與 Save 停用表示。清單讀取失敗由 workflow-list 自己顯示。</Rule>
+<Rule component="workflow-detail" id="issue-chip">名稱必填、graph 解析、mapping 失效與儲存失敗都進 Header 的 Issue chip，來源分別標 Name／Graph／Mapping／Save；Workflow detail 本身不放 chip，只靠欄位標記（例如 missing Badge）與 Save 停用表示。清單讀取失敗由 Opening screen 顯示。</Rule>
 <Rule component="workflow-detail" id="archived">封存的 workflow 整欄唯讀：Save 換成 muted 文字「Read-only · archived」，workflow-info 名稱與 workflow-mapping 全部 disabled。</Rule>
-<Rule component="workflow-detail" id="deleted">選取的 workflow 被其他客戶端刪除時，有未儲存修改就保留草稿。Bar 顯示「Read-only · deleted」，內容提示可到 API JSON 複製草稿，並保留唯讀的 Info 與 Mapping。這個狀態沒有 Save、Delete 或 Retry。沒有未儲存修改時選取清單第一項，清單為空時回到無選取。</Rule>
+<Rule component="workflow-detail" id="deleted">選取的 workflow 被其他客戶端刪除時，有未儲存修改就保留草稿。Bar 顯示「Read-only · deleted」，內容提示可到 API JSON 複製草稿，並保留唯讀的 Info 與 Mapping。這個狀態沒有 Save、Delete 或 Retry。沒有未儲存修改時選取清單第一項，清單為空時回到 Opening screen。</Rule>
 <Rule component="workflow-detail" id="loading">載入中 Bar 保留、Save 停用，內容各區塊以 skeleton 遮罩並不可互動（見 workflow-info、workflow-mapping 的 loading）。</Rule>
 <Rule component="workflow-detail" id="load-error">選取的 workflow 讀取失敗時，內容整塊換成置中的 L0 StatusMessage regular load error「Failed to load workflow.」＋ Retry；Bar 只留標題，右側不放任何動作。</Rule>
 <Rule component="workflow-detail" id="unavailable">Server 不可用時整欄唯讀，組法同封存：workflow-info 與 workflow-mapping 用各自的唯讀狀態，Bar 右側保留 Save 但停用。</Rule>
@@ -134,13 +149,13 @@ Workflow 頁最右欄：Bar 的 Save，下面依序是 workflow-info 與 workflo
 #### Mapping
 
 <ul class="ds-rules">
-<Rule component="workflow-mapping" id="position">位於 workflow-detail 中 workflow-info 下方，以 L0 section title「Mapping」起頭；把每個 generator field 綁到 graph 的 node 與 input。三欄 grid：field 128px、node 彈性、input 168px，`gap-2`。</Rule>
-<Rule component="workflow-mapping" id="columns-groups">最上方一列欄名（Field／Node／Input，muted）。Field 欄的標籤跟隨介面語言。分組順序固定為 Sampler、Latent、Prompt、Other，組間以分隔線隔開，組名是小標題（text-xs semibold secondary）。</Rule>
-<Rule component="workflow-mapping" id="node-options">Node 選項顯示為「nodeId · 標題」，清單第一項永遠是「Not bound」。未綁定時 Input 欄是虛線空框（`border-dashed border-line`），不是停用的 Select。</Rule>
+<Rule component="workflow-mapping" id="position">位於 workflow-detail 中 workflow-info 下方，把每個 generator field 綁到 graph 的 node 與 input。依分組拆成四個區段，固定順序 Sampler、Latent、Prompt、Other；每段以 L0 section title 起頭，段與段之間的分隔同 task-detail 的區段（`my-1 border-t border-line-subtle`），沒有另外的「Mapping」總標題或欄名列。</Rule>
+<Rule component="workflow-mapping" id="field">每個 field 照 task-config 的欄位排法：field 標籤在上（跟隨介面語言），下面一列兩個等寬 Select：Node、Input，`gap-2`（同 task-config 的成對欄位）。不合併成一個「node › input」選擇器：L0 Select 不分組，合併後的平面清單在節點多的 graph 會太長。</Rule>
+<Rule component="workflow-mapping" id="node-options">Node 選項顯示為「nodeId · 標題」，清單第一項永遠是「Not bound」。未綁定時 Input 位置是虛線空框（`border-dashed border-line`），不是停用的 Select。</Rule>
 <Rule component="workflow-mapping" id="broken-binding">綁到 graph 中已不存在的 node 或 input 時，下拉仍顯示原值並加 danger Badge「missing」，讓使用者看得到原本綁的是什麼；node 失效時 input 一併標 missing。這些問題同時列在 Header 的 Issue chip，Save 停用。</Rule>
 <Rule component="workflow-mapping" id="auto-input">換 node 時自動選該 node 的第一個 input，避免留下必定失效的綁定。</Rule>
 <Rule component="workflow-mapping" id="read-only">Archived workflow 或 Server 不可用時整區唯讀：每個 Select 改 disabled 外觀，佈局不變。</Rule>
-<Rule component="workflow-mapping" id="loading">載入中 field 名稱保留，Node 與 Input 兩格各自蓋上 skeleton 遮罩。</Rule>
+<Rule component="workflow-mapping" id="loading">載入中同 task-config：區段標題與 field 標籤保留，Node 與 Input 兩格各自蓋上 28px 的 skeleton 遮罩。</Rule>
 </ul>
 
 </Rules>
@@ -170,23 +185,30 @@ Workflow 頁最右欄：Bar 的 Save，下面依序是 workflow-info 與 workflo
 
 ## Screen
 
-<Screen frame="relative flex h-[800px] min-w-[1180px] flex-col overflow-hidden rounded-xl border border-line bg-canvas text-fg">
+<Screen frame="relative flex h-[800px] min-w-[940px] flex-col overflow-hidden rounded-xl border border-line bg-canvas text-fg">
     <Fixed component="app-header" state="workflow" />
-    <div class="flex min-h-0 flex-1 gap-1 overflow-hidden bg-shell px-1 pb-1">
-        <div class="flex min-h-0 overflow-hidden rounded-lg border border-line-subtle flex-none"><Slot name="list" component="workflow-list" states="default,modified,creating,archived-selected,loading,empty,error" /></div>
-        <div class="flex min-h-0 overflow-hidden rounded-lg border border-line-subtle min-w-0 flex-1"><Slot name="graph" component="graph-editor" states="default,empty,no-selection,loading" /></div>
-        <div class="flex min-h-0 overflow-hidden rounded-lg border border-line-subtle flex-none"><Slot name="detail" component="workflow-detail" states="saved,unused,modified,saving,issues,node-open,new,archived,deleted,pending,unavailable,loading,load-error,no-selection" /></div>
-    </div>
-    <Slot name="overlay" component="workflow-confirm-dialog" states="none,workflow-archive,workflow-delete-error,workflow-archived-pending" empty="none" />
+    <Switch name="layout">
+        <Case state="workspace" label="has workflows">
+            <div class="flex min-h-0 flex-1 gap-1 overflow-hidden bg-shell px-1 pb-1">
+                <div class="flex min-h-0 overflow-hidden rounded-lg border border-line-subtle flex-none"><Slot name="list" component="workflow-list" states="default,modified,creating,archived-selected,loading" /></div>
+                <div class="flex min-h-0 overflow-hidden rounded-lg border border-line-subtle min-w-0 flex-1"><Slot name="graph" component="graph-editor" states="default,empty,loading" /></div>
+                <div class="flex min-h-0 overflow-hidden rounded-lg border border-line-subtle flex-none"><Slot name="detail" component="workflow-detail" states="saved,unused,modified,saving,issues,node-open,new,archived,deleted,pending,unavailable,loading,load-error" /></div>
+            </div>
+            <Slot name="overlay" component="workflow-confirm-dialog" states="none,workflow-archive,workflow-delete-error,workflow-archived-pending" empty="none" />
+        </Case>
+        <Case state="opening" label="no workflows · list error">
+            <div class="flex min-h-0 flex-1 gap-1 overflow-hidden bg-shell px-1 pb-1"><div class="flex min-h-0 min-w-0 flex-1 overflow-hidden rounded-lg border border-line-subtle"><Slot name="opening" component="workflow-opening-screen" states="default,error" /></div></div>
+        </Case>
+    </Switch>
 </Screen>
 
 <Rules component="workflow-screen">
 
 <ul class="ds-rules">
 <Rule component="workflow-screen" id="columns">Header 之下三欄不收合、不留縫，以 `border-r border-line` 分隔；Graph editor 吃掉其餘寬度。</Rule>
-<Rule component="workflow-screen" id="min-width">三欄永遠同時存在，最小總寬 1180px；視窗更窄時整頁水平捲動，不隱藏任何一欄。</Rule>
+<Rule component="workflow-screen" id="min-width">有 workflow 時三欄永遠同時存在，最小總寬 940px；視窗更窄時整頁水平捲動，不隱藏任何一欄。</Rule>
 <Rule component="workflow-screen" id="selection-sync">列表的選取與詳細面板同步：建立中的 Draft 置頂並選取；有未儲存修改時列表項目標「Unsaved」、詳細面板的 Save 啟用。</Rule>
-<Rule component="workflow-screen" id="empty-loading-error">沒有任何 Workflow 時列表顯示空狀態，Graph 與詳細面板都顯示未選取狀態；載入中三欄各自顯示骨架。列表讀取失敗時錯誤與 Retry 留在列表欄內，Graph 與詳細面板同樣顯示未選取狀態。</Rule>
+<Rule component="workflow-screen" id="empty-loading-error">載入中三欄各自顯示骨架。沒有任何 Workflow 或列表讀取失敗時，三欄整個換成 Opening screen。</Rule>
 <Rule component="workflow-screen" id="dialog-cover">封存或刪除確認 dialog 蓋住疊加層區域（Desktop 標題列以下，見 App）。</Rule>
 </ul>
 
