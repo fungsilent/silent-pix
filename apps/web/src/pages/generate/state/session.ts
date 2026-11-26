@@ -16,8 +16,8 @@ import {
     toGenerateValues,
 } from '#/pages/generate/form'
 import { toSubmitIssue, toValidationIssues } from '#/pages/generate/issue'
-import { createPromptLayout } from '#/pages/generate/state/promptLayout'
-import { createReferenceImage } from '#/pages/generate/state/referenceImage'
+import { createPromptLayout } from '#/pages/generate/state/prompt-layout'
+import { createReferenceImage } from '#/pages/generate/state/reference-image'
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { TaskFeedFilter } from '#/data/task/task.query'
@@ -291,10 +291,12 @@ function createGenerateSession() {
         }))
     }
 
+    const { state: uiState, set: _set, ...uiActions } = uiStore
+
     return {
-        ...uiStore,
+        ...uiActions,
         /* 合併 promptLayout 的 state */
-        state: mergeProps(uiStore.state, promptLayout.state),
+        state: mergeProps(uiState, promptLayout.state),
         togglePromptVisible: promptLayout.togglePromptVisible,
         setPromptHeight: promptLayout.setPromptHeight,
         resetPromptHeight: promptLayout.resetPromptHeight,
