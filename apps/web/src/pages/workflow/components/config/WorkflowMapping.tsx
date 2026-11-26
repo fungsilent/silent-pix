@@ -2,7 +2,7 @@ import { For, Show } from 'solid-js'
 
 import { Line } from '#/components/base/Line'
 import { Loading } from '#/components/base/Loading'
-import { DetailGroup, DetailLabel, DetailSection } from '#/components/detail'
+import { DetailLabel, DetailTitle } from '#/components/detail'
 import { Select } from '#/components/field'
 import { t } from '#/lib/i18n'
 import { fieldGroups, generatorFieldLabel } from '#/pages/workflow/generator-field'
@@ -15,47 +15,48 @@ import type { Accessor } from 'solid-js'
 
 const unboundValue = ''
 
-/* 對應 TaskConfig：右欄的設定區，分組順序見 pages/workflow/generator-field.ts */
 export function WorkflowMapping() {
     const page = useWorkflowStore()
     const configSchema = page.form.useSelector(state => state.values.configSchema)
     const isLoading = page.isDetailLoading
 
     return (
-        <DetailSection
-            title={t('workflow.mapping.title')}
+        <div
+            class='grid grid-cols-[max-content_minmax(0,1fr)_136px] items-start gap-x-2 gap-y-3'
             inert={isLoading()}
         >
-            <div class='grid grid-cols-[128px_1fr_168px] items-center gap-2 text-xs leading-none text-fg-muted'>
-                <span>{t('workflow.mapping.field')}</span>
-                <span>{t('workflow.mapping.node')}</span>
-                <span>{t('workflow.mapping.input')}</span>
-            </div>
-
             <For each={fieldGroups}>
                 {(group, index) => (
                     <>
                         <Show when={index() > 0}>
-                            <Line />
+                            <div class='col-span-3'>
+                                <Line />
+                            </div>
                         </Show>
-                        <DetailGroup title={group.label()}>
-                            <For each={group.fields}>
-                                {field => (
-                                    <MappingRow
-                                        field={field}
-                                        binding={configSchema()[field]}
-                                        loading={isLoading}
-                                        nodeOptions={page.graphState().nodeOptions}
-                                        readOnly={page.isReadOnly()}
-                                        onChange={(target, value) => page.setMapping(target, value)}
-                                    />
-                                )}
-                            </For>
-                        </DetailGroup>
+                        <div class='col-span-3 py-1'>
+                            <DetailTitle>{group.label()}</DetailTitle>
+                        </div>
+                        <Show when={index() === 0}>
+                            <DetailLabel>{t('workflow.mapping.field')}</DetailLabel>
+                            <DetailLabel>{t('workflow.mapping.node')}</DetailLabel>
+                            <DetailLabel>{t('workflow.mapping.input')}</DetailLabel>
+                        </Show>
+                        <For each={group.fields}>
+                            {field => (
+                                <MappingRow
+                                    field={field}
+                                    binding={configSchema()[field]}
+                                    loading={isLoading}
+                                    nodeOptions={page.graphState().nodeOptions}
+                                    readOnly={page.isReadOnly()}
+                                    onChange={(target, value) => page.setMapping(target, value)}
+                                />
+                            )}
+                        </For>
                     </>
                 )}
             </For>
-        </DetailSection>
+        </div>
     )
 }
 
@@ -115,8 +116,11 @@ function MappingRow(props: MappingRowProps) {
     }
 
     return (
-        <div class='grid grid-cols-[128px_1fr_168px] items-center gap-2'>
-            <DetailLabel>{fieldLabel()}</DetailLabel>
+        <>
+            <span class='flex h-7 min-w-0 items-center'>
+                <DetailLabel>{fieldLabel()}</DetailLabel>
+            </span>
+
 
             <Loading.Mask loading={props.loading}>
                 <Select
@@ -148,6 +152,6 @@ function MappingRow(props: MappingRowProps) {
                     )}
                 </Show>
             </Loading.Mask>
-        </div>
+        </>
     )
 }

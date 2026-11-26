@@ -82,9 +82,23 @@ class FieldMarker extends GutterMarker {
     }
 }
 
-/* 沿用 prompt editor 的 group-name gutter：第二條 gutter，固定寬度 */
+function longestMarker(state: EditorState): FieldMarker {
+    let longest: LineMark = { label: '', broken: false }
+
+    for (const mark of state.field(lineMarkField).values()) {
+        if (mark.label.length > longest.label.length) longest = mark
+    }
+
+    return new FieldMarker(longest)
+}
+
+/* 沿用 prompt editor 的 group-name gutter：第二條 gutter，寬度跟著最長的標籤 */
 export const fieldGutter = gutter({
     class: 'cm-workflow-field-gutter',
+    initialSpacer: view => longestMarker(view.state),
+    updateSpacer: (spacer, update) => update.transactions.some(transaction => transaction.effects.some(effect => effect.is(setLineMarks)))
+        ? longestMarker(update.state)
+        : spacer,
     markers(view) {
         const marks = view.state.field(lineMarkField)
 

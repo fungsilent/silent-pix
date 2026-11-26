@@ -1,4 +1,4 @@
-import { Save, Workflow } from 'lucide-solid'
+import { Save } from 'lucide-solid'
 import { createMemo, onCleanup, Show } from 'solid-js'
 
 import { Bar } from '#/components/base/Bar'
@@ -70,14 +70,14 @@ export function WorkflowDetail() {
 
     return (
         <form
-            class={mergeClasses(theme.card, 'flex w-[620px] flex-none flex-col bg-surface')}
+            class={mergeClasses(theme.card, 'flex w-[480px] flex-none flex-col bg-surface')}
             onSubmit={event => void handleSubmit(event)}
         >
             <Bar.Root>
                 <Bar.Group>
                     <Bar.Title>{t('common.detail')}</Bar.Title>
                 </Bar.Group>
-                <Show when={page.hasSelection() && !loadFailed()}>
+                <Show when={(page.hasSelection() || page.isDetailLoading()) && !loadFailed()}>
                     <Bar.Actions classes={{ root: 'flex-1 justify-end' }}>
                         <Show
                             when={!readOnlyLabel()}
@@ -106,34 +106,7 @@ export function WorkflowDetail() {
                 </Show>
             </Bar.Root>
 
-            <Show
-                when={page.hasSelection()}
-                fallback={(
-                    <div class='flex min-h-0 flex-1 items-center justify-center px-4 pb-5'>
-                        <StatusMessage
-                            kind='empty'
-                            title={t('workflow.noSelection')}
-                            message={t('workflow.description')}
-                            icon={(
-                                <Workflow
-                                    size={21}
-                                    strokeWidth={1.5}
-                                />
-                            )}
-                            action={{
-                                label: t('workflow.add'),
-                                icon: (
-                                    <Workflow
-                                        size={14}
-                                        strokeWidth={1.8}
-                                    />
-                                ),
-                                onClick: () => page.startCreate(),
-                            }}
-                        />
-                    </div>
-                )}
-            >
+            <Show when={page.hasSelection() || page.isDetailLoading()}>
                 <Show
                     when={!loadFailed()}
                     fallback={(

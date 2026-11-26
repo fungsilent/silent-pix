@@ -69,7 +69,12 @@ function createWorkflowStore() {
 
     const hasSelection = () => selection().id !== null
 
-    const isDetailLoading = isColdLoading(() => remoteId() !== null && !isDeleted() && detailQuery.isLoading)
+    const isDetailLoading = isColdLoading(() => listQuery.isLoading || (remoteId() !== null && !isDeleted() && detailQuery.isLoading))
+
+    const showOpening = () => !listQuery.isLoading
+        && state.createDraftId === null
+        && !isDeleted()
+        && (listQuery.data ? summaries().length === 0 : listQuery.isError)
 
     const isReadOnly = () => selection().isArchived
         || (state.createDraftId === null && (isDeleted() || !record()))
@@ -207,6 +212,7 @@ function createWorkflowStore() {
         isDeleted,
         hasSelection,
         isDetailLoading,
+        showOpening,
         isReadOnly,
         isSubmitting,
         draftLabel,

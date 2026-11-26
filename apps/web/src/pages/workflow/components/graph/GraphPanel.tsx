@@ -7,7 +7,6 @@ import { GraphEditor } from '#/pages/workflow/components/graph/GraphEditor'
 import { useWorkflowStore } from '#/pages/workflow/state/store'
 import { mergeClasses } from '#/utils/style'
 
-/* 中欄，對應 PromptPanel：面板自己擁有標題列與欄位標籤 */
 export function GraphPanel() {
     const page = useWorkflowStore()
     const form = page.form
@@ -22,15 +21,7 @@ export function GraphPanel() {
             </Bar.Root>
 
             <div class='flex min-h-0 flex-1 flex-col px-4 pb-3'>
-                <span class='pb-1.5 text-xs leading-none text-fg-muted'>{t('workflow.graph.title')}</span>
-                <Show
-                    when={page.hasSelection()}
-                    fallback={(
-                        <div class='flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-md border border-transparent bg-elevated px-8 text-center text-xs leading-relaxed text-fg-muted'>
-                            {t('workflow.graph.addWorkflowHint')}
-                        </div>
-                    )}
-                >
+                <Show when={page.hasSelection() || page.isDetailLoading()}>
                     <form.Field name='graphText'>
                         {field => (
                             <GraphEditor

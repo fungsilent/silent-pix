@@ -40,6 +40,7 @@ export function GraphEditor(props: GraphEditorProps) {
     const readOnlyCompartment = new Compartment()
     const themeCompartment = new Compartment()
     const placeholderCompartment = new Compartment()
+    const fieldGutterCompartment = new Compartment()
 
     onMount(() => {
         if (!host) return
@@ -48,7 +49,7 @@ export function GraphEditor(props: GraphEditorProps) {
             doc: props.value,
             extensions: [
                 lineNumbers(),
-                fieldGutter,
+                fieldGutterCompartment.of([]),
                 lineMarkField,
                 lineMarkDecorations,
                 workflowTokens,
@@ -119,7 +120,12 @@ export function GraphEditor(props: GraphEditorProps) {
     createEffect(() => {
         const marks = props.marks
 
-        view?.dispatch({ effects: setLineMarks.of(marks) })
+        view?.dispatch({
+            effects: [
+                setLineMarks.of(marks),
+                fieldGutterCompartment.reconfigure(marks.size > 0 ? fieldGutter : []),
+            ],
+        })
     })
 
     createEffect(() => {

@@ -2,11 +2,10 @@ import { EditorView } from '@codemirror/view'
 
 import type { Theme } from '#/store/theme'
 
-/* 尺寸沿用 prompt editor：行高 24、行號 gutter 42、名稱 gutter 128 */
+/* 尺寸沿用 prompt editor：行高 24、行號 gutter 42；field gutter 寬度依最長的綁定標籤 */
 const lineHeight = 24
 const contentPaddingY = 6
 const lineNumberWidth = 42
-const fieldGutterWidth = 144
 
 export function createWorkflowEditorTheme(theme: Theme) {
     return EditorView.theme({
@@ -64,8 +63,6 @@ export function createWorkflowEditorTheme(theme: Theme) {
 
         '.cm-workflow-field-gutter': {
             boxSizing: 'border-box',
-            width: `${fieldGutterWidth}px`,
-            minWidth: `${fieldGutterWidth}px`,
             borderRight: '1px solid var(--sp-line-subtle)',
         },
         '.cm-workflow-field-gutter .cm-gutterElement': {

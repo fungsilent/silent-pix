@@ -6,7 +6,6 @@ import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
 import { Line } from '#/components/base/Line'
 import { Loading } from '#/components/base/Loading'
-import { StatusMessage } from '#/components/base/StatusMessage'
 import { DetailTitle } from '#/components/detail'
 import { t } from '#/lib/i18n'
 import { theme } from '#/lib/theme'
@@ -44,61 +43,49 @@ export function WorkflowList() {
                 </Bar.Actions>
             </Bar.Root>
 
-            <div class='scrollbar-thin flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-2 pb-3'>
+            <div class='scrollbar-thin flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-2 pb-3'>
                 <Loading.Swap
                     loading={() => listQuery.isLoading}
                     fallback={(
                         <For each={listSkeletonRows}>
-                            {() => <Loading.Skeleton class='h-[34px] shrink-0 rounded-md' />}
+                            {() => <Loading.Skeleton class='h-8 shrink-0 rounded-md' />}
                         </For>
                     )}
                 >
-                    <Show
-                        when={!listQuery.isError || listQuery.data}
-                        fallback={(
-                            <StatusMessage
-                                kind='load-error'
-                                size='compact'
-                                message={t('workflow.loadListFailed')}
-                                onRetry={() => page.refreshWorkflowList()}
+                    <Show when={draftId()}>
+                        {value => (
+                            <Row
+                                id={value()}
+                                name={draftName() || t('common.untitled')}
+                                archived={false}
                             />
                         )}
-                    >
-                        <Show when={draftId()}>
-                            {value => (
-                                <Row
-                                    id={value()}
-                                    name={draftName() || t('common.untitled')}
-                                    archived={false}
-                                />
-                            )}
-                        </Show>
+                    </Show>
 
-                        <For each={active()}>
+                    <For each={active()}>
+                        {item => (
+                            <Row
+                                id={item.id}
+                                name={item.name}
+                                archived={false}
+                            />
+                        )}
+                    </For>
+
+                    <Show when={archived().length > 0}>
+                        <Line />
+                        <div class='px-2.5 py-1'>
+                            <DetailTitle>{t('workflow.archivedTitle')}</DetailTitle>
+                        </div>
+                        <For each={archived()}>
                             {item => (
                                 <Row
                                     id={item.id}
                                     name={item.name}
-                                    archived={false}
+                                    archived
                                 />
                             )}
                         </For>
-
-                        <Show when={archived().length > 0}>
-                            <Line />
-                            <div class='px-2.5 py-1'>
-                                <DetailTitle>{t('workflow.archivedTitle')}</DetailTitle>
-                            </div>
-                            <For each={archived()}>
-                                {item => (
-                                    <Row
-                                        id={item.id}
-                                        name={item.name}
-                                        archived
-                                    />
-                                )}
-                            </For>
-                        </Show>
                     </Show>
                 </Loading.Swap>
             </div>
@@ -129,7 +116,7 @@ function Row(props: RowProps) {
     return (
         <div
             class={mergeClasses(
-                'flex h-[34px] shrink-0 items-center gap-2 rounded-md px-2.5',
+                'flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5',
                 selected()
                     ? theme.selected
                     : 'text-fg-secondary hover:bg-elevated',
