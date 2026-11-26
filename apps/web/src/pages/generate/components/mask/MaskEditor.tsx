@@ -10,24 +10,20 @@ import { t } from '#/lib/i18n'
 import { createImageZoom } from '#/lib/image-zoom'
 import { useHotkeys } from '#/lib/keyboard'
 import { overlayRoot } from '#/lib/overlay-root'
+import { createMaskPainting } from '#/pages/generate/components/mask/createMaskPainting'
 import { createMaskCanvas } from '#/pages/generate/components/mask/mask.canvas'
 import { overlayStore } from '#/store/overlay'
 import { mergeClasses } from '#/utils/style'
 
 import type { ViewerImage } from '#/components/viewer/ZoomStage'
-import type { Offset } from '#/lib/image-zoom'
+import type { MaskHistory, MaskHistoryAction, MaskTool } from '#/pages/generate/components/mask/createMaskPainting'
 import type { OverlayId } from '#/store/overlay'
-import type { JSX } from 'solid-js'
 
 type MaskEditorProps = {
     reference: ViewerImage & { maskUrl: string | null }
     onClose: () => void
     onDone: (file: File | null) => void
 }
-
-type History = { canUndo: boolean, canRedo: boolean, hasMask: boolean }
-type HistoryAction = 'undo' | 'redo' | 'clear'
-type MaskTool = 'brush' | 'eraser' | 'hand'
 
 const glass = 'border-stage-line bg-stage-control text-on-stage backdrop-blur-[8px]'
 const iconButton = 'size-7 rounded p-0 text-on-stage hover:bg-stage-control-hover disabled:opacity-30'
@@ -43,34 +39,18 @@ export function MaskEditor(props: MaskEditorProps) {
     const [tool, setTool] = createSignal<MaskTool>('brush')
     const [size, setSize] = createSignal(96)
     const [spaceHeld, setSpaceHeld] = createSignal(false)
-    const [cursor, setCursor] = createSignal<Offset>()
-    const [history, setHistory] = createSignal<History>()
     const [loadError, setLoadError] = createSignal<'reference' | 'mask' | 'canvas'>()
     const [exporting, setExporting] = createSignal(false)
     const [exportFailed, setExportFailed] = createSignal(false)
-    const [activePointer, setActivePointer] = createSignal<{ id: number, lastPoint: Offset | null }>()
-    const ready = () => history() !== undefined
-    const canEdit = () => ready() && !exporting() && !activePointer()
     const panning = () => tool() === 'hand' || spaceHeld()
+    const painting = createMaskPainting({ width, height, zoom, tool, size, panning, exporting })
+    const { cursor, history, ready, canEdit, runHistory } = painting
     const brushDiameter = () => size() * zoom.scaled().width / width
 
-    let surface: HTMLDivElement | undefined
     let referenceImage: HTMLImageElement | undefined
     let previewCanvas: HTMLCanvasElement | undefined
-    let preview: CanvasRenderingContext2D | null = null
-    let mask: Awaited<ReturnType<typeof createMaskCanvas>> | undefined
-    let frame: number | undefined
     let overlayId: OverlayId | undefined
     let disposed = false
-
-    const redraw = () => {
-        if (frame !== undefined) return
-
-        frame = requestAnimationFrame(() => {
-            frame = undefined
-            if (mask && preview) mask.drawPreview(preview, getComputedStyle(preview.canvas).color)
-        })
-    }
 
     const loadImages = async () => {
         if (disposed || !referenceImage || !previewCanvas) return
@@ -86,7 +66,7 @@ export function MaskEditor(props: MaskEditorProps) {
         }
         if (disposed) return
 
-        preview = previewCanvas.getContext('2d')
+        const preview = previewCanvas.getContext('2d')
         if (!preview) {
             setLoadError('canvas')
             return
@@ -96,24 +76,15 @@ export function MaskEditor(props: MaskEditorProps) {
             const result = await createMaskCanvas(width, height, maskUrl ? resolveImageUrl(maskUrl) : null)
             if (disposed) return
 
-            mask = result
-            setHistory(result.state())
-            redraw()
+            painting.attach(preview, result)
         }
         catch {
             if (!disposed) setLoadError(maskUrl ? 'mask' : 'canvas')
         }
     }
 
-    const runHistory = (action: HistoryAction) => {
-        if (!mask || !canEdit()) return
-
-        mask[action]()
-        setHistory(mask.state())
-        redraw()
-    }
-
     const finish = async () => {
+        const mask = painting.mask()
         if (!mask || !canEdit()) return
 
         if (!mask.hasChanges()) {
@@ -133,72 +104,6 @@ export function MaskEditor(props: MaskEditorProps) {
         finally {
             if (!disposed) setExporting(false)
         }
-    }
-
-    const imagePoint = (event: PointerEvent, rect: DOMRect): Offset => ({
-        x: (event.clientX - rect.left) * width / rect.width,
-        y: (event.clientY - rect.top) * height / rect.height,
-    })
-
-    const onPointerDown: JSX.EventHandler<HTMLDivElement, PointerEvent> = event => {
-        if (event.button !== 0 || !surface || !canEdit()) return
-
-        if (panning()) {
-            if (!zoom.overflows()) return
-
-            setActivePointer({ id: event.pointerId, lastPoint: null })
-            setCursor(undefined)
-            zoom.onPointerDown(event)
-            return
-        }
-
-        if (!mask || event.target !== surface) return
-
-        const point = imagePoint(event, surface.getBoundingClientRect())
-        setActivePointer({ id: event.pointerId, lastPoint: point })
-        event.currentTarget.setPointerCapture(event.pointerId)
-        event.preventDefault()
-        mask.paint(point, point, size(), tool() === 'eraser')
-        redraw()
-    }
-
-    const onPointerMove: JSX.EventHandler<HTMLDivElement, PointerEvent> = event => {
-        const pointer = activePointer()
-        if (!surface || (pointer && pointer.id !== event.pointerId)) return
-
-        if (pointer?.lastPoint === null) {
-            zoom.onPointerMove(event)
-            return
-        }
-
-        const rect = surface.getBoundingClientRect()
-        const point = imagePoint(event, rect)
-        if (point.x >= 0 && point.x <= width && point.y >= 0 && point.y <= height) {
-            const stage = event.currentTarget.getBoundingClientRect()
-            setCursor({ x: event.clientX - stage.left, y: event.clientY - stage.top })
-        }
-        else {
-            setCursor(undefined)
-        }
-
-        if (mask && pointer) {
-            mask.paint(pointer.lastPoint, point, size(), tool() === 'eraser')
-            pointer.lastPoint = point
-            redraw()
-        }
-    }
-
-    const endPointer = (event: PointerEvent) => {
-        const pointer = activePointer()
-        if (!pointer || pointer.id !== event.pointerId) return
-
-        if (pointer.lastPoint && mask) {
-            mask.commit()
-            setHistory(mask.state())
-        }
-        zoom.endDrag()
-        setActivePointer(undefined)
-        if (event.pointerType !== 'mouse') setCursor(undefined)
     }
 
     const resizeBrush = (delta: number) => {
@@ -229,7 +134,6 @@ export function MaskEditor(props: MaskEditorProps) {
 
     onCleanup(() => {
         disposed = true
-        if (frame !== undefined) cancelAnimationFrame(frame)
         if (overlayId) overlayStore.close(overlayId)
     })
 
@@ -240,18 +144,18 @@ export function MaskEditor(props: MaskEditorProps) {
                     ref={zoom.setViewportRef}
                     class='absolute inset-0 flex touch-none items-center justify-center overflow-hidden'
                     classList={{ 'cursor-grab': ready() && panning() && !zoom.dragging(), 'cursor-grabbing': zoom.dragging() }}
-                    onPointerDown={onPointerDown}
-                    onPointerMove={onPointerMove}
-                    onPointerUp={endPointer}
-                    onPointerCancel={endPointer}
-                    onLostPointerCapture={endPointer}
-                    onPointerLeave={() => setCursor(undefined)}
+                    onPointerDown={painting.onPointerDown}
+                    onPointerMove={painting.onPointerMove}
+                    onPointerUp={painting.endPointer}
+                    onPointerCancel={painting.endPointer}
+                    onLostPointerCapture={painting.endPointer}
+                    onPointerLeave={painting.clearCursor}
                     onWheel={event => {
                         if (ready()) zoom.onWheel(event)
                     }}
                 >
                     <div
-                        ref={element => { surface = element }}
+                        ref={painting.setSurface}
                         class='absolute'
                         classList={{ invisible: !ready(), 'cursor-none': ready() && !panning() && !zoom.dragging() }}
                         style={{
@@ -373,11 +277,11 @@ export function MaskEditor(props: MaskEditorProps) {
 type MaskToolbarProps = {
     tool: MaskTool
     size: number
-    history: History
+    history: MaskHistory
     disabled: boolean
     onToolChange: (tool: MaskTool) => void
     onSizeChange: (size: number) => void
-    onHistory: (action: HistoryAction) => void
+    onHistory: (action: MaskHistoryAction) => void
 }
 
 function MaskToolbar(props: MaskToolbarProps) {

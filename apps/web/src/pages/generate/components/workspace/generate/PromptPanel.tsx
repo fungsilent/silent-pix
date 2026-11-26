@@ -8,9 +8,9 @@ import { Splitter } from '#/components/base/Splitter'
 import { t } from '#/lib/i18n'
 import { evenPair, splitPair } from '#/lib/splitter'
 import { theme } from '#/lib/theme'
+import { createRuntimeIssues } from '#/pages/generate/components/workspace/generate/createRuntimeIssues'
 import { promptMinHeight } from '#/pages/generate/components/workspace/generate/prompt/prompt.theme'
 import { PromptEditor } from '#/pages/generate/components/workspace/generate/prompt/PromptEditor'
-import { useRuntimeIssues } from '#/pages/generate/issue.runtime'
 import { useGenerateDetail } from '#/pages/generate/state/detail'
 import { useGenerateSession } from '#/pages/generate/state/session'
 import { issueList, useIssueSource } from '#/store/issue'
@@ -33,7 +33,7 @@ export function PromptPanel() {
     const canEdit = () => generateSession.isSelectionLoaded() && !isLoading() && !detail.error()
     const form = generateSession.form
     const isSubmitting = generateSession.isSubmitting
-    const runtimeIssues = useRuntimeIssues()
+    const runtimeIssues = createRuntimeIssues()
     const issues = () => [...runtimeIssues(), ...generateSession.state.submitIssues]
     useIssueSource(issues)
     /*

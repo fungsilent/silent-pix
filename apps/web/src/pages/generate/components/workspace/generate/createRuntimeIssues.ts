@@ -11,7 +11,7 @@ import { hasLostConnection, serviceHealth } from '#/store/app'
 import type { GenerateIssue } from '#/pages/generate/issue'
 import type { Accessor } from 'solid-js'
 
-export function useRuntimeIssues(): Accessor<GenerateIssue[]> {
+export function createRuntimeIssues(): Accessor<GenerateIssue[]> {
     const generateSession = useGenerateSession()
     const workflowId = generateSession.form.useSelector(({ values }) => values.workflowId)
     const workflowQuery = useWorkflowListQuery()

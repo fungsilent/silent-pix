@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createReaction, createSignal, onCleanup, onMount, Show } from 'solid-js'
+import { createMemo, createReaction, createSignal, Show } from 'solid-js'
 
 import { createThumbnailGrid } from '#/components/image/ThumbnailSize'
 import {
@@ -8,8 +8,8 @@ import {
     useTaskFlagMutation,
 } from '#/data/task/task.query'
 import { t } from '#/lib/i18n'
-import { isEditableTarget } from '#/lib/keyboard'
 import { theme } from '#/lib/theme'
+import { createTaskBrowserSelection, taskSelectionLimit } from '#/pages/generate/components/task/browser/createTaskBrowserSelection'
 import { TaskBatchDeleteDialog } from '#/pages/generate/components/task/browser/TaskBatchDeleteDialog'
 import { TaskBrowserGrid } from '#/pages/generate/components/task/browser/TaskBrowserGrid'
 import { TaskBrowserToolbar } from '#/pages/generate/components/task/browser/TaskBrowserToolbar'
@@ -18,14 +18,11 @@ import { taskFilterEmptyCopy } from '#/pages/generate/components/task/TaskFilter
 import { TaskRail } from '#/pages/generate/components/task/TaskRail'
 import { useGenerateSession } from '#/pages/generate/state/session'
 import { toFailureIssue, useIssueSource } from '#/store/issue'
-import { overlayStore } from '#/store/overlay'
 import { mergeClasses } from '#/utils/style'
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { SelectedFlag } from '#/pages/generate/components/task/browser/TaskBrowserToolbar'
 import type { AppIssue } from '#/store/issue'
-
-const taskSelectionLimit = 200
 
 export function TaskBrowser() {
     const generateSession = useGenerateSession()
@@ -33,16 +30,21 @@ export function TaskBrowser() {
     const flagMutation = useTaskFlagMutation()
     const selectedDeleteMutation = useDeleteSelectedTasksMutation()
     const discardedDeleteMutation = useDeleteDiscardedTasksMutation()
-    const [selectedTaskIds, setSelectedTaskIds] = createSignal<string[]>([])
     const [viewerOpen, setViewerOpen] = createSignal(false)
     const closeViewerOnSelectionChange = createReaction(() => setViewerOpen(false))
     const [batchDeleteOpen, setBatchDeleteOpen] = createSignal(false)
     const [batchDeleteScope, setBatchDeleteScope] = createSignal<'selected' | 'discard'>('selected')
-    const [selectionLimitWarning, setSelectionLimitWarning] = createSignal(false)
     const thumbnailGrid = createThumbnailGrid('silent-pix.task-browser-columns')
     const tasks = createMemo(() => taskFeedQuery.data?.pages.flatMap(page => page.items) ?? [])
     const taskById = createMemo(() => new Map(tasks().map(task => [task.id, task])))
     const taskIds = createMemo(() => tasks().map(task => task.id))
+    const selection = createTaskBrowserSelection({
+        tasks,
+        taskById,
+        loaded: () => Boolean(taskFeedQuery.data),
+        viewerOpen,
+    })
+    const { selectedTaskIds, selectionLimitWarning } = selection
     const issues = createMemo<AppIssue[]>(() => {
         const next: AppIssue[] = []
 
@@ -61,22 +63,6 @@ export function TaskBrowser() {
     })
     useIssueSource(issues)
 
-    /* Search/filter can make a selected card leave the loaded view. */
-    createEffect(() => {
-        const visibleIds = new Set(tasks().map(task => task.id))
-
-        setSelectedTaskIds(current => {
-            const next = current.filter(id => visibleIds.has(id))
-            return next.length === current.length ? current : next
-        })
-    })
-
-    createEffect(() => {
-        if (selectedTaskIds().length < taskSelectionLimit) {
-            setSelectionLimitWarning(false)
-        }
-    })
-
     const selectedFlag = createMemo<SelectedFlag>(() => {
         const flags = new Set(selectedTaskIds().map(taskId => {
             const task = taskById().get(taskId)
@@ -85,26 +71,6 @@ export function TaskBrowser() {
 
         return flags.size === 1 ? [...flags][0] : undefined
     })
-
-    const clearSelection = () => {
-        setSelectedTaskIds([])
-        setSelectionLimitWarning(false)
-    }
-
-    /* Esc 取消勾選；有 overlay 或焦點在輸入框時不攔 */
-    const handleKeyDown = (event: KeyboardEvent) => {
-        if (overlayStore.isActive() || viewerOpen() || event.defaultPrevented || isEditableTarget(event.target)) {
-            return
-        }
-
-        if (event.key === 'Escape' && selectedTaskIds().length > 0) {
-            event.preventDefault()
-            clearSelection()
-        }
-    }
-
-    onMount(() => window.addEventListener('keydown', handleKeyDown))
-    onCleanup(() => window.removeEventListener('keydown', handleKeyDown))
 
     const focusTask = (taskId: string) => {
         generateSession.selectTask(taskId)
@@ -116,54 +82,15 @@ export function TaskBrowser() {
         setViewerOpen(true)
     }
 
-    const applyDragSelection = (ids: string[]) => {
-        if (ids.length > taskSelectionLimit) {
-            setSelectionLimitWarning(true)
-            setSelectedTaskIds(ids.slice(0, taskSelectionLimit))
-            return
-        }
-
-        setSelectedTaskIds(ids)
-    }
-
-    const toggleSelection = (taskId: string) => {
-        const current = selectedTaskIds()
-        if (current.includes(taskId)) {
-            setSelectedTaskIds(current.filter(id => id !== taskId))
-            return
-        }
-
-        if (current.length >= taskSelectionLimit) {
-            setSelectionLimitWarning(true)
-            return
-        }
-
-        setSelectedTaskIds([...current, taskId])
-    }
-
     const changeFilter = (taskFlags: TaskApi.TaskFilterFlag[] | undefined) => {
-        setSelectedTaskIds([])
-        setSelectionLimitWarning(false)
+        selection.clear()
         generateSession.setFeedTaskFlags(taskFlags)
     }
 
     const changeSearch = (search: string) => {
-        setSelectedTaskIds([])
-        setSelectionLimitWarning(false)
+        selection.clear()
         generateSession.setFeedSearch(search)
     }
-
-    createEffect(() => {
-        if (!taskFeedQuery.data) return
-
-        const loaded = taskById()
-        const current = selectedTaskIds()
-        const kept = current.filter(taskId => loaded.has(taskId))
-
-        if (kept.length !== current.length) {
-            setSelectedTaskIds(kept)
-        }
-    })
 
     const showPermanentDelete = () => {
         const taskFlags = generateSession.state.feedTaskFlags
@@ -177,10 +104,7 @@ export function TaskBrowser() {
         }
 
         void flagMutation.mutateAsync({ taskIds, flag })
-            .then(() => {
-                setSelectedTaskIds([])
-                setSelectionLimitWarning(false)
-            })
+            .then(selection.clear)
             .catch(() => undefined)
     }
 
@@ -201,15 +125,13 @@ export function TaskBrowser() {
             }
 
             await selectedDeleteMutation.mutateAsync({ scope: 'selected', taskIds })
-            setSelectedTaskIds([])
+            selection.clear()
         }
         else {
             const result = await discardedDeleteMutation.mutateAsync()
-            const removedIds = new Set(result.ids)
-            setSelectedTaskIds(current => current.filter(taskId => !removedIds.has(taskId)))
+            selection.remove(result.ids)
         }
 
-        setSelectionLimitWarning(false)
         setBatchDeleteOpen(false)
     }
 
@@ -229,7 +151,7 @@ export function TaskBrowser() {
                     selectedCount={selectedTaskIds().length}
                     selectedFlag={selectedFlag()}
                     onSearchChange={changeSearch}
-                    onClearSelection={clearSelection}
+                    onClearSelection={selection.clear}
                     onSetFlags={setSelectedFlags}
                     flagPending={flagMutation.isPending}
                     onDeleteSelected={() => openBatchDelete('selected')}
@@ -255,10 +177,10 @@ export function TaskBrowser() {
                     flagPending={flagMutation.isPending}
                     onRetry={() => void taskFeedQuery.refetch()}
                     onFetchNextPage={() => void taskFeedQuery.fetchNextPage()}
-                    onSelectionChange={applyDragSelection}
+                    onSelectionChange={selection.applyDrag}
                     onFocusTask={focusTask}
                     onOpenViewer={openTask}
-                    onToggleSelected={toggleSelection}
+                    onToggleSelected={selection.toggle}
                     onFlagChange={(taskId, flag) => {
                         if (!flagMutation.isPending) {
                             flagMutation.mutate({ taskIds: [taskId], flag })

@@ -253,8 +253,9 @@ coordinates one route and unmounts with it, in `state/store.ts`.
 A page folder separates code by lifetime. `XxxPage.tsx` is the route entry.
 `state/` holds Providers whose state outlives a single component: the session,
 the route store, and narrower capability Contexts. Hooks are reactive
-capabilities owned by their caller; a hook shared across the page lives in
-`hooks/`, and a hook serving one component sits beside it. Files without a
+capabilities owned by their caller; a hook called by the page entry or by
+several components lives in `hooks/`, and a hook serving one component sits
+beside it. Files without a
 lifetime, such as forms, schemas, parsers, and mappings, stay at the page root.
 UI lives in `components/`. Create only the folders a page needs.
 
