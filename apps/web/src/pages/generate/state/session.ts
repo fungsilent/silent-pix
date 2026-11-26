@@ -1,13 +1,12 @@
 import { task } from '@silent-pix/shared'
 import { createContextProvider } from '@solid-primitives/context'
-import { batch, createEffect, on, onCleanup } from 'solid-js'
+import { batch, createEffect, mergeProps, on, onCleanup } from 'solid-js'
 
 import { subscribeTasksRemoved } from '#/data/task/task.event'
 import { useCreateTaskMutation } from '#/data/task/task.query'
 import { useRefreshWorkflowList } from '#/data/workflow/workflow.query'
 import { ApiError } from '#/lib/api-client'
 import { createStore } from '#/lib/store'
-import { promptDefaultHeight, promptMinHeight } from '#/pages/generate/components/workspace/generate/prompt/prompt.theme'
 import {
     cloneGenerateValues,
     createGenerateForm,
@@ -16,11 +15,12 @@ import {
     toGenerateValues,
 } from '#/pages/generate/form'
 import { toSubmitIssue, toValidationIssues } from '#/pages/generate/issue'
+import { createPromptLayout } from '#/pages/generate/state/promptLayout'
 import { createReferenceImage } from '#/pages/generate/state/referenceImage'
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { TaskFeedFilter } from '#/data/task/task.query'
-import type { GenerateValues, PromptKind } from '#/pages/generate/form'
+import type { GenerateValues } from '#/pages/generate/form'
 import type { GenerateIssue } from '#/pages/generate/issue'
 
 export type DraftDefaultField = 'seed' | 'steps' | 'cfg' | 'sampler' | 'width' | 'height' | 'batch' | 'denoise' | 'positive' | 'negative'
@@ -48,29 +48,9 @@ type GenerateUiState = {
     submitIssues: GenerateIssue[]
     submitToken: number
     taskId: string | undefined
-    promptVisible: Record<PromptKind, boolean>
-    /* 兩段 editor 的高度（px），由 prompt 區的兩條拖曳調整並記在本機 */
-    promptHeight: Record<PromptKind, number>
     draft: GenerateDraft | undefined
     /* 表單整份換內容（載入 task、回到或開新草稿）時遞增；prompt editor 以它換文件，task 轉成草稿時不變，輸入不中斷 */
     formRevision: number
-}
-
-const promptHeightKey = 'silent-pix.prompt-height'
-const defaultPromptHeight = (): Record<PromptKind, number> => ({ positive: promptDefaultHeight, negative: promptDefaultHeight })
-
-function readPromptHeight(): Record<PromptKind, number> {
-    try {
-        const value: unknown = JSON.parse(localStorage.getItem(promptHeightKey) ?? 'null')
-        if (value && typeof value === 'object') {
-            const { positive, negative } = value as Record<string, unknown>
-            if (typeof positive === 'number' && typeof negative === 'number' && positive >= promptMinHeight && negative >= promptMinHeight) {
-                return { positive, negative }
-            }
-        }
-    }
-    catch { /* 讀不到就用預設 */ }
-    return defaultPromptHeight()
 }
 
 function createGenerateSession() {
@@ -82,70 +62,48 @@ function createGenerateSession() {
         submitIssues: [],
         submitToken: 0,
         taskId: undefined,
-        promptVisible: { positive: true, negative: true },
-        promptHeight: readPromptHeight(),
         draft: undefined,
         formRevision: 0,
     }
 
     const uiStore = createStore(
         initialState,
-        store => {
-            const writePromptHeight = (height: Record<PromptKind, number>) => {
-                store.set('promptHeight', height)
-                try {
-                    localStorage.setItem(promptHeightKey, JSON.stringify(height))
-                }
-                catch { /* 存不了就只在這次生效 */ }
-            }
+        store => ({
+            clearTask() {
+                store.set('selectedTaskId', undefined)
+            },
 
-            return {
-                clearTask() {
-                    store.set('selectedTaskId', undefined)
-                },
+            selectTask(taskId: string) {
+                store.set('selectedTaskId', taskId)
+            },
 
-                selectTask(taskId: string) {
-                    store.set('selectedTaskId', taskId)
-                },
+            setFeedTaskFlags(flags: TaskApi.TaskFilterFlag[] | undefined) {
+                const normalized = flags && flags.length > 0 && flags.length < task.filterFlags.length
+                    ? task.filterFlags.filter(flag => flags.includes(flag))
+                    : undefined
+                store.set('feedTaskFlags', normalized)
+            },
 
-                setFeedTaskFlags(flags: TaskApi.TaskFilterFlag[] | undefined) {
-                    const normalized = flags && flags.length > 0 && flags.length < task.filterFlags.length
-                        ? task.filterFlags.filter(flag => flags.includes(flag))
-                        : undefined
-                    store.set('feedTaskFlags', normalized)
-                },
+            setFeedSearch(search: string) {
+                store.set('feedSearch', search)
+            },
 
-                setFeedSearch(search: string) {
-                    store.set('feedSearch', search)
-                },
+            setBrowserOpen(open: boolean) {
+                store.set('browserOpen', open)
+            },
 
-                setBrowserOpen(open: boolean) {
-                    store.set('browserOpen', open)
-                },
+            clearSubmitIssues() {
+                store.set('submitIssues', [])
+            },
 
-                clearSubmitIssues() {
-                    store.set('submitIssues', [])
-                },
-
-                reportSubmitIssues(issues: GenerateIssue[]) {
-                    store.set('submitIssues', issues)
-                    store.set('submitToken', token => token + 1)
-                },
-
-                togglePromptVisible(kind: PromptKind) {
-                    store.set('promptVisible', kind, visible => !visible)
-                },
-
-                setPromptHeight(height: Partial<Record<PromptKind, number>>) {
-                    writePromptHeight({ ...store.state.promptHeight, ...height })
-                },
-
-                resetPromptHeight() {
-                    writePromptHeight(defaultPromptHeight())
-                },
-            }
-        },
+            reportSubmitIssues(issues: GenerateIssue[]) {
+                store.set('submitIssues', issues)
+                store.set('submitToken', token => token + 1)
+            },
+        }),
     )
+
+    const promptLayout = createPromptLayout()
 
     const feedFilter = (): TaskFeedFilter => ({ search: uiStore.state.feedSearch, taskFlags: uiStore.state.feedTaskFlags })
 
@@ -327,6 +285,11 @@ function createGenerateSession() {
 
     return {
         ...uiStore,
+        /* 對外仍是同一個 state：prompt 版面偏好由 promptLayout 管，讀取路徑不變 */
+        state: mergeProps(uiStore.state, promptLayout.state),
+        togglePromptVisible: promptLayout.togglePromptVisible,
+        setPromptHeight: promptLayout.setPromptHeight,
+        resetPromptHeight: promptLayout.resetPromptHeight,
         form,
         feedFilter,
         isSelectionLoaded,
