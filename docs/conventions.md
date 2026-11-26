@@ -314,6 +314,9 @@ stay in the owning code.
 - A Context that coordinates a whole route lives in `state/store.ts` and exposes
   `XxxStoreProvider` and `useXxxStore()`. Use the specific capability name for a narrower Context.
   In larger modules, use `// MARK: <feature or operation>` to label sections.
+  A session or route store starts with `// MARK: State` (when it owns a store), orders
+  operation regions along the data flow, and ends with its `... session access` or
+  `... page access` region; a single-purpose module needs no MARK.
   Keep queries, derived state, and actions together when they serve the same operation.
 
 ### Composition or Configuration

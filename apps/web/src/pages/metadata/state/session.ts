@@ -26,6 +26,7 @@ type MetadataSessionState = {
 const workerTimeoutMs = 5000
 
 function createMetadataSession() {
+    // MARK: State
     const store = createStore<MetadataSessionState, {
         setTab: (tab: MetadataTab) => void
         setUseImageAsReference: (checked: boolean) => void
@@ -45,6 +46,7 @@ function createMetadataSession() {
         setUseImageAsReference: checked => set('useImageAsReference', checked),
     }))
 
+    // MARK: Read worker
     let worker: Worker | undefined
     let timeout: number | undefined
 
@@ -55,25 +57,11 @@ function createMetadataSession() {
         timeout = undefined
     }
 
+    // MARK: Preview
     const releasePreview = () => {
         const url = store.state.previewUrl
         if (url) URL.revokeObjectURL(url)
         store.set({ previewUrl: undefined, previewSize: undefined })
-    }
-
-    /* 回到開啟畫面；分頁與勾選是使用者的選擇，不重設 */
-    const clear = () => {
-        stopWorker()
-        releasePreview()
-        store.set({ file: undefined, result: undefined, loading: false, error: undefined, previewFailed: false })
-    }
-
-    const fail = (code: MetadataError) => {
-        const name = store.state.file?.name
-        batch(() => {
-            clear()
-            store.set({ error: code, failedName: name })
-        })
     }
 
     /* 預覽與尺寸一起準備：尺寸供參考圖使用，不依賴預覽元件是否顯示 */
@@ -98,6 +86,22 @@ function createMetadataSession() {
             store.set('previewFailed', true)
         })
         probe.src = url
+    }
+
+    // MARK: Open files
+    /* 回到開啟畫面；分頁與勾選是使用者的選擇，不重設 */
+    const clear = () => {
+        stopWorker()
+        releasePreview()
+        store.set({ file: undefined, result: undefined, loading: false, error: undefined, previewFailed: false })
+    }
+
+    const fail = (code: MetadataError) => {
+        const name = store.state.file?.name
+        batch(() => {
+            clear()
+            store.set({ error: code, failedName: name })
+        })
     }
 
     const open = (file: File) => {
@@ -147,6 +151,7 @@ function createMetadataSession() {
         open(files[0]!)
     }
 
+    // MARK: Cleanup
     onCleanup(() => {
         stopWorker()
         releasePreview()

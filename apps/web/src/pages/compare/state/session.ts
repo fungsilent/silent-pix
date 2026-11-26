@@ -13,6 +13,7 @@ export type CompareEntry = {
     hidden: boolean
 }
 
+// MARK: State
 type CompareState = {
     compare: CompareEntry[]
     selectedCompareImageId: string | null
@@ -24,6 +25,7 @@ const initialState = (): CompareState => ({
 })
 
 const createCompareSession = () => createStore(initialState(), store => ({
+    // MARK: Add and select
     addCompare(entries: CompareEntry[]) {
         const existingIds = new Set(store.state.compare.map(entry => entry.image.id))
         /* 呼叫者可能傳入較寬的 usage（例如 picker 的 matchedUsage），只投影出要存的欄位 */
@@ -48,6 +50,7 @@ const createCompareSession = () => createStore(initialState(), store => ({
         }
     },
 
+    // MARK: Remove and hide
     removeCompare(imageId: string) {
         const current = store.state.compare
         const removedIndex = current.findIndex(entry => entry.image.id === imageId)
@@ -117,6 +120,7 @@ const createCompareSession = () => createStore(initialState(), store => ({
         store.set('selectedCompareImageId', null)
     },
 
+    // MARK: Visible entries
     visibleCompare() {
         return store.state.compare.filter(entry => !entry.hidden)
     },

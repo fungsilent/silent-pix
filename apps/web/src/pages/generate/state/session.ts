@@ -62,6 +62,7 @@ type GenerateUiState = {
 }
 
 function createGenerateSession() {
+    // MARK: State
     const initialState: GenerateUiState = {
         selectedTaskId: undefined,
         feedTaskFlags: undefined,
@@ -112,6 +113,7 @@ function createGenerateSession() {
 
     const promptLayout = createPromptLayout()
 
+    // MARK: Task selection
     const feedFilter = (): TaskFeedFilter => ({ search: uiStore.state.feedSearch, taskFlags: uiStore.state.feedTaskFlags })
 
     onCleanup(subscribeTasksRemoved(taskIds => {
@@ -119,7 +121,7 @@ function createGenerateSession() {
         if (selectedTaskId !== undefined && taskIds.includes(selectedTaskId)) uiStore.clearTask()
     }))
 
-    // MARK: Generate Task
+    // MARK: Form and submit
     const createTaskMutation = useCreateTaskMutation()
     const refreshWorkflowList = useRefreshWorkflowList()
     const form = createGenerateForm(draftGenerateValues, {
@@ -165,6 +167,7 @@ function createGenerateSession() {
     }
 
     // MARK: Draft
+    /* 表單擁有權：task 一改動就原地轉成草稿 */
     /* store 會淺層合併物件，需整個替換 */
     const [formOwner, setFormOwner] = createSignal<FormOwner>({ kind: 'draft' })
     const isEditingDraft = () => formOwner().kind === 'draft' && uiStore.state.draft !== undefined

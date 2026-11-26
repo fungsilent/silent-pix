@@ -79,6 +79,8 @@ function createWorkflowStore() {
     const isReadOnly = () => selection().isArchived
         || (state.createDraftId === null && (isDeleted() || !record()))
 
+    // MARK: Selection sync
+    /* 刪除、遺失或清單變動時重新選取與載入 */
     const applyRemoved = (workflowId: string) => {
         if (state.selectedId === workflowId) {
             workflowSession.selectWorkflow(summaries().find(item => item.id !== workflowId)?.id ?? null)

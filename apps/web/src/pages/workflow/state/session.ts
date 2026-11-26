@@ -21,7 +21,7 @@ type WorkflowSessionState = {
 }
 
 function createWorkflowSession() {
-    // MARK: Workflow draft
+    // MARK: State
     let editSequence = 0
     const initialState: WorkflowSessionState = {
         selectedId: null,
@@ -42,6 +42,7 @@ function createWorkflowSession() {
             },
         }),
     )
+    // MARK: Workflow draft
     const form = createWorkflowForm(emptyWorkflowValues, {
         onInvalid: issues => uiStore.reportValidationIssues(toValidationIssues(issues)),
         onSubmit: saveWorkflow,
