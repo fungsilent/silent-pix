@@ -13,7 +13,7 @@ import TokenValues from '@silent-pix/blueprint/components/TokenValues.astro'
 
 ## App model
 
-Silent Pix 是桌面 App，瀏覽器版用的也是同一套介面。所有畫面一律照桌面 App 的習慣設計，不照網頁。這是最上層的規則，其他規則都在它底下。
+Silent Pix 是桌面 App，瀏覽器版用的也是同一套介面。所有畫面一律照桌面 App 的習慣設計，不照網頁。這是最上層的規則，其他規則都在它底下；唯一的例外是觸控與手機寬度（最後兩條）。
 
 <Rules component="token-app-model">
 
@@ -27,6 +27,8 @@ Silent Pix 是桌面 App，瀏覽器版用的也是同一套介面。所有畫�
 <Rule component="token-app-model" id="error-layers">錯誤與問題只集中在一個地方：**Header 的 Issue chip**，整個 App 只有這一個，面板 Bar 不放 chip。進 Header 的有兩種：**操作失敗**（按下按鈕後失敗，例如改名、flag、儲存設定）與**前置檢查**（目前不能執行某個動作的原因，例如沒有 workflow、選項載入失敗、mapping 失效）；每則標出來源（面板或欄位名）。原處只做標記、不放第二份清單：相關欄位用 Badge（例如 missing）或停用表示，主要按鈕停用。以下留在原處、不進 Header：**欄位錯誤**（輸入值不合法）用 danger Field hint 取代該欄說明；**dialog 內的操作失敗**放 footer 上方的 Callout 錯誤條，dialog 保持開啟；**讀檔失敗**這類要說明原因、又不屬於欄位的錯誤用 Callout；**整塊內容出不來**（載入失敗、檔案讀不到、App 啟動失敗）用 StatusMessage 取代那塊內容。不用會自己消失的 toast，錯誤不插入內容中間把版面擠開。**顏色**：說明文字一律不轉紅，紅色只出現在警告三角等圖示、狀態點、有底色的容器（Callout、Badge、狀態 chip）與欄位左紅邊；StatusMessage 維持中性，只有讀取失敗在訊息前加警告三角；「圖片無法顯示」不是錯誤，不加。danger 按鈕的紅色表示破壞性動作，不在此限。各元件的外觀與狀態見 [Field hint](/base/input/text-field/#field-hint/rules)、[File drop](/base/input/file-drop/)、[Callout](/base/feedback/callout/)、[StatusMessage](/base/feedback/status-message/) 與 Task failure 的規則。</Rule>
 <Rule component="token-app-model" id="open-files">檔案用桌面習慣開啟：開檔按鈕，或把檔案拖進視窗；拖曳經過時，整個接收區顯示接收框。</Rule>
 <Rule component="token-app-model" id="desktop-first">設計新元件或新頁面時，先想桌面 App 會怎麼做；和網頁慣例衝突時，以桌面 App 為準。</Rule>
+<Rule component="token-app-model" id="touch">觸控裝置（沒有 hover 能力，與視窗寬度無關）不能依賴 hover、Ctrl／⌘＋單擊或拖曳框選：只在 hover 時出現的控制項改為常駐，多選改用長按進入勾選模式。其餘桌面規則照舊。</Rule>
+<Rule component="token-app-model" id="mobile">視窗寬度 &lt; 640px 時，有手機版面的頁面改用手機版面（目前只有 [Generate · Mobile](/pages/generate-mobile/)）：一次顯示一個全螢幕畫面、內容可整頁捲動、主要操作固定在底部列。沒有手機版面的頁面維持桌面版面，視窗不夠寬時水平捲動。</Rule>
 </ul>
 
 </Rules>

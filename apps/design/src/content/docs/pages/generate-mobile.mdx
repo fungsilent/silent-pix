@@ -1,0 +1,150 @@
+---
+title: Generate · Mobile
+description: 窄視窗（手機）的 Generate：一頁由上而下是圖片、Prompt、Config，Task 清單與 Browser 全螢幕開啟，底部固定一列主要操作。
+sidebar:
+    order: 2
+---
+
+import State from '@silent-pix/blueprint/components/State.astro'
+import Gallery from '@silent-pix/blueprint/components/Gallery.astro'
+import Rule from '@silent-pix/blueprint/components/Rule.astro'
+import Rules from '@silent-pix/blueprint/components/Rules.astro'
+import Screen from '@silent-pix/blueprint/components/Screen.astro'
+import Slot from '@silent-pix/blueprint/components/Slot.astro'
+import Fixed from '@silent-pix/blueprint/components/Fixed.astro'
+import Switch from '@silent-pix/blueprint/components/Switch.astro'
+import Case from '@silent-pix/blueprint/components/Case.astro'
+
+## Task 頁
+
+一張卡片：圖片區固定在頂端，下方內容面板往上捲時蓋過圖片，到頂後只在面板內捲動。
+
+<Gallery min="480px">
+<State component="generate-mobile-task" state="top" label="top · image fully shown" frame="flex h-[720px] w-[382px] bg-shell" />
+<State component="generate-mobile-task" state="prompt" label="scrolled · panel at top" frame="flex h-[720px] w-[382px] bg-shell" />
+<State component="generate-mobile-task" state="gutter" label="scrolled · gutter shown" frame="flex h-[720px] w-[382px] bg-shell" />
+<State component="generate-mobile-task" state="config" label="scrolled · Config" frame="flex h-[720px] w-[382px] bg-shell" />
+</Gallery>
+
+<Rules component="generate-mobile-task">
+
+<ul class="ds-rules">
+<Rule component="generate-mobile-task" id="order">由上而下依序是圖片（Image stage）、Prompt、Config（桌面 Task detail 的全部內容：Info、參考圖、Config、LoRA），不分 tab；Prompt 與 Config 之間用一條 `border-line-subtle` 分隔。</Rule>
+<Rule component="generate-mobile-task" id="stage">圖片區高 360px，固定在卡片頂端不跟著捲；圖片控制（放大、比較、設為參考圖）照桌面版放在右上。</Rule>
+<Rule component="generate-mobile-task" id="sheet">內容面板 `bg-surface`、頂端 14px 圓角加向上的陰影，頂端中間一條 36×4px 的 `bg-line` 把手。往上捲時面板蓋過圖片，面板頂端最高停在離卡片頂端 56px 處；到頂後再捲只捲面板內容。</Rule>
+<Rule component="generate-mobile-task" id="peek">露出的 56px 是圖片右上控制列的上下置中位置：控制列上方留白 12px、按鈕高 32px，下方再留 12px。露出的是圖片本身，不另做縮圖列；控制列在露出時照常可按。點露出區的其他地方捲回最上方，圖片完整顯示。</Rule>
+</ul>
+
+</Rules>
+
+## Prompt
+
+Task 頁內的 Prompt 區：Positive 與 Negative 上下排，editor 照內容長高；右上的鈕切換 gutter。
+
+<Gallery min="480px">
+<State component="generate-mobile-prompt" state="collapsed" label="gutter hidden (default)" frame="w-[358px] bg-surface" />
+<State component="generate-mobile-prompt" state="gutter" label="gutter shown" frame="w-[358px] bg-surface" />
+</Gallery>
+
+<Rules component="generate-mobile-prompt">
+
+<ul class="ds-rules">
+<Rule component="generate-mobile-prompt" id="title">標題列 44px：左側 11px 大寫「Prompt」（同 Detail 分段標題），右側 28px Gutter 切換鈕（PanelLeft icon）；gutter 顯示時用 selected 樣式。沒有 Positive／Negative 顯示切換，兩段都一直顯示。</Rule>
+<Rule component="generate-mobile-prompt" id="gutter">切換鈕只控制 gutter（行號與 group 名稱欄）：預設隱藏，文字用滿整行寬度，也不改顯示 group 名稱；顯示時就是桌面版的 gutter（見 Generate 的 prompt-panel）。其餘 editor 行為不變，停用 group 的斜線紋與停用 token 的底線照常顯示。</Rule>
+<Rule component="generate-mobile-prompt" id="height">Editor 沒有固定高度，也沒有 splitter：照內容長高、不在 editor 內捲動，整頁由 Task 頁的內容面板捲動。</Rule>
+</ul>
+
+</Rules>
+
+## 底部列
+
+固定在畫面底部的主要操作；Browser 有勾選時換成批次操作。
+
+<Gallery min="480px">
+<State component="generate-mobile-bar" state="default" label="default" frame="w-[390px]" />
+<State component="generate-mobile-bar" state="submitting" label="submitting" frame="w-[390px]" />
+<State component="generate-mobile-bar" state="tasks" label="Tasks open" frame="w-[390px]" />
+<State component="generate-mobile-bar" state="selection" label="browser selection · 3 checked" frame="w-[390px]" />
+</Gallery>
+
+<Rules component="generate-mobile-bar">
+
+<ul class="ds-rules">
+<Rule component="generate-mobile-bar" id="layout">`bg-shell` 底，左右留 4px（與卡片間距相同）、上 6px、下 8px，按鈕間距 6px。按鈕高 36px、圓角 6px、13px 字、16px icon。</Rule>
+<Rule component="generate-mobile-bar" id="default">左側 Tasks（outline，寬度依文字）開關 Task 清單：開著時用 selected 樣式，再按一次回到 Task 頁。右側 Generate（accent solid）吃掉剩餘寬度，Task 頁與 Task 清單都按得到；送出中改「Creating...」並停用，停用與 Issue 的規則同桌面版 prompt-panel。</Rule>
+<Rule component="generate-mobile-bar" id="selection">Browser 有勾選時整列換成批次操作：左側「✕ N selected」（按下清空勾選、回到原本的列）吃掉剩餘寬度，右側依序 Pin、Discard（elevated，44px 寬）、刪除（danger soft）。各動作與確認 dialog 同桌面版 Task browser 的批次操作。勾選數只顯示在這裡，手機版工具列不放 selected chip。</Rule>
+</ul>
+
+</Rules>
+
+## Task 清單
+
+Tasks 開啟時的全螢幕清單：與桌面版相同，只是清單欄撐滿寬度。
+
+<Gallery min="480px">
+<State component="task-list" state="mobile" label="mobile · full width" frame="flex h-[640px] w-[382px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
+<State component="task-item" state="touch" label="touch · flag actions always shown" frame="w-[334px] overflow-hidden rounded-lg border border-line-subtle bg-surface p-2 pr-3" />
+<State component="task-item" state="touch-selected" label="touch · selected" frame="w-[334px] overflow-hidden rounded-lg border border-line-subtle bg-surface p-2 pr-3" />
+</Gallery>
+
+<Rules component="task-list" part="mobile">
+
+<ul class="ds-rules">
+<Rule component="task-list" id="mobile-width">40px 直條不變（篩選、Grid view、New draft），清單欄撐滿剩餘寬度；收合鈕照常可用。</Rule>
+<Rule component="task-list" id="mobile-select">點列選取 task 後關閉清單、回到 Task 頁顯示它；New draft 同樣回到 Task 頁。</Rule>
+<Rule component="task-item" id="touch">觸控裝置上 Pin／Discard 鈕常駐在名稱那一行右側（不等 hover），名稱一直讓位；點一下就改該筆 flag，不必經過勾選。</Rule>
+</ul>
+
+</Rules>
+
+## Task browser
+
+從 Task 清單的 Grid view 開啟，固定兩欄；長按卡片進入勾選模式。
+
+<Gallery min="480px">
+<State component="task-browser" state="mobile" label="mobile · 2 columns" frame="flex h-[640px] w-[382px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-browser" state="mobile-selection" label="mobile · selection mode" frame="flex h-[640px] w-[382px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="task-card" state="touch" label="card · touch" frame="w-[170px] bg-surface p-2" />
+<State component="task-card" state="touch-select" label="card · selection mode" frame="w-[170px] bg-surface p-2" />
+<State component="task-card" state="touch-checked" label="card · checked" frame="w-[170px] bg-surface p-2" />
+</Gallery>
+
+<Rules component="task-browser" part="mobile">
+
+<ul class="ds-rules">
+<Rule component="task-browser" id="mobile-grid">固定兩欄，間距與內距同桌面版；沒有縮圖大小滑桿，工具列只剩全寬搜尋。卡片資訊分兩列：狀態 badge 一列、日期與時間一列。</Rule>
+<Rule component="task-browser" id="mobile-tap">點縮圖開審片模式；點下方資訊選取 task 並回到 Task 頁。卡片上的 Pin／Discard 鈕同 task-item 的觸控規則常駐。</Rule>
+<Rule component="task-browser" id="mobile-selection">長按卡片進入勾選模式並勾選該卡；勾選模式中所有卡片右上的勾選框常駐，點卡片任何地方都是切換勾選（不開審片、不選取）。勾選數歸零或按下底部列的 ✕ 時離開勾選模式。沒有拖曳框選與 Ctrl／⌘＋單擊；搜尋或篩選變更時清空勾選，同桌面版。</Rule>
+</ul>
+
+</Rules>
+
+## Screen
+
+<Screen frame="relative flex h-[844px] w-[390px] flex-col overflow-hidden rounded-xl border border-line bg-canvas text-fg">
+    <Fixed component="app-header" state="web" />
+    <div class="flex min-h-0 flex-1 flex-col overflow-hidden bg-shell px-1">
+        <Switch name="view">
+            <Case state="task" label="task">
+                <Slot name="task" component="generate-mobile-task" states="top,prompt,gutter,config" />
+            </Case>
+            <Case state="tasks" label="task list">
+                <div class="flex min-h-0 flex-1 overflow-hidden rounded-lg border border-line-subtle"><Fixed component="task-list" state="mobile" /></div>
+            </Case>
+            <Case state="browser" label="task browser">
+                <div class="flex min-h-0 flex-1 overflow-hidden rounded-lg border border-line-subtle"><Slot name="browser" component="task-browser" states="mobile,mobile-selection" /></div>
+            </Case>
+        </Switch>
+    </div>
+    <Slot name="bar" component="generate-mobile-bar" states="default,submitting,tasks,selection" />
+</Screen>
+
+<Rules component="generate-mobile-screen">
+
+<ul class="ds-rules">
+<Rule component="generate-mobile-screen" id="breakpoint">視窗寬度 &lt; 640px 時 Generate 改用這個版面（見 App model 的手機例外）；640px 以上用桌面版的三欄與窄視窗收合規則。</Rule>
+<Rule component="generate-mobile-screen" id="views">Header 下方一次只顯示一個畫面：Task 頁（預設）、Task 清單或 Task browser，都是一張填滿的卡片；Tasks 鈕開關清單，清單直條的 Grid view 切換清單與 Browser。底部列一直在，Generate 在每個畫面都按得到。</Rule>
+<Rule component="generate-mobile-screen" id="overlays">Image viewer、審片、mask editor、LoRA／參考圖 picker 與確認 dialog 照桌面版的疊加層規則蓋住整個視窗（Web 沒有標題列，見 App 的疊加層區域）。</Rule>
+</ul>
+
+</Rules>
