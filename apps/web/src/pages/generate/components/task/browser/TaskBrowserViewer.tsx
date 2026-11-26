@@ -1,10 +1,10 @@
 import { FlagOff, FlagTriangleRight, HeartX, LoaderCircle, RefreshCw, TriangleAlert } from 'lucide-solid'
-import { createEffect, createMemo, createSignal, For, onCleanup, onMount } from 'solid-js'
+import { createEffect, createMemo, createSignal, For } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { ImageViewer } from '#/components/viewer/ImageViewer'
 import { t } from '#/lib/i18n'
-import { isEditableTarget } from '#/lib/keyboard'
+import { createHotkeys } from '#/lib/keyboard'
 import { useGenerateDetail } from '#/pages/generate/state/detail'
 import { mergeClasses } from '#/utils/style'
 
@@ -32,21 +32,11 @@ export function TaskBrowserViewer(props: TaskBrowserViewerProps) {
     }
 
     /* U／P／X 立即生效並留在目前這張；焦點在輸入框時不攔 */
-    const handleKeyDown = (event: KeyboardEvent) => {
-        if (viewerImages().length === 0 || event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || isEditableTarget(event.target)) {
-            return
-        }
-
-        const flag = ({ u: null, p: 'pin', x: 'discard' } as const)[event.key.toLowerCase() as 'u' | 'p' | 'x']
-
-        if (flag !== undefined) {
-            event.preventDefault()
-            setFlag(flag)
-        }
-    }
-
-    onMount(() => window.addEventListener('keydown', handleKeyDown))
-    onCleanup(() => window.removeEventListener('keydown', handleKeyDown))
+    createHotkeys([
+        { key: 'u', preventDefault: true, onPress: () => setFlag(null) },
+        { key: 'p', preventDefault: true, onPress: () => setFlag('pin') },
+        { key: 'x', preventDefault: true, onPress: () => setFlag('discard') },
+    ], () => viewerImages().length > 0)
 
     const current = (): 'unflag' | TaskApi.TaskFlag => {
         const task = detail.task()

@@ -1,6 +1,6 @@
 import { Collapsible } from '@ark-ui/solid'
 import { Check, ChevronRight, Copy, Trash2, TriangleAlert } from 'lucide-solid'
-import { createSignal, For, onCleanup, Show } from 'solid-js'
+import { createSignal, For, Show } from 'solid-js'
 
 import { Badge } from '#/components/base/Badge'
 import { Button } from '#/components/base/Button'
@@ -12,7 +12,8 @@ import { TaskFailure } from '#/components/task/detail/TaskFailure'
 import { TaskStatus } from '#/components/task/TaskStatus'
 import { toErrorMessage } from '#/lib/error'
 import { t } from '#/lib/i18n'
-import { useIssueSource } from '#/store/issue'
+import { createTimedValue } from '#/lib/timed-value'
+import { createIssueSource } from '#/store/issue'
 import { formatDate, formatTime } from '#/utils/date'
 
 import type { TaskApi } from '@silent-pix/shared'
@@ -58,20 +59,16 @@ type TaskInfoProps = {
 
 export function TaskInfo(props: TaskInfoProps) {
     const [deleteOpen, setDeleteOpen] = createSignal(false)
-    const [idCopied, setIdCopied] = createSignal(false)
+    const idCopied = createTimedValue<true>()
     const [copyFailed, setCopyFailed] = createSignal(false)
-    let copiedTimer: number | undefined
-    onCleanup(() => window.clearTimeout(copiedTimer))
-    useIssueSource(() => copyFailed()
+    createIssueSource(() => copyFailed()
         ? [{ id: 'task-id-copy', tone: 'warning' as const, field: () => t('fields.id'), message: () => t('common.copyFailed'), onDismiss: () => setCopyFailed(false) }]
         : [])
     const copyId = async (id: string) => {
         try {
             await navigator.clipboard.writeText(id)
             setCopyFailed(false)
-            setIdCopied(true)
-            window.clearTimeout(copiedTimer)
-            copiedTimer = window.setTimeout(() => setIdCopied(false), 1500)
+            idCopied.show(true)
         }
         catch {
             setCopyFailed(true)
@@ -150,10 +147,10 @@ export function TaskInfo(props: TaskInfoProps) {
                                 </span>
                                 <span
                                     class='flex shrink-0 text-fg-muted'
-                                    classList={{ 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100': !idCopied() }}
+                                    classList={{ 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100': !idCopied.value() }}
                                 >
                                     <Show
-                                        when={idCopied()}
+                                        when={idCopied.value()}
                                         fallback={(
                                             <Copy
                                                 size={12}

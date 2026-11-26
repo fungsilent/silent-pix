@@ -17,7 +17,7 @@ import { TaskBrowserViewer } from '#/pages/generate/components/task/browser/Task
 import { taskFilterEmptyCopy } from '#/pages/generate/components/task/TaskFilterChips'
 import { TaskRail } from '#/pages/generate/components/task/TaskRail'
 import { useGenerateSession } from '#/pages/generate/state/session'
-import { toFailureIssue, useIssueSource } from '#/store/issue'
+import { createIssueSource, toFailureIssue } from '#/store/issue'
 import { mergeClasses } from '#/utils/style'
 
 import type { TaskApi } from '@silent-pix/shared'
@@ -61,7 +61,7 @@ export function TaskBrowser() {
 
         return next
     })
-    useIssueSource(issues)
+    createIssueSource(issues)
 
     const selectedFlag = createMemo<SelectedFlag>(() => {
         const flags = new Set(selectedTaskIds().map(taskId => {

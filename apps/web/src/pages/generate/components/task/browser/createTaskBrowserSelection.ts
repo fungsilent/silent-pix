@@ -1,6 +1,6 @@
-import { createEffect, createSignal, onCleanup, onMount } from 'solid-js'
+import { createEffect, createSignal } from 'solid-js'
 
-import { isEditableTarget } from '#/lib/keyboard'
+import { createHotkeys } from '#/lib/keyboard'
 import { overlayStore } from '#/store/overlay'
 
 import type { TaskApi } from '@silent-pix/shared'
@@ -43,19 +43,9 @@ export function createTaskBrowserSelection(options: TaskBrowserSelectionOptions)
     }
 
     /* Esc 取消勾選；有 overlay 或焦點在輸入框時不攔 */
-    const handleKeyDown = (event: KeyboardEvent) => {
-        if (overlayStore.isActive() || options.viewerOpen() || event.defaultPrevented || isEditableTarget(event.target)) {
-            return
-        }
-
-        if (event.key === 'Escape' && selectedTaskIds().length > 0) {
-            event.preventDefault()
-            clear()
-        }
-    }
-
-    onMount(() => window.addEventListener('keydown', handleKeyDown))
-    onCleanup(() => window.removeEventListener('keydown', handleKeyDown))
+    createHotkeys([
+        { key: 'Escape', modifiers: 'any', preventDefault: true, when: () => selectedTaskIds().length > 0, onPress: clear },
+    ], () => !overlayStore.isActive() && !options.viewerOpen())
 
     const applyDrag = (ids: string[]) => {
         if (ids.length > taskSelectionLimit) {

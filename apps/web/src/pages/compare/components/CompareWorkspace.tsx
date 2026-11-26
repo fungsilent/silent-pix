@@ -1,5 +1,5 @@
 import { Eye, EyeOff, ImageOff, ImagePlus, ListX, X } from 'lucide-solid'
-import { createEffect, createMemo, createSignal, For, onCleanup, onMount, Show } from 'solid-js'
+import { createEffect, createMemo, createSignal, For, Show } from 'solid-js'
 
 import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
@@ -11,7 +11,7 @@ import { ZoomStage } from '#/components/viewer/ZoomStage'
 import { resolveImageUrl } from '#/data/image/image.api'
 import { t } from '#/lib/i18n'
 import { createImageZoom } from '#/lib/image-zoom'
-import { isEditableTarget } from '#/lib/keyboard'
+import { createHotkeys } from '#/lib/keyboard'
 import { theme } from '#/lib/theme'
 import { useCompareSession } from '#/pages/compare/state/session'
 import { overlayStore } from '#/store/overlay'
@@ -78,32 +78,10 @@ export function CompareWorkspace() {
         }
     }
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-        if (
-            overlayStore.isActive()
-            || event.defaultPrevented
-            || event.ctrlKey
-            || event.metaKey
-            || event.altKey
-            || isEditableTarget(event.target)
-        ) {
-            return
-        }
-
-        if (event.key === 'ArrowLeft') {
-            event.preventDefault()
-            selectPrevious()
-            return
-        }
-
-        if (event.key === 'ArrowRight') {
-            event.preventDefault()
-            selectNext()
-        }
-    }
-
-    onMount(() => window.addEventListener('keydown', handleKeyDown))
-    onCleanup(() => window.removeEventListener('keydown', handleKeyDown))
+    createHotkeys([
+        { key: 'ArrowLeft', preventDefault: true, onPress: selectPrevious },
+        { key: 'ArrowRight', preventDefault: true, onPress: selectNext },
+    ], () => !overlayStore.isActive())
 
     const applyPickerSelection = (images: ImageApi.ImageListItem[]) => {
         compareSession.addCompare(images.map(item => ({

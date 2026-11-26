@@ -8,7 +8,7 @@ import { ZoomControls } from '#/components/viewer/ZoomControls'
 import { resolveImageUrl } from '#/data/image/image.api'
 import { t } from '#/lib/i18n'
 import { createImageZoom } from '#/lib/image-zoom'
-import { useHotkeys } from '#/lib/keyboard'
+import { createHotkeys } from '#/lib/keyboard'
 import { overlayRoot } from '#/lib/overlay-root'
 import { createMaskPainting } from '#/pages/generate/components/mask/createMaskPainting'
 import { createMaskCanvas } from '#/pages/generate/components/mask/mask.canvas'
@@ -114,7 +114,7 @@ export function MaskEditor(props: MaskEditorProps) {
     onMount(() => {
         overlayId = overlayStore.open()
     })
-    useHotkeys([
+    createHotkeys([
         { key: 'Escape', modifiers: 'any', allowInEditable: true, preventDefault: true, onPress: () => props.onClose() },
         { key: 'b', when: canEdit, onPress: () => setTool('brush') },
         { key: 'e', when: canEdit, onPress: () => setTool('eraser') },

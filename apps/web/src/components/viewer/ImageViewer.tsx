@@ -8,7 +8,7 @@ import { ZoomControls } from '#/components/viewer/ZoomControls'
 import { ZoomStage } from '#/components/viewer/ZoomStage'
 import { resolveImageUrl } from '#/data/image/image.api'
 import { createImageZoom } from '#/lib/image-zoom'
-import { useHotkeys } from '#/lib/keyboard'
+import { createHotkeys } from '#/lib/keyboard'
 import { overlayRoot } from '#/lib/overlay-root'
 import { overlayStore } from '#/store/overlay'
 import { mergeClasses } from '#/utils/style'
@@ -90,7 +90,7 @@ export function ImageViewer(props: ImageViewerProps) {
         overlayId = overlayStore.open()
     })
     const viewerKey = { modifiers: 'any', allowInEditable: true, preventDefault: true } as const
-    useHotkeys([
+    createHotkeys([
         { ...viewerKey, key: 'Escape', onPress: () => props.onClose() },
         { ...viewerKey, key: 'ArrowLeft', onPress: selectPrevious },
         { ...viewerKey, key: 'ArrowRight', onPress: selectNext },

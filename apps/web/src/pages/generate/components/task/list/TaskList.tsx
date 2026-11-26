@@ -13,7 +13,7 @@ import { TaskDraftItem, TaskItem, TaskItemSkeleton } from '#/pages/generate/comp
 import { taskFilterEmptyCopy } from '#/pages/generate/components/task/TaskFilterChips'
 import { TaskRail } from '#/pages/generate/components/task/TaskRail'
 import { useGenerateSession } from '#/pages/generate/state/session'
-import { toFailureIssue, useIssueSource } from '#/store/issue'
+import { createIssueSource, toFailureIssue } from '#/store/issue'
 import { mergeClasses } from '#/utils/style'
 
 import type { TaskFeedFilter } from '#/data/task/task.query'
@@ -29,7 +29,7 @@ export function TaskList(props: TaskListProps) {
     const generateSession = useGenerateSession()
     const taskFeedQuery = useTaskFeedQuery(generateSession.feedFilter)
     const flagMutation = useTaskFlagMutation()
-    useIssueSource(() => toFailureIssue('task-list-flag', () => t('task.title'), flagMutation.error, () => flagMutation.reset()))
+    createIssueSource(() => toFailureIssue('task-list-flag', () => t('task.title'), flagMutation.error, () => flagMutation.reset()))
     const loadOnScroll = createLoadOnScroll({
         canLoad: () => taskFeedQuery.hasNextPage
             && !taskFeedQuery.isFetching

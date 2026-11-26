@@ -1,5 +1,5 @@
 import { ArrowLeft, Check, ChevronDown, ChevronRight, Copy, Dot } from 'lucide-solid'
-import { createMemo, createSignal, For, Match, onCleanup, Show, Switch } from 'solid-js'
+import { createMemo, createSignal, For, Match, Show, Switch } from 'solid-js'
 
 import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
@@ -9,6 +9,7 @@ import { StatusMessage } from '#/components/base/StatusMessage'
 import { t } from '#/lib/i18n'
 import { formatJsonText } from '#/lib/json'
 import { theme } from '#/lib/theme'
+import { createTimedValue } from '#/lib/timed-value'
 import { mergeClasses } from '#/utils/style'
 
 import type { SegmentGroupOption } from '#/components/base/SegmentGroup'
@@ -163,16 +164,12 @@ function GenerationView(props: GenerationViewProps) {
 
     /* 點連線：捲到來源節點卡並短暫標亮 */
     const cards = new Map<string, HTMLElement>()
-    const [highlightedId, setHighlightedId] = createSignal<string>()
-    let highlightTimer: number | undefined
-    onCleanup(() => window.clearTimeout(highlightTimer))
+    const highlightedId = createTimedValue<string>(highlightResetMs)
 
     const jumpTo = (nodeId: string) => {
         setGroupOpen('nodes', true)
         cards.get(nodeId)?.scrollIntoView({ block: 'center' })
-        setHighlightedId(nodeId)
-        window.clearTimeout(highlightTimer)
-        highlightTimer = window.setTimeout(() => setHighlightedId(), highlightResetMs)
+        highlightedId.show(nodeId)
     }
 
     const linkProps = (nodeId: string) => {
@@ -229,7 +226,7 @@ function GenerationView(props: GenerationViewProps) {
                                     <NodeCard
                                         ref={element => cards.set(node.id, element)}
                                         node={node}
-                                        highlighted={highlightedId() === node.id}
+                                        highlighted={highlightedId.value() === node.id}
                                         link={linkProps}
                                     />
                                 )}

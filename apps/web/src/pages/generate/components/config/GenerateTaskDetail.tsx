@@ -11,7 +11,7 @@ import {
 } from '#/pages/generate/form'
 import { useGenerateDetail } from '#/pages/generate/state/detail'
 import { useGenerateSession } from '#/pages/generate/state/session'
-import { toFailureIssue, useIssueSource } from '#/store/issue'
+import { createIssueSource, toFailureIssue } from '#/store/issue'
 
 import type { ImageApi } from '@silent-pix/shared'
 import type { TaskConfigActions, TaskConfigCreateData, TaskConfigValues } from '#/components/task/detail/TaskConfig'
@@ -48,7 +48,7 @@ export function GenerateTaskDetail() {
     const [editingMask, setEditingMask] = createSignal<ReferenceImage>()
     const [referenceError, setReferenceError] = createSignal<() => string>()
     const [renameError, setRenameError] = createSignal<unknown>()
-    useIssueSource(() => toFailureIssue('task-rename', () => t('common.detail'), renameError(), () => setRenameError()))
+    createIssueSource(() => toFailureIssue('task-rename', () => t('common.detail'), renameError(), () => setRenameError()))
     const loraQuery = useLoraListQuery(loraPickerOpen)
 
     const name = form.useSelector(({ values }) => values.name)

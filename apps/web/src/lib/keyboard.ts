@@ -35,7 +35,7 @@ function matches(binding: Hotkey, event: KeyboardEvent): boolean {
         && (binding.shift === undefined || binding.shift === event.shiftKey)
 }
 
-export function useHotkeys(bindings: readonly Hotkey[], enabled: () => boolean): void {
+export function createHotkeys(bindings: readonly Hotkey[], enabled: () => boolean): void {
     const held = new Map<string, () => void>()
     const hasHeldBindings = bindings.some(binding => binding.onRelease)
 

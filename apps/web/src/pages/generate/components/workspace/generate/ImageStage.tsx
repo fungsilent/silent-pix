@@ -1,12 +1,12 @@
 import { ChevronLeft, ChevronRight, Columns2, Expand, Image as ImageIcon, ImagePlus } from 'lucide-solid'
-import { For, onCleanup, onMount, Show } from 'solid-js'
+import { For, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { Loading } from '#/components/base/Loading'
 import { StatusMessage } from '#/components/base/StatusMessage'
 import { resolveImageUrl } from '#/data/image/image.api'
 import { t } from '#/lib/i18n'
-import { isEditableTarget } from '#/lib/keyboard'
+import { createHotkeys } from '#/lib/keyboard'
 import { theme } from '#/lib/theme'
 import { mergeClasses } from '#/utils/style'
 
@@ -45,30 +45,10 @@ export function ImageStage(props: ImageStageProps) {
         props.onSelect((props.selectedIndex + 1) % props.images.length)
     }
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-        if (!props.keyboardEnabled || props.images.length < 2 || isEditableTarget(event.target)) {
-            return
-        }
-
-        if (event.key === 'ArrowLeft') {
-            event.preventDefault()
-            selectPrevious()
-            return
-        }
-
-        if (event.key === 'ArrowRight') {
-            event.preventDefault()
-            selectNext()
-        }
-    }
-
-    onMount(() => {
-        window.addEventListener('keydown', handleKeyDown)
-    })
-
-    onCleanup(() => {
-        window.removeEventListener('keydown', handleKeyDown)
-    })
+    createHotkeys([
+        { key: 'ArrowLeft', modifiers: 'any', preventDefault: true, onPress: selectPrevious },
+        { key: 'ArrowRight', modifiers: 'any', preventDefault: true, onPress: selectNext },
+    ], () => props.keyboardEnabled && props.images.length >= 2)
 
     return (
         <section

@@ -17,7 +17,7 @@ import {
     toSaveIssues,
 } from '#/pages/workflow/issue'
 import { useWorkflowStore } from '#/pages/workflow/state/store'
-import { issueList, useIssueSource } from '#/store/issue'
+import { createIssueSource, issueList } from '#/store/issue'
 import { mergeClasses } from '#/utils/style'
 
 /*
@@ -53,7 +53,7 @@ export function WorkflowDetail() {
     }
     const loadFailed = () => page.hasSelection() && !page.isDeleted() && detailQuery.isError && !detailQuery.data
     /* 沒有選取或整個讀取失敗時，畫面上沒有可存的東西，問題也不列 */
-    useIssueSource(() => page.hasSelection() && !page.isDeleted() && !loadFailed() ? issues() : [])
+    createIssueSource(() => page.hasSelection() && !page.isDeleted() && !loadFailed() ? issues() : [])
 
     let disposed = false
     onCleanup(() => { disposed = true })

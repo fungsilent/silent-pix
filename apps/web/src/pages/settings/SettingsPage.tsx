@@ -1,5 +1,4 @@
-import { useQueryClient } from '@tanstack/solid-query'
-import { createSignal, Show } from 'solid-js'
+import { Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { Dialog } from '#/components/base/Dialog'
@@ -9,23 +8,20 @@ import { SegmentGroup } from '#/components/base/SegmentGroup'
 import { StatusMessage } from '#/components/base/StatusMessage'
 import { DetailSection } from '#/components/detail'
 import { Select, Text } from '#/components/field'
-import { probeConnection } from '#/data/app/app.api'
 import { localeStore, t } from '#/lib/i18n'
-import { getPlatform, saveLocalServerUrl, validateLocalServerUrl } from '#/lib/platform'
+import { getPlatform } from '#/lib/platform'
 import { theme } from '#/lib/theme'
-import { routePaths } from '#/routes'
+import { createServerConnection } from '#/pages/settings/hooks/createServerConnection'
 import { devStore } from '#/store/dev'
-import { useIssueSource } from '#/store/issue'
 import { themeStore } from '#/store/theme'
 import { mergeClasses } from '#/utils/style'
 
 import type { SegmentGroupOption } from '#/components/base/SegmentGroup'
 import type { LocalServerUrl } from '#/lib/platform'
+import type { ConnectionStatus } from '#/pages/settings/hooks/createServerConnection'
 import type { DevMode } from '#/store/dev'
 import type { Theme } from '#/store/theme'
 import type { Accessor, JSX } from 'solid-js'
-
-type ConnectionStatus = 'connected' | 'failed'
 
 const languageOptions = [
     { value: 'en', label: 'English' },
@@ -38,99 +34,8 @@ const themeOptions = [
 ] as const satisfies readonly SegmentGroupOption<Theme>[]
 
 export function SettingsPage() {
-    const queryClient = useQueryClient()
     const platform = getPlatform()
-    const [serverUrlInput, setServerUrlInput] = createSignal(platform.endpoint ?? '')
-    const [connectionStatus, setConnectionStatus] = createSignal<ConnectionStatus>()
-    const [testing, setTesting] = createSignal(false)
-    const [saving, setSaving] = createSignal(false)
-    /* 欄位錯誤留在欄位下；儲存這類操作失敗進 Header 的 Issue chip */
-    const [urlError, setUrlError] = createSignal<() => string>()
-    const [actionError, setActionError] = createSignal<() => string>()
-    useIssueSource(() => {
-        const message = actionError()
-        return message
-            ? [{ id: 'settings-connection', tone: 'error', field: () => t('settings.connection'), message, onDismiss: () => setActionError() }]
-            : []
-    })
-    const [pendingServerUrl, setPendingServerUrl] = createSignal<LocalServerUrl>()
-
-    const testConnection = async () => {
-        setUrlError(undefined)
-        setActionError(undefined)
-        setConnectionStatus(undefined)
-
-        let nextServerUrl: LocalServerUrl
-        try {
-            nextServerUrl = validateLocalServerUrl(serverUrlInput())
-        }
-        catch (value) {
-            setUrlError(() => () => value instanceof Error ? value.message : t('settings.invalidLocalServerUrl'))
-            return
-        }
-
-        setTesting(true)
-        try {
-            await probeConnection(nextServerUrl)
-            if (serverUrlInput().trim() === nextServerUrl) {
-                setConnectionStatus('connected')
-            }
-        }
-        catch {
-            if (serverUrlInput().trim() === nextServerUrl) {
-                setConnectionStatus('failed')
-            }
-        }
-        finally {
-            setTesting(false)
-        }
-    }
-
-    const persistServerUrl = async (nextServerUrl: LocalServerUrl) => {
-        if (queryClient.isMutating() > 0) {
-            setPendingServerUrl(undefined)
-            setActionError(() => () => t('settings.waitForCurrentAction'))
-            setSaving(false)
-            return
-        }
-
-        setSaving(true)
-        setActionError(undefined)
-        try {
-            await saveLocalServerUrl(nextServerUrl)
-            // 先更新 Desktop 路由，再重新初始化 Server 連線。
-            window.history.replaceState(window.history.state, '', `#${routePaths.generate}`)
-            window.location.reload()
-        }
-        catch (value) {
-            setPendingServerUrl(undefined)
-            setActionError(() => () => value instanceof Error ? value.message : t('settings.saveSettingsFailed'))
-            setSaving(false)
-        }
-    }
-
-    const saveConnection = async () => {
-        let nextServerUrl: LocalServerUrl
-        try {
-            nextServerUrl = validateLocalServerUrl(serverUrlInput())
-        }
-        catch (value) {
-            setUrlError(() => () => value instanceof Error ? value.message : t('settings.invalidLocalServerUrl'))
-            return
-        }
-
-        if (queryClient.isMutating() > 0) {
-            setActionError(() => () => t('settings.waitForCurrentAction'))
-            return
-        }
-
-        if (platform.endpoint && platform.endpoint !== nextServerUrl) {
-            setPendingServerUrl(nextServerUrl)
-            return
-        }
-
-        await persistServerUrl(nextServerUrl)
-    }
+    const connection = createServerConnection()
 
     return (
         <section class={mergeClasses(theme.card, 'flex min-h-0 flex-1 flex-col')}>
@@ -159,20 +64,16 @@ export function SettingsPage() {
                     {platform.kind === 'desktop' && (<>
                         <Line />
                         <ConnectionSettings
-                            value={serverUrlInput}
-                            connectionStatus={connectionStatus}
-                            testing={testing}
-                            saving={saving}
-                            urlError={() => urlError()?.()}
+                            value={connection.serverUrlInput}
+                            connectionStatus={connection.connectionStatus}
+                            testing={connection.testing}
+                            saving={connection.saving}
+                            urlError={() => connection.urlError()?.()}
                             settingsError={platform.settingsError}
                             hasSavedServerUrl={Boolean(platform.endpoint)}
-                            onValueChange={value => {
-                                setServerUrlInput(value)
-                                setConnectionStatus(undefined)
-                                setUrlError(undefined)
-                            }}
-                            onTest={() => void testConnection()}
-                            onSave={() => void saveConnection()}
+                            onValueChange={connection.changeServerUrl}
+                            onTest={() => void connection.testConnection()}
+                            onSave={() => void connection.saveConnection()}
                             onRetrySettings={() => window.location.reload()}
                         />
                     </>)}
@@ -186,10 +87,10 @@ export function SettingsPage() {
                 </div>
             </div>
             <ServerSaveDialog
-                nextServerUrl={pendingServerUrl()}
-                saving={saving()}
-                onCancel={() => setPendingServerUrl(undefined)}
-                onConfirm={nextServerUrl => void persistServerUrl(nextServerUrl)}
+                nextServerUrl={connection.pendingServerUrl()}
+                saving={connection.saving()}
+                onCancel={connection.cancelServerChange}
+                onConfirm={nextServerUrl => void connection.persistServerUrl(nextServerUrl)}
             />
         </section>
     )

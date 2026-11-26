@@ -13,7 +13,7 @@ import { promptMinHeight } from '#/pages/generate/components/workspace/generate/
 import { PromptEditor } from '#/pages/generate/components/workspace/generate/prompt/PromptEditor'
 import { useGenerateDetail } from '#/pages/generate/state/detail'
 import { useGenerateSession } from '#/pages/generate/state/session'
-import { issueList, useIssueSource } from '#/store/issue'
+import { createIssueSource, issueList } from '#/store/issue'
 import { mergeClasses } from '#/utils/style'
 
 import type { PromptDocument } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
@@ -35,7 +35,7 @@ export function PromptPanel() {
     const isSubmitting = generateSession.isSubmitting
     const runtimeIssues = createRuntimeIssues()
     const issues = () => [...runtimeIssues(), ...generateSession.state.submitIssues]
-    useIssueSource(issues)
+    createIssueSource(issues)
     /*
      * 只有「剛按下 Generate」才自動展開 Header 的清單。常駐來源（選項載入失敗）會讓計數在
      * 使用者什麼都沒做時變動，那時候彈開等於無故打擾。chip 只顯示數字，所以一則也展開。

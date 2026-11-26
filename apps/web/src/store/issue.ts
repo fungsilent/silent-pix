@@ -37,7 +37,7 @@ export function sortIssues<TIssue extends AppIssue>(issues: TIssue[]): TIssue[] 
 const [sources, setSources] = createSignal<Accessor<AppIssue[]>[]>([])
 const [open, setOpen] = createSignal(false)
 
-export function useIssueSource(source: Accessor<AppIssue[]>): void {
+export function createIssueSource(source: Accessor<AppIssue[]>): void {
     setSources(current => [...current, source])
     onCleanup(() => setSources(current => current.filter(item => item !== source)))
 }

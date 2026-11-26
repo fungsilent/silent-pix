@@ -345,7 +345,7 @@ API wrappers retain raw status/code/message and never translate transport errors
 message for unknown codes. Stored diagnostics render as text; do not infer a
 specific integration failure from a generic generation error.
 
-Mounted pages and panels register reactive issue sources with `useIssueSource()`
+Mounted pages and panels register reactive issue sources with `createIssueSource()`
 from `store/issue.ts`. Cleanup removes them on unmount. Use `toFailureIssue()` for
 dismissible operation failures with a translated source label. It suppresses
 Server-unreachable failures, which the service status already shows. Error
