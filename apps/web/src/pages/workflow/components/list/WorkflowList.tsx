@@ -10,7 +10,7 @@ import { StatusMessage } from '#/components/base/StatusMessage'
 import { DetailTitle } from '#/components/detail'
 import { t } from '#/lib/i18n'
 import { theme } from '#/lib/theme'
-import { useWorkflowStore } from '#/pages/workflow/store'
+import { useWorkflowStore } from '#/pages/workflow/state/store'
 import { mergeClasses } from '#/utils/style'
 
 const listSkeletonRows = [0, 1, 2, 3, 4, 5, 6, 7]

@@ -6,7 +6,7 @@ import { DetailRow, DetailSection } from '#/components/detail'
 import { Editable } from '#/components/field'
 import { t } from '#/lib/i18n'
 import { WorkflowDelete } from '#/pages/workflow/components/config/WorkflowDelete'
-import { useWorkflowStore } from '#/pages/workflow/store'
+import { useWorkflowStore } from '#/pages/workflow/state/store'
 
 /* 對應 TaskInfo：identity 與破壞性動作放在右欄最上面，沒有自己的標題 */
 export function WorkflowInfo() {

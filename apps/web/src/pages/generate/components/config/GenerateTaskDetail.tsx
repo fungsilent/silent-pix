@@ -5,12 +5,12 @@ import { useDeleteTaskMutation, useLoraListQuery, useRenameTaskMutation, useSamp
 import { useWorkflowListQuery } from '#/data/workflow/workflow.query'
 import { t } from '#/lib/i18n'
 import { MaskEditor } from '#/pages/generate/components/mask/MaskEditor'
-import { useGenerateDetail } from '#/pages/generate/detail'
 import {
     referencePreviewUrl,
     referenceSize,
 } from '#/pages/generate/form'
-import { useGenerateSession } from '#/pages/generate/session'
+import { useGenerateDetail } from '#/pages/generate/state/detail'
+import { useGenerateSession } from '#/pages/generate/state/session'
 import { toFailureIssue, useIssueSource } from '#/store/issue'
 import { taskStore } from '#/store/task'
 
@@ -21,7 +21,7 @@ import type { TaskImageActions, TaskImageCreateData, TaskImageReference } from '
 import type { TaskInfoActions, TaskInfoCreateData } from '#/components/task/detail/TaskInfo'
 import type { TaskLoraActions, TaskLoraCreateData } from '#/components/task/detail/TaskLora'
 import type { ReferenceImage } from '#/pages/generate/form'
-import type { DraftDefaultField } from '#/pages/generate/session'
+import type { DraftDefaultField } from '#/pages/generate/state/session'
 
 const draftFieldLabel: Record<DraftDefaultField, () => string> = {
     seed: () => t('fields.seed'),

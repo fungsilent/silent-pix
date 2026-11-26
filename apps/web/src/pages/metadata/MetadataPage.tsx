@@ -9,11 +9,11 @@ import { theme } from '#/lib/theme'
 import { MetadataCopyTo } from '#/pages/metadata/components/MetadataCopyTo'
 import { MetadataFilePanel } from '#/pages/metadata/components/MetadataFilePanel'
 import { MetadataResultPane } from '#/pages/metadata/components/MetadataResultPane'
-import { useMetadataSession } from '#/pages/metadata/session'
+import { useMetadataSession } from '#/pages/metadata/state/session'
 import { useIssueSource } from '#/store/issue'
 import { mergeClasses } from '#/utils/style'
 
-import type { MetadataError } from '#/pages/metadata/session'
+import type { MetadataError } from '#/pages/metadata/state/session'
 
 const acceptedFiles = 'image/png,image/jpeg,.png,.jpg,.jpeg'
 const copiedResetMs = 1500

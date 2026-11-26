@@ -16,7 +16,7 @@ import {
     toRequirementIssues,
     toSaveIssues,
 } from '#/pages/workflow/issue'
-import { useWorkflowStore } from '#/pages/workflow/store'
+import { useWorkflowStore } from '#/pages/workflow/state/store'
 import { issueList, useIssueSource } from '#/store/issue'
 import { mergeClasses } from '#/utils/style'
 

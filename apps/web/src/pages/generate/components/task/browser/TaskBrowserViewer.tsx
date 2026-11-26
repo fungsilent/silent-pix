@@ -5,7 +5,7 @@ import { Button } from '#/components/base/Button'
 import { ImageViewer } from '#/components/viewer/ImageViewer'
 import { t } from '#/lib/i18n'
 import { isEditableTarget } from '#/lib/keyboard'
-import { useGenerateDetail } from '#/pages/generate/detail'
+import { useGenerateDetail } from '#/pages/generate/state/detail'
 import { mergeClasses } from '#/utils/style'
 
 import type { TaskApi } from '@silent-pix/shared'

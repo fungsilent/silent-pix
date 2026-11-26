@@ -4,9 +4,9 @@ import { Check } from 'lucide-solid'
 import { Button } from '#/components/base/Button'
 import { t } from '#/lib/i18n'
 import { createLocalReferenceImage, isGenerateImageSize } from '#/pages/generate/form'
-import { useGenerateSession } from '#/pages/generate/session'
+import { useGenerateSession } from '#/pages/generate/state/session'
 import { copyFromGraph, toGenerateDraft } from '#/pages/metadata/metadata.mapping'
-import { useMetadataSession } from '#/pages/metadata/session'
+import { useMetadataSession } from '#/pages/metadata/state/session'
 import { useNavigateToRoute } from '#/routes'
 
 /* 結果區工具列的 Use image as reference 與 Copy to Generate；需要 Generate，只在有 Server 時渲染 */

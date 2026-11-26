@@ -3,7 +3,7 @@ import { cloneGenerateValues, draftGenerateValues, referenceSize } from '#/pages
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { GenerateValues, ReferenceImage } from '#/pages/generate/form'
-import type { DraftDefaultField } from '#/pages/generate/session'
+import type { DraftDefaultField } from '#/pages/generate/state/session'
 import type { MetadataEntry, MetadataNode, MetadataNodeValue } from '#/pages/metadata/metadata.parse'
 
 /*

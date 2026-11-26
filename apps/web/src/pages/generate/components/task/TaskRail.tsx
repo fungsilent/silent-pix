@@ -4,7 +4,7 @@ import { Button } from '#/components/base/Button'
 import { t } from '#/lib/i18n'
 import { theme } from '#/lib/theme'
 import { TaskFilterChips } from '#/pages/generate/components/task/TaskFilterChips'
-import { useGenerateSession } from '#/pages/generate/session'
+import { useGenerateSession } from '#/pages/generate/state/session'
 import { taskStore } from '#/store/task'
 import { mergeClasses } from '#/utils/style'
 

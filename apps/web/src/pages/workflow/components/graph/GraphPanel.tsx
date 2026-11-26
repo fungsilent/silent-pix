@@ -4,7 +4,7 @@ import { Bar } from '#/components/base/Bar'
 import { t } from '#/lib/i18n'
 import { theme } from '#/lib/theme'
 import { GraphEditor } from '#/pages/workflow/components/graph/GraphEditor'
-import { useWorkflowStore } from '#/pages/workflow/store'
+import { useWorkflowStore } from '#/pages/workflow/state/store'
 import { mergeClasses } from '#/utils/style'
 
 /* 中欄，對應 PromptPanel：面板自己擁有標題列與欄位標籤 */

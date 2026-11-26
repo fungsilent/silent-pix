@@ -6,7 +6,7 @@ import { DetailGroup, DetailLabel, DetailSection } from '#/components/detail'
 import { Select } from '#/components/field'
 import { t } from '#/lib/i18n'
 import { fieldGroups, generatorFieldLabel } from '#/pages/workflow/generator-field'
-import { useWorkflowStore } from '#/pages/workflow/store'
+import { useWorkflowStore } from '#/pages/workflow/state/store'
 
 import type { GeneratorField, Mapping } from '@silent-pix/shared'
 import type { SelectOption } from '#/components/field'

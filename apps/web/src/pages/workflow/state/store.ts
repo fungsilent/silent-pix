@@ -7,7 +7,7 @@ import { t } from '#/lib/i18n'
 import { toLineMarks as createLineMarks } from '#/pages/workflow/components/graph/graph.document'
 import { parseGraphText } from '#/pages/workflow/graph'
 import { toNodeOptions } from '#/pages/workflow/node-option'
-import { useWorkflowSession } from '#/pages/workflow/session'
+import { useWorkflowSession } from '#/pages/workflow/state/session'
 import { isColdLoading } from '#/store/dev'
 
 import type { Comfy, GeneratorField, Mapping, WorkflowApi } from '@silent-pix/shared'

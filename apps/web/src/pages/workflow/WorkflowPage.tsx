@@ -1,7 +1,7 @@
 import { WorkflowDetail } from '#/pages/workflow/components/config/WorkflowDetail'
 import { GraphPanel } from '#/pages/workflow/components/graph/GraphPanel'
 import { WorkflowList } from '#/pages/workflow/components/list/WorkflowList'
-import { WorkflowStoreProvider } from '#/pages/workflow/store'
+import { WorkflowStoreProvider } from '#/pages/workflow/state/store'
 
 export function WorkflowPage() {
     return (

@@ -5,7 +5,7 @@ import { useWorkflowListQuery } from '#/data/workflow/workflow.query'
 import { toErrorMessage } from '#/lib/error'
 import { t } from '#/lib/i18n'
 import { generateFieldLabel } from '#/pages/generate/issue'
-import { useGenerateSession } from '#/pages/generate/session'
+import { useGenerateSession } from '#/pages/generate/state/session'
 import { hasLostConnection, serviceHealth } from '#/store/app'
 
 import type { GenerateIssue } from '#/pages/generate/issue'

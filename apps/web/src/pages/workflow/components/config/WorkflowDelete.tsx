@@ -6,7 +6,7 @@ import { Dialog } from '#/components/base/Dialog'
 import { useDeleteWorkflowMutation } from '#/data/workflow/workflow.query'
 import { toErrorMessage } from '#/lib/error'
 import { t } from '#/lib/i18n'
-import { useWorkflowStore } from '#/pages/workflow/store'
+import { useWorkflowStore } from '#/pages/workflow/state/store'
 
 export function WorkflowDelete() {
     const page = useWorkflowStore()

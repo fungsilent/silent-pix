@@ -243,6 +243,23 @@ drag selection, and splitter sizing. Put small stateless operations such as date
 formatting and class composition in `utils`. The `store` directory owns
 cross-page UI state.
 
+A page folder separates code by lifetime. `XxxPage.tsx` is the route entry.
+`state/` holds Providers whose state outlives a single component: the session,
+the route store, and narrower capability Contexts. Hooks are reactive
+capabilities owned by their caller; a hook shared across the page lives in
+`hooks/`, and a hook serving one component sits beside it. Files without a
+lifetime, such as forms, schemas, parsers, and mappings, stay at the page root.
+UI lives in `components/`. Create only the folders a page needs.
+
+A hook owns state together with a side effect (listeners, timers, coordinating
+effects, cleanup) or asynchronous ordering, and forms one capability. Extract it
+when that reactive logic is separable from rendering; keep derived values,
+single handlers, and forwarding calls in the component. One hook serves one
+capability. Name hooks `createXxx` and reserve `useXxx` for reading a Context.
+Not every `createXxx` is a hook: factories such as `createStore` or
+`createApiClient` own no lifetime. `lib` modules are named by capability and may
+export hooks alongside plain functions.
+
 Keep short single-consumer components, helpers, types, and fixtures local. Split
 for reuse, distinct responsibility, or isolated complexity, not file length or
 symmetry. Shared Task detail UI and page-specific adapters retain the ownership
@@ -279,12 +296,12 @@ stay in the owning code.
   names the required provider when used outside it.
 - Create the value in the Provider factory when it owns that value's lifetime.
   When the caller already owns a stable value, pass it through a `value` prop.
-- Use `session.ts`, `XxxSessionProvider`, and `useXxxSession()` for domain work
+- Use `state/session.ts`, `XxxSessionProvider`, and `useXxxSession()` for domain work
   that must survive leaving its route. Compose those providers in the fixed
   `MultiProvider` list at the App root layout; sessions that need the Server are
   listed only when an endpoint exists. Providers for query subscriptions
   and view state stay inside the route that uses them.
-- A Context that coordinates a whole route lives in `store.ts` and exposes
+- A Context that coordinates a whole route lives in `state/store.ts` and exposes
   `XxxStoreProvider` and `useXxxStore()`. Use the specific capability name for a narrower Context.
   In larger modules, use `// MARK: <feature or operation>` to label sections.
   Keep queries, derived state, and actions together when they serve the same operation.
@@ -375,7 +392,9 @@ Use domain names that reveal responsibility and side effects, such as `taskId`,
 Source directories use kebab-case. Use UpperCamelCase for component files named
 after their main component, such as `ImageViewer.tsx`. Use kebab-case for all
 other source file names, including TSX entry points such as `main.tsx` and modules
-such as `drag-selection.ts`.
+such as `drag-selection.ts`. Hook files under `pages` and `components` use
+camelCase matching their `createXxx` function, such as `createWindowFileDrop.ts`;
+`lib` modules keep kebab-case capability names.
 Toolchain-defined filenames such as `Cargo.toml` and Drizzle migration files
 follow their toolchain's naming conventions.
 

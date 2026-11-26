@@ -5,8 +5,8 @@ import { GenerateTaskDetail } from '#/pages/generate/components/config/GenerateT
 import { TaskBrowser } from '#/pages/generate/components/task/browser/TaskBrowser'
 import { TaskList } from '#/pages/generate/components/task/list/TaskList'
 import { GenerateWorkspace } from '#/pages/generate/components/workspace/generate/GenerateWorkspace'
-import { createGenerateDetail, GenerateDetailProvider } from '#/pages/generate/detail'
-import { useGenerateSession } from '#/pages/generate/session'
+import { createGenerateDetail, GenerateDetailProvider } from '#/pages/generate/state/detail'
+import { useGenerateSession } from '#/pages/generate/state/session'
 import { taskStore } from '#/store/task'
 
 export function GeneratePage() {
