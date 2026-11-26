@@ -1,6 +1,7 @@
 import { task } from '@silent-pix/shared'
 import { createContextProvider } from '@solid-primitives/context'
 import { batch, createEffect, createSignal, mergeProps, on, onCleanup } from 'solid-js'
+import { reconcile } from 'solid-js/store'
 
 import { subscribeTasksRemoved } from '#/data/task/task.event'
 import { useCreateTaskMutation } from '#/data/task/task.query'
@@ -176,7 +177,8 @@ function createGenerateSession() {
 
     const replaceDraft = (draft: GenerateDraft | undefined) => {
         referenceImage.release(uiStore.state.draft?.parkedValues?.referenceImage)
-        uiStore.set('draft', draft)
+        /* 整個替換，不留舊 parkedValues */
+        uiStore.set('draft', draft && reconcile(draft))
     }
 
     createEffect(on(formValues, values => {
