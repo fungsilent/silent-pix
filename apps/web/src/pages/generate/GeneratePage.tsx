@@ -83,7 +83,20 @@ function GenerateDesktopLayout(props: GenerateLayoutProps) {
 
 /* MARK: GenerateMobileLayout */
 function GenerateMobileLayout(props: GenerateLayoutProps) {
+    const generateSession = useGenerateSession()
     const [tasksOpen, setTasksOpen] = createSignal(false)
+    const [barMount, setBarMount] = createSignal<HTMLDivElement>()
+    const browserShown = () => tasksOpen() && generateSession.state.browserOpen
+    const openTask = () => {
+        setTasksOpen(false)
+        window.scrollTo({ top: 0 })
+    }
+    const bar = () => (
+        <MobileBar
+            tasksOpen={tasksOpen()}
+            onToggleTasks={() => setTasksOpen(open => !open)}
+        />
+    )
 
     return (
         <>
@@ -96,19 +109,28 @@ function GenerateMobileLayout(props: GenerateLayoutProps) {
                     !tasksOpen() && 'invisible -translate-x-full',
                 )}
             >
-                <TaskList
-                    fill
-                    onDiscardDraft={props.onDiscardDraft}
-                    onOpen={() => {
-                        setTasksOpen(false)
-                        window.scrollTo({ top: 0 })
-                    }}
-                />
+                <Show
+                    when={generateSession.state.browserOpen}
+                    fallback={(
+                        <TaskList
+                            fill
+                            onDiscardDraft={props.onDiscardDraft}
+                            onOpen={openTask}
+                        />
+                    )}
+                >
+                    <TaskBrowser
+                        mobile
+                        bar={tasksOpen() ? bar() : undefined}
+                        barMount={tasksOpen() ? barMount() : undefined}
+                        onOpen={openTask}
+                    />
+                </Show>
             </div>
-            <MobileBar
-                tasksOpen={tasksOpen()}
-                onToggleTasks={() => setTasksOpen(open => !open)}
-            />
+            <div ref={setBarMount} />
+            <Show when={!browserShown()}>
+                {bar()}
+            </Show>
         </>
     )
 }

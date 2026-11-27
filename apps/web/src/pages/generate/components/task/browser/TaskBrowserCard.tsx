@@ -5,6 +5,7 @@ import { Button } from '#/components/base/Button'
 import { CenteredText } from '#/components/base/CenteredText'
 import { TaskFlagOverlay } from '#/components/task/TaskFlagOverlay'
 import { TaskStatus } from '#/components/task/TaskStatus'
+import { createLongPress } from '#/lib/interaction'
 import { TaskFlagControls } from '#/pages/generate/components/task/TaskFlag'
 import { TaskThumbnail } from '#/pages/generate/components/task/TaskThumbnail'
 import { formatDate, formatTime } from '#/utils/date'
@@ -20,18 +21,31 @@ type TaskBrowserCardProps = {
     onFocusTask: () => void
     onOpenViewer: () => void
     onToggleSelected: () => void
-    /* Ctrl/⌘＋單擊；與勾選框分開，因為要先經過拖曳後 click 的防護 */
     onToggleByClick: () => void
     onFlagChange: (flag: TaskApi.TaskFlag | null) => void
+    mobile?: boolean | undefined
+    selecting?: boolean | undefined
 }
 
 export function TaskBrowserCard(props: TaskBrowserCardProps) {
     const shortId = () => props.task.id.slice(0, 8)
     const title = () => props.task.name ?? shortId()
     const viewable = () => props.task.outputCount > 0
-    /* 點縮圖開大圖、點下方資訊選取（Detail）；兩處 Ctrl/⌘＋單擊都是切換勾選。 */
+    const longPress = createLongPress({
+        onLongPress: () => {
+            if (!props.checked) props.onToggleSelected()
+        },
+    })
+    const clickCapture = (event: MouseEvent) => {
+        longPress.onClickCapture(event)
+        if (event.defaultPrevented || !props.selecting) return
+
+        event.preventDefault()
+        event.stopPropagation()
+        props.onToggleSelected()
+    }
     const withToggle = (action: () => void) => (event: MouseEvent) => {
-        if (event.ctrlKey || event.metaKey) {
+        if (!props.mobile && (event.ctrlKey || event.metaKey)) {
             props.onToggleByClick()
             return
         }
@@ -43,8 +57,16 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
         <article
             data-task-card='true'
             data-task-id={props.task.id}
+            onPointerDown={props.mobile ? longPress.onPointerDown : undefined}
+            onPointerMove={props.mobile ? longPress.onPointerMove : undefined}
+            onPointerUp={props.mobile ? longPress.onPointerUp : undefined}
+            onPointerCancel={props.mobile ? longPress.onPointerUp : undefined}
+            onPointerLeave={props.mobile ? longPress.onPointerUp : undefined}
+            ref={element => element.addEventListener('click', clickCapture, true)}
+            onContextMenu={props.mobile ? event => event.preventDefault() : undefined}
             class={mergeClasses(
                 'group relative min-w-0 rounded-lg border border-transparent p-2',
+                props.mobile && 'select-none [-webkit-touch-callout:none]',
                 props.focused && !props.checked && 'bg-selected',
                 !props.focused && !props.checked && 'hover:bg-hover',
                 props.checked && !props.focused && 'border-accent bg-accent/20 ring-2 ring-accent/40',
@@ -56,7 +78,7 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
                 classes={{
                     root: mergeClasses(
                         'block w-full min-w-0 p-0 text-left hover:bg-transparent',
-                        viewable() && 'cursor-zoom-in',
+                        viewable() && !props.selecting && 'cursor-zoom-in',
                         props.focused && 'focus-visible:border-transparent focus-visible:ring-0',
                     ),
                 }}
@@ -106,7 +128,7 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
                         >
                             {title()}
                         </span>
-                        <div class='flex min-w-0 items-center justify-between gap-1'>
+                        <div class={mergeClasses('flex min-w-0 gap-1', props.mobile ? 'flex-col items-start gap-1.5' : 'items-center justify-between')}>
                             <TaskStatus status={props.task.status} />
                             {/* 日期與時間分開一點，較易讀 */}
                             <span class='flex shrink-0 gap-1.5 text-[10px] leading-none text-fg-muted tabular-nums'>
@@ -134,7 +156,9 @@ export function TaskBrowserCard(props: TaskBrowserCardProps) {
                         'absolute right-3.5 top-3.5 size-6 rounded-md border-0 p-0 transition-opacity',
                         props.checked
                             ? 'bg-accent text-on-stage hover:bg-accent-hover'
-                            : 'pointer-events-none bg-stage-control text-on-stage/75 opacity-0 hover:bg-stage-control-hover hover:text-on-stage group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 focus-visible:pointer-events-auto focus-visible:opacity-100',
+                            : props.selecting
+                                ? 'bg-stage-control text-on-stage/75'
+                                : 'pointer-events-none bg-stage-control text-on-stage/75 opacity-0 hover:bg-stage-control-hover hover:text-on-stage group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 focus-visible:pointer-events-auto focus-visible:opacity-100',
                     ),
                 }}
                 onClick={props.onToggleSelected}

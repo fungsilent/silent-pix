@@ -1,4 +1,5 @@
 import { createMemo, createReaction, createSignal, Show } from 'solid-js'
+import { Portal } from 'solid-js/web'
 
 import { createThumbnailGrid } from '#/components/image/ThumbnailSize'
 import {
@@ -9,6 +10,7 @@ import {
 } from '#/data/task/task.query'
 import { t } from '#/lib/i18n'
 import { theme } from '#/lib/theme'
+import { MobileSelectionBar } from '#/pages/generate/components/mobile/MobileBar'
 import { createTaskBrowserSelection, taskSelectionLimit } from '#/pages/generate/components/task/browser/createTaskBrowserSelection'
 import { TaskBatchDeleteDialog } from '#/pages/generate/components/task/browser/TaskBatchDeleteDialog'
 import { TaskBrowserGrid } from '#/pages/generate/components/task/browser/TaskBrowserGrid'
@@ -23,8 +25,16 @@ import { mergeClasses } from '#/utils/style'
 import type { TaskApi } from '@silent-pix/shared'
 import type { SelectedFlag } from '#/pages/generate/components/task/browser/TaskBrowserToolbar'
 import type { AppIssue } from '#/store/issue'
+import type { JSX } from 'solid-js'
 
-export function TaskBrowser() {
+type TaskBrowserProps = {
+    mobile?: boolean | undefined
+    bar?: JSX.Element
+    barMount?: HTMLElement | undefined
+    onOpen?: (() => void) | undefined
+}
+
+export function TaskBrowser(props: TaskBrowserProps) {
     const generateSession = useGenerateSession()
     const taskFeedQuery = useTaskFeedQuery(generateSession.feedFilter)
     const flagMutation = useTaskFlagMutation()
@@ -73,6 +83,7 @@ export function TaskBrowser() {
 
     const focusTask = (taskId: string) => {
         generateSession.selectTask(taskId)
+        props.onOpen?.()
     }
 
     const openTask = (taskId: string) => {
@@ -141,6 +152,7 @@ export function TaskBrowser() {
             <TaskRail
                 gridActive
                 onFilterChange={changeFilter}
+                onNewDraft={props.onOpen}
             />
             <section
                 class='flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-surface'
@@ -158,6 +170,7 @@ export function TaskBrowser() {
                     deletePending={deletePending()}
                     showPermanentDelete={showPermanentDelete()}
                     thumbnailGrid={thumbnailGrid}
+                    mobile={props.mobile}
                 />
 
                 <TaskBrowserGrid
@@ -185,7 +198,28 @@ export function TaskBrowser() {
                             flagMutation.mutate({ taskIds: [taskId], flag })
                         }
                     }}
+                    mobile={props.mobile}
                 />
+
+                <Show when={props.mobile && props.barMount}>
+                    {mount => (
+                        <Portal mount={mount()}>
+                            <Show
+                                when={selectedTaskIds().length > 0}
+                                fallback={props.bar}
+                            >
+                                <MobileSelectionBar
+                                    count={selectedTaskIds().length}
+                                    flagPending={flagMutation.isPending}
+                                    deletePending={deletePending()}
+                                    onClear={selection.clear}
+                                    onSetFlag={setSelectedFlags}
+                                    onDelete={() => openBatchDelete('selected')}
+                                />
+                            </Show>
+                        </Portal>
+                    )}
+                </Show>
 
                 <Show when={viewerOpen()}>
                     <TaskBrowserViewer

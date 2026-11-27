@@ -36,6 +36,7 @@ type TaskBrowserGridProps = {
     onOpenViewer: (taskId: string) => void
     onToggleSelected: (taskId: string) => void
     onFlagChange: (taskId: string, flag: TaskApi.TaskFlag | null) => void
+    mobile?: boolean | undefined
 }
 
 export function TaskBrowserGrid(props: TaskBrowserGridProps) {
@@ -53,6 +54,8 @@ export function TaskBrowserGrid(props: TaskBrowserGridProps) {
         getItemId: item => item.dataset.taskId,
     })
 
+    const template = () => props.mobile ? 'repeat(2, minmax(0, 1fr))' : props.thumbnailGrid.template()
+
     const focusTask = (taskId: string) => {
         if (dragSelection.consumeSuppressedClick()) {
             return
@@ -61,7 +64,6 @@ export function TaskBrowserGrid(props: TaskBrowserGridProps) {
         props.onFocusTask(taskId)
     }
 
-    /* 框選放開時會多一次 click；Ctrl 點擊也要吃掉它，否則剛框選取消的又被勾回去 */
     const toggleTaskByClick = (taskId: string) => {
         if (dragSelection.consumeSuppressedClick()) {
             return
@@ -83,21 +85,20 @@ export function TaskBrowserGrid(props: TaskBrowserGridProps) {
             ref={element => {
                 setSelectionContainerElement(element)
                 loadOnScroll.setViewport(element)
-                props.thumbnailGrid.observe(element)
+                if (!props.mobile) props.thumbnailGrid.observe(element)
             }}
             class={mergeClasses(
-                /* 預留捲軸位置：讀取中 skeleton 不滿一頁時欄寬也和有捲軸的卡片一致 */
                 'scrollbar-thin relative min-h-0 flex-1 overflow-y-auto bg-surface [scrollbar-gutter:stable]',
                 dragSelection.tracking() && 'select-none',
             )}
-            onPointerDown={dragSelection.onPointerDown}
+            onPointerDown={props.mobile ? undefined : dragSelection.onPointerDown}
         >
             <Show
                 when={!props.loading}
                 fallback={(
                     <div
                         class='grid content-start gap-3 p-2'
-                        style={{ 'grid-template-columns': props.thumbnailGrid.template() }}
+                        style={{ 'grid-template-columns': template() }}
                     >
                         <For each={taskSkeletonCells}>
                             {() => <TaskCardSkeleton />}
@@ -110,8 +111,8 @@ export function TaskBrowserGrid(props: TaskBrowserGridProps) {
                     fallback={<TaskBrowserLoadError onRetry={props.onRetry} />}
                 >
                     <div
-                        class='grid content-start gap-3 p-2'
-                        style={{ 'grid-template-columns': props.thumbnailGrid.template() }}
+                        class={mergeClasses('grid content-start gap-3 p-2', props.mobile && 'pb-[72px]')}
+                        style={{ 'grid-template-columns': template() }}
                     >
                         <Show
                             when={props.taskIds().length > 0}
@@ -146,6 +147,8 @@ export function TaskBrowserGrid(props: TaskBrowserGridProps) {
                                         onToggleSelected={() => props.onToggleSelected(taskId)}
                                         onToggleByClick={() => toggleTaskByClick(taskId)}
                                         onFlagChange={flag => props.onFlagChange(taskId, flag)}
+                                        mobile={props.mobile}
+                                        selecting={props.mobile && props.selectedTaskIds().length > 0}
                                     />
                                 )}
                             </For>

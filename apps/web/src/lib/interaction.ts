@@ -127,3 +127,54 @@ export function createPinch(options: {
         },
     }
 }
+
+/* 長按：按住 delay 毫秒且移動不超過 tolerance px 才觸發；觸發後吃掉隨後的 click */
+export function createLongPress(options: {
+    onLongPress: () => void
+    delay?: number
+    tolerance?: number
+}) {
+    const delay = options.delay ?? 500
+    const tolerance = options.tolerance ?? 8
+    let start: (Point & { id: number }) | undefined
+    let timer: ReturnType<typeof setTimeout> | undefined
+    let fired = false
+
+    const cancel = () => {
+        clearTimeout(timer)
+        timer = undefined
+        start = undefined
+    }
+    onCleanup(cancel)
+
+    return {
+        onPointerDown: (event: PointerEvent) => {
+            if (!event.isPrimary) return
+
+            cancel()
+            fired = false
+            start = { x: event.clientX, y: event.clientY, id: event.pointerId }
+            timer = setTimeout(() => {
+                fired = true
+                cancel()
+                options.onLongPress()
+            }, delay)
+        },
+
+        onPointerMove: (event: PointerEvent) => {
+            if (start?.id === event.pointerId && Math.hypot(event.clientX - start.x, event.clientY - start.y) > tolerance) cancel()
+        },
+
+        /* 放開、取消或移出元素都結束這次長按 */
+        onPointerUp: cancel,
+
+        /* 放在 click 的 capture 階段 */
+        onClickCapture: (event: MouseEvent) => {
+            if (!fired) return
+
+            fired = false
+            event.preventDefault()
+            event.stopPropagation()
+        },
+    }
+}

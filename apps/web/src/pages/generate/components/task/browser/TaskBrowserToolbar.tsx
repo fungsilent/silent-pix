@@ -33,6 +33,7 @@ type TaskBrowserToolbarProps = {
     deletePending: boolean
     showPermanentDelete: boolean
     thumbnailGrid: ThumbnailGrid
+    mobile?: boolean | undefined
 }
 
 const flagSegment = {
@@ -53,7 +54,7 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
 
     return (
         <div class='flex h-12 shrink-0 items-center gap-3 border-b border-line-subtle bg-surface px-2'>
-            <div class='flex w-[234px] shrink-0'>
+            <div class={props.mobile ? 'flex min-w-0 flex-1' : 'flex w-[234px] shrink-0'}>
                 <Text
                     label={t('task.search')}
                     value={props.search}
@@ -69,91 +70,93 @@ export function TaskBrowserToolbar(props: TaskBrowserToolbarProps) {
                 />
             </div>
 
-            <Show when={props.selectedCount > 0}>
-                <SelectedCountChip
-                    count={props.selectedCount}
-                    onClear={props.onClearSelection}
-                />
-            </Show>
+            <Show when={!props.mobile}>
+                <Show when={props.selectedCount > 0}>
+                    <SelectedCountChip
+                        count={props.selectedCount}
+                        onClear={props.onClearSelection}
+                    />
+                </Show>
 
-            <div class='ml-auto flex shrink-0 items-center gap-2'>
-                <Show
-                    when={props.selectedCount > 0}
-                    fallback={(
-                        <Show when={props.showPermanentDelete}>
+                <div class='ml-auto flex shrink-0 items-center gap-2'>
+                    <Show
+                        when={props.selectedCount > 0}
+                        fallback={(
+                            <Show when={props.showPermanentDelete}>
+                                <Button
+                                    tone='danger'
+                                    disabled={props.deletePending}
+                                    size='compact'
+                                    onClick={props.onDeleteAll}
+                                >
+                                    <Trash2
+                                        size={13}
+                                        strokeWidth={1.8}
+                                    />
+                                    {t('task.deleteDiscardedAction')}
+                                </Button>
+                            </Show>
+                        )}
+                    >
+                        <div class='flex h-7 items-center gap-0.5 rounded-md border border-line-subtle bg-elevated p-px'>
                             <Button
-                                tone='danger'
-                                disabled={props.deletePending}
-                                size='compact'
-                                onClick={props.onDeleteAll}
+                                variant='ghost'
+                                disabled={props.flagPending}
+                                classes={{ root: segment('unflag') }}
+                                onClick={() => props.onSetFlags(null)}
                             >
-                                <Trash2
+                                <FlagOff
                                     size={13}
                                     strokeWidth={1.8}
                                 />
-                                {t('task.deleteDiscardedAction')}
+                                {t('task.filter.unflag')}
                             </Button>
-                        </Show>
-                    )}
-                >
-                    <div class='flex h-7 items-center gap-0.5 rounded-md border border-line-subtle bg-elevated p-px'>
+                            <Button
+                                variant='ghost'
+                                disabled={props.flagPending}
+                                classes={{ root: segment('pin') }}
+                                onClick={() => props.onSetFlags('pin')}
+                            >
+                                <FlagTriangleRight
+                                    size={13}
+                                    strokeWidth={1.8}
+                                />
+                                {t('task.filter.pin')}
+                            </Button>
+                            <Button
+                                variant='ghost'
+                                disabled={props.flagPending}
+                                classes={{ root: segment('discard') }}
+                                onClick={() => props.onSetFlags('discard')}
+                            >
+                                <HeartX
+                                    size={13}
+                                    strokeWidth={1.8}
+                                />
+                                {t('task.filter.discard')}
+                            </Button>
+                        </div>
+                        <span class='mx-1 h-5 w-px bg-line-subtle' />
                         <Button
-                            variant='ghost'
-                            disabled={props.flagPending}
-                            classes={{ root: segment('unflag') }}
-                            onClick={() => props.onSetFlags(null)}
+                            tone='danger'
+                            disabled={props.deletePending}
+                            size='compact'
+                            onClick={props.onDeleteSelected}
                         >
-                            <FlagOff
+                            <Trash2
                                 size={13}
                                 strokeWidth={1.8}
                             />
-                            {t('task.filter.unflag')}
+                            {t('task.deleteSelectedButton', { count: props.selectedCount })}
                         </Button>
-                        <Button
-                            variant='ghost'
-                            disabled={props.flagPending}
-                            classes={{ root: segment('pin') }}
-                            onClick={() => props.onSetFlags('pin')}
-                        >
-                            <FlagTriangleRight
-                                size={13}
-                                strokeWidth={1.8}
-                            />
-                            {t('task.filter.pin')}
-                        </Button>
-                        <Button
-                            variant='ghost'
-                            disabled={props.flagPending}
-                            classes={{ root: segment('discard') }}
-                            onClick={() => props.onSetFlags('discard')}
-                        >
-                            <HeartX
-                                size={13}
-                                strokeWidth={1.8}
-                            />
-                            {t('task.filter.discard')}
-                        </Button>
-                    </div>
-                    <span class='mx-1 h-5 w-px bg-line-subtle' />
-                    <Button
-                        tone='danger'
-                        disabled={props.deletePending}
-                        size='compact'
-                        onClick={props.onDeleteSelected}
-                    >
-                        <Trash2
-                            size={13}
-                            strokeWidth={1.8}
-                        />
-                        {t('task.deleteSelectedButton', { count: props.selectedCount })}
-                    </Button>
-                </Show>
+                    </Show>
 
-                <Show when={props.selectedCount > 0 || props.showPermanentDelete}>
-                    <span class='h-5 w-px shrink-0 bg-line-subtle' />
-                </Show>
-                <ThumbnailSizeSlider grid={props.thumbnailGrid} />
-            </div>
+                    <Show when={props.selectedCount > 0 || props.showPermanentDelete}>
+                        <span class='h-5 w-px shrink-0 bg-line-subtle' />
+                    </Show>
+                    <ThumbnailSizeSlider grid={props.thumbnailGrid} />
+                </div>
+            </Show>
         </div>
     )
 }
