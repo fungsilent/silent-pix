@@ -2,12 +2,13 @@ import { FunnelX, Inbox, Search, SearchX } from 'lucide-solid'
 import { createMemo, For, Show } from 'solid-js'
 
 import { Loading } from '#/components/base/Loading'
-import { CollapseButton, Panel, PanelContent } from '#/components/base/Panel'
+import { CollapseButton, createStoredCollapse, Panel, PanelContent } from '#/components/base/Panel'
 import { StatusMessage } from '#/components/base/StatusMessage'
 import { Text } from '#/components/field/Text'
 import { useTaskFeedQuery, useTaskFlagMutation } from '#/data/task/task.query'
 import { t } from '#/lib/i18n'
 import { createLoadOnScroll } from '#/lib/load-on-scroll'
+import { storageKeys } from '#/lib/storage'
 import { theme } from '#/lib/theme'
 import { TaskDraftItem, TaskItem, TaskItemSkeleton } from '#/pages/generate/components/task/list/TaskItem'
 import { taskFilterEmptyCopy } from '#/pages/generate/components/task/TaskFilterChips'
@@ -29,6 +30,8 @@ const nextPageSkeletonRows = [0, 1]
 
 export function TaskList(props: TaskListProps) {
     const generateSession = useGenerateSession()
+    /* 建一次就好：JSX prop 是 getter，寫在 JSX 裡每次讀都會建新的 */
+    const collapse = createStoredCollapse(storageKeys.generate.taskListCollapsed)
     const taskFeedQuery = useTaskFeedQuery(generateSession.feedFilter)
     const flagMutation = useTaskFlagMutation()
     createIssueSource(() => toFailureIssue('task-list-flag', () => t('task.title'), flagMutation.error, () => flagMutation.reset()))
@@ -50,6 +53,7 @@ export function TaskList(props: TaskListProps) {
 
     return (
         <Panel
+            collapse={props.fill ? undefined : collapse}
             classes={{
                 root: mergeClasses(theme.card, props.fill ? 'min-w-0 flex-1' : 'w-max max-[720px]:hidden'),
             }}

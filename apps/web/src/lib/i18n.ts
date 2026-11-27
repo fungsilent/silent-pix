@@ -1,20 +1,15 @@
 import { createInstance } from 'i18next'
+import { z } from 'zod'
 
 import en from '#/i18n/en.json'
 import zhTW from '#/i18n/zh-tw.json'
+import { readStorage, storageKeys, writeStorage } from '#/lib/storage'
 import { createStore } from '#/lib/store'
 
 const resources = { en: { translation: en }, 'zh-TW': { translation: zhTW } }
 type Locale = keyof typeof resources
 
-const storageKey = 'silent-pix.locale'
-let initialLocale: Locale = 'en'
-try {
-    if (localStorage.getItem(storageKey) === 'zh-TW') initialLocale = 'zh-TW'
-}
-catch {
-    // Browser storage may be disabled; language still works for this session.
-}
+const initialLocale: Locale = readStorage(storageKeys.app.locale, z.enum(['en', 'zh-TW'])) ?? 'en'
 
 const i18n = createInstance()
 
@@ -36,12 +31,7 @@ export const localeStore = createStore({ locale: initialLocale }, ({ set }) => (
         void i18n.changeLanguage(value)
         set('locale', value)
         document.documentElement.lang = value
-        try {
-            localStorage.setItem(storageKey, value)
-        }
-        catch {
-            // Keep the selected language even when storage is unavailable.
-        }
+        writeStorage(storageKeys.app.locale, value)
     },
 }))
 

@@ -1,9 +1,11 @@
 import { createEffect, createSignal, on, Show } from 'solid-js'
 
+import { createStoredCollapse } from '#/components/base/Panel'
 import { TaskDetail } from '#/components/task/detail/TaskDetail'
 import { useDeleteTaskMutation, useLoraListQuery, useRenameTaskMutation, useSamplerListQuery } from '#/data/task/task.query'
 import { useWorkflowListQuery } from '#/data/workflow/workflow.query'
 import { t } from '#/lib/i18n'
+import { storageKeys } from '#/lib/storage'
 import { MaskEditor } from '#/pages/generate/components/config/mask/MaskEditor'
 import {
     referencePreviewUrl,
@@ -40,6 +42,7 @@ type GenerateTaskDetailProps = {
 }
 
 export function GenerateTaskDetail(props: GenerateTaskDetailProps) {
+    const collapse = createStoredCollapse(storageKeys.generate.detailCollapsed)
     const generateSession = useGenerateSession()
     const form = generateSession.form
     const detail = useGenerateDetail()
@@ -316,6 +319,7 @@ export function GenerateTaskDetail(props: GenerateTaskDetailProps) {
                 loading={detail.loading}
                 onRetry={detail.retry}
                 bare={props.bare}
+                collapse={collapse}
             />
             <Show
                 when={!detail.loading() && editingMask()}

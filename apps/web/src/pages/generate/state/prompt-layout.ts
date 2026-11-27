@@ -1,3 +1,6 @@
+import { z } from 'zod'
+
+import { readStorage, storageKeys, writeStorage } from '#/lib/storage'
 import { createStore } from '#/lib/store'
 import { promptDefaultHeight, promptMinHeight } from '#/pages/generate/components/workspace/prompt/prompt.theme'
 
@@ -9,32 +12,9 @@ type PromptLayoutState = {
     promptGutterVisible: boolean
 }
 
-const promptHeightKey = 'silent-pix.prompt-height'
-const promptGutterKey = 'silent-pix.prompt-gutter'
-
-function readPromptGutterVisible(): boolean {
-    try {
-        return localStorage.getItem(promptGutterKey) === 'true'
-    }
-    catch {
-        return false
-    }
-}
+const promptKinds = z.object({ positive: z.boolean(), negative: z.boolean() })
+const promptHeights = z.object({ positive: z.number().min(promptMinHeight), negative: z.number().min(promptMinHeight) })
 const defaultPromptHeight = (): Record<PromptKind, number> => ({ positive: promptDefaultHeight, negative: promptDefaultHeight })
-
-function readPromptHeight(): Record<PromptKind, number> {
-    try {
-        const value: unknown = JSON.parse(localStorage.getItem(promptHeightKey) ?? 'null')
-        if (value && typeof value === 'object') {
-            const { positive, negative } = value as Record<string, unknown>
-            if (typeof positive === 'number' && typeof negative === 'number' && positive >= promptMinHeight && negative >= promptMinHeight) {
-                return { positive, negative }
-            }
-        }
-    }
-    catch { /* 讀不到就用預設 */ }
-    return defaultPromptHeight()
-}
 
 export function createPromptLayout() {
     return createStore<PromptLayoutState, {
@@ -44,22 +24,20 @@ export function createPromptLayout() {
         togglePromptGutter: () => void
     }>(
         {
-            promptVisible: { positive: true, negative: true },
-            promptHeight: readPromptHeight(),
-            promptGutterVisible: readPromptGutterVisible(),
+            promptVisible: readStorage(storageKeys.generate.promptVisible, promptKinds) ?? { positive: true, negative: true },
+            promptHeight: readStorage(storageKeys.generate.promptHeight, promptHeights) ?? defaultPromptHeight(),
+            promptGutterVisible: readStorage(storageKeys.generate.promptGutter, z.boolean()) ?? false,
         },
         store => {
             const writePromptHeight = (height: Record<PromptKind, number>) => {
                 store.set('promptHeight', height)
-                try {
-                    localStorage.setItem(promptHeightKey, JSON.stringify(height))
-                }
-                catch { /* 存不了就只在這次生效 */ }
+                writeStorage(storageKeys.generate.promptHeight, height)
             }
 
             return {
                 togglePromptVisible(kind) {
                     store.set('promptVisible', kind, visible => !visible)
+                    writeStorage(storageKeys.generate.promptVisible, store.state.promptVisible)
                 },
 
                 setPromptHeight(height) {
@@ -73,10 +51,7 @@ export function createPromptLayout() {
                 togglePromptGutter() {
                     const visible = !store.state.promptGutterVisible
                     store.set('promptGutterVisible', visible)
-                    try {
-                        localStorage.setItem(promptGutterKey, String(visible))
-                    }
-                    catch { /* 存不了就只在這次生效 */ }
+                    writeStorage(storageKeys.generate.promptGutter, visible)
                 },
             }
         },

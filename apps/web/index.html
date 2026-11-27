@@ -9,7 +9,8 @@
                 let theme = 'dark'
 
                 try {
-                    const stored = localStorage.getItem('silent-pix.theme')
+                    /* key 與格式見 src/lib/storage.ts 的 storageKeys.app.theme（JSON 字串） */
+                    const stored = JSON.parse(localStorage.getItem('app.theme') ?? 'null')
 
                     if (stored === 'light' || stored === 'dark') {
                         theme = stored

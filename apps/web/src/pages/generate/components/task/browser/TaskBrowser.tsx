@@ -9,6 +9,7 @@ import {
     useTaskFlagMutation,
 } from '#/data/task/task.query'
 import { t } from '#/lib/i18n'
+import { storageKeys } from '#/lib/storage'
 import { theme } from '#/lib/theme'
 import { MobileSelectionBar } from '#/pages/generate/components/mobile/MobileBar'
 import { createTaskBrowserSelection, taskSelectionLimit } from '#/pages/generate/components/task/browser/createTaskBrowserSelection'
@@ -44,7 +45,7 @@ export function TaskBrowser(props: TaskBrowserProps) {
     const closeViewerOnSelectionChange = createReaction(() => setViewerOpen(false))
     const [batchDeleteOpen, setBatchDeleteOpen] = createSignal(false)
     const [batchDeleteScope, setBatchDeleteScope] = createSignal<'selected' | 'discard'>('selected')
-    const thumbnailGrid = createThumbnailGrid('silent-pix.task-browser-columns')
+    const thumbnailGrid = createThumbnailGrid(storageKeys.generate.taskBrowserColumns)
     const tasks = createMemo(() => taskFeedQuery.data?.pages.flatMap(page => page.items) ?? [])
     const taskById = createMemo(() => new Map(tasks().map(task => [task.id, task])))
     const taskIds = createMemo(() => tasks().map(task => task.id))

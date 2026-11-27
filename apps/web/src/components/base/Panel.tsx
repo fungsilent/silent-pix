@@ -1,11 +1,14 @@
 import { ScrollArea } from '@ark-ui/solid'
 import { ChevronsLeft, ChevronsRight } from 'lucide-solid'
 import { createSignal } from 'solid-js'
+import { z } from 'zod'
 
 import { Button } from '#/components/base/Button'
 import { t } from '#/lib/i18n'
+import { readStorage, writeStorage } from '#/lib/storage'
 import { mergeClasses } from '#/utils/style'
 
+import type { StorageKey } from '#/lib/storage'
 import type { Accessor, JSX } from 'solid-js'
 
 /* MARK: Panel */
@@ -20,6 +23,17 @@ type PanelRenderState = {
 export type PanelCollapse = {
     collapsed: Accessor<boolean>
     setCollapsed: (collapsed: boolean) => void
+}
+
+export function createStoredCollapse(key: StorageKey): PanelCollapse {
+    const [collapsed, setCollapsed] = createSignal(readStorage(key, z.boolean()) ?? false)
+    return {
+        collapsed,
+        setCollapsed(value) {
+            setCollapsed(value)
+            writeStorage(key, value)
+        },
+    }
 }
 
 type PanelProps = {

@@ -3,11 +3,13 @@ import { createContextProvider } from '@solid-primitives/context'
 import { batch, createEffect, createSignal, mergeProps, on, onCleanup } from 'solid-js'
 import { reconcile } from 'solid-js/store'
 import { v4 as uuidv4 } from 'uuid'
+import { z } from 'zod'
 
 import { subscribeTasksRemoved } from '#/data/task/task.event'
 import { useCreateTaskMutation } from '#/data/task/task.query'
 import { useRefreshWorkflowList } from '#/data/workflow/workflow.query'
 import { ApiError } from '#/lib/api-client'
+import { readStorage, storageKeys, writeStorage } from '#/lib/storage'
 import { createStore } from '#/lib/store'
 import {
     cloneGenerateValues,
@@ -68,7 +70,7 @@ function createGenerateSession() {
         selectedTaskId: undefined,
         feedTaskFlags: undefined,
         feedSearch: '',
-        browserOpen: false,
+        browserOpen: readStorage(storageKeys.generate.taskBrowserOpen, z.boolean()) ?? false,
         submitIssues: [],
         submitToken: 0,
         draft: undefined,
@@ -99,6 +101,7 @@ function createGenerateSession() {
 
             setBrowserOpen(open: boolean) {
                 store.set('browserOpen', open)
+                writeStorage(storageKeys.generate.taskBrowserOpen, open)
             },
 
             clearSubmitIssues() {

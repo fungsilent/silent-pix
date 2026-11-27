@@ -1,8 +1,10 @@
-import { createMemo, createSignal, Show } from 'solid-js'
+import { createMemo, Show } from 'solid-js'
 
+import { createStoredCollapse } from '#/components/base/Panel'
 import { TaskDetail } from '#/components/task/detail/TaskDetail'
 import { useTaskDetailQuery } from '#/data/task/task.query'
 import { t } from '#/lib/i18n'
+import { storageKeys } from '#/lib/storage'
 import { ReferenceImageDetail } from '#/pages/compare/components/ReferenceImageDetail'
 import { useCompareSession } from '#/pages/compare/state/session'
 
@@ -13,8 +15,7 @@ import type { TaskInfoData } from '#/components/task/detail/TaskInfo'
 import type { TaskLoraData } from '#/components/task/detail/TaskLora'
 
 export function CompareDetail() {
-    const [collapsed, setCollapsed] = createSignal(false)
-    const collapse = { collapsed, setCollapsed }
+    const collapse = createStoredCollapse(storageKeys.compare.detailCollapsed)
     const compareSession = useCompareSession()
     const selected = createMemo(() => compareSession.selectedCompare())
     const taskId = createMemo(() => {

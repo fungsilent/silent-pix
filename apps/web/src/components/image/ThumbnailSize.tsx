@@ -1,8 +1,12 @@
 import { Grid, Square } from 'lucide-solid'
 import { createMemo, createSignal, onCleanup } from 'solid-js'
+import { z } from 'zod'
 
 import { Slider } from '#/components/field/Slider'
 import { t } from '#/lib/i18n'
+import { readStorage, writeStorage } from '#/lib/storage'
+
+import type { StorageKey } from '#/lib/storage'
 
 /*
  * 卡片寬下限是最寬的狀態 badge 加日期與時間仍放得下一列（見 task-browser 版面規則）；
@@ -19,17 +23,8 @@ export type ThumbnailGrid = ReturnType<typeof createThumbnailGrid>
  * 縮圖大小 = 欄數：卡片永遠撐滿寬度，滑桿每一格都換一個欄數。
  * 可選範圍依格狀區寬度算出，偏好的欄數依 storage key 各自記住，寬度變了就夾在範圍內。
  */
-export function createThumbnailGrid(storageKey: string) {
-    const read = () => {
-        try {
-            const value = Number(localStorage.getItem(storageKey))
-            return Number.isInteger(value) && value > 0 ? value : undefined
-        }
-        catch {
-            return undefined
-        }
-    }
-    const [preferred, setPreferred] = createSignal(read())
+export function createThumbnailGrid(storageKey: StorageKey) {
+    const [preferred, setPreferred] = createSignal(readStorage(storageKey, z.int().positive()))
     const [width, setWidth] = createSignal(0)
     const columnsFor = (card: number) => Math.floor((width() + gridGap) / (card + gridGap))
     const range = createMemo(() => {
@@ -60,10 +55,7 @@ export function createThumbnailGrid(storageKey: string) {
         columns,
         setColumns(value: number) {
             setPreferred(value)
-            try {
-                localStorage.setItem(storageKey, String(value))
-            }
-            catch { /* 存不了就只在這次生效 */ }
+            writeStorage(storageKey, value)
         },
     }
 }

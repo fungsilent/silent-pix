@@ -25,6 +25,7 @@ import { resolveImageUrl } from '#/data/image/image.api'
 import { useImageListQuery } from '#/data/image/image.query'
 import { t } from '#/lib/i18n'
 import { createLoadOnScroll } from '#/lib/load-on-scroll'
+import { storageKeys } from '#/lib/storage'
 import { mergeClasses } from '#/utils/style'
 
 import type { ImageApi, TaskApi } from '@silent-pix/shared'
@@ -92,7 +93,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
         () => imageType()?.[0],
     )
     const hasLoadError = () => query.isError && query.data === undefined
-    const thumbnailGrid = createThumbnailGrid('silent-pix.image-picker-columns')
+    const thumbnailGrid = createThumbnailGrid(storageKeys.app.imagePickerColumns)
     const gridStyle = () => ({ 'grid-template-columns': thumbnailGrid.template() })
     const loadOnScroll = createLoadOnScroll({
         canLoad: () => props.open && query.hasNextPage && !query.isFetching && !query.isError,
