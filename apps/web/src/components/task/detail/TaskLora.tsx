@@ -6,7 +6,7 @@ import { FieldHint } from '#/components/base/FieldHint'
 import { Loading } from '#/components/base/Loading'
 import { DetailSection } from '#/components/detail'
 import { Number, Slider } from '#/components/field'
-import { TaskLoraPickerDialog } from '#/components/task/detail/TaskLoraPickerDialog'
+import { splitLoraName, TaskLoraPickerDialog } from '#/components/task/detail/TaskLoraPickerDialog'
 import { t } from '#/lib/i18n'
 import { mergeClasses } from '#/utils/style'
 
@@ -111,7 +111,7 @@ export function TaskLora(props: TaskLoraProps) {
                                             )}
                                             title={lora().name}
                                         >
-                                            {lora().name}
+                                            {(({ folder, base }) => folder + base)(splitLoraName(lora().name))}
                                         </span>
                                         <Show when={isCreate()}>
                                             <Button

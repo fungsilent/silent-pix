@@ -25,15 +25,13 @@ type TaskLoraPickerDialogProps = {
 
 const loraSkeletonRows = [0, 1, 2, 3, 4, 5]
 
-/* ComfyUI 的名稱可能帶子資料夾（Windows 為 \）；資料夾與副檔名淡化，主檔名一般色 */
-function splitLoraName(name: string) {
+/* ComfyUI 的名稱可能帶子資料夾（Windows 為 \）；資料夾淡化，不顯示副檔名 */
+export function splitLoraName(name: string) {
     const slash = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\'))
     const folder = name.slice(0, slash + 1)
     const file = name.slice(slash + 1)
     const dot = file.lastIndexOf('.')
-    return dot > 0
-        ? { folder, base: file.slice(0, dot), extension: file.slice(dot) }
-        : { folder, base: file, extension: '' }
+    return { folder, base: dot > 0 ? file.slice(0, dot) : file }
 }
 
 export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
@@ -189,7 +187,6 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
                                                         <span class='shrink-0 text-fg-muted'>{name.folder}</span>
                                                     </Show>
                                                     <span class='truncate'>{name.base}</span>
-                                                    <span class='shrink-0 text-fg-muted'>{name.extension}</span>
                                                 </span>
                                             </Button>
                                         )

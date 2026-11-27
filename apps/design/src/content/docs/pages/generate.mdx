@@ -407,7 +407,7 @@ Task 詳細面板的 LoRA 區：已選 LoRA 的清單與 weight。
 <Rules component="task-lora">
 
 <ul class="ds-rules">
-<Rule component="task-lora" id="cards">Task 詳細面板的 LoRA 區：每個 LoRA 一張小卡（`border-line`、圓角 8px），上列名稱與移除鈕，下列 weight 用 Slider 加 64px 窄數字欄並排調整，兩者綁同一個值。</Rule>
+<Rule component="task-lora" id="cards">Task 詳細面板的 LoRA 區：每個 LoRA 一張小卡（`border-line`、圓角 8px），上列名稱與移除鈕（名稱不顯示副檔名，與 LoRA 選擇 dialog 相同；hover 顯示完整名稱），下列 weight 用 Slider 加 64px 窄數字欄並排調整，兩者綁同一個值。</Rule>
 <Rule component="task-lora" id="count-weight">區塊標題的計數只在兩個以上才顯示。Weight 範圍 0–2、step 0.05。</Rule>
 <Rule component="task-lora" id="remove">移除鈕是 24px ghost 圖示鈕，平時 muted，hover 才轉 danger 淡底與 danger 文字，平時不搶眼。</Rule>
 <Rule component="task-lora" id="select">可編輯模式底部是全寬 accent soft「Select LoRA」，開啟 LoRA 選擇 dialog；唯讀模式沒有移除鈕與 Select LoRA，名稱降為 `fg-secondary`，Slider 半透明、數字欄走停用欄位外觀。</Rule>
@@ -435,7 +435,7 @@ Task 詳細面板的 LoRA 區：已選 LoRA 的清單與 weight。
 <Rule component="lora-picker" id="draft-selection">開啟時複製目前選取作為暫存，開啟期間外部更新不覆蓋使用者的勾選；關閉（關閉鈕或 Esc）不套用，Apply 才寫回。</Rule>
 <Rule component="lora-picker" id="backdrop">Backdrop 用較淡的 `bg-backdrop-muted backdrop-blur-[2px]`；dialog `w-[600px] rounded-[10px] max-h-[70vh]`。由上而下：48px 標題列（14px semibold 標題＋關閉鈕）、48px 工具列、自己捲動的清單、48px footer。</Rule>
 <Rule component="lora-picker" id="search">工具列與圖片選擇器同款，但 dialog 較窄，搜尋撐滿工具列剩餘寬度（`h-7`、search icon、label 隱藏，以名稱不分大小寫的包含比對篩選），右側接選取 chip「n selected ×」（× 清空勾選，沒有勾選時不顯示）。</Rule>
-<Rule component="lora-picker" id="rows">清單列與 Task list 同語言：`h-8 text-xs rounded-md`、列間 2px、沒有底線，hover `bg-hover`；左側 14px 勾選框（未選 `border-line`，選中 accent 實心＋白色 Check），選中整列 `bg-accent/15 text-fg`，不加外框。名稱分三段：子資料夾路徑（若有）與 `.safetensors` 副檔名用 muted，主檔名一般色。</Rule>
+<Rule component="lora-picker" id="rows">清單列與 Task list 同語言：`h-8 text-xs rounded-md`、列間 2px、沒有底線，hover `bg-hover`；左側 14px 勾選框（未選 `border-line`，選中 accent 實心＋白色 Check），選中整列 `bg-accent/15 text-fg`，不加外框。名稱不顯示副檔名（例如 `.safetensors`），分兩段：子資料夾路徑（若有）用 muted，主檔名一般色。</Rule>
 <Rule component="lora-picker" id="loading-error">載入中以 6 列與清單列同高（`h-8`）的骨架取代清單（勾選框＋名稱條）；載入失敗用 L0 StatusMessage compact 載入失敗（muted 訊息 + Retry，不用紅字），放在清單頂端。</Rule>
 <Rule component="lora-picker" id="empty-vs-no-match">清單本來就空顯示「No LoRAs available in ComfyUI.」，搜尋後沒有結果才是「No LoRA matches the search.」，兩者都是 L0 StatusMessage compact 空結果、不放按鈕。</Rule>
 <Rule component="lora-picker" id="footer">footer 只放靠右的 Apply（solid accent，一律可按：取消全部勾選再 Apply 等於清空 LoRA）；沒有 Cancel，選取數量在工具列的 chip。</Rule>
