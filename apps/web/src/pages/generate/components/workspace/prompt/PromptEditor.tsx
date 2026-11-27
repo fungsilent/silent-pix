@@ -4,14 +4,14 @@ import { EditorView, keymap } from '@codemirror/view'
 import { createEffect, on, onCleanup } from 'solid-js'
 
 import { t } from '#/lib/i18n'
-import { promptDocumentToMeta, serializePromptDocument } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
-import { promptGroupLayers, promptGutters } from '#/pages/generate/components/workspace/generate/prompt/prompt.gutter'
-import { promptMeta, promptMetaEffect, promptStateExtensions } from '#/pages/generate/components/workspace/generate/prompt/prompt.state'
-import { createPromptTheme } from '#/pages/generate/components/workspace/generate/prompt/prompt.theme'
-import { promptTokens } from '#/pages/generate/components/workspace/generate/prompt/prompt.token'
+import { promptDocumentToMeta, serializePromptDocument } from '#/pages/generate/components/workspace/prompt/prompt.document'
+import { promptGroupLayers, promptGutters } from '#/pages/generate/components/workspace/prompt/prompt.gutter'
+import { promptMeta, promptMetaEffect, promptStateExtensions } from '#/pages/generate/components/workspace/prompt/prompt.state'
+import { createPromptTheme } from '#/pages/generate/components/workspace/prompt/prompt.theme'
+import { promptTokens } from '#/pages/generate/components/workspace/prompt/prompt.token'
 import { themeStore } from '#/store/theme'
 
-import type { PromptDocument } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
+import type { PromptDocument } from '#/pages/generate/components/workspace/prompt/prompt.document'
 import type { JSX } from 'solid-js'
 
 type PromptEditorProps = {

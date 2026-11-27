@@ -1,12 +1,12 @@
 import { ChangeSet } from '@codemirror/state'
 
 import { t } from '#/lib/i18n'
-import { createGroupId, groupEnd, groupIndexAt, isTokenDisabled, parseTokens, tokenAt } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
-import { promptMeta, promptMetaEffect } from '#/pages/generate/components/workspace/generate/prompt/prompt.state'
+import { createGroupId, groupEnd, groupIndexAt, isTokenDisabled, parseTokens, tokenAt } from '#/pages/generate/components/workspace/prompt/prompt.document'
+import { promptMeta, promptMetaEffect } from '#/pages/generate/components/workspace/prompt/prompt.state'
 
 import type { EditorState, Text } from '@codemirror/state'
 import type { EditorView } from '@codemirror/view'
-import type { DisabledTokenRange, DisabledTokenValue, ParsedToken, PromptEditorGroup, PromptEditorMeta } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
+import type { DisabledTokenRange, DisabledTokenValue, ParsedToken, PromptEditorGroup, PromptEditorMeta } from '#/pages/generate/components/workspace/prompt/prompt.document'
 
 /*
  * 所有 group command 都是「只帶 effect、不帶 changes」的 transaction。

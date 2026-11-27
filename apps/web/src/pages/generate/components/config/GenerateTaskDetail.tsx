@@ -4,7 +4,7 @@ import { TaskDetail } from '#/components/task/detail/TaskDetail'
 import { useDeleteTaskMutation, useLoraListQuery, useRenameTaskMutation, useSamplerListQuery } from '#/data/task/task.query'
 import { useWorkflowListQuery } from '#/data/workflow/workflow.query'
 import { t } from '#/lib/i18n'
-import { MaskEditor } from '#/pages/generate/components/mask/MaskEditor'
+import { MaskEditor } from '#/pages/generate/components/config/mask/MaskEditor'
 import {
     referencePreviewUrl,
     referenceSize,

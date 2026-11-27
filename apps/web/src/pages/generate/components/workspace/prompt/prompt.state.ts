@@ -2,10 +2,10 @@ import { invertedEffects } from '@codemirror/commands'
 import { EditorState, StateEffect, StateField } from '@codemirror/state'
 
 import { t } from '#/lib/i18n'
-import { groupEnd, parseTokens } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
+import { groupEnd, parseTokens } from '#/pages/generate/components/workspace/prompt/prompt.document'
 
 import type { ChangeDesc, EditorState as EditorStateType, Extension, Text } from '@codemirror/state'
-import type { PromptEditorGroup, PromptEditorMeta } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
+import type { PromptEditorGroup, PromptEditorMeta } from '#/pages/generate/components/workspace/prompt/prompt.document'
 
 /* MARK: effect */
 

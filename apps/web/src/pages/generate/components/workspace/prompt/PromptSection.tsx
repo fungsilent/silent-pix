@@ -2,8 +2,8 @@ import { Show } from 'solid-js'
 
 import { Loading } from '#/components/base/Loading'
 import { t } from '#/lib/i18n'
-import { GeneratePromptField } from '#/pages/generate/components/workspace/generate/GeneratePromptField'
-import { promptMinHeight } from '#/pages/generate/components/workspace/generate/prompt/prompt.theme'
+import { GeneratePromptField } from '#/pages/generate/components/workspace/prompt/GeneratePromptField'
+import { promptMinHeight } from '#/pages/generate/components/workspace/prompt/prompt.theme'
 import { mergeClasses } from '#/utils/style'
 
 import type { PromptKind } from '#/pages/generate/form'

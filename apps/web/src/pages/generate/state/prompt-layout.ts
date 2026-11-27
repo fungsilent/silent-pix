@@ -1,5 +1,5 @@
 import { createStore } from '#/lib/store'
-import { promptDefaultHeight, promptMinHeight } from '#/pages/generate/components/workspace/generate/prompt/prompt.theme'
+import { promptDefaultHeight, promptMinHeight } from '#/pages/generate/components/workspace/prompt/prompt.theme'
 
 import type { PromptKind } from '#/pages/generate/form'
 

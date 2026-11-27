@@ -2,7 +2,7 @@ import { imageApi, taskApi } from '@silent-pix/shared'
 import { createForm } from '@tanstack/solid-form'
 import { z } from 'zod'
 
-import { clonePromptDocument } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
+import { clonePromptDocument } from '#/pages/generate/components/workspace/prompt/prompt.document'
 
 import type { TaskApi } from '@silent-pix/shared'
 import type { ZodIssue } from '#/lib/error'

@@ -2,7 +2,7 @@ import { createSignal, onCleanup, onMount } from 'solid-js'
 
 import { GenerateTaskDetail } from '#/pages/generate/components/config/GenerateTaskDetail'
 import { MobilePrompt } from '#/pages/generate/components/mobile/MobilePrompt'
-import { GenerateStage } from '#/pages/generate/components/workspace/generate/GenerateStage'
+import { GenerateStage } from '#/pages/generate/components/workspace/GenerateStage'
 import { mergeClasses } from '#/utils/style'
 
 const size = {

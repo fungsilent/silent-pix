@@ -2,7 +2,7 @@ import { createEffect, createMemo, createSignal, Show } from 'solid-js'
 
 import { ImageViewer } from '#/components/viewer/ImageViewer'
 import { useCompareSession } from '#/pages/compare/state/session'
-import { ImageStage } from '#/pages/generate/components/workspace/generate/ImageStage'
+import { ImageStage } from '#/pages/generate/components/workspace/ImageStage'
 import { useGenerateDetail } from '#/pages/generate/state/detail'
 import { useGenerateSession } from '#/pages/generate/state/session'
 import { useNavigateToRoute } from '#/routes'

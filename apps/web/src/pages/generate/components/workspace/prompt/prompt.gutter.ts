@@ -2,14 +2,14 @@ import { RangeSet, StateEffect, StateField } from '@codemirror/state'
 import { Decoration, gutter, GutterMarker, layer, lineNumberMarkers, lineNumbers, ViewPlugin } from '@codemirror/view'
 
 import { t } from '#/lib/i18n'
-import { createGroup, lineRange, removeGroupBoundary, renameGroup, toggleGroup } from '#/pages/generate/components/workspace/generate/prompt/prompt.command'
-import { groupEnd } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
-import { groupDragExtensions, startGroupDrag } from '#/pages/generate/components/workspace/generate/prompt/prompt.group-drag'
-import { promptMeta } from '#/pages/generate/components/workspace/generate/prompt/prompt.state'
+import { createGroup, lineRange, removeGroupBoundary, renameGroup, toggleGroup } from '#/pages/generate/components/workspace/prompt/prompt.command'
+import { groupEnd } from '#/pages/generate/components/workspace/prompt/prompt.document'
+import { groupDragExtensions, startGroupDrag } from '#/pages/generate/components/workspace/prompt/prompt.group-drag'
+import { promptMeta } from '#/pages/generate/components/workspace/prompt/prompt.state'
 
 import type { Extension, Range, RangeSet as RangeSetType } from '@codemirror/state'
 import type { DecorationSet, EditorView, LayerMarker, ViewUpdate } from '@codemirror/view'
-import type { PromptEditorGroup, PromptEditorMeta } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
+import type { PromptEditorGroup, PromptEditorMeta } from '#/pages/generate/components/workspace/prompt/prompt.document'
 
 /* MARK: transient UI state */
 

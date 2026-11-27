@@ -1,8 +1,8 @@
 import { Splitter } from '#/components/base/Splitter'
 import { scaleGroup } from '#/lib/splitter'
-import { GenerateStage } from '#/pages/generate/components/workspace/generate/GenerateStage'
-import { promptMinHeight } from '#/pages/generate/components/workspace/generate/prompt/prompt.theme'
-import { PromptPanel, renderedPromptHeight } from '#/pages/generate/components/workspace/generate/PromptPanel'
+import { GenerateStage } from '#/pages/generate/components/workspace/GenerateStage'
+import { promptMinHeight } from '#/pages/generate/components/workspace/prompt/prompt.theme'
+import { PromptPanel, renderedPromptHeight } from '#/pages/generate/components/workspace/prompt/PromptPanel'
 import { useGenerateSession } from '#/pages/generate/state/session'
 
 const imageStageMinHeight = 240

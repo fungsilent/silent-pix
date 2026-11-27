@@ -1,4 +1,4 @@
-import { PromptEditor } from '#/pages/generate/components/workspace/generate/prompt/PromptEditor'
+import { PromptEditor } from '#/pages/generate/components/workspace/prompt/PromptEditor'
 import { useGenerateSession } from '#/pages/generate/state/session'
 
 import type { PromptKind } from '#/pages/generate/form'

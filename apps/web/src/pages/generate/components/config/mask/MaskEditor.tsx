@@ -10,13 +10,13 @@ import { t } from '#/lib/i18n'
 import { createImageZoom } from '#/lib/image-zoom'
 import { createHotkeys } from '#/lib/keyboard'
 import { overlayRoot } from '#/lib/overlay-root'
-import { createMaskPainting } from '#/pages/generate/components/mask/createMaskPainting'
-import { createMaskCanvas } from '#/pages/generate/components/mask/mask.canvas'
+import { createMaskPainting } from '#/pages/generate/components/config/mask/createMaskPainting'
+import { createMaskCanvas } from '#/pages/generate/components/config/mask/mask.canvas'
 import { overlayStore } from '#/store/overlay'
 import { mergeClasses } from '#/utils/style'
 
 import type { ViewerImage } from '#/components/viewer/ZoomStage'
-import type { MaskHistory, MaskHistoryAction, MaskTool } from '#/pages/generate/components/mask/createMaskPainting'
+import type { MaskHistory, MaskHistoryAction, MaskTool } from '#/pages/generate/components/config/mask/createMaskPainting'
 import type { OverlayId } from '#/store/overlay'
 
 type MaskEditorProps = {

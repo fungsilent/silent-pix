@@ -1,8 +1,8 @@
 import { StateEffect, StateField } from '@codemirror/state'
 import { layer } from '@codemirror/view'
 
-import { moveGroup } from '#/pages/generate/components/workspace/generate/prompt/prompt.command'
-import { promptMeta } from '#/pages/generate/components/workspace/generate/prompt/prompt.state'
+import { moveGroup } from '#/pages/generate/components/workspace/prompt/prompt.command'
+import { promptMeta } from '#/pages/generate/components/workspace/prompt/prompt.state'
 
 import type { Extension } from '@codemirror/state'
 import type { EditorView, LayerMarker, ViewUpdate } from '@codemirror/view'

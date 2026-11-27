@@ -1,13 +1,13 @@
 import { StateEffect, StateField } from '@codemirror/state'
 import { Decoration, EditorView, keymap, layer, ViewPlugin } from '@codemirror/view'
 
-import { groupTokens, isTokenDraggable, moveToken, toggleTokenAt, toggleTokenAtCursor } from '#/pages/generate/components/workspace/generate/prompt/prompt.command'
-import { groupEnd, isTokenDisabled, tokenAt, tokensInRange } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
-import { promptMeta } from '#/pages/generate/components/workspace/generate/prompt/prompt.state'
+import { groupTokens, isTokenDraggable, moveToken, toggleTokenAt, toggleTokenAtCursor } from '#/pages/generate/components/workspace/prompt/prompt.command'
+import { groupEnd, isTokenDisabled, tokenAt, tokensInRange } from '#/pages/generate/components/workspace/prompt/prompt.document'
+import { promptMeta } from '#/pages/generate/components/workspace/prompt/prompt.state'
 
 import type { Extension, Range } from '@codemirror/state'
 import type { DecorationSet, LayerMarker, ViewUpdate } from '@codemirror/view'
-import type { TokenDropTarget } from '#/pages/generate/components/workspace/generate/prompt/prompt.command'
+import type { TokenDropTarget } from '#/pages/generate/components/workspace/prompt/prompt.command'
 
 /* MARK: alt state */
 

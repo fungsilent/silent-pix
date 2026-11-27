@@ -1,7 +1,7 @@
 import { createSignal, onCleanup } from 'solid-js'
 
 import type { createImageZoom, Offset } from '#/lib/image-zoom'
-import type { createMaskCanvas } from '#/pages/generate/components/mask/mask.canvas'
+import type { createMaskCanvas } from '#/pages/generate/components/config/mask/mask.canvas'
 import type { Accessor, JSX } from 'solid-js'
 
 export type MaskHistory = { canUndo: boolean, canRedo: boolean, hasMask: boolean }
