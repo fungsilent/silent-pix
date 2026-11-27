@@ -14,7 +14,7 @@ import Slot from '@silent-pix/blueprint/components/Slot.astro'
 
 ## Header · 頁面與平台
 
-App 最上方 36px 的全域列，同時是視窗的標題列：品牌名、模式選單、Tools 選單、拖曳區、Issue chip、服務狀態燈與 Settings 鈕；Desktop 的 Windows／Linux 另有視窗控制。所有頁面共用同一條，頁面本身不畫 header。
+App 最上方 36px 的全域列，同時是視窗的標題列：模式選單、Tools 選單、拖曳區、Issue chip、服務狀態燈與 Settings 鈕；Desktop 的 Windows／Linux 另有視窗控制。所有頁面共用同一條，頁面本身不畫 header。
 
 <Gallery min="900px">
 <State component="app-header" state="generate" label="Windows · Generate · all up" frame="min-w-[1000px]" />
@@ -29,12 +29,12 @@ App 最上方 36px 的全域列，同時是視窗的標題列：品牌名、模�
 <Rules component="app-header" part="pages">
 
 <ul class="ds-rules">
-<Rule component="app-header" id="layout-order">左到右固定順序：（macOS 的原生視窗鈕）→ 品牌名「Silent Pix」→ 模式選單 → Tools 選單 → 拖曳區（彈性空白）→ Issue chip（有問題時）→ 服務狀態燈 → Settings 鈕 →（Windows／Linux 的視窗控制）。列高 36px（`h-9`），比面板的 48px Bar 薄，讀起來是標題列而不是另一條工具列；控制項維持 28px，上下各留 4px。底色 `bg-shell`、不畫底線（與下方外框連成一片，見 app-shell），項目間距 4px。App 圖示尚未定稿，先用品牌名。</Rule>
-<Rule component="app-header" id="title-bar">Desktop 不用作業系統的標題列，Header 就是標題列：拖曳區與品牌名等非控制項的空白可以按住拖動視窗，雙擊放大／還原；按鈕與選單照常點擊。Windows／Linux 在最右側畫三顆 46×36px 的視窗控制（縮小、放大／還原、關閉），hover 用 `bg-hover`，關閉鈕 hover 用 `bg-danger text-on-stage`。macOS 保留原生的三顆視窗鈕（由系統繪製；藍圖中的紅黃綠只是示意系統顏色，不是產品 token），Header 左側讓出位置，並把原生鈕垂直置中在 36px 的列上。Web 沒有視窗控制，拖曳區只是空白。</Rule>
+<Rule component="app-header" id="layout-order">左到右固定順序：（macOS 的原生視窗鈕）→ 模式選單 → Tools 選單 → 拖曳區（彈性空白）→ Issue chip（有問題時）→ 服務狀態燈 → Settings 鈕 →（Windows／Linux 的視窗控制）。列高 36px（`h-9`），比面板的 48px Bar 薄，讀起來是標題列而不是另一條工具列；控制項維持 28px，上下各留 4px，左側也只留 4px（與下方卡片間距對齊）。底色 `bg-shell`、不畫底線（與下方外框連成一片，見 app-shell），項目間距 4px。不顯示品牌名或 App 圖示，Header 只放控制。</Rule>
+<Rule component="app-header" id="title-bar">Desktop 不用作業系統的標題列，Header 就是標題列：拖曳區等非控制項的空白可以按住拖動視窗，雙擊放大／還原；按鈕與選單照常點擊。Windows／Linux 在最右側畫三顆 46×36px 的視窗控制（縮小、放大／還原、關閉），hover 用 `bg-hover`，關閉鈕 hover 用 `bg-danger text-on-stage`。macOS 保留原生的三顆視窗鈕（由系統繪製；藍圖中的紅黃綠只是示意系統顏色，不是產品 token），Header 左側讓出位置，並把原生鈕垂直置中在 36px 的列上。Web 沒有視窗控制，拖曳區只是空白。</Rule>
 <Rule component="app-header" id="mode-menu">模式選單的觸發鈕顯示目前（或最後使用）的模式圖示與名稱加 ▾，展開後列出 Generate／Compare／Workflow 三項（選單樣式見 L0 Menu），目前模式用 selected 樣式。觸發鈕平常是 ghost，展開時 `bg-selected text-fg`；目前頁面是模式時文字 `text-fg`，在 Tools 或 Settings 頁時 `text-fg-muted`。</Rule>
 <Rule component="app-header" id="tools-menu">Tools 選單放工具類頁面，目前只有 Image Metadata；新增工具頁才加項目，不分組。觸發鈕只有文字「Tools」加 ▾；目前在工具頁時文字 `text-fg`，選單內那一項用 selected 樣式。</Rule>
 <Rule component="app-header" id="settings">Settings 是 `size-7` 的齒輪 ghost 鈕；目前在 Settings 頁時維持 `bg-selected text-fg`，再按一次關閉 Settings、回到進入前的頁面；沒有可回的頁面時回到最後使用的模式（預設 Generate），尚未設定 endpoint 時則維持在 Settings。主題切換在 Settings 的 Appearance 卡，不放 Header。</Rule>
-<Rule component="app-header" id="narrow">視窗變窄時依序收縮：服務狀態只留燈、模式選單只留圖示；仍不夠時才隱藏品牌名。不換行、不橫向捲動。</Rule>
+<Rule component="app-header" id="narrow">視窗變窄時不收起文字：模式名稱與服務狀態文字照常顯示，只讓拖曳區縮短。不換行、不橫向捲動。</Rule>
 </ul>
 
 </Rules>
@@ -115,7 +115,7 @@ Image viewer、dialog、picker 共用的疊加層區域，以及疊加層開著�
 <ul class="ds-rules">
 <Rule component="app-overlay" id="area">所有疊加層（Image viewer、dialog、picker）都放在同一個疊加層區域內：Desktop 是 Header 以下的整個視窗（標題列永遠露出，拖曳與視窗控制照常），Web 是整個視窗。疊加層的大小、置中、留白與最大高度都以這個區域為準，各元件不自己判斷平台。</Rule>
 <Rule component="app-shell" id="cards">標題列以下的工作區是「外框＋卡片」：外框底色 `bg-shell`（比卡片暗一階但不是 canvas 的黑：dark `#121212`、light `#f5f5f5`），標題列也用同一個底色、不畫底線，兩者連成一片。能各自捲動、各自收合或用途獨立的區塊各自是一張 `rounded-lg border border-line-subtle` 的卡片（例如 Task list、Prompt、圖片區、Detail、Metadata 的檔案欄與結果欄），卡片之間與左右、底部留 4px，頂端直接接標題列，卡片之間不畫分隔線；同一區塊內的標題列、工具列與內容（例如 Compare 工作區的工具列與縮圖列、Task browser 的工具列與格狀區）仍在同一張卡片內用線分隔。疊加層與 dialog 不套用卡片外框。</Rule>
-<Rule component="app-header" id="overlay-open">Desktop 有疊加層開著時，整條標題列（含 Windows／Linux 的視窗控制）蓋上與下方疊加層同一層 `bg-backdrop` 遮罩，整個 App 一致變暗（同 VS Code）。遮罩只負責外觀、不攔截點擊：拖曳、雙擊放大／還原與視窗控制照常可用；App 控制（品牌名、模式選單、Tools、Issue chip、服務狀態、Settings）另外停用，不可點擊、不可用鍵盤進入。macOS 原生視窗鈕由系統畫在最上層，不受影響。疊加層關閉後遮罩移除。</Rule>
+<Rule component="app-header" id="overlay-open">Desktop 有疊加層開著時，整條標題列（含 Windows／Linux 的視窗控制）蓋上與下方疊加層同一層 `bg-backdrop` 遮罩，整個 App 一致變暗（同 VS Code）。遮罩只負責外觀、不攔截點擊：拖曳、雙擊放大／還原與視窗控制照常可用；App 控制（模式選單、Tools、Issue chip、服務狀態、Settings）另外停用，不可點擊、不可用鍵盤進入。macOS 原生視窗鈕由系統畫在最上層，不受影響。疊加層關閉後遮罩移除。</Rule>
 </ul>
 
 </Rules>

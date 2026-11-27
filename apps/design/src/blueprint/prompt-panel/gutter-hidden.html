@@ -1,0 +1,43 @@
+<section class="flex shrink-0 flex-col overflow-hidden bg-surface">
+                            <div class="flex h-12 shrink-0 items-center gap-3 bg-surface px-4">
+                                <div class="flex min-w-0 items-center gap-2">
+                                    <h2 class="m-0 min-w-0 truncate text-[13px] font-semibold leading-none text-fg">Prompt</h2>
+                                    <button type="button" class="flex size-7 shrink-0 items-center justify-center rounded-md border border-transparent p-0 outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40 text-fg-secondary hover:bg-hover" title="Gutter"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5h10"/><path d="M11 12h10"/><path d="M11 19h10"/><path d="M4 4h1v5"/><path d="M4 9h2"/><path d="M6.5 20H3.4c0-1 2.6-1.925 2.6-3.5a1.5 1.5 0 0 0-2.6-1.02"/</svg></button>
+                                    <span class="flex h-7 items-center justify-center gap-1.5 rounded-md border border-transparent bg-accent/15 px-3 py-0 text-xs leading-none text-accent-fg outline outline-1 outline-offset-0 outline-accent/40 hover:bg-accent/25 focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40"><span class="size-[5px] shrink-0 rounded-full bg-current opacity-45"></span>Positive</span>
+                                    <span class="flex h-7 items-center justify-center gap-1.5 rounded-md border border-transparent bg-accent/15 px-3 py-0 text-xs leading-none text-accent-fg outline outline-1 outline-offset-0 outline-accent/40 hover:bg-accent/25 focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40"><span class="size-[5px] shrink-0 rounded-full bg-current opacity-45"></span>Negative</span>
+                                </div>
+                                <div class="ml-auto flex min-w-0 items-center gap-2">
+                                    <button type="button" class="flex h-7 shrink-0 items-center justify-center gap-2 rounded-md border border-transparent bg-accent px-3 py-0 text-xs font-semibold text-on-stage outline-none hover:bg-accent-hover focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/40 disabled:opacity-60"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg>Generate</button>
+                                </div>
+                            </div>
+                            <div class="flex flex-col">
+                                <section class="flex flex-col px-4 pb-2">
+                                    <span class="pb-1.5 text-xs leading-none text-fg-muted">Positive</span>
+                                    <div class="relative overflow-hidden rounded-md border border-transparent bg-elevated">
+                                        <div class="block w-full overflow-hidden" style="height: 108px;">
+                                            <div class="relative box-border flex h-full flex-col bg-elevated text-[12px] text-fg">
+                                                <div class="scrollbar-thin relative z-0 flex h-full items-start overflow-auto font-[ui-monospace,SFMono-Regular,Consolas,monospace] leading-[24px] [overflow-anchor:none] [scrollbar-gutter:stable]">
+                                                    <div class="pointer-events-none absolute inset-0 select-none" style="z-index: -1;">
+                                                        <div class="absolute bg-[repeating-linear-gradient(-45deg,var(--sp-prompt-hatch-low)_0_7px,var(--sp-prompt-hatch-high)_7px_10px)] bg-[length:14.1421px_14.1421px]" style="left: 0; top: 54px; right: 0; height: 54px; background-position: 0 -54px;"></div>
+                                                    </div>
+                                                    <div class="m-0 box-border block min-h-full shrink grow-[2] whitespace-break-spaces px-[10px] py-[6px] caret-fg outline-none [overflow-wrap:anywhere] [word-break:break-word]"><div class="box-border block min-h-6 p-0">cinematic landscape, alpine lake, distant mountains, soft morning light</div><div class="box-border block min-h-6 p-0">reflections on still water, <span class="text-fg-muted underline decoration-current decoration-solid decoration-1 underline-offset-4">delicate atmospheric haze</span></div><div class="box-border block min-h-6 p-0 text-fg-secondary">film grain, 35mm photo, muted colors</div><div class="box-border block min-h-6 p-0 text-fg-secondary"><span class="underline decoration-current decoration-solid decoration-1 underline-offset-4 [color:inherit]">low contrast</span>, soft vignette</div></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+                                <div class="relative -mt-2 h-3 shrink-0 cursor-ns-resize"></div>
+                                <section class="flex flex-col px-4 pb-2">
+                                    <span class="pb-1.5 text-xs leading-none text-fg-muted">Negative</span>
+                                    <div class="relative overflow-hidden rounded-md border border-transparent bg-elevated">
+                                        <div class="block w-full overflow-hidden" style="height: 108px;">
+                                            <div class="relative box-border flex h-full flex-col bg-elevated text-[12px] text-fg">
+                                                <div class="scrollbar-thin relative z-0 flex h-full items-start overflow-auto font-[ui-monospace,SFMono-Regular,Consolas,monospace] leading-[24px] [overflow-anchor:none] [scrollbar-gutter:stable]">
+                                                    <div class="m-0 box-border block min-h-full shrink grow-[2] whitespace-break-spaces px-[10px] py-[6px] caret-fg outline-none [overflow-wrap:anywhere] [word-break:break-word]"><div class="box-border block min-h-6 p-0">blurry, low quality, watermark</div></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+                            </div>
+                        </section>
