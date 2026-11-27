@@ -2,6 +2,7 @@ import { task } from '@silent-pix/shared'
 import { createContextProvider } from '@solid-primitives/context'
 import { batch, createEffect, createSignal, mergeProps, on, onCleanup } from 'solid-js'
 import { reconcile } from 'solid-js/store'
+import { v4 as uuidv4 } from 'uuid'
 
 import { subscribeTasksRemoved } from '#/data/task/task.event'
 import { useCreateTaskMutation } from '#/data/task/task.query'
@@ -284,7 +285,7 @@ function createGenerateSession() {
             return existing
                 ? { ...existing }
                 : {
-                    id: `lora-${crypto.randomUUID()}`,
+                    id: `lora-${uuidv4()}`,
                     name,
                     weight: 0.7,
                 }

@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid'
+
 import { t } from '#/lib/i18n'
 import { cloneGenerateValues, draftGenerateValues, referenceSize } from '#/pages/generate/form'
 
@@ -219,7 +221,7 @@ export function toGenerateDraft(copy: GraphCopy, referenceImage?: ReferenceImage
     take('positive', copy.positive, () => firstLine(values.positive))
     take('negative', copy.negative, () => firstLine(values.negative))
     if (copy.lora) {
-        values.lora = copy.lora.map(lora => ({ id: `lora-${crypto.randomUUID()}`, name: lora.name, weight: Math.min(Math.max(lora.weight, 0), 2) }))
+        values.lora = copy.lora.map(lora => ({ id: `lora-${uuidv4()}`, name: lora.name, weight: Math.min(Math.max(lora.weight, 0), 2) }))
     }
     return { values, defaults }
 }

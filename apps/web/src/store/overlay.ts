@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid'
+
 import { createStore } from '#/lib/store'
 
 export type OverlayId = string
@@ -12,7 +14,7 @@ const initialState: OverlayState = {
 
 export const overlayStore = createStore(initialState, store => ({
     open(): OverlayId {
-        const id = crypto.randomUUID()
+        const id = uuidv4()
         store.set('stack', stack => [...stack, id])
         return id
     },

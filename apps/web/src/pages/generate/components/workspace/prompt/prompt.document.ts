@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid'
+
 import { t } from '#/lib/i18n'
 
 import type { Text } from '@codemirror/state'
@@ -166,7 +168,7 @@ export function tokensInRange(
 /* MARK: persistent ↔ transient */
 
 export function createGroupId(): string {
-    return `group-${crypto.randomUUID()}`
+    return `group-${uuidv4()}`
 }
 
 export function clonePromptDocument(document: PromptDocument): PromptDocument {
@@ -223,7 +225,7 @@ export function promptDocumentToMeta(document: PromptDocument, text: Text): Prom
             disabledTokens.push({
                 from: token.contentFrom,
                 to: token.contentTo,
-                value: { id: `token-${crypto.randomUUID()}`, groupId: editorGroup.id },
+                value: { id: `token-${uuidv4()}`, groupId: editorGroup.id },
             })
         })
     })

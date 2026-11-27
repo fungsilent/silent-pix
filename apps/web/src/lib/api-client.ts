@@ -1,4 +1,5 @@
 import { treaty } from '@elysia/eden'
+import { v4 as uuidv4 } from 'uuid'
 
 import type { Treaty } from '@elysia/eden'
 import type { Api } from '@silent-pix/server/api'
@@ -15,7 +16,7 @@ export function requestSignal(
 
 export type ApiClient = Treaty.Create<Api, AppApi.ClientHeaders>
 
-export const clientId = crypto.randomUUID()
+export const clientId = uuidv4()
 
 let activeEndpoint: string | undefined
 let activeClient: ApiClient | undefined

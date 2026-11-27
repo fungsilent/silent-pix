@@ -1,4 +1,5 @@
 import { ChangeSet } from '@codemirror/state'
+import { v4 as uuidv4 } from 'uuid'
 
 import { t } from '#/lib/i18n'
 import { createGroupId, groupEnd, groupIndexAt, isTokenDisabled, parseTokens, tokenAt } from '#/pages/generate/components/workspace/prompt/prompt.document'
@@ -184,7 +185,7 @@ export function toggleTokenAt(view: EditorView, position: number): boolean {
             {
                 from: token.contentFrom,
                 to: token.contentTo,
-                value: { id: `token-${crypto.randomUUID()}`, groupId: group.id },
+                value: { id: `token-${uuidv4()}`, groupId: group.id },
             },
         ].sort((a, b) => a.from - b.from)
 
@@ -455,7 +456,7 @@ function tokenMoveSpec(
         disabledTokens.push({
             from: insertedStart,
             to: insertedEnd,
-            value: { id: `token-${crypto.randomUUID()}`, groupId: target.groupId },
+            value: { id: `token-${uuidv4()}`, groupId: target.groupId },
         })
     }
 
