@@ -63,8 +63,8 @@ export function Header() {
             id='app-header'
             data-tauri-drag-region
             class={mergeClasses(
-                'relative flex h-9 shrink-0 items-center gap-1 bg-shell',
-                isMacDesktop() ? 'pl-[78px]' : 'pl-3',
+                'sticky top-0 z-30 flex h-9 shrink-0 items-center gap-1 bg-shell',
+                isMacDesktop() ? 'pl-[78px]' : 'pl-1',
                 windowControls ? 'pr-0' : 'pr-3',
             )}
         >
@@ -74,13 +74,6 @@ export function Header() {
                 inert={appControlsInert()}
                 class='flex shrink-0 items-center gap-1'
             >
-                <span
-                    data-tauri-drag-region
-                    class='mr-2 shrink-0 whitespace-nowrap text-[13px] font-semibold tracking-[0.02em] text-fg'
-                >
-                    Silent Pix
-                </span>
-
                 <Menu
                     disabled={!platform.endpoint}
                     classes={{ trigger: mergeClasses(menuTrigger, onMode() ? 'text-fg' : 'text-fg-muted') }}

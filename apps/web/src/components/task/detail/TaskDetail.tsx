@@ -49,6 +49,7 @@ type TaskDetailProps = ({
     loading: Accessor<boolean>
     onRetry: () => void
     collapse?: PanelCollapse | undefined
+    bare?: boolean | undefined
 }
 
 export function TaskDetail(props: TaskDetailProps) {
@@ -59,6 +60,7 @@ export function TaskDetail(props: TaskDetailProps) {
             error={hasError}
             onRetry={props.onRetry}
             collapse={props.collapse}
+            bare={props.bare}
         >
             <TaskDetailContent {...props} />
         </TaskDetailPanel>
@@ -134,11 +136,12 @@ type TaskDetailPanelProps = {
     error: Accessor<boolean>
     onRetry: () => void
     collapse: PanelCollapse | undefined
+    bare: boolean | undefined
 }
 
 function TaskDetailPanel(props: TaskDetailPanelProps) {
-    return (
-        <DetailPanel collapse={props.collapse}>
+    const body = () => (
+        <>
             <Show when={!props.error()}>
                 <div
                     class='contents'
@@ -154,6 +157,15 @@ function TaskDetailPanel(props: TaskDetailPanelProps) {
                     onRetry={props.onRetry}
                 />
             </Show>
-        </DetailPanel>
+        </>
+    )
+
+    return (
+        <Show
+            when={!props.bare}
+            fallback={body()}
+        >
+            <DetailPanel collapse={props.collapse}>{body()}</DetailPanel>
+        </Show>
     )
 }

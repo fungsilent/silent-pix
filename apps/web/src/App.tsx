@@ -1,7 +1,7 @@
 import { MultiProvider } from '@solid-primitives/context'
 import { HashRouter, Navigate, Route, Router } from '@solidjs/router'
 import { useQueryClient } from '@tanstack/solid-query'
-import { onCleanup, onMount } from 'solid-js'
+import { createEffect, onCleanup, onMount } from 'solid-js'
 
 import { startServerEvents } from '#/app/server-events'
 import { Header } from '#/components/Header'
@@ -16,6 +16,7 @@ import { SettingsPage } from '#/pages/settings/SettingsPage'
 import { WorkflowSessionProvider } from '#/pages/workflow/state/session'
 import { WorkflowPage } from '#/pages/workflow/WorkflowPage'
 import { routePaths } from '#/routes'
+import { overlayStore } from '#/store/overlay'
 
 import type { RouteSectionProps } from '@solidjs/router'
 
@@ -66,8 +67,12 @@ function AppLayout(props: RouteSectionProps) {
         if (platform.endpoint) onCleanup(startServerEvents(queryClient))
     })
 
+    createEffect(() => {
+        document.documentElement.style.overflow = overlayStore.isActive() ? 'hidden' : ''
+    })
+
     return (
-        <main class='flex h-dvh flex-col overflow-hidden bg-shell text-fg'>
+        <main class='flex h-dvh flex-col overflow-hidden bg-shell text-fg has-[[data-page-scroll]]:h-auto has-[[data-page-scroll]]:min-h-dvh has-[[data-page-scroll]]:overflow-visible'>
             <Header />
             <div class='flex min-h-0 flex-1 flex-col px-1 pb-1'>
                 <MultiProvider

@@ -1,57 +1,27 @@
-import { Sparkles } from 'lucide-solid'
-import { createEffect, on, Show } from 'solid-js'
+import { ListOrdered, Sparkles } from 'lucide-solid'
+import { Show } from 'solid-js'
 
 import { Bar } from '#/components/base/Bar'
 import { Button } from '#/components/base/Button'
-import { Loading } from '#/components/base/Loading'
 import { Splitter } from '#/components/base/Splitter'
 import { t } from '#/lib/i18n'
 import { evenPair, splitPair } from '#/lib/splitter'
 import { theme } from '#/lib/theme'
-import { createRuntimeIssues } from '#/pages/generate/components/workspace/generate/createRuntimeIssues'
 import { promptMinHeight } from '#/pages/generate/components/workspace/generate/prompt/prompt.theme'
-import { PromptEditor } from '#/pages/generate/components/workspace/generate/prompt/PromptEditor'
+import { promptLabel, PromptSection } from '#/pages/generate/components/workspace/generate/PromptSection'
 import { useGenerateDetail } from '#/pages/generate/state/detail'
 import { useGenerateSession } from '#/pages/generate/state/session'
-import { createIssueSource, issueList } from '#/store/issue'
 import { mergeClasses } from '#/utils/style'
 
-import type { PromptDocument } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
 import type { PromptKind } from '#/pages/generate/form'
-import type { Accessor } from 'solid-js'
 
 /* MARK: PromptPanel */
-const promptLabel: Record<PromptKind, () => string> = {
-    negative: () => t('fields.negative'),
-    positive: () => t('fields.positive'),
-}
-
 export function PromptPanel() {
     const generateSession = useGenerateSession()
     const detail = useGenerateDetail()
-    const isLoading = detail.loading
-    const canEdit = () => generateSession.isSelectionLoaded() && !isLoading() && !detail.error()
-    const form = generateSession.form
     const isSubmitting = generateSession.isSubmitting
-    const runtimeIssues = createRuntimeIssues()
-    const issues = () => [...runtimeIssues(), ...generateSession.state.submitIssues]
-    createIssueSource(issues)
-    /*
-     * 只有「剛按下 Generate」才自動展開 Header 的清單。常駐來源（選項載入失敗）會讓計數在
-     * 使用者什麼都沒做時變動，那時候彈開等於無故打擾。chip 只顯示數字，所以一則也展開。
-     */
-    createEffect(on(
-        () => generateSession.state.submitToken,
-        token => {
-            if (token > 0 && issues().length > 0) {
-                issueList.setOpen(true)
-            }
-        },
-        { defer: true },
-    ))
 
     const visible = (kind: PromptKind) => generateSession.state.promptVisible[kind]
-    /* 兩段之間的拖曳：總高度不變，只改比例；每段至少一行 */
     let editors: HTMLElement | undefined
     const startSectionDrag = () => {
         const height = (kind: PromptKind) => renderedPromptHeight(editors, kind) ?? generateSession.state.promptHeight[kind]
@@ -71,6 +41,17 @@ export function PromptPanel() {
             <Bar.Root>
                 <Bar.Group>
                     <Bar.Title>{t('fields.prompt')}</Bar.Title>
+                    <Button
+                        variant='ghost'
+                        title={t('generate.prompt.gutter')}
+                        classes={{ root: mergeClasses('size-7 shrink-0 p-0', generateSession.state.promptGutterVisible && theme.selected) }}
+                        onClick={() => generateSession.togglePromptGutter()}
+                    >
+                        <ListOrdered
+                            size={16}
+                            strokeWidth={1.8}
+                        />
+                    </Button>
                     <PromptToggle
                         kind='positive'
                         visible={visible('positive')}
@@ -89,7 +70,7 @@ export function PromptPanel() {
                         type='submit'
                         variant='solid'
                         tone='accent'
-                        disabled={isSubmitting() || !canEdit()}
+                        disabled={isSubmitting() || !detail.editable()}
                         classes={{
                             root: 'shrink-0 font-semibold'
                         }}
@@ -106,21 +87,16 @@ export function PromptPanel() {
             <div
                 ref={element => { editors = element }}
                 class='flex min-h-0 flex-col'
-                inert={!canEdit()}
+                inert={!detail.editable()}
             >
-                <form.Field name='positive'>
-                    {field => (
-                        <PromptSection
-                            isLoading={isLoading}
-                            kind='positive'
-                            visible={visible('positive')}
-                            documentKey={`${generateSession.state.formRevision}:positive`}
-                            initialDocument={field().state.value}
-                            height={generateSession.state.promptHeight.positive}
-                            onDocumentChange={field().handleChange}
-                        />
-                    )}
-                </form.Field>
+                <PromptSection
+                    kind='positive'
+                    loading={detail.loading()}
+                    visible={visible('positive')}
+                    height={generateSession.state.promptHeight.positive}
+                    gutter={generateSession.state.promptGutterVisible}
+                    class='pb-2'
+                />
                 <Show when={visible('positive') && visible('negative')}>
                     <Splitter
                         onDragStart={startSectionDrag}
@@ -128,25 +104,19 @@ export function PromptPanel() {
                         classes={{ root: '-mt-2 h-3', line: 'inset-x-4' }}
                     />
                 </Show>
-                <form.Field name='negative'>
-                    {field => (
-                        <PromptSection
-                            isLoading={isLoading}
-                            kind='negative'
-                            visible={visible('negative')}
-                            documentKey={`${generateSession.state.formRevision}:negative`}
-                            initialDocument={field().state.value}
-                            height={generateSession.state.promptHeight.negative}
-                            onDocumentChange={field().handleChange}
-                        />
-                    )}
-                </form.Field>
+                <PromptSection
+                    kind='negative'
+                    loading={detail.loading()}
+                    visible={visible('negative')}
+                    height={generateSession.state.promptHeight.negative}
+                    gutter={generateSession.state.promptGutterVisible}
+                    class='pb-2'
+                />
             </div>
         </section>
     )
 }
 
-/* 視窗變矮時 editor 會被壓縮到小於儲存值，拖曳要從畫面上的實際高度開始；量不到（未顯示）時回傳 undefined */
 export function renderedPromptHeight(root: ParentNode | undefined, kind: PromptKind): number | undefined {
     const element = root?.querySelector<HTMLElement>(`[data-prompt-editor="${kind}"]`)
     return element && element.offsetHeight > 0 ? element.offsetHeight : undefined
@@ -179,44 +149,5 @@ function PromptToggle(props: PromptToggleProps) {
             />
             {promptLabel[props.kind]()}
         </Button>
-    )
-}
-
-/* MARK: PromptSection */
-type PromptSectionProps = {
-    documentKey: string
-    isLoading: Accessor<boolean>
-    height: number
-    initialDocument: PromptDocument
-    kind: PromptKind
-    visible: boolean
-    onDocumentChange: (document: PromptDocument) => void
-}
-
-function PromptSection(props: PromptSectionProps) {
-    return (
-        <section
-            class='flex min-h-0 flex-col px-4 pb-2'
-            classList={{ hidden: !props.visible }}
-        >
-            <span class='pb-1.5 text-xs leading-none text-fg-muted'>
-                {promptLabel[props.kind]()}
-            </span>
-            <div
-                data-prompt-editor={props.kind}
-                class='relative flex flex-col overflow-hidden rounded-md border border-transparent bg-elevated'
-                style={{ flex: `0 1 ${props.height}px`, 'min-height': `${promptMinHeight}px` }}
-            >
-                <PromptEditor
-                    class='block min-h-0 w-full flex-1 overflow-hidden'
-                    documentKey={props.documentKey}
-                    initialDocument={props.initialDocument}
-                    onDocumentChange={props.onDocumentChange}
-                />
-                <Show when={props.isLoading()}>
-                    <Loading.Skeleton class='absolute inset-0' />
-                </Show>
-            </div>
-        </section>
     )
 }

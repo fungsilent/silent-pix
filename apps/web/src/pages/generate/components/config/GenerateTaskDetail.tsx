@@ -1,4 +1,4 @@
-import { createEffect, createSignal, on, onCleanup, Show } from 'solid-js'
+import { createEffect, createSignal, on, Show } from 'solid-js'
 
 import { TaskDetail } from '#/components/task/detail/TaskDetail'
 import { useDeleteTaskMutation, useLoraListQuery, useRenameTaskMutation, useSamplerListQuery } from '#/data/task/task.query'
@@ -35,7 +35,11 @@ const draftFieldLabel: Record<DraftDefaultField, () => string> = {
     negative: () => t('fields.negative'),
 }
 
-export function GenerateTaskDetail() {
+type GenerateTaskDetailProps = {
+    bare?: boolean
+}
+
+export function GenerateTaskDetail(props: GenerateTaskDetailProps) {
     const generateSession = useGenerateSession()
     const form = generateSession.form
     const detail = useGenerateDetail()
@@ -46,7 +50,6 @@ export function GenerateTaskDetail() {
     const [imagePickerOpen, setImagePickerOpen] = createSignal(false)
     const [loraPickerOpen, setLoraPickerOpen] = createSignal(false)
     const [editingMask, setEditingMask] = createSignal<ReferenceImage>()
-    const [referenceError, setReferenceError] = createSignal<() => string>()
     const [renameError, setRenameError] = createSignal<unknown>()
     createIssueSource(() => toFailureIssue('task-rename', () => t('common.detail'), renameError(), () => setRenameError()))
     const loraQuery = useLoraListQuery(loraPickerOpen)
@@ -119,22 +122,9 @@ export function GenerateTaskDetail() {
 
     createEffect(on(referenceImage, () => setEditingMask()))
 
-    createEffect(on(() => detail.task()?.id, () => {
-        setReferenceError()
-        setRenameError()
-    }))
-
-    onCleanup(generateSession.cancelReferenceImageUpload)
-
-    const onReferenceFile = (file: File) => {
-        setReferenceError()
-        generateSession.uploadReferenceImage(file, () => {
-            setReferenceError(() => () => t('image.unreadable'))
-        })
-    }
+    createEffect(on(() => detail.task()?.id, () => setRenameError()))
 
     const onReferenceAsset = (item: ImageApi.ImageListItem) => {
-        setReferenceError()
         generateSession.setReferenceImage({
             type: 'asset',
             image: item.image,
@@ -245,7 +235,7 @@ export function GenerateTaskDetail() {
         reference,
         denoise,
         imagePickerOpen,
-        referenceError: () => referenceError()?.(),
+        referenceError: () => generateSession.referenceImageError()?.(),
     }
     const configData: TaskConfigCreateData = {
         values: configValues,
@@ -278,8 +268,8 @@ export function GenerateTaskDetail() {
         onDeleteTask,
     }
     const imageActions: TaskImageActions = {
-        onReferenceFile,
-        onReferenceReject: message => setReferenceError(() => message),
+        onReferenceFile: generateSession.uploadReferenceImage,
+        onReferenceReject: generateSession.rejectReferenceImage,
         onReferenceAsset,
         onRemoveReference: generateSession.clearReferenceImage,
         onEditMask: () => setEditingMask(referenceImage() ?? undefined),
@@ -325,6 +315,7 @@ export function GenerateTaskDetail() {
                 error={() => detail.error() && detail.task() === undefined}
                 loading={detail.loading}
                 onRetry={detail.retry}
+                bare={props.bare}
             />
             <Show
                 when={!detail.loading() && editingMask()}

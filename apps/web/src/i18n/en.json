@@ -330,7 +330,8 @@
         },
         "prompt": {
             "defaultGroup": "Group",
-            "removeBoundary": "Remove group boundary"
+            "removeBoundary": "Remove group boundary",
+            "gutter": "Line numbers and groups"
         }
     },
     "workflow": {

@@ -1,5 +1,6 @@
-import { batch, createEffect, on, onCleanup } from 'solid-js'
+import { batch, createEffect, createSignal, on, onCleanup } from 'solid-js'
 
+import { t } from '#/lib/i18n'
 import { createLocalReferenceImage, referenceSize } from '#/pages/generate/form'
 
 import type { createGenerateForm, ReferenceImage } from '#/pages/generate/form'
@@ -10,10 +11,10 @@ type ReferenceImageOptions = {
     selectedTaskId: Accessor<string | undefined>
 }
 
-/* 參考圖與遮罩的 object URL：建立與 revoke。parkedValues 的參考圖由 session 交給 release */
 export function createReferenceImage(options: ReferenceImageOptions) {
     const { form } = options
     let pendingPreviewUrl: string | undefined
+    const [error, setError] = createSignal<() => string>()
 
     function cancelUpload(): void {
         if (pendingPreviewUrl === undefined) return
@@ -35,6 +36,7 @@ export function createReferenceImage(options: ReferenceImageOptions) {
         const size = referenceSize(reference)
 
         cancelUpload()
+        setError()
         release(form.getFieldValue('referenceImage'))
         batch(() => {
             form.setFieldValue('referenceImage', reference)
@@ -45,12 +47,14 @@ export function createReferenceImage(options: ReferenceImageOptions) {
 
     const clear = () => {
         cancelUpload()
+        setError()
         release(form.getFieldValue('referenceImage'))
         form.setFieldValue('referenceImage', null)
     }
 
-    const upload = (file: File, onUnreadable: () => void) => {
+    const upload = (file: File) => {
         cancelUpload()
+        setError()
         const previewUrl = URL.createObjectURL(file)
         const taskId = options.selectedTaskId()
         const isCurrent = () => pendingPreviewUrl === previewUrl && options.selectedTaskId() === taskId
@@ -67,7 +71,7 @@ export function createReferenceImage(options: ReferenceImageOptions) {
             if (!isCurrent()) return
 
             cancelUpload()
-            onUnreadable()
+            setError(() => () => t('image.unreadable'))
         })
         probe.src = previewUrl
     }
@@ -82,12 +86,24 @@ export function createReferenceImage(options: ReferenceImageOptions) {
         form.setFieldValue('referenceImage', { ...reference, mask })
     }
 
-    createEffect(on(options.selectedTaskId, cancelUpload, { defer: true }))
+    /* 拖入的檔案在送出前就被拒絕（格式不符等） */
+    const reject = (message: () => string) => {
+        cancelUpload()
+        setError(() => message)
+    }
+
+    /* 表單換內容（載入 task、開新或回到草稿）：取消解碼並清掉失敗訊息；切換版面不會呼叫 */
+    const reset = () => {
+        cancelUpload()
+        setError()
+    }
+
+    createEffect(on(options.selectedTaskId, reset, { defer: true }))
 
     onCleanup(() => {
         cancelUpload()
         release(form.getFieldValue('referenceImage'))
     })
 
-    return { cancelUpload, release, set, clear, upload, setMask }
+    return { error, cancelUpload, reset, release, set, clear, upload, reject, setMask }
 }

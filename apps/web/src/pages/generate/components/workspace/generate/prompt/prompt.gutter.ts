@@ -508,11 +508,16 @@ const disabledHatchLayer = layer({
 
 export function promptGutters(): Extension {
     return [
-        pendingRangeField,
-        renamingField,
         lineNumberGutter,
         pendingLineMarkers,
         groupNameGutter,
+    ]
+}
+
+export function promptGroupLayers(): Extension {
+    return [
+        pendingRangeField,
+        renamingField,
         lineDecorationPlugin,
         disabledHatchLayer,
         groupDragExtensions(),

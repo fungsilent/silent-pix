@@ -180,6 +180,12 @@ export function createPromptTheme(theme: Theme) {
         '.cm-prompt-group-cell:hover .cm-prompt-group-remove': {
             opacity: '1',
         },
+        /* 觸控裝置沒有 hover：移除鈕常駐，避免看不見卻按得到 */
+        '@media (hover: none)': {
+            '.cm-prompt-group-remove': {
+                opacity: '1',
+            },
+        },
         '.cm-prompt-group-remove:hover': {
             backgroundColor: 'var(--sp-elevated-hover)',
         },

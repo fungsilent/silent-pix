@@ -29,6 +29,7 @@ export function createGenerateTaskSelection() {
         loading: () => Boolean(generateSession.state.selectedTaskId) && taskDetailQuery.isLoading,
         task: acceptedTask,
         sourceTask: () => generateSession.state.selectedTaskId === undefined ? sourceTaskQuery.data : undefined,
+        selectionLoaded: generateSession.isSelectionLoaded,
         retry: () => void taskDetailQuery.refetch(),
     })
 

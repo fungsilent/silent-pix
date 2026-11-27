@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight, Columns2, Expand, Image as ImageIcon, ImagePlus } from 'lucide-solid'
-import { For, Show } from 'solid-js'
+import { createEffect, createMemo, createSignal, For, on, onCleanup, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { Loading } from '#/components/base/Loading'
@@ -20,15 +20,63 @@ type ImageStageProps = {
     selectedIndex: number
     onCompare: (image: ImageApi.ImageResource) => void
     onExpand: () => void
+    onSurfaceClick?: (() => void) | undefined
     onSelect: (index: number) => void
     onUseAsReference: (image: ImageApi.ImageResource) => void
+    class?: string | undefined
+    fit?: { covered: number, peek: number } | undefined
 }
+
+const fitHeight = { min: 160, max: 360, empty: 240 }
+const stripHeight = 80
 
 const glass = 'border-stage-line bg-stage-control text-on-stage hover:bg-stage-control-hover backdrop-blur-[8px]'
 
 export function ImageStage(props: ImageStageProps) {
     const selectedImage = () => props.images[props.selectedIndex] ?? props.images[0]
     const hasMany = () => props.images.length > 1
+
+    /* 只有手機 fit 需要圖片區寬度 */
+    let area: HTMLDivElement | undefined
+    const [areaWidth, setAreaWidth] = createSignal(0)
+    createEffect(on(() => props.fit !== undefined, enabled => {
+        if (!enabled || !area) return
+
+        const observer = new ResizeObserver(([entry]) => setAreaWidth(entry?.contentRect.width ?? 0))
+        observer.observe(area)
+        onCleanup(() => observer.disconnect())
+    }))
+
+    const aspect = () => {
+        const image = selectedImage()
+        return image ? image.width / image.height : undefined
+    }
+    const areaHeight = () => {
+        const ratio = aspect()
+        return ratio ? Math.min(fitHeight.max, Math.max(fitHeight.min, areaWidth() / ratio)) : fitHeight.empty
+    }
+    const fitBox = createMemo(() => {
+        const fit = props.fit
+        const ratio = aspect()
+        const width = areaWidth()
+        if (!fit || !ratio || width === 0) return undefined
+
+        const height = areaHeight()
+        /* 縮圖列在下方，先被蓋住 */
+        const visible = Math.min(height, Math.max(fit.peek, height + (hasMany() ? stripHeight : 0) - fit.covered))
+        const progress = (height - visible) / (height - fit.peek)
+        const contain = Math.min(width, height * ratio)
+        const cover = Math.max(width, fit.peek * ratio)
+        const imageWidth = contain + (cover - contain) * progress
+        const imageHeight = imageWidth / ratio
+
+        return {
+            left: `${(width - imageWidth) / 2}px`,
+            top: `${visible / 2 - imageHeight / 2}px`,
+            width: `${imageWidth}px`,
+            height: `${imageHeight}px`,
+        }
+    })
 
     const selectPrevious = () => {
         if (props.images.length === 0) {
@@ -55,10 +103,21 @@ export function ImageStage(props: ImageStageProps) {
             class={mergeClasses(
                 theme.card, 'relative flex min-h-[240px] flex-1 flex-col',
                 selectedImage() ? 'bg-stage' : 'bg-stage-empty',
+                props.class,
             )}
+            style={props.fit ? { height: `${areaHeight() + (hasMany() ? stripHeight : 0)}px` } : undefined}
             inert={props.loading}
         >
-            <div class='relative flex min-h-0 flex-1 items-center justify-center overflow-hidden'>
+            <div
+                ref={element => { area = element }}
+                class='relative flex min-h-0 flex-1 items-center justify-center overflow-hidden'
+                onClick={event => {
+                    const onImage = event.target instanceof HTMLImageElement
+                    if (event.target !== event.currentTarget && !onImage) return
+                    if (props.onSurfaceClick) props.onSurfaceClick()
+                    else if (onImage) props.onExpand()
+                }}
+            >
                 <Show
                     when={selectedImage()}
                     fallback={(
@@ -78,10 +137,10 @@ export function ImageStage(props: ImageStageProps) {
                 >
                     {image => (
                         <img
-                            class='h-full w-full object-contain'
+                            class={fitBox() ? 'absolute max-w-none' : 'h-full w-full object-contain'}
+                            style={fitBox()}
                             src={resolveImageUrl(image().url)}
                             alt={t('generate.previewAlt')}
-                            onClick={props.onExpand}
                         />
                     )}
                 </Show>
@@ -123,7 +182,6 @@ export function ImageStage(props: ImageStageProps) {
                             strokeWidth={1.8}
                         />
                     </Button>
-                    {/* 緊迫迴圈：剛生完一批，挑一張直接接著改，不必開 dialog */}
                     <Button
                         variant='ghost'
                         title={t('image.useAsReference')}
@@ -167,30 +225,32 @@ export function ImageStage(props: ImageStageProps) {
             </div>
 
             <Show when={hasMany()}>
-                <div class='relative flex h-20 shrink-0 items-center justify-center gap-2 border-t border-stage-line-subtle bg-stage-strip py-2'>
-                    <For each={props.images}>
-                        {(image, index) => (
-                            <Button
-                                variant='ghost'
-                                classes={{
-                                    root: mergeClasses(
-                                        'h-full w-auto shrink-0 overflow-hidden rounded-md p-0',
-                                        index() === props.selectedIndex
-                                            ? 'opacity-100 ring-2 ring-stage-fg'
-                                            : 'opacity-60 hover:opacity-100',
-                                    ),
-                                }}
-                                onClick={() => props.onSelect(index())}
-                            >
-                                <img
-                                    class='h-full w-auto object-contain'
-                                    src={resolveImageUrl(image.url)}
-                                    alt=''
-                                />
-                            </Button>
-                        )}
-                    </For>
-                    <span class='absolute right-[18px] top-1/2 -translate-y-1/2 text-xs text-stage-fg/75 tabular-nums'>
+                <div class='relative h-20 shrink-0 border-t border-stage-line-subtle bg-stage-strip'>
+                    <div class='scrollbar-hidden flex h-full items-center justify-center-safe gap-2 overflow-x-auto p-2'>
+                        <For each={props.images}>
+                            {(image, index) => (
+                                <Button
+                                    variant='ghost'
+                                    classes={{
+                                        root: mergeClasses(
+                                            'h-full w-auto shrink-0 overflow-hidden rounded-md p-0',
+                                            index() === props.selectedIndex
+                                                ? 'opacity-100 ring-2 ring-stage-fg'
+                                                : 'opacity-60 hover:opacity-100',
+                                        ),
+                                    }}
+                                    onClick={() => props.onSelect(index())}
+                                >
+                                    <img
+                                        class='h-full w-auto object-contain'
+                                        src={resolveImageUrl(image.url)}
+                                        alt=''
+                                    />
+                                </Button>
+                            )}
+                        </For>
+                    </div>
+                    <span class='pointer-events-none absolute right-[18px] top-1/2 -translate-y-1/2 text-xs text-stage-fg/75 tabular-nums'>
                         {props.selectedIndex + 1} / {props.images.length}
                     </span>
                 </div>

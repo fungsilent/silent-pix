@@ -229,7 +229,7 @@ function createGenerateSession() {
 
     // MARK: Load a Task or draft
     function resetForm(values: GenerateValues) {
-        referenceImage.cancelUpload()
+        referenceImage.reset()
         form.reset(values)
         uiStore.set('formRevision', revision => revision + 1)
     }
@@ -300,6 +300,7 @@ function createGenerateSession() {
         togglePromptVisible: promptLayout.togglePromptVisible,
         setPromptHeight: promptLayout.setPromptHeight,
         resetPromptHeight: promptLayout.resetPromptHeight,
+        togglePromptGutter: promptLayout.togglePromptGutter,
         form,
         feedFilter,
         isSelectionLoaded,
@@ -314,7 +315,9 @@ function createGenerateSession() {
         discardDraft,
         setReferenceImage: referenceImage.set,
         clearReferenceImage: referenceImage.clear,
+        referenceImageError: referenceImage.error,
         uploadReferenceImage: referenceImage.upload,
+        rejectReferenceImage: referenceImage.reject,
         cancelReferenceImageUpload: referenceImage.cancelUpload,
         setReferenceMask: referenceImage.setMask,
         applyLoraSelection,

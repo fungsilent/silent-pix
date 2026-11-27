@@ -329,7 +329,8 @@
         },
         "prompt": {
             "defaultGroup": "群組",
-            "removeBoundary": "移除群組分界"
+            "removeBoundary": "移除群組分界",
+            "gutter": "行號與群組"
         }
     },
     "workflow": {

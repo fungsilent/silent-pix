@@ -1,4 +1,4 @@
-import { createMemo } from 'solid-js'
+import { createEffect, createMemo, on } from 'solid-js'
 
 import { useLoraListQuery, useSamplerListQuery, useTaskFeedQuery } from '#/data/task/task.query'
 import { useWorkflowListQuery } from '#/data/workflow/workflow.query'
@@ -7,20 +7,36 @@ import { t } from '#/lib/i18n'
 import { generateFieldLabel } from '#/pages/generate/issue'
 import { useGenerateSession } from '#/pages/generate/state/session'
 import { hasLostConnection, serviceHealth } from '#/store/app'
+import { createIssueSource, issueList } from '#/store/issue'
 
 import type { GenerateIssue } from '#/pages/generate/issue'
 import type { Accessor } from 'solid-js'
 
-export function createRuntimeIssues(): Accessor<GenerateIssue[]> {
+export function createGenerateIssues() {
+    const generateSession = useGenerateSession()
+    const runtimeIssues = createRuntimeIssues()
+    const issues = () => [...runtimeIssues(), ...generateSession.state.submitIssues]
+    createIssueSource(issues)
+
+    createEffect(on(
+        () => generateSession.state.submitToken,
+        token => {
+            if (token > 0 && issues().length > 0) {
+                issueList.setOpen(true)
+            }
+        },
+        { defer: true },
+    ))
+}
+
+function createRuntimeIssues(): Accessor<GenerateIssue[]> {
     const generateSession = useGenerateSession()
     const workflowId = generateSession.form.useSelector(({ values }) => values.workflowId)
     const workflowQuery = useWorkflowListQuery()
     const samplerQuery = useSamplerListQuery()
     const taskFeedQuery = useTaskFeedQuery(generateSession.feedFilter)
-    /* 只讀快取狀態，真正的抓取仍由 Generate detail 的 LoRA picker 開啟時觸發 */
     const loraQuery = useLoraListQuery(() => false)
 
-    /* 清單是全拿的，查不到等同被真刪——那個狀態到不了，留著只是保險 */
     const isSelectedWorkflowUnusable = () => {
         const current = workflowId()
 
@@ -36,10 +52,6 @@ export function createRuntimeIssues(): Accessor<GenerateIssue[]> {
     return createMemo(() => {
         const issues: GenerateIssue[] = []
 
-        /*
-         * 連不上後端的時候什麼都不知道，不可以謊稱是 ComfyUI 掛了。
-         * 其他判斷全部略過——它們的依據都已經不可信。
-         */
         if (hasLostConnection()) {
             const lost: GenerateIssue = {
                 id: 'server-connection',
@@ -89,7 +101,6 @@ export function createRuntimeIssues(): Accessor<GenerateIssue[]> {
             })
         }
 
-        /* ComfyUI 已知掛掉時就不必再逐項重複同一件事 */
         if (!comfyDown && samplerQuery.isError) {
             issues.push({
                 id: 'sampler-load',
@@ -110,10 +121,6 @@ export function createRuntimeIssues(): Accessor<GenerateIssue[]> {
             })
         }
 
-        /*
-         * 左側清單抓不到不影響出圖，所以是 warning。翻頁失敗也照報——
-         * 清單還在畫面上，錯誤講不出口的話使用者只會覺得 Load more 壞了。
-         */
         if (taskFeedQuery.isError) {
             issues.push({
                 id: 'task-load',
@@ -128,10 +135,6 @@ export function createRuntimeIssues(): Accessor<GenerateIssue[]> {
     })
 }
 
-/*
- * Sampler 和 LoRA 都是跟 ComfyUI 拿的，它一掛就會產生兩則一模一樣的訊息。
- * 同訊息合併成一則、欄位並列，按一次 Retry 補齊全部。
- */
 function mergeByMessage(issues: GenerateIssue[]): GenerateIssue[] {
     const merged = new Map<string, GenerateIssue>()
 

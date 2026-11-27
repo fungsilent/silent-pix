@@ -5,11 +5,21 @@ import type { PromptKind } from '#/pages/generate/form'
 
 type PromptLayoutState = {
     promptVisible: Record<PromptKind, boolean>
-    /* 兩段 editor 的高度（px），由 prompt 區的兩條拖曳調整並記在本機 */
     promptHeight: Record<PromptKind, number>
+    promptGutterVisible: boolean
 }
 
 const promptHeightKey = 'silent-pix.prompt-height'
+const promptGutterKey = 'silent-pix.prompt-gutter'
+
+function readPromptGutterVisible(): boolean {
+    try {
+        return localStorage.getItem(promptGutterKey) === 'true'
+    }
+    catch {
+        return false
+    }
+}
 const defaultPromptHeight = (): Record<PromptKind, number> => ({ positive: promptDefaultHeight, negative: promptDefaultHeight })
 
 function readPromptHeight(): Record<PromptKind, number> {
@@ -26,16 +36,17 @@ function readPromptHeight(): Record<PromptKind, number> {
     return defaultPromptHeight()
 }
 
-/* Prompt 兩段的顯示與高度 */
 export function createPromptLayout() {
     return createStore<PromptLayoutState, {
         togglePromptVisible: (kind: PromptKind) => void
         setPromptHeight: (height: Partial<Record<PromptKind, number>>) => void
         resetPromptHeight: () => void
+        togglePromptGutter: () => void
     }>(
         {
             promptVisible: { positive: true, negative: true },
             promptHeight: readPromptHeight(),
+            promptGutterVisible: readPromptGutterVisible(),
         },
         store => {
             const writePromptHeight = (height: Record<PromptKind, number>) => {
@@ -57,6 +68,15 @@ export function createPromptLayout() {
 
                 resetPromptHeight() {
                     writePromptHeight(defaultPromptHeight())
+                },
+
+                togglePromptGutter() {
+                    const visible = !store.state.promptGutterVisible
+                    store.set('promptGutterVisible', visible)
+                    try {
+                        localStorage.setItem(promptGutterKey, String(visible))
+                    }
+                    catch { /* 存不了就只在這次生效 */ }
                 },
             }
         },

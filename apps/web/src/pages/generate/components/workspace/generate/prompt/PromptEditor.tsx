@@ -5,7 +5,7 @@ import { createEffect, on, onCleanup } from 'solid-js'
 
 import { t } from '#/lib/i18n'
 import { promptDocumentToMeta, serializePromptDocument } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
-import { promptGutters } from '#/pages/generate/components/workspace/generate/prompt/prompt.gutter'
+import { promptGroupLayers, promptGutters } from '#/pages/generate/components/workspace/generate/prompt/prompt.gutter'
 import { promptMeta, promptMetaEffect, promptStateExtensions } from '#/pages/generate/components/workspace/generate/prompt/prompt.state'
 import { createPromptTheme } from '#/pages/generate/components/workspace/generate/prompt/prompt.theme'
 import { promptTokens } from '#/pages/generate/components/workspace/generate/prompt/prompt.token'
@@ -14,15 +14,11 @@ import { themeStore } from '#/store/theme'
 import type { PromptDocument } from '#/pages/generate/components/workspace/generate/prompt/prompt.document'
 import type { JSX } from 'solid-js'
 
-/* MARK: PromptEditor */
 type PromptEditorProps = {
-    /*
-     * 只用來決定「什麼時候丟掉整個 EditorView」。同一個 task 內的 document 由
-     * CodeMirror 自己保管，store 回寫不得重建 state，否則 history 會被清掉。
-     */
     documentKey: string
     initialDocument: PromptDocument
-    class?: string
+    gutter?: boolean | undefined
+    class?: string | undefined
     style?: JSX.CSSProperties
     onDocumentChange: (document: PromptDocument) => void
 }
@@ -31,6 +27,8 @@ export function PromptEditor(props: PromptEditorProps) {
     let host: HTMLDivElement | undefined
     let view: EditorView | undefined
     const themeCompartment = new Compartment()
+    const gutterCompartment = new Compartment()
+    const gutterExtension = () => (props.gutter === false ? [] : promptGutters())
 
     const destroy = () => {
         view?.destroy()
@@ -49,7 +47,8 @@ export function PromptEditor(props: PromptEditorProps) {
             const state = EditorState.create({
                 doc: text,
                 extensions: [
-                    promptGutters(),
+                    gutterCompartment.of(gutterExtension()),
+                    promptGroupLayers(),
                     promptTokens(),
                     EditorView.lineWrapping,
                     history(),
@@ -57,7 +56,6 @@ export function PromptEditor(props: PromptEditorProps) {
                     themeCompartment.of(createPromptTheme(themeStore.state.theme)),
                     promptStateExtensions(meta),
                     EditorView.updateListener.of(update => {
-                        /* selection-only 的更新不必回寫 store */
                         const metaChanged = update.transactions.some(transaction => (
                             transaction.effects.some(effect => effect.is(promptMetaEffect))
                         ))
@@ -71,7 +69,6 @@ export function PromptEditor(props: PromptEditorProps) {
             })
 
             view = new EditorView({ state, parent: host })
-            /* 真正在捲的是 .cm-scroller，沿用 app 既有的原生 scrollbar 樣式 */
             view.scrollDOM.classList.add('scrollbar-thin')
         },
     ))
@@ -83,6 +80,10 @@ export function PromptEditor(props: PromptEditorProps) {
             effects: themeCompartment.reconfigure(createPromptTheme(theme)),
         })
     })
+
+    createEffect(on(gutterExtension, extension => {
+        view?.dispatch({ effects: gutterCompartment.reconfigure(extension) })
+    }, { defer: true }))
 
     createEffect(() => {
         const title = t('generate.prompt.removeBoundary')

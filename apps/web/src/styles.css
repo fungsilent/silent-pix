@@ -444,6 +444,17 @@
     box-sizing: border-box;
 }
 
+.mobile-peek-mask {
+    mask:
+        linear-gradient(#000 0 0) top / 100% var(--mobile-peek) no-repeat,
+        radial-gradient(circle at 100% 100%, transparent var(--mobile-radius), #000 calc(var(--mobile-radius) + 0.5px)) left 0 top var(--mobile-peek) / var(--mobile-radius) var(--mobile-radius) no-repeat,
+        radial-gradient(circle at 0 100%, transparent var(--mobile-radius), #000 calc(var(--mobile-radius) + 0.5px)) right 0 top var(--mobile-peek) / var(--mobile-radius) var(--mobile-radius) no-repeat;
+}
+
+html:has([data-page-scroll]) {
+    overscroll-behavior-y: none;
+}
+
 body {
     margin: 0;
     min-width: 320px;
