@@ -57,7 +57,7 @@ export function MobileTaskView(props: { inert: boolean }) {
             />
             <div
                 ref={element => { sheet = element }}
-                class='relative z-0 mt-[calc(var(--mobile-stage)-var(--mobile-peek)-var(--mobile-radius))] min-h-[calc(100dvh-var(--mobile-header)-var(--mobile-peek))] rounded-t-(--mobile-radius) bg-surface pt-1'
+                class='relative z-0 mt-[calc(var(--mobile-stage)-var(--mobile-peek)-2*var(--mobile-radius))] min-h-[calc(100dvh-var(--mobile-header)-var(--mobile-peek))] rounded-t-(--mobile-radius) bg-surface pt-1'
             >
                 <MobilePrompt />
                 <div class='mx-4 my-1 border-t border-line-subtle' />
