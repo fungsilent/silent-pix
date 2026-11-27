@@ -17,7 +17,7 @@ import Case from '@silent-pix/blueprint/components/Case.astro'
 
 ## Task 頁
 
-一張卡片，整頁捲動：圖片區固定在 Header 下方，下方內容面板往上捲時蓋過圖片，到露出圖片控制列的位置後，內容從露出條下方捲過。
+與桌面版相同，圖片與內容是上下兩張獨立的卡片（中間 4px 間距）。整頁捲動：圖片卡固定在 Header 下方，下方內容卡往上捲時蓋過圖片，到露出圖片控制列的位置後，內容從露出條下方捲過。
 
 <Gallery min="480px">
 <State component="generate-mobile-task" state="top" label="top · image fully shown" frame="flex h-[720px] w-[382px] bg-shell" />
@@ -30,8 +30,8 @@ import Case from '@silent-pix/blueprint/components/Case.astro'
 
 <ul class="ds-rules">
 <Rule component="generate-mobile-task" id="order">由上而下依序是圖片（Image stage）、Prompt、Config（桌面 Task detail 的全部內容：Info、參考圖、Config、LoRA），不分 tab；Prompt 與 Config 之間用一條 `border-line-subtle` 分隔。</Rule>
-<Rule component="generate-mobile-task" id="stage">圖片區黏在 Header 下方不跟著捲，高度依目前圖片的比例（見下方 fit），面板從圖片區下緣開始；圖片控制（放大、比較、設為參考圖）照桌面版放在右上。</Rule>
-<Rule component="generate-mobile-task" id="sheet">內容面板 `bg-surface`、頂端 14px 圓角，沒有陰影、沒有把手（面板不能拖曳）。往上捲時面板蓋過圖片；面板頂端到達離卡片頂端 56px 處後，露出條停住，內容從露出條下面捲過；分界一直保持面板的 14px 圓角（圓角外側露出圖片）。整個過程只有一個捲動（瀏覽器的整頁捲動，見 App model 的 mobile），面板內不另外捲動；內容較短時面板至少延伸到視窗底部，讓面板一定能捲到停靠位置；底部留白見 generate-mobile-bar 的 clearance。</Rule>
+<Rule component="generate-mobile-task" id="stage">圖片區是自己的一張卡（`rounded-lg border-line-subtle`，四角都是圓的，`bg-stage`），黏在 Header 下方不跟著捲，所以捲動時上圓角一直都在。高度依目前圖片的比例（見下方 fit）；內容卡在它下方 4px 開始。圖片控制（放大、比較、設為參考圖）照桌面版放在右上。</Rule>
+<Rule component="generate-mobile-task" id="sheet">內容卡 `bg-surface`、`rounded-lg border-line-subtle`（與桌面卡片相同的 8px 圓角），沒有陰影、沒有把手（不能拖曳）。往上捲時內容卡蓋過圖片卡；內容卡頂端到達離圖片卡頂端 56px 處後，露出條停住，內容從露出條下面捲過；分界一直保持內容卡的樣子：8px 圓角加上框線，圓角外側露出圖片；內容卡真正的上緣捲走之後，分界的框線照樣畫在原位，不會被圖片區蓋掉。整個過程只有一個捲動（瀏覽器的整頁捲動，見 App model 的 mobile），內容卡內不另外捲動；內容較短時內容卡至少延伸到視窗底部，讓內容卡一定能捲到停靠位置；底部留白見 generate-mobile-bar 的 clearance。</Rule>
 <Rule component="generate-mobile-task" id="peek">露出的 56px 是圖片右上控制列的上下置中位置：控制列上方留白 12px、按鈕高 32px，下方再留 12px。露出的是圖片本身（填滿露出條的圖片中段，見下方「圖片隨捲動填滿」），不另做縮圖列；控制列在露出時照常可按。點露出區的其他地方捲回最上方，圖片完整顯示。</Rule>
 </ul>
 
@@ -40,20 +40,20 @@ import Case from '@silent-pix/blueprint/components/Case.astro'
 ### 圖片隨捲動填滿
 
 <Gallery min="480px">
-<State component="generate-mobile-stage" state="wide-top" label="16:9 · top · 214px · contain" frame="w-[382px]" />
-<State component="generate-mobile-stage" state="wide-mid" label="16:9 · halfway" frame="w-[382px]" />
-<State component="generate-mobile-stage" state="wide-docked" label="16:9 · docked · cover" frame="w-[382px]" />
-<State component="generate-mobile-stage" state="tall-top" label="2:3 · top · 360px (max) · contain" frame="w-[382px]" />
-<State component="generate-mobile-stage" state="tall-mid" label="2:3 · halfway" frame="w-[382px]" />
-<State component="generate-mobile-stage" state="tall-docked" label="2:3 · docked · cover" frame="w-[382px]" />
+<State component="generate-mobile-stage" state="wide-top" label="16:9 · top · 214px · contain" frame="w-[382px] bg-shell" />
+<State component="generate-mobile-stage" state="wide-mid" label="16:9 · halfway" frame="w-[382px] bg-shell" />
+<State component="generate-mobile-stage" state="wide-docked" label="16:9 · docked · cover" frame="w-[382px] bg-shell" />
+<State component="generate-mobile-stage" state="tall-top" label="2:3 · top · 360px (max) · contain" frame="w-[382px] bg-shell" />
+<State component="generate-mobile-stage" state="tall-mid" label="2:3 · halfway" frame="w-[382px] bg-shell" />
+<State component="generate-mobile-stage" state="tall-docked" label="2:3 · docked · cover" frame="w-[382px] bg-shell" />
 </Gallery>
 
 <Rules component="generate-mobile-stage">
 
 <ul class="ds-rules">
 <Rule component="generate-mobile-stage" id="height">圖片區高度 = 卡片寬 × 圖片高／寬，最高 360px、最低 160px：寬圖變矮、上下不留底色，直圖與方圖停在 360px、左右留底色。多張時另加 80px 縮圖列；沒有圖片或載入中時 240px。高度取自圖片資料，不等圖片載入；換張時跟著換。</Rule>
-<Rule component="generate-mobile-stage" id="fit">在頂端時圖片完整顯示（contain）；面板往上蓋時，圖片隨「看得到的高度」（面板頂端到圖片區頂端，從圖片區高度到 56px）由 contain 連續放大到填滿看得到的範圍（cover：至少與卡片同寬、至少與看得到的高度同高），圖片中心跟著看得到範圍的中心。停靠時露出條一定是圖片中段，沒有黑邊。</Rule>
-<Rule component="generate-mobile-stage" id="motion">放大與位移只跟捲動位置走，沒有額外動畫，往回捲時原路還原。多張時下方縮圖列先被面板蓋住，不算在看得到的高度內。</Rule>
+<Rule component="generate-mobile-stage" id="fit">在頂端時圖片完整顯示（contain）；內容卡往上蓋時，圖片隨「看得到的高度」（內容卡頂端到圖片卡頂端，從圖片卡高度到 56px）由 contain 連續放大到填滿看得到的範圍（cover：至少與卡片同寬、至少與看得到的高度同高），圖片中心跟著看得到範圍的中心。停靠時露出條一定是圖片中段，沒有黑邊。</Rule>
+<Rule component="generate-mobile-stage" id="motion">放大與位移只跟捲動位置走，沒有額外動畫，往回捲時原路還原。多張時下方縮圖列先被內容卡蓋住，不算在看得到的高度內。</Rule>
 <Rule component="generate-mobile-stage" id="controls">右上的控制列、多張時的左右切換鈕位置不變，不跟圖片縮放；點圖片放大仍看完整原圖（Image viewer）。</Rule>
 </ul>
 
@@ -73,7 +73,7 @@ Task 頁內的 Prompt 區：Positive 與 Negative 上下排，editor 照內容�
 <ul class="ds-rules">
 <Rule component="generate-mobile-prompt" id="title">標題列 44px：左側 11px 大寫「Prompt」（同 Detail 分段標題），緊接在後（間距 6px）是 28px Gutter 切換鈕（ListOrdered icon）；gutter 顯示時用 selected 樣式。沒有 Positive／Negative 顯示切換，兩段都一直顯示。</Rule>
 <Rule component="generate-mobile-prompt" id="gutter">切換鈕只控制 gutter（行號與 group 名稱欄）：預設隱藏，文字用滿整行寬度，也不改顯示 group 名稱；顯示時就是桌面版的 gutter；與桌面版的 Gutter 切換是同一個設定（見 Generate 的 prompt-panel）。其餘 editor 行為不變，停用 group 的斜線紋與停用 token 的底線照常顯示。</Rule>
-<Rule component="generate-mobile-prompt" id="height">Editor 沒有固定高度，也沒有 splitter：照內容長高、不在 editor 內捲動，整頁由 Task 頁的內容面板捲動。</Rule>
+<Rule component="generate-mobile-prompt" id="height">Editor 沒有固定高度，也沒有 splitter：照內容長高、不在 editor 內捲動，整頁由 Task 頁捲動。</Rule>
 </ul>
 
 </Rules>
@@ -93,7 +93,7 @@ Task 頁內的 Prompt 區：Positive 與 Negative 上下排，editor 照內容�
 
 <ul class="ds-rules">
 <Rule component="generate-mobile-bar" id="layout">一顆浮動膠囊：寬度依內容、水平置中，離視窗底部 12px（再加裝置的安全區），不佔版面，內容從它後面捲過。不透明 `bg-elevated`、`border-line` 細框、popover 陰影，內距 4px。按鈕高 32px、全圓角、13px 字、16px icon，整顆高 42px。Tasks 與 Generate 之間是 20px 高的分隔線，兩側各留 8px。</Rule>
-<Rule component="generate-mobile-bar" id="clearance">膠囊下方的內容要捲得出來：Task 頁面板、Task 清單與 Browser 的捲動內容底部各留 72px（膠囊 42px＋底距 12px＋18px 間隙），最後一行停在膠囊上方。</Rule>
+<Rule component="generate-mobile-bar" id="clearance">膠囊下方的內容要捲得出來，留白 72px（膠囊 42px＋底距 12px＋18px 間隙）：Task 頁的內容卡把留白放在卡片外面（margin），捲到底時卡片底緣停在離視窗底部 72px 處，下方是 shell；Task 清單與 Browser 的卡片照樣填滿到視窗底部，留白放在捲動內容的底部（padding），最後一列停在膠囊上方。捲動途中內容照樣從膠囊後面經過。</Rule>
 <Rule component="generate-mobile-bar" id="default">左側 Tasks（ghost，寬度依文字）開關 Task 清單：開著時用 selected 樣式，再按一次滑回、露出原本的 Task 頁。右側 Generate（accent solid，左右內距 20px），Task 頁與 Task 清單都按得到；送出中改「Creating...」並停用，停用與 Issue 的規則同桌面版 prompt-panel。</Rule>
 <Rule component="generate-mobile-bar" id="selection">Browser 有勾選時整列換成批次操作：左側「✕ N selected」（按下清空勾選、回到原本的列），分隔線後依序 Pin、Discard（ghost，44px 寬）、刪除（danger soft）。膠囊形狀與位置不變，只換內容。各動作與確認 dialog 同桌面版 Task browser 的批次操作。勾選數只顯示在這裡，手機版工具列不放 selected chip。</Rule>
 </ul>
