@@ -455,6 +455,10 @@ html:has([data-page-scroll]) {
     overscroll-behavior-y: none;
 }
 
+html:has([data-scroll-lock]) {
+    overflow: hidden;
+}
+
 body {
     margin: 0;
     min-width: 320px;

@@ -4,7 +4,7 @@ import { createEffect, createMemo, createSignal, For } from 'solid-js'
 import { Button } from '#/components/base/Button'
 import { ImageViewer } from '#/components/viewer/ImageViewer'
 import { t } from '#/lib/i18n'
-import { createHotkeys } from '#/lib/keyboard'
+import { createHotkeys } from '#/lib/interaction'
 import { useGenerateDetail } from '#/pages/generate/state/detail'
 import { mergeClasses } from '#/utils/style'
 

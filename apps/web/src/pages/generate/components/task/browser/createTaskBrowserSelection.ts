@@ -1,6 +1,6 @@
 import { createEffect, createSignal } from 'solid-js'
 
-import { createHotkeys } from '#/lib/keyboard'
+import { createHotkeys } from '#/lib/interaction'
 import { overlayStore } from '#/store/overlay'
 
 import type { TaskApi } from '@silent-pix/shared'

@@ -44,8 +44,12 @@ export function ZoomStage(props: ZoomStageProps) {
     return (
         <div
             ref={props.zoom.setViewportRef}
-            class='relative flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden'
+            class='relative flex min-h-0 w-full flex-1 touch-none items-center justify-center overflow-hidden'
             onClick={props.onClick}
+            onPointerDown={props.zoom.onPinchDown}
+            onPointerMove={props.zoom.onPinchMove}
+            onPointerUp={props.zoom.onPinchUp}
+            onPointerCancel={props.zoom.onPinchUp}
             onDblClick={event => {
                 event.preventDefault()
                 props.zoom.toggleActualSize()

@@ -1,4 +1,4 @@
-import { onCleanup, Show } from 'solid-js'
+import { createSignal, onCleanup, Show } from 'solid-js'
 
 import { GenerateTaskDetail } from '#/pages/generate/components/config/GenerateTaskDetail'
 import { MobileBar } from '#/pages/generate/components/mobile/MobileBar'
@@ -11,6 +11,7 @@ import { createGenerateTaskSelection } from '#/pages/generate/hooks/createGenera
 import { GenerateDetailProvider } from '#/pages/generate/state/detail'
 import { useGenerateSession } from '#/pages/generate/state/session'
 import { appStore } from '#/store/app'
+import { mergeClasses } from '#/utils/style'
 
 export function GeneratePage() {
     const generateSession = useGenerateSession()
@@ -45,7 +46,7 @@ export function GeneratePage() {
             >
                 <Show
                     when={!appStore.state.mobile}
-                    fallback={<GenerateMobileLayout />}
+                    fallback={<GenerateMobileLayout onDiscardDraft={discardDraft} />}
                 >
                     <GenerateDesktopLayout onDiscardDraft={discardDraft} />
                 </Show>
@@ -54,12 +55,12 @@ export function GeneratePage() {
     )
 }
 
-/* MARK: GenerateDesktopLayout */
-type GenerateDesktopLayoutProps = {
+type GenerateLayoutProps = {
     onDiscardDraft: () => void
 }
 
-function GenerateDesktopLayout(props: GenerateDesktopLayoutProps) {
+/* MARK: GenerateDesktopLayout */
+function GenerateDesktopLayout(props: GenerateLayoutProps) {
     const generateSession = useGenerateSession()
 
     return (
@@ -81,11 +82,33 @@ function GenerateDesktopLayout(props: GenerateDesktopLayoutProps) {
 }
 
 /* MARK: GenerateMobileLayout */
-function GenerateMobileLayout() {
+function GenerateMobileLayout(props: GenerateLayoutProps) {
+    const [tasksOpen, setTasksOpen] = createSignal(false)
+
     return (
         <>
             <MobileTaskView />
-            <MobileBar />
+            <div
+                data-scroll-lock={tasksOpen() ? '' : undefined}
+                inert={!tasksOpen()}
+                class={mergeClasses(
+                    'fixed inset-x-0 top-9 bottom-0 z-[25] flex bg-shell px-1 pb-1 transition-[translate,visibility] duration-200 ease-out motion-reduce:transition-none',
+                    !tasksOpen() && 'invisible -translate-x-full',
+                )}
+            >
+                <TaskList
+                    fill
+                    onDiscardDraft={props.onDiscardDraft}
+                    onOpen={() => {
+                        setTasksOpen(false)
+                        window.scrollTo({ top: 0 })
+                    }}
+                />
+            </div>
+            <MobileBar
+                tasksOpen={tasksOpen()}
+                onToggleTasks={() => setTasksOpen(open => !open)}
+            />
         </>
     )
 }

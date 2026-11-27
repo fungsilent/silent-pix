@@ -20,6 +20,8 @@ import type { TaskFeedFilter } from '#/data/task/task.query'
 
 type TaskListProps = {
     onDiscardDraft: () => void
+    fill?: boolean | undefined
+    onOpen?: (() => void) | undefined
 }
 
 const taskSkeletonRows = [0, 1, 2, 3, 4, 5]
@@ -49,72 +51,123 @@ export function TaskList(props: TaskListProps) {
     return (
         <Panel
             classes={{
-                root: mergeClasses(theme.card, 'w-max max-[720px]:hidden'),
+                root: mergeClasses(theme.card, props.fill ? 'min-w-0 flex-1' : 'w-max max-[720px]:hidden'),
             }}
         >
-            {panel => (
-                <div class='flex h-full min-h-0'>
-                    <TaskRail
-                        toggle={(
-                            <CollapseButton
-                                collapsed={panel.isCollapsed()}
-                                onClick={panel.toggle}
-                            />
-                        )}
-                        gridActive={false}
-                        onFilterChange={generateSession.setFeedTaskFlags}
-                    />
-                    <div class={mergeClasses('flex min-h-0 min-w-0 flex-col', panel.isCollapsed() ? 'w-[106px]' : 'w-[250px]')}>
-                        {/* 透明底線：與 Task browser 工具列同樣是 48px 含 1px 底線，搜尋欄位置與 baseline 一致 */}
-                        <div class='flex h-12 shrink-0 items-center border-b border-transparent px-2'>
-                            <div class='flex w-0 min-w-full'>
-                                <Text
-                                    label={t('task.search')}
-                                    value={generateSession.state.feedSearch}
-                                    placeholder={t('task.searchPlaceholder')}
-                                    icon={(
-                                        <Search
-                                            size={14}
-                                            strokeWidth={1.7}
-                                        />
-                                    )}
-                                    classes={{ root: 'min-w-0 flex-1', label: 'hidden' }}
-                                    onInput={generateSession.setFeedSearch}
+            {panel => {
+                const collapsed = () => !props.fill && panel.isCollapsed()
+                return (
+                    <div class='flex h-full min-h-0'>
+                        <TaskRail
+                            toggle={props.fill ? undefined : (
+                                <CollapseButton
+                                    collapsed={panel.isCollapsed()}
+                                    onClick={panel.toggle}
                                 />
-                            </div>
-                        </div>
-                        <PanelContent
-                            viewportRef={loadOnScroll.setViewport}
-                            classes={{
-                                content: 'gap-1',
-                            }}
-                        >
-                            <Show when={generateSession.state.draft}>
-                                <TaskDraftItem
-                                    selected={generateSession.state.selectedTaskId === undefined}
-                                    thumbnailOnly={panel.isCollapsed()}
-                                    name={generateSession.draftName()}
-                                    source={draftSourceLabel()}
-                                    onSelect={() => generateSession.clearTask()}
-                                    onDiscard={props.onDiscardDraft}
-                                />
-                            </Show>
-                            <Loading.Swap
-                                loading={() => taskFeedQuery.isLoading}
-                                fallback={(
-                                    <For each={taskSkeletonRows}>
-                                        {() => (
-                                            <TaskItemSkeleton
-                                                thumbnailOnly={panel.isCollapsed()}
+                            )}
+                            gridActive={false}
+                            onFilterChange={generateSession.setFeedTaskFlags}
+                            onNewDraft={props.onOpen}
+                        />
+                        <div class={mergeClasses('flex min-h-0 min-w-0 flex-col', collapsed() ? 'w-[106px]' : props.fill ? 'flex-1' : 'w-[250px]')}>
+                            <div class='flex h-12 shrink-0 items-center border-b border-transparent px-2'>
+                                <div class='flex w-0 min-w-full'>
+                                    <Text
+                                        label={t('task.search')}
+                                        value={generateSession.state.feedSearch}
+                                        placeholder={t('task.searchPlaceholder')}
+                                        icon={(
+                                            <Search
+                                                size={14}
+                                                strokeWidth={1.7}
                                             />
                                         )}
-                                    </For>
-                                )}
+                                        classes={{ root: 'min-w-0 flex-1', label: 'hidden' }}
+                                        onInput={generateSession.setFeedSearch}
+                                    />
+                                </div>
+                            </div>
+                            <PanelContent
+                                viewportRef={loadOnScroll.setViewport}
+                                classes={{
+                                    content: mergeClasses('gap-1', props.fill && 'pb-[72px]'),
+                                }}
                             >
-                                <Show
-                                    when={!taskFeedQuery.isError || taskFeedQuery.data}
+                                <Show when={generateSession.state.draft}>
+                                    <TaskDraftItem
+                                        selected={generateSession.state.selectedTaskId === undefined}
+                                        thumbnailOnly={collapsed()}
+                                        name={generateSession.draftName()}
+                                        source={draftSourceLabel()}
+                                        onSelect={() => {
+                                            generateSession.clearTask()
+                                            props.onOpen?.()
+                                        }}
+                                        onDiscard={props.onDiscardDraft}
+                                    />
+                                </Show>
+                                <Loading.Swap
+                                    loading={() => taskFeedQuery.isLoading}
                                     fallback={(
-                                        <Show when={!panel.isCollapsed()}>
+                                        <For each={taskSkeletonRows}>
+                                            {() => (
+                                                <TaskItemSkeleton
+                                                    thumbnailOnly={collapsed()}
+                                                />
+                                            )}
+                                        </For>
+                                    )}
+                                >
+                                    <Show
+                                        when={!taskFeedQuery.isError || taskFeedQuery.data}
+                                        fallback={(
+                                            <Show when={!collapsed()}>
+                                                <StatusMessage
+                                                    kind='load-error'
+                                                    size='compact'
+                                                    message={t('task.loadFailed')}
+                                                    onRetry={() => void taskFeedQuery.refetch()}
+                                                />
+                                            </Show>
+                                        )}
+                                    >
+                                        <Show
+                                            when={tasks().length > 0}
+                                            fallback={(
+                                                <Show
+                                                    when={!collapsed()}
+                                                    fallback={<CollapsedEmpty filter={generateSession.feedFilter()} />}
+                                                >
+                                                    <StatusMessage
+                                                        kind='empty'
+                                                        size='compact'
+                                                        title={taskFilterEmptyCopy(generateSession.feedFilter()).title}
+                                                        message={taskFilterEmptyCopy(generateSession.feedFilter()).message}
+                                                    />
+                                                </Show>
+                                            )}
+                                        >
+                                            <For each={taskIds()}>
+                                                {taskId => (
+                                                    <TaskItem
+                                                        selected={taskId === generateSession.state.selectedTaskId}
+                                                        task={taskById().get(taskId)!}
+                                                        thumbnailOnly={collapsed()}
+                                                        onSelect={() => {
+                                                            generateSession.selectTask(taskId)
+                                                            props.onOpen?.()
+                                                        }}
+                                                        onFlagChange={flag => flagMutation.mutate({
+                                                            taskIds: [taskId],
+                                                            flag,
+                                                        })}
+                                                        flagPending={flagMutation.isPending}
+                                                    />
+                                                )}
+                                            </For>
+                                        </Show>
+
+                                        <Show when={taskFeedQuery.isError && !collapsed()}>
                                             <StatusMessage
                                                 kind='load-error'
                                                 size='compact'
@@ -122,72 +175,29 @@ export function TaskList(props: TaskListProps) {
                                                 onRetry={() => void taskFeedQuery.refetch()}
                                             />
                                         </Show>
-                                    )}
-                                >
-                                    <Show
-                                        when={tasks().length > 0}
-                                        fallback={(
-                                            <Show
-                                                when={!panel.isCollapsed()}
-                                                fallback={<CollapsedEmpty filter={generateSession.feedFilter()} />}
-                                            >
-                                                <StatusMessage
-                                                    kind='empty'
-                                                    size='compact'
-                                                    title={taskFilterEmptyCopy(generateSession.feedFilter()).title}
-                                                    message={taskFilterEmptyCopy(generateSession.feedFilter()).message}
-                                                />
-                                            </Show>
-                                        )}
-                                    >
-                                        <For each={taskIds()}>
-                                            {taskId => (
-                                                <TaskItem
-                                                    selected={taskId === generateSession.state.selectedTaskId}
-                                                    task={taskById().get(taskId)!}
-                                                    thumbnailOnly={panel.isCollapsed()}
-                                                    onSelect={() => generateSession.selectTask(taskId)}
-                                                    onFlagChange={flag => flagMutation.mutate({
-                                                        taskIds: [taskId],
-                                                        flag,
-                                                    })}
-                                                    flagPending={flagMutation.isPending}
-                                                />
-                                            )}
+                                    </Show>
+
+                                    <Show when={taskFeedQuery.isFetchingNextPage}>
+                                        <For each={nextPageSkeletonRows}>
+                                            {() => <TaskItemSkeleton thumbnailOnly={collapsed()} />}
                                         </For>
                                     </Show>
-
-                                    <Show when={taskFeedQuery.isError && !panel.isCollapsed()}>
-                                        <StatusMessage
-                                            kind='load-error'
-                                            size='compact'
-                                            message={t('task.loadFailed')}
-                                            onRetry={() => void taskFeedQuery.refetch()}
+                                    <Show when={taskFeedQuery.hasNextPage && !taskFeedQuery.isError}>
+                                        <div
+                                            ref={loadOnScroll.setTrigger}
+                                            class='h-px'
                                         />
                                     </Show>
-                                </Show>
-
-                                <Show when={taskFeedQuery.isFetchingNextPage}>
-                                    <For each={nextPageSkeletonRows}>
-                                        {() => <TaskItemSkeleton thumbnailOnly={panel.isCollapsed()} />}
-                                    </For>
-                                </Show>
-                                <Show when={taskFeedQuery.hasNextPage && !taskFeedQuery.isError}>
-                                    <div
-                                        ref={loadOnScroll.setTrigger}
-                                        class='h-px'
-                                    />
-                                </Show>
-                            </Loading.Swap>
-                        </PanelContent>
+                                </Loading.Swap>
+                            </PanelContent>
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }}
         </Panel>
     )
 }
 
-/* 收合時放不下 StatusMessage：在第一張縮圖的位置放同尺寸虛線方塊，icon 依原因，完整文案放在提示 */
 function CollapsedEmpty(props: { filter: TaskFeedFilter }) {
     const copy = () => taskFilterEmptyCopy(props.filter)
     const icon = { size: 22, strokeWidth: 1.6 }

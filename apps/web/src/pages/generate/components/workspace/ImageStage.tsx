@@ -6,7 +6,7 @@ import { Loading } from '#/components/base/Loading'
 import { StatusMessage } from '#/components/base/StatusMessage'
 import { resolveImageUrl } from '#/data/image/image.api'
 import { t } from '#/lib/i18n'
-import { createHotkeys } from '#/lib/keyboard'
+import { createHotkeys } from '#/lib/interaction'
 import { theme } from '#/lib/theme'
 import { mergeClasses } from '#/utils/style'
 

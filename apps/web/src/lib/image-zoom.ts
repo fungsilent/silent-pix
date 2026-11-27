@@ -1,5 +1,7 @@
 import { createEffect, createSignal, onCleanup } from 'solid-js'
 
+import { createPinch } from '#/lib/interaction'
+
 export type Offset = {
     x: number
     y: number
@@ -158,6 +160,25 @@ export function createImageZoom() {
         onCleanup(() => observer.disconnect())
     })
 
+    const pinch = createPinch({
+        onStart: () => {
+            dragOrigin = undefined
+            setDragging(false)
+        },
+        onPinch: (scale, center) => {
+            const element = viewportRef()
+            if (!element) return
+
+            const rect = element.getBoundingClientRect()
+            const next = percent() * scale
+            pointerMoved = true
+            applyZoom(next <= fitPercent() ? undefined : next, {
+                x: center.x - rect.left - rect.width / 2,
+                y: center.y - rect.top - rect.height / 2,
+            })
+        },
+    })
+
     return {
         canZoomIn: () => percent() < maxPercent,
         canZoomOut: () => zoomPercent() !== undefined,
@@ -203,7 +224,7 @@ export function createImageZoom() {
         },
 
         onPointerMove: (event: PointerEvent) => {
-            if (!dragOrigin) return
+            if (!dragOrigin || pinch.active()) return
 
             const shiftX = event.clientX - dragOrigin.x
             const shiftY = event.clientY - dragOrigin.y
@@ -217,6 +238,14 @@ export function createImageZoom() {
                 y: dragOrigin.offset.y + shiftY,
             }))
         },
+
+        /* 捏合縮放：接在容器上，兩指落在圖片外也算 */
+        onPinchDown: (event: PointerEvent) => {
+            if (event.pointerType === 'touch' && event.isPrimary) pointerMoved = false
+            pinch.onPointerDown(event)
+        },
+        onPinchMove: pinch.onPointerMove,
+        onPinchUp: pinch.onPointerUp,
 
         onWheel: (event: WheelEvent) => {
             event.preventDefault()

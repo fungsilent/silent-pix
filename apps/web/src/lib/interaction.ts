@@ -82,3 +82,47 @@ export function createHotkeys(bindings: readonly Hotkey[], enabled: () => boolea
         }
     })
 }
+
+type Point = { x: number, y: number }
+
+export function createPinch(options: {
+    onStart?: () => void
+    onPinch: (scale: number, center: Point) => void
+}) {
+    const touches = new Map<number, Point>()
+    let lastDistance: number | undefined
+    const distance = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y)
+
+    return {
+        active: () => lastDistance !== undefined,
+
+        onPointerDown: (event: PointerEvent) => {
+            if (event.pointerType !== 'touch') return
+
+            touches.set(event.pointerId, { x: event.clientX, y: event.clientY })
+            if (touches.size === 2) {
+                const [a, b] = [...touches.values()] as [Point, Point]
+                lastDistance = distance(a, b)
+                options.onStart?.()
+            }
+        },
+
+        onPointerMove: (event: PointerEvent) => {
+            if (!touches.has(event.pointerId)) return
+
+            touches.set(event.pointerId, { x: event.clientX, y: event.clientY })
+            if (lastDistance === undefined || touches.size !== 2) return
+
+            const [a, b] = [...touches.values()] as [Point, Point]
+            const next = distance(a, b)
+            const scale = next / lastDistance
+            lastDistance = next
+            options.onPinch(scale, { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 })
+        },
+
+        onPointerUp: (event: PointerEvent) => {
+            touches.delete(event.pointerId)
+            if (touches.size < 2) lastDistance = undefined
+        },
+    }
+}

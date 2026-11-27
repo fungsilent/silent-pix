@@ -14,6 +14,7 @@ type TaskRailProps = {
     toggle?: JSX.Element
     gridActive: boolean
     onFilterChange: (taskFlags: TaskApi.TaskFilterFlag[] | undefined) => void
+    onNewDraft?: (() => void) | undefined
 }
 
 export function TaskRail(props: TaskRailProps) {
@@ -29,7 +30,10 @@ export function TaskRail(props: TaskRailProps) {
                     variant='ghost'
                     title={t('task.newDraft')}
                     classes={{ root: 'size-7 shrink-0 p-0' }}
-                    onClick={() => generateSession.startNewDraft()}
+                    onClick={() => {
+                        generateSession.startNewDraft()
+                        props.onNewDraft?.()
+                    }}
                 >
                     <SquarePen
                         size={15}

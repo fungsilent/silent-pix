@@ -7,7 +7,6 @@ import { mergeClasses } from '#/utils/style'
 
 const size = {
     header: 36,
-    bar: 50,
     peek: 56,
     radius: 14,
 }
@@ -42,7 +41,6 @@ export function MobileTaskView() {
             class='relative overflow-clip rounded-lg border border-line-subtle bg-stage'
             style={{
                 '--mobile-header': `${size.header}px`,
-                '--mobile-bar': `${size.bar}px`,
                 '--mobile-peek': `${size.peek}px`,
                 '--mobile-radius': `${size.radius}px`,
                 '--mobile-stage': `${stageHeight()}px`,
@@ -58,11 +56,11 @@ export function MobileTaskView() {
             />
             <div
                 ref={element => { sheet = element }}
-                class='relative z-0 mt-[calc(var(--mobile-stage)-var(--mobile-peek)-var(--mobile-radius))] min-h-[calc(100dvh-var(--mobile-header)-var(--mobile-bar)-var(--mobile-peek))] rounded-t-(--mobile-radius) bg-surface pt-1'
+                class='relative z-0 mt-[calc(var(--mobile-stage)-var(--mobile-peek)-var(--mobile-radius))] min-h-[calc(100dvh-var(--mobile-header)-var(--mobile-peek))] rounded-t-(--mobile-radius) bg-surface pt-1'
             >
                 <MobilePrompt />
                 <div class='mx-4 my-1 border-t border-line-subtle' />
-                <div class='flex flex-col gap-3 px-4 pt-3 pb-5'>
+                <div class='flex flex-col gap-3 px-4 pt-3 pb-[72px]'>
                     <GenerateTaskDetail bare />
                 </div>
             </div>
