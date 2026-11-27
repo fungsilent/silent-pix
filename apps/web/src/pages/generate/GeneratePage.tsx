@@ -87,7 +87,7 @@ function GenerateMobileLayout(props: GenerateLayoutProps) {
 
     return (
         <>
-            <MobileTaskView />
+            <MobileTaskView inert={tasksOpen()} />
             <div
                 data-scroll-lock={tasksOpen() ? '' : undefined}
                 inert={!tasksOpen()}

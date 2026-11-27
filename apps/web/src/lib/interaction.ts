@@ -92,6 +92,10 @@ export function createPinch(options: {
     const touches = new Map<number, Point>()
     let lastDistance: number | undefined
     const distance = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y)
+    const resetBaseline = () => {
+        const [a, b] = [...touches.values()]
+        lastDistance = touches.size === 2 ? distance(a!, b!) : undefined
+    }
 
     return {
         active: () => lastDistance !== undefined,
@@ -100,11 +104,8 @@ export function createPinch(options: {
             if (event.pointerType !== 'touch') return
 
             touches.set(event.pointerId, { x: event.clientX, y: event.clientY })
-            if (touches.size === 2) {
-                const [a, b] = [...touches.values()] as [Point, Point]
-                lastDistance = distance(a, b)
-                options.onStart?.()
-            }
+            resetBaseline()
+            if (touches.size === 2) options.onStart?.()
         },
 
         onPointerMove: (event: PointerEvent) => {
@@ -122,7 +123,7 @@ export function createPinch(options: {
 
         onPointerUp: (event: PointerEvent) => {
             touches.delete(event.pointerId)
-            if (touches.size < 2) lastDistance = undefined
+            resetBaseline()
         },
     }
 }

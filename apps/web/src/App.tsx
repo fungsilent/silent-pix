@@ -1,7 +1,7 @@
 import { MultiProvider } from '@solid-primitives/context'
 import { HashRouter, Navigate, Route, Router } from '@solidjs/router'
 import { useQueryClient } from '@tanstack/solid-query'
-import { createEffect, onCleanup, onMount } from 'solid-js'
+import { onCleanup, onMount } from 'solid-js'
 
 import { startServerEvents } from '#/app/server-events'
 import { Header } from '#/components/Header'
@@ -67,12 +67,11 @@ function AppLayout(props: RouteSectionProps) {
         if (platform.endpoint) onCleanup(startServerEvents(queryClient))
     })
 
-    createEffect(() => {
-        document.documentElement.style.overflow = overlayStore.isActive() ? 'hidden' : ''
-    })
-
     return (
-        <main class='flex h-dvh flex-col overflow-hidden bg-shell text-fg has-[[data-page-scroll]]:h-auto has-[[data-page-scroll]]:min-h-dvh has-[[data-page-scroll]]:overflow-visible'>
+        <main
+            data-scroll-lock={overlayStore.isActive() ? '' : undefined}
+            class='flex h-dvh flex-col overflow-hidden bg-shell text-fg has-[[data-page-scroll]]:h-auto has-[[data-page-scroll]]:min-h-dvh has-[[data-page-scroll]]:overflow-visible'
+        >
             <Header />
             <div class='flex min-h-0 flex-1 flex-col px-1 pb-1'>
                 <MultiProvider

@@ -11,7 +11,7 @@ const size = {
     radius: 14,
 }
 
-export function MobileTaskView() {
+export function MobileTaskView(props: { inert: boolean }) {
     let card: HTMLDivElement | undefined
     let sheet: HTMLDivElement | undefined
     const [covered, setCovered] = createSignal(0)
@@ -38,6 +38,7 @@ export function MobileTaskView() {
         <div
             ref={element => { card = element }}
             data-page-scroll
+            inert={props.inert}
             class='relative overflow-clip rounded-lg border border-line-subtle bg-stage'
             style={{
                 '--mobile-header': `${size.header}px`,
