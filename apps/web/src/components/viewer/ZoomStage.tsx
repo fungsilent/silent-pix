@@ -56,7 +56,7 @@ export function ZoomStage(props: ZoomStageProps) {
                 {(source, index) => (
                     <img
                         class={mergeClasses(
-                            'absolute max-w-none select-none',
+                            'absolute max-w-none touch-none select-none',
                             index() === props.selectedIndex && !failedUrls().has(source.url)
                                 ? 'opacity-100'
                                 : 'pointer-events-none opacity-0',
