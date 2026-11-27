@@ -30,6 +30,7 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 <Rule component="image-viewer" id="pan-minimap">放大到超出可視範圍時游標變 grab 可平移，右下出現 minimap（長邊 96px、`bg-stage-overlay-muted`），框出可見範圍，可點擊或拖曳跳轉。</Rule>
 <Rule component="image-viewer" id="load-error">圖片載入失敗時隱藏該圖，置中放 L0 StatusMessage regular 的圖片無法顯示（image-off 圖示＋「Image unavailable」、不放按鈕），不出 minimap。viewer 底固定是暗的，圖示方塊改用 glass（`border-stage-line bg-stage-control`），圖示與文字用 `text-stage-overlay-text`，兩種主題都讀得到；同樣維持中性。</Rule>
 <Rule component="image-viewer" id="zoom-controls">左下是 zoom-controls。</Rule>
+<Rule component="image-viewer" id="touch">觸控時雙指捏合縮放，以兩指中點為錨點；縮到 Fit 以下就回到 Fit，上限 800%，與滾輪縮放相同。放大後單指拖曳平移。捏合不算點擊，放開後不關閉 viewer。</Rule>
 </ul>
 
 </Rules>

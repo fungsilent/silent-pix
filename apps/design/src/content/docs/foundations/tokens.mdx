@@ -28,7 +28,7 @@ Silent Pix 是桌面 App，瀏覽器版用的也是同一套介面。所有畫�
 <Rule component="token-app-model" id="open-files">檔案用桌面習慣開啟：開檔按鈕，或把檔案拖進視窗；拖曳經過時，整個接收區顯示接收框。</Rule>
 <Rule component="token-app-model" id="desktop-first">設計新元件或新頁面時，先想桌面 App 會怎麼做；和網頁慣例衝突時，以桌面 App 為準。</Rule>
 <Rule component="token-app-model" id="touch">觸控裝置（沒有 hover 能力，與視窗寬度無關）不能依賴 hover、Ctrl／⌘＋單擊或拖曳框選：只在 hover 時出現的控制項改為常駐，多選改用長按進入勾選模式。其餘桌面規則照舊。</Rule>
-<Rule component="token-app-model" id="mobile">視窗寬度 &lt; 640px 時，有手機版面的頁面改用手機版面（目前只有 [Generate · Mobile](/pages/generate-mobile/)）：一次顯示一個全螢幕畫面、主要操作固定在底部列。需要長內容的畫面由瀏覽器整頁捲動：Header 黏在頂端、底部列黏在底部，捲動時手機瀏覽器可以收起網址列；不在頁內另做捲動區，也不觸發下拉重新整理。沒有手機版面的頁面維持桌面版面，視窗不夠寬時水平捲動。</Rule>
+<Rule component="token-app-model" id="mobile">視窗寬度 &lt; 640px 時，有手機版面的頁面改用手機版面（目前只有 [Generate · Mobile](/pages/generate-mobile/)）：一次顯示一個全螢幕畫面，主要操作放在浮在內容上的底部膠囊。需要長內容的畫面由瀏覽器整頁捲動：Header 黏在頂端、底部膠囊固定浮在視窗底部，捲動時手機瀏覽器可以收起網址列；不在頁內另做捲動區，也不觸發下拉重新整理。沒有手機版面的頁面維持桌面版面，視窗不夠寬時水平捲動。手機版面以 360px 寬為下限（一般尺寸的 Android 旗艦機），更窄時不保證排得下。</Rule>
 </ul>
 
 </Rules>

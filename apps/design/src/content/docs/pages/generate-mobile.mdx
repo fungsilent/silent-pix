@@ -1,6 +1,6 @@
 ---
 title: Generate · Mobile
-description: 窄視窗（手機）的 Generate：一頁由上而下是圖片、Prompt、Config，Task 清單與 Browser 全螢幕開啟，底部固定一列主要操作。
+description: 窄視窗（手機）的 Generate：一頁由上而下是圖片、Prompt、Config，Task 清單與 Browser 從左側滑出蓋在上面，底部固定一列主要操作。
 sidebar:
     order: 2
 ---
@@ -31,7 +31,7 @@ import Case from '@silent-pix/blueprint/components/Case.astro'
 <ul class="ds-rules">
 <Rule component="generate-mobile-task" id="order">由上而下依序是圖片（Image stage）、Prompt、Config（桌面 Task detail 的全部內容：Info、參考圖、Config、LoRA），不分 tab；Prompt 與 Config 之間用一條 `border-line-subtle` 分隔。</Rule>
 <Rule component="generate-mobile-task" id="stage">圖片區黏在 Header 下方不跟著捲，高度依目前圖片的比例（見下方 fit），面板從圖片區下緣開始；圖片控制（放大、比較、設為參考圖）照桌面版放在右上。</Rule>
-<Rule component="generate-mobile-task" id="sheet">內容面板 `bg-surface`、頂端 14px 圓角，沒有陰影、沒有把手（面板不能拖曳）。往上捲時面板蓋過圖片；面板頂端到達離卡片頂端 56px 處後，露出條停住，內容從露出條下面捲過；分界一直保持面板的 14px 圓角（圓角外側露出圖片）。整個過程只有一個捲動（瀏覽器的整頁捲動，見 App model 的 mobile），面板內不另外捲動；內容較短時面板底部至少到底部列上緣，讓面板一定能捲到停靠位置。</Rule>
+<Rule component="generate-mobile-task" id="sheet">內容面板 `bg-surface`、頂端 14px 圓角，沒有陰影、沒有把手（面板不能拖曳）。往上捲時面板蓋過圖片；面板頂端到達離卡片頂端 56px 處後，露出條停住，內容從露出條下面捲過；分界一直保持面板的 14px 圓角（圓角外側露出圖片）。整個過程只有一個捲動（瀏覽器的整頁捲動，見 App model 的 mobile），面板內不另外捲動；內容較短時面板至少延伸到視窗底部，讓面板一定能捲到停靠位置；底部留白見 generate-mobile-bar 的 clearance。</Rule>
 <Rule component="generate-mobile-task" id="peek">露出的 56px 是圖片右上控制列的上下置中位置：控制列上方留白 12px、按鈕高 32px，下方再留 12px。露出的是圖片本身（填滿露出條的圖片中段，見下方「圖片隨捲動填滿」），不另做縮圖列；控制列在露出時照常可按。點露出區的其他地方捲回最上方，圖片完整顯示。</Rule>
 </ul>
 
@@ -80,28 +80,29 @@ Task 頁內的 Prompt 區：Positive 與 Negative 上下排，editor 照內容�
 
 ## 底部列
 
-固定在畫面底部的主要操作；Browser 有勾選時換成批次操作。
+浮在內容上的膠囊，放主要操作；Browser 有勾選時換成批次操作。
 
 <Gallery min="480px">
-<State component="generate-mobile-bar" state="default" label="default" frame="w-[390px]" />
-<State component="generate-mobile-bar" state="submitting" label="submitting" frame="w-[390px]" />
-<State component="generate-mobile-bar" state="tasks" label="Tasks open" frame="w-[390px]" />
-<State component="generate-mobile-bar" state="selection" label="browser selection · 3 checked" frame="w-[390px]" />
+<State component="generate-mobile-bar" state="default" label="default" frame="w-[390px] bg-surface px-3 pt-6 pb-3" />
+<State component="generate-mobile-bar" state="submitting" label="submitting" frame="w-[390px] bg-surface px-3 pt-6 pb-3" />
+<State component="generate-mobile-bar" state="tasks" label="Tasks open" frame="w-[390px] bg-surface px-3 pt-6 pb-3" />
+<State component="generate-mobile-bar" state="selection" label="browser selection · 3 checked" frame="w-[390px] bg-surface px-3 pt-6 pb-3" />
 </Gallery>
 
 <Rules component="generate-mobile-bar">
 
 <ul class="ds-rules">
-<Rule component="generate-mobile-bar" id="layout">`bg-shell` 底，左右留 4px（與卡片間距相同）、上 6px、下 8px，按鈕間距 6px。按鈕高 36px、圓角 6px、13px 字、16px icon。</Rule>
-<Rule component="generate-mobile-bar" id="default">左側 Tasks（outline，寬度依文字）開關 Task 清單：開著時用 selected 樣式，再按一次回到 Task 頁。右側 Generate（accent solid）吃掉剩餘寬度，Task 頁與 Task 清單都按得到；送出中改「Creating...」並停用，停用與 Issue 的規則同桌面版 prompt-panel。</Rule>
-<Rule component="generate-mobile-bar" id="selection">Browser 有勾選時整列換成批次操作：左側「✕ N selected」（按下清空勾選、回到原本的列）吃掉剩餘寬度，右側依序 Pin、Discard（elevated，44px 寬）、刪除（danger soft）。各動作與確認 dialog 同桌面版 Task browser 的批次操作。勾選數只顯示在這裡，手機版工具列不放 selected chip。</Rule>
+<Rule component="generate-mobile-bar" id="layout">一顆浮動膠囊：寬度依內容、水平置中，離視窗底部 12px（再加裝置的安全區），不佔版面，內容從它後面捲過。不透明 `bg-elevated`、`border-line` 細框、popover 陰影，內距 4px。按鈕高 32px、全圓角、13px 字、16px icon，整顆高 42px。Tasks 與 Generate 之間是 20px 高的分隔線，兩側各留 8px。</Rule>
+<Rule component="generate-mobile-bar" id="clearance">膠囊下方的內容要捲得出來：Task 頁面板、Task 清單與 Browser 的捲動內容底部各留 72px（膠囊 42px＋底距 12px＋18px 間隙），最後一行停在膠囊上方。</Rule>
+<Rule component="generate-mobile-bar" id="default">左側 Tasks（ghost，寬度依文字）開關 Task 清單：開著時用 selected 樣式，再按一次滑回、露出原本的 Task 頁。右側 Generate（accent solid，左右內距 20px），Task 頁與 Task 清單都按得到；送出中改「Creating...」並停用，停用與 Issue 的規則同桌面版 prompt-panel。</Rule>
+<Rule component="generate-mobile-bar" id="selection">Browser 有勾選時整列換成批次操作：左側「✕ N selected」（按下清空勾選、回到原本的列），分隔線後依序 Pin、Discard（ghost，44px 寬）、刪除（danger soft）。膠囊形狀與位置不變，只換內容。各動作與確認 dialog 同桌面版 Task browser 的批次操作。勾選數只顯示在這裡，手機版工具列不放 selected chip。</Rule>
 </ul>
 
 </Rules>
 
 ## Task 清單
 
-Tasks 開啟時的全螢幕清單：與桌面版相同，只是清單欄撐滿寬度。
+Tasks 開啟時從左側滑出、蓋住 Task 頁的清單：與桌面版相同，只是清單欄撐滿寬度。
 
 <Gallery min="480px">
 <State component="task-list" state="mobile" label="mobile · full width" frame="flex h-[640px] w-[382px] overflow-hidden rounded-lg border border-line-subtle bg-surface" />
@@ -112,8 +113,8 @@ Tasks 開啟時的全螢幕清單：與桌面版相同，只是清單欄撐滿�
 <Rules component="task-list" part="mobile">
 
 <ul class="ds-rules">
-<Rule component="task-list" id="mobile-width">40px 直條不變（篩選、Grid view、New draft），清單欄撐滿剩餘寬度；收合鈕照常可用。</Rule>
-<Rule component="task-list" id="mobile-select">點列選取 task 後關閉清單、回到 Task 頁顯示它；New draft 同樣回到 Task 頁。</Rule>
+<Rule component="task-list" id="mobile-width">40px 直條（New draft、Grid view、篩選），清單欄撐滿剩餘寬度。沒有收合鈕，清單一直是展開的樣子；直條頂端的 48px 照樣保留，與搜尋列對齊。</Rule>
+<Rule component="task-list" id="mobile-select">點列選取 task 後清單滑回、Task 頁從頂端顯示它；New draft 同樣關閉清單並回到頂端。只按 Tasks 關閉時保留原本的捲動位置。</Rule>
 <Rule component="task-item" id="touch">觸控裝置上 Pin／Discard 鈕常駐在名稱那一行右側（不等 hover），名稱一直讓位；點一下就改該筆 flag，不必經過勾選。</Rule>
 </ul>
 
@@ -145,27 +146,40 @@ Tasks 開啟時的全螢幕清單：與桌面版相同，只是清單欄撐滿�
 
 <Screen frame="relative flex h-[844px] w-[390px] flex-col overflow-hidden rounded-xl border border-line bg-canvas text-fg">
     <Fixed component="app-header" state="web" />
-    <div class="flex min-h-0 flex-1 flex-col overflow-hidden bg-shell px-1">
+    <div class="flex min-h-0 flex-1 flex-col overflow-hidden bg-shell px-1 pb-1">
         <Switch name="view">
             <Case state="task" label="task">
                 <Slot name="task" component="generate-mobile-task" states="top,prompt,gutter,config" />
             </Case>
+            <Case state="tasks-sliding" label="task list · sliding in">
+                <div class="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+                    <Fixed component="generate-mobile-task" state="config" />
+                    <div class="absolute inset-0 flex -translate-x-[40%] overflow-hidden rounded-lg border border-line-subtle"><Fixed component="task-list" state="mobile" /></div>
+                </div>
+            </Case>
             <Case state="tasks" label="task list">
-                <div class="flex min-h-0 flex-1 overflow-hidden rounded-lg border border-line-subtle"><Fixed component="task-list" state="mobile" /></div>
+                <div class="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+                    <Fixed component="generate-mobile-task" state="config" />
+                    <div class="absolute inset-0 flex overflow-hidden rounded-lg border border-line-subtle"><Fixed component="task-list" state="mobile" /></div>
+                </div>
             </Case>
             <Case state="browser" label="task browser">
-                <div class="flex min-h-0 flex-1 overflow-hidden rounded-lg border border-line-subtle"><Slot name="browser" component="task-browser" states="mobile,mobile-selection" /></div>
+                <div class="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+                    <Fixed component="generate-mobile-task" state="config" />
+                    <div class="absolute inset-0 flex overflow-hidden rounded-lg border border-line-subtle"><Slot name="browser" component="task-browser" states="mobile,mobile-selection" /></div>
+                </div>
             </Case>
         </Switch>
     </div>
-    <Slot name="bar" component="generate-mobile-bar" states="default,submitting,tasks,selection" />
+    <div class="absolute inset-x-3 bottom-3 z-30"><Slot name="bar" component="generate-mobile-bar" states="default,submitting,tasks,selection" /></div>
 </Screen>
 
 <Rules component="generate-mobile-screen">
 
 <ul class="ds-rules">
 <Rule component="generate-mobile-screen" id="breakpoint">視窗寬度 &lt; 640px 時 Generate 改用這個版面（見 App model 的手機例外）；640px 以上用桌面版的三欄與窄視窗收合規則。</Rule>
-<Rule component="generate-mobile-screen" id="views">Header 下方一次只顯示一個畫面：Task 頁（預設）、Task 清單或 Task browser，都是一張卡片；Task 頁整頁捲動，Task 清單與 Browser 填滿畫面、在卡片內捲動，切回 Task 頁時回到原本的捲動位置；Tasks 鈕開關清單，清單直條的 Grid view 切換清單與 Browser。底部列一直在，Generate 在每個畫面都按得到。</Rule>
+<Rule component="generate-mobile-screen" id="views">Task 頁是底層、一直在；Task 清單與 Task browser 是蓋在它上面的一張卡片，從 Header 下方延伸到視窗底部（底部膠囊浮在它上面），在卡片內捲動。Tasks 鈕開關清單，清單直條的 Grid view 在同一張卡片裡切換清單與 Browser（不再滑動）。Task 頁不因開關清單重建或捲動，關閉後就是原本的位置與編輯內容。底部列一直在，Generate 在每個畫面都按得到。</Rule>
+<Rule component="generate-mobile-screen" id="slide">清單卡片從左側滑入、滑回左側離開，200ms ease-out，Header 與底部膠囊不動、不被蓋住。沒有遮罩與陰影，卡片自己的邊框就是分界。開著時整頁不能捲，背後的 Task 頁不跟著動。系統要求減少動態效果時直接出現、消失。</Rule>
 <Rule component="generate-mobile-screen" id="overlays">Image viewer、審片、mask editor、LoRA／參考圖 picker 與確認 dialog 照桌面版的疊加層規則蓋住整個視窗（Web 沒有標題列，見 App 的疊加層區域）。</Rule>
 </ul>
 
