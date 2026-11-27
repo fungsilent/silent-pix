@@ -444,6 +444,19 @@
     box-sizing: border-box;
 }
 
+.mobile-sheet-edge::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 100% 100%, transparent calc(var(--mobile-radius) - 1px), var(--color-line-subtle) calc(var(--mobile-radius) - 1px) var(--mobile-radius), transparent var(--mobile-radius)) left top / var(--mobile-radius) var(--mobile-radius) no-repeat,
+        radial-gradient(circle at 0 100%, transparent calc(var(--mobile-radius) - 1px), var(--color-line-subtle) calc(var(--mobile-radius) - 1px) var(--mobile-radius), transparent var(--mobile-radius)) right top / var(--mobile-radius) var(--mobile-radius) no-repeat,
+        linear-gradient(var(--color-line-subtle) 0 0) top center / calc(100% - 2 * var(--mobile-radius)) 1px no-repeat,
+        radial-gradient(circle at 100% 100%, transparent calc(var(--mobile-radius) - 1px), var(--color-surface) calc(var(--mobile-radius) - 1px) var(--mobile-radius), transparent var(--mobile-radius)) left top / var(--mobile-radius) var(--mobile-radius) no-repeat,
+        radial-gradient(circle at 0 100%, transparent calc(var(--mobile-radius) - 1px), var(--color-surface) calc(var(--mobile-radius) - 1px) var(--mobile-radius), transparent var(--mobile-radius)) right top / var(--mobile-radius) var(--mobile-radius) no-repeat,
+        linear-gradient(var(--color-surface) 0 0) top center / calc(100% - 2 * var(--mobile-radius)) 1px no-repeat;
+}
+
 .mobile-peek-mask {
     mask:
         linear-gradient(#000 0 0) top / 100% var(--mobile-peek) no-repeat,

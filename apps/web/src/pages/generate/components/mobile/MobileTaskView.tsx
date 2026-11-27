@@ -1,4 +1,4 @@
-import { createSignal, onCleanup, onMount } from 'solid-js'
+import { createSignal, onCleanup, onMount, Show } from 'solid-js'
 
 import { GenerateTaskDetail } from '#/pages/generate/components/config/GenerateTaskDetail'
 import { MobilePrompt } from '#/pages/generate/components/mobile/MobilePrompt'
@@ -8,7 +8,8 @@ import { mergeClasses } from '#/utils/style'
 const size = {
     header: 36,
     peek: 56,
-    radius: 14,
+    radius: 8,
+    gap: 4,
 }
 
 export function MobileTaskView(props: { inert: boolean }) {
@@ -39,29 +40,36 @@ export function MobileTaskView(props: { inert: boolean }) {
             ref={element => { card = element }}
             data-page-scroll
             inert={props.inert}
-            class='relative overflow-clip rounded-lg border border-line-subtle bg-stage'
+            class='relative'
             style={{
                 '--mobile-header': `${size.header}px`,
                 '--mobile-peek': `${size.peek}px`,
                 '--mobile-radius': `${size.radius}px`,
+                '--mobile-gap': `${size.gap}px`,
                 '--mobile-stage': `${stageHeight()}px`,
             }}
         >
             <GenerateStage
                 class={mergeClasses(
-                    'sticky top-(--mobile-header) mb-[calc(var(--mobile-peek)+var(--mobile-radius)-var(--mobile-stage))] min-h-0 flex-none rounded-none border-0',
+                    'sticky top-(--mobile-header) mb-[calc(var(--mobile-peek)+var(--mobile-radius)-var(--mobile-stage))] min-h-0 flex-none',
                     docked() && 'mobile-peek-mask z-20 [clip-path:inset(0_0_calc(100%-var(--mobile-peek)-var(--mobile-radius))_0)]',
                 )}
                 onSurfaceClick={covered() > 0 ? scrollToTop : undefined}
                 fit={{ covered: covered(), peek: size.peek }}
             />
+            <Show when={docked()}>
+                {/* 停靠後內容從圖片卡下面捲過：圓角外範圍填上背景色阻止內容卡露出 */}
+                <div class='pointer-events-none sticky top-(--mobile-header) z-[19] -mb-2 h-2 bg-shell' />
+                {/* 停靠後補畫內容卡的上框線與圓弧 */}
+                <div class='mobile-sheet-edge pointer-events-none sticky top-[calc(var(--mobile-header)+var(--mobile-peek))] z-[21] -mb-2 h-2' />
+            </Show>
             <div
                 ref={element => { sheet = element }}
-                class='relative z-0 mt-[calc(var(--mobile-stage)-var(--mobile-peek)-2*var(--mobile-radius))] min-h-[calc(100dvh-var(--mobile-header)-var(--mobile-peek))] rounded-t-(--mobile-radius) bg-surface pt-1'
+                class='relative z-0 mt-[calc(var(--mobile-stage)-var(--mobile-peek)-var(--mobile-radius)+var(--mobile-gap))] min-h-[calc(100dvh-var(--mobile-header)-var(--mobile-peek))] mb-[68px] rounded-(--mobile-radius) border border-line-subtle bg-surface pt-1'
             >
                 <MobilePrompt />
                 <div class='mx-4 my-1 border-t border-line-subtle' />
-                <div class='flex flex-col gap-3 px-4 pt-3 pb-[72px]'>
+                <div class='flex flex-col gap-3 px-4 pt-3 pb-5'>
                     <GenerateTaskDetail bare />
                 </div>
             </div>
