@@ -66,7 +66,7 @@ Compare 頁的整個工作區：Bar、可縮放的目前圖片、底部 compare-
 <Rules component="image-detail">
 
 <ul class="ds-rules">
-<Rule component="image-detail" id="same-as-task-detail">寬度、收合與標題列同 task-detail（展開 380px、收合 40px、標題「Detail」），且與 task-detail 共用同一個收合狀態：在兩者之間切換時維持原本的展開或收合；內容間距 `gap-3 px-4 pb-5`，區塊之間用細分隔線。</Rule>
+<Rule component="image-detail" id="same-as-task-detail">寬度、收合與標題列同 task-detail（展開寬度固定、與 task-detail 相同、收合 40px、標題「Detail」），且與 task-detail 共用同一個收合狀態：在兩者之間切換時維持原本的展開或收合；內容間距 `gap-3 px-4 pb-5`，區塊之間用細分隔線。</Rule>
 <Rule component="image-detail" id="content">由上而下：ID（mono 11px）與 Created；IMAGE 區 160px 高 `bg-active` 預覽框，圖片等比置中；CONFIG 區 Width｜Height 兩欄，固定停用。</Rule>
 </ul>
 
@@ -95,7 +95,7 @@ Compare 頁的整個工作區：Bar、可縮放的目前圖片、底部 compare-
 <Rule component="compare-image-picker" id="grid">格狀與 task-browser 相同：依滑桿的欄數 `repeat(<欄數>, 1fr)` 撐滿寬度、間距 12px、內距 8px，捲動區預留捲軸位置。卡片框與 task-card 相同（`p-2 rounded-lg`、縮圖下 `mt-2` 一列 28px），hover `bg-hover` 並浮出右上 glass 勾選鈕；選中 `border-accent bg-accent/20 ring-2 ring-accent/40`，右上換成 accent 實心的選取序號。</Rule>
 <Rule component="compare-image-picker" id="already-compared">已在比較中的圖不可選：不顯示勾選鈕，整張壓 `bg-stage-overlay-muted` 並置中大 Check；此時 discard 不再另外壓暗。</Rule>
 <Rule component="compare-image-picker" id="flag-state">Flag 只顯示狀態：左上角摺 26px（pin／discard 色），discard 另壓 `bg-discard-dim`；picker 內沒有 flag 操作。</Rule>
-<Rule component="compare-image-picker" id="source-label">卡片下方一列：左側來源（task 名稱 #n 或 input，12px medium；沒有名稱時為 task ID 前 8 碼並用等寬字），右側 `in`（`bg-info/18 text-info-fg`）／`out`（`bg-elevated text-fg-muted`）小標。</Rule>
+<Rule component="compare-image-picker" id="source-label">卡片下方一列：左側是 Image ID（12px muted Image 圖示＋前 8 碼，12px medium 等寬字；圖示表明這是圖片而不是 task 的 ID，同一張圖被多個 task 用到時也只有這一個 ID），右側 `in`（`bg-info/18 text-info-fg`）／`out`（`bg-elevated text-fg-muted`）小標。</Rule>
 <Rule component="compare-image-picker" id="loading-empty">首次載入以與卡片同框的骨架卡鋪滿兩列（方形縮圖＋名稱條＋小標條）；下一頁載入照 L0 Skeleton next-page。格狀區屬於大區塊，空狀態與載入失敗用 L0 StatusMessage regular、置中在格狀區：沒有圖是 icon 方塊（Images）＋「No images yet／Generated outputs and uploaded inputs will appear here.」，不放按鈕；讀取失敗是警告三角＋「Failed to load images.」＋ Retry。</Rule>
 <Rule component="compare-image-picker" id="next-page">捲到底自動載下一頁；下一頁失敗時在格狀尾端附加 L0 StatusMessage compact 載入失敗（muted「Failed to load more images.」+ Retry，不用紅字），已載入的卡片保留。</Rule>
 <Rule component="compare-image-picker" id="selection">有選取時工具列顯示與 task-browser 相同的「n selected ×」chip，× 清空選取；沒有選取時不顯示 chip。</Rule>
@@ -132,7 +132,7 @@ Compare 頁的整個工作區：Bar、可縮放的目前圖片、底部 compare-
 <Rules component="compare-screen">
 
 <ul class="ds-rules">
-<Rule component="compare-screen" id="columns">Header 之下兩欄：workspace 吃掉其餘寬度，右側面板 `border-l border-line`，展開 380px、收合 40px。</Rule>
+<Rule component="compare-screen" id="columns">Header 之下兩欄：workspace 吃掉其餘寬度，右側面板 `border-l border-line`，展開寬度固定（同 task-detail）、收合 40px。</Rule>
 <Rule component="compare-screen" id="detail-follows">右側面板跟著 workspace 目前選取的圖：task 產出用 Task detail 唯讀模式（不可編輯、無刪除鈕），其他圖用 Image detail；兩者外框、寬度與收合行為一致，切換時不跳動。</Rule>
 <Rule component="compare-screen" id="empty">沒有選取圖片時，工作區佔滿 Header 下方，包括清單為空或全部隱藏。清空後回到 Add images 引導，已有可見圖片時直接顯示上次選取。</Rule>
 <Rule component="compare-screen" id="narrow">視窗寬度 &lt; 980px 時隱藏右側面板，只留 workspace。</Rule>

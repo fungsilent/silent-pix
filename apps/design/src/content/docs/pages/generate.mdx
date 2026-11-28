@@ -279,7 +279,7 @@ Generate 與 Compare 頁右側的 task 詳細面板，由 task-info、reference-
 <Rules component="task-detail">
 
 <ul class="ds-rules">
-<Rule component="task-detail" id="panel">頁面右側的 Task 詳細面板：展開寬 380px（36 字元 ID 加上複製圖示能完整顯示的最小寬度）、`bg-surface`、左側 `border-line`。頂端是 48px Bar（左右內距 8px，標題「Detail」與收合鈕），下方內容可捲動、捲軸隱藏，內距左右 16px、底部 20px，區塊間距 12px。</Rule>
+<Rule component="task-detail" id="panel">頁面右側的 Task 詳細面板：展開寬度固定，由 ID 列撐出（見 L0 Panel width：36ch ID＋複製圖示＋與改名鈕同寬的一格），ID 不截斷；draft、loading、單張輸出時寬度不變、`bg-surface`、左側 `border-line`。頂端是 48px Bar（左右內距 8px，標題「Detail」與收合鈕），下方內容可捲動、捲軸隱藏，內距左右 16px、底部 20px，區塊間距 12px。</Rule>
 <Rule component="task-detail" id="order">內容順序固定：task-info → reference-image → task-config → task-lora，區塊之間以一條上下各留 4px 的 `border-line-subtle` 細線分隔；只有 task-info 不帶區塊標題。</Rule>
 <Rule component="task-detail" id="modes">兩種模式：Generate 用可編輯模式，Compare 用唯讀模式（read-only），只顯示所選輸出圖的 task，不能改名、刪除或修改設定。Generate 選中 task 時表單顯示它的設定、可直接修改（安靜的 reuse）；選中草稿時編輯的是草稿。</Rule>
 <Rule component="task-detail" id="draft">Draft 時 task-info 為 Draft、沒有參考圖、Seed 為 Random、沒有 LoRA；Workflow 預設選第一個可用的 workflow。</Rule>
@@ -296,26 +296,27 @@ Generate 與 Compare 頁右側的 task 詳細面板，由 task-info、reference-
 Task 詳細面板最上面的 identity 區：ID、名稱（inline 改名）、狀態、失敗原因、建立時間與刪除。
 
 <Gallery min="420px">
-<State component="task-info" state="done" label="existing task" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
-<State component="task-info" state="id-hover" label="ID · hover to copy" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
-<State component="task-info" state="id-copied" label="ID · copied" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
-<State component="task-info" state="editing" label="editing name" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
-<State component="task-info" state="rename-pending" label="rename pending" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
-<State component="task-info" state="failed" label="failed" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
-<State component="task-info" state="failed-details" label="failed · details open" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
-<State component="task-info" state="failed-unknown" label="failed · no reason recorded" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
-<State component="task-info" state="draft" label="draft" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
-<State component="task-info" state="draft-source" label="draft · from Metadata" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
-<State component="task-info" state="draft-source-details" label="draft · from Metadata · details open" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
-<State component="task-info" state="draft-task" label="draft · from a task" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
-<State component="task-info" state="loading" label="loading (cold)" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
-<State component="task-info" state="read-only" label="read-only · done" frame="w-[380px] max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="done" label="existing task" frame="w-min max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="id-hover" label="ID · hover to copy" frame="w-min max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="id-copied" label="ID · copied" frame="w-min max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="editing" label="editing name" frame="w-min max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="rename-pending" label="rename pending" frame="w-min max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="failed" label="failed" frame="w-min max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="failed-details" label="failed · details open" frame="w-min max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="failed-unknown" label="failed · no reason recorded" frame="w-min max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="draft" label="draft" frame="w-min max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="draft-source" label="draft · from Metadata" frame="w-min max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="draft-source-details" label="draft · from Metadata · details open" frame="w-min max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="draft-task" label="draft · from a task" frame="w-min max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="loading" label="loading (cold)" frame="w-min max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
+<State component="task-info" state="read-only" label="read-only · done" frame="w-min max-w-full overflow-hidden rounded-lg border border-line-subtle bg-surface px-4 py-5" />
 </Gallery>
 
 <Rules component="task-info">
 
 <ul class="ds-rules">
-<Rule component="task-info" id="rows">Task 詳細面板最上方的 identity 區，不帶區塊標題；列由上而下固定為 ID、Name、Status、（失敗原因）、Created、刪除鈕。標籤欄寬 74px，值欄可截斷；ID 用 mono 11px，Created 用 `fg-secondary`，日期與時間分成兩段、中間留 6px（同 task-card），不用逗號串成一串。</Rule>
+<Rule component="task-info" id="rows">Task 詳細面板最上方的 identity 區，不帶區塊標題；列由上而下固定為 ID、（Image）、Name、Status、（失敗原因）、Created、刪除鈕。標籤欄寬 74px，值欄可截斷；ID 與 Image 用 mono 11px，Created 用 `fg-secondary`，日期與時間分成兩段、中間留 6px（同 task-card），不用逗號串成一串。</Rule>
+<Rule component="task-info" id="image">Image 列是目前顯示那張圖的完整 Image ID：Generate 跟著 Stage 選中的輸出切換；標籤一律是「Image」；輸出多於一張時，ID（含複製圖示）後面接 muted「2/4」：放在與 Name 列改名鈕同一欄的 `w-7` 格內置中（間距同 Name 列 8px），與改名鈕上下對齊（第幾張／共幾張，`tabular-nums`，不在複製範圍內），只有一張時不顯示；ID 與張數都不截斷。Compare 唯讀模式是選中那張圖，不顯示張數。Draft、loading、沒有輸出時不顯示這一列。可點擊複製，規則同 ID。</Rule>
 <Rule component="task-info" id="id-copy">有 ID 時整個 ID 值可點擊複製完整 ID：hover 時值右側浮出 12px muted Copy 圖示，點擊後圖示換成 Check 約 1.5 秒再還原，不另外顯示訊息（同 metadata 複製回饋）；複製失敗走 Issue chip。唯讀模式同樣可複製；draft 與 loading 沒有 ID，不可點擊。</Rule>
 <Rule component="task-info" id="modes">可編輯模式（Generate）可改名與刪除；唯讀模式（Compare）名稱欄一律停用、不顯示鉛筆，也沒有刪除鈕。</Rule>
 <Rule component="task-info" id="rename">改名用 inline Editable：點名稱或鉛筆進入編輯，此時名稱 preview 與鉛筆一起消失，只剩帶 accent 外框與 ring 的輸入框；送出時去除前後空白，空字串代表清除名稱。改名送出中、draft、loading 時名稱欄停用。</Rule>
@@ -464,10 +465,10 @@ Task 詳細面板的 LoRA 區：已選 LoRA 的清單與 weight。
 <Rule component="generate-reference-picker" id="toolbar">工具列與 task-browser 相同：48px 高，左側 234px 搜尋（task name 或 task ID）＋選取 chip，最右縮圖大小滑桿（調欄數，規則同 task-browser，與 task-browser 分開記住）。</Rule>
 <Rule component="generate-reference-picker" id="grid">格狀與 task-browser 相同：依滑桿的欄數 `repeat(<欄數>, 1fr)` 撐滿寬度、間距 12px、內距 8px，捲動區預留捲軸位置。卡片框與 task-card 相同（`p-2 rounded-lg`、縮圖下 `mt-2` 一列 28px），hover `bg-hover` 並浮出右上 glass 勾選鈕；選中 `border-accent bg-accent/20 ring-2 ring-accent/40`，右上是 Check。</Rule>
 <Rule component="generate-reference-picker" id="flag-state">Flag 只顯示狀態：左上角摺 26px（pin／discard 色），discard 另壓 `bg-discard-dim`；picker 內沒有 flag 操作。</Rule>
-<Rule component="generate-reference-picker" id="source-label">卡片下方一列：左側來源（task 名稱 #n 或 input，12px medium；沒有名稱時為 task ID 前 8 碼並用等寬字），右側 `in`（`bg-info/18 text-info-fg`）／`out`（`bg-elevated text-fg-muted`）小標。</Rule>
+<Rule component="generate-reference-picker" id="source-label">卡片下方一列：左側是 Image ID（12px muted Image 圖示＋前 8 碼，12px medium 等寬字；圖示表明這是圖片而不是 task 的 ID，同一張圖被多個 task 用到時也只有這一個 ID），右側 `in`（`bg-info/18 text-info-fg`）／`out`（`bg-elevated text-fg-muted`）小標。</Rule>
 <Rule component="generate-reference-picker" id="loading-empty">首次載入以與卡片同框的骨架卡鋪滿兩列（方形縮圖＋名稱條＋小標條）；下一頁載入照 L0 Skeleton next-page。格狀區屬於大區塊，空狀態與載入失敗用 L0 StatusMessage regular、置中在格狀區：沒有圖是 icon 方塊（Images）＋「No images yet／Generated outputs and uploaded inputs will appear here.」，不放按鈕；讀取失敗是警告三角＋「Failed to load images.」＋ Retry。</Rule>
 <Rule component="generate-reference-picker" id="next-page">捲到底自動載下一頁；下一頁失敗時在格狀尾端附加 L0 StatusMessage compact 載入失敗（muted「Failed to load more images.」+ Retry，不用紅字），已載入的卡片保留。</Rule>
-<Rule component="generate-reference-picker" id="selection">選中後工具列的選取 chip 顯示 20px 小縮圖、來源與尺寸，右側 × 取消選取；沒有選取時不顯示 chip。</Rule>
+<Rule component="generate-reference-picker" id="selection">選中後工具列的選取 chip 顯示 20px 小縮圖、Image ID（同卡片）與尺寸，右側 × 取消選取；沒有選取時不顯示 chip。</Rule>
 <Rule component="generate-reference-picker" id="representative">板上卡片只放代表性的一組狀態，實際張數依資料而定。</Rule>
 </ul>
 
@@ -565,7 +566,7 @@ Task 詳細面板的 LoRA 區：已選 LoRA 的清單與 weight。
 
 <ul class="ds-rules">
 <Rule component="generate-screen" id="columns">Header 固定 36px；其下三欄以 `border-r`／`border-l border-line` 分隔，不留縫。</Rule>
-<Rule component="generate-screen" id="widths">Task list 是 40px 直條＋清單欄：展開時清單欄 250px（合計 290px），收合時清單欄寬度由縮圖撐開；Task detail 展開 380px、收合 40px。兩側各自收合，工作區吃掉其餘寬度。</Rule>
+<Rule component="generate-screen" id="widths">Task list 是 40px 直條＋清單欄：展開時清單欄 250px（合計 290px），收合時清單欄寬度由縮圖撐開；Task detail 展開寬度固定（見 task-detail panel）、收合 40px。兩側各自收合，工作區吃掉其餘寬度。</Rule>
 <Rule component="generate-screen" id="workspace">工作區 Prompt panel 在上、Image stage 填滿剩餘高度；Stage 永遠存在，沒有圖時顯示自己的空狀態，不收掉。</Rule>
 <Rule component="generate-screen" id="browser">Task browser 取代 Task list 的清單欄與工作區，左側直條與右側 Task detail 都保留，選取的 task 兩邊同步。</Rule>
 <Rule component="generate-screen" id="browser-toolbar">Task browser 的篩選、搜尋與勾選都在工具列；各篩選下的卡片組成、空狀態文案與批次操作見 L1 Task browser，控制列的 browser 選單可逐一切換。</Rule>

@@ -16,7 +16,7 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 
 <Gallery min="440px">
 <State component="panel" state="open-left" label="open · left · 250px" frame="flex h-[360px] overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
-<State component="panel" state="open-right" label="open · right · 350px" frame="flex h-[360px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
+<State component="panel" state="open-right" label="open · right · content width" frame="flex h-[360px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 <State component="panel" state="collapsed" label="collapsed · w-10 collapsed bar" frame="flex h-[200px] justify-end overflow-hidden rounded-lg border border-line-subtle bg-canvas" />
 </Gallery>
 
@@ -24,7 +24,7 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 
 <ul class="ds-rules">
 <Rule component="panel" id="side-panel">Panel 是 `flex-none overflow-hidden bg-surface` 的側欄，與工作區之間只用一條 `border-line` 分隔：左側 `border-r`、右側 `border-l`。展開與收合各自決定寬度。</Rule>
-<Rule component="panel" id="width">寬度：左側清單面板 `w-[250px]`；右側詳細面板 `w-[380px]`（36 字元 UUID 加上複製圖示能完整顯示的最小寬度）。</Rule>
+<Rule component="panel" id="width">寬度：左側清單面板 `w-[250px]`；右側詳細面板 `w-min`，寬度固定由 ID 列撐出：ID 值 `min-w-[36ch] whitespace-nowrap`（等寬字的 36ch 正好是 UUID 寬度，任何平台字型都剛好）＋複製圖示＋一格 `w-7`（與 Name 列改名鈕同欄，張數置中放在這格）。沒有 ID、沒有複製圖示或沒有張數時位置照樣保留，所以切換內容時寬度不變。</Rule>
 <Rule component="panel" id="collapsed">**collapsed**：右側詳細面板收成 `w-10`，只留一條 `h-12` 的 collapsed bar，中間是展開狀態的 Collapse button。左側清單面板有自己的收合樣貌（只留縮圖），由該 L1 元件定義，不用 collapsed bar。</Rule>
 <Rule component="panel" id="scroll">內容區佔滿剩餘高度並自行捲動：原生捲軸隱藏，改疊一條 `w-1.5` 的 `bg-scroll-thumb` 圓角捲軸（`top-1 right-1 bottom-1`）。一般清單內距 `gap-2 p-2 pr-3`；詳細內容用 Detail layout 的內距。</Rule>
 <Rule component="panel" id="narrow-window">窄視窗下面板直接隱藏而不是擠壓工作區：左側清單在 720px 以下、右側詳細面板在 980px 以下隱藏。</Rule>
