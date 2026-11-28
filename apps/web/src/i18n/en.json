@@ -280,6 +280,7 @@
             "exportFailed": "Could not save the mask. Try again."
         },
         "dropHint": "Drop an image or click to browse",
+        "searchPlaceholder": "name, task or image ID",
         "searchLibrary": "Search image library",
         "noReference": "No reference image.",
         "invalidType": "Use a PNG or JPEG image.",

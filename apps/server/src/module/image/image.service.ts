@@ -148,6 +148,7 @@ export const imageService = {
                         ? or(
                             like(candidateTask.name, `%${search}%`),
                             like(candidateTask.id, `%${search}%`),
+                            like(candidateUsage.imageId, `%${search}%`),
                         )
                         : undefined,
                 ))

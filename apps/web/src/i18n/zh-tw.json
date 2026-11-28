@@ -279,6 +279,7 @@
             "exportFailed": "無法儲存遮罩，請再試一次。"
         },
         "dropHint": "拖放圖片或點擊瀏覽",
+        "searchPlaceholder": "名稱、任務或圖片 ID",
         "searchLibrary": "搜尋圖片庫",
         "noReference": "沒有參考圖片。",
         "invalidType": "請使用 PNG 或 JPEG 圖片。",

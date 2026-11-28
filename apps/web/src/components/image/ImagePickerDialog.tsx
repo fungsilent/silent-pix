@@ -235,7 +235,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                         <Text
                             label={t('common.search')}
                             value={keyword()}
-                            placeholder={t('task.searchPlaceholder')}
+                            placeholder={t('image.searchPlaceholder')}
                             icon={(
                                 <Search
                                     size={14}
