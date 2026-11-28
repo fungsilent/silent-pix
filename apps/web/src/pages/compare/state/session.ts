@@ -87,12 +87,13 @@ const createCompareSession = () => createStore(initialState(), store => ({
             const visibleIndex = visible.findIndex(item => item.image.id === imageId)
             const remaining = visible.filter(item => item.image.id !== imageId)
             const replacement = remaining[visibleIndex] ?? remaining[visibleIndex - 1]
+            const wasSelected = store.state.selectedCompareImageId === imageId
 
             store.set('compare', current.map(item => item.image.id === imageId
                 ? { ...item, hidden: true }
                 : item))
 
-            if (store.state.selectedCompareImageId === imageId) {
+            if (wasSelected) {
                 store.set('selectedCompareImageId', replacement?.image.id ?? null)
             }
             return
