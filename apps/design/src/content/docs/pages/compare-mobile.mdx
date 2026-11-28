@@ -1,0 +1,135 @@
+---
+title: Compare · Mobile
+description: 窄視窗（手機）的 Compare：圖片卡（主圖＋縮圖列）黏在 Header 下方，下方的 Detail 內容卡往上捲時蓋過它；清單操作放在底部膠囊。
+sidebar:
+    order: 3
+---
+
+import State from '@silent-pix/blueprint/components/State.astro'
+import Gallery from '@silent-pix/blueprint/components/Gallery.astro'
+import Rule from '@silent-pix/blueprint/components/Rule.astro'
+import Rules from '@silent-pix/blueprint/components/Rules.astro'
+import Screen from '@silent-pix/blueprint/components/Screen.astro'
+import Slot from '@silent-pix/blueprint/components/Slot.astro'
+import Fixed from '@silent-pix/blueprint/components/Fixed.astro'
+import Switch from '@silent-pix/blueprint/components/Switch.astro'
+import Case from '@silent-pix/blueprint/components/Case.astro'
+
+## Compare 頁
+
+與 Generate · Mobile 的 Task 頁同一套捲動：圖片卡固定在 Header 下方，Detail 內容卡往上捲時蓋過圖片，停在露出 56px 的位置。
+
+<Gallery min="480px">
+<State component="compare-mobile-page" state="top" label="top · task output" frame="flex h-[720px] w-[382px] bg-shell" />
+<State component="compare-mobile-page" state="docked" label="scrolled · docked" frame="flex h-[720px] w-[382px] bg-shell" />
+<State component="compare-mobile-page" state="image" label="top · uploaded / reference image" frame="flex h-[720px] w-[382px] bg-shell" />
+<State component="compare-mobile-page" state="all-hidden" label="all hidden" frame="flex h-[560px] w-[382px] bg-shell" />
+<State component="compare-mobile-page" state="empty" label="empty" frame="flex h-[560px] w-[382px] bg-shell" />
+</Gallery>
+
+<Rules component="compare-mobile-page">
+
+<ul class="ds-rules">
+<Rule component="compare-mobile-page" id="order">由上而下是圖片卡、Detail 內容卡。內容卡就是桌面右側面板的內容，不含標題列與收合鈕：task 產出照 Task detail 唯讀模式（Info、參考圖、Config、LoRA），其他圖照 Image detail；跟著目前選取的圖切換。</Rule>
+<Rule component="compare-mobile-page" id="scroll">卡片、圓角、蓋過與停靠的行為同 Generate · Mobile 的 sheet 與 peek（整頁一個捲動、露出 56px、分界保持內容卡的圓角與框線、內容較短時內容卡至少延伸到視窗底部）。圖片的大小與隨捲動放大同 generate-mobile-stage 的 height、fit、motion（多張的 80px 縮圖列就是 compare-strip）。換圖時內容卡不捲回頂端。</Rule>
+<Rule component="compare-mobile-page" id="badge">主圖左上的序號同桌面（`h-6` accent 實心方塊），往下移到離頂端 16px，讓它在停靠時位於露出條的上下正中。主圖不放 zoom-controls 與 minimap。</Rule>
+<Rule component="compare-mobile-page" id="switch">在主圖上左右滑動切換到上一張／下一張可見圖（同桌面的 ←／→，只在可見項之間循環）；停靠時在露出條上滑動也一樣。點縮圖選取該圖。點主圖開 Image viewer 看完整原圖、在裡面縮放；停靠時點露出條捲回頂端（同 Generate · Mobile 的 peek）。</Rule>
+<Rule component="compare-mobile-page" id="empty">沒有圖片時整頁只有一張卡，放與桌面相同的「No images to compare」引導（Add images 按鈕在引導裡），不顯示底部膠囊。全部隱藏時只有圖片卡撐滿，中央是桌面的「All images hidden」與 Show all，縮圖列照常；沒有內容卡；卡片底緣停在離視窗底部 72px 處（同 generate-mobile-bar 的 clearance），縮圖列不被膠囊蓋住。</Rule>
+</ul>
+
+</Rules>
+
+## 縮圖列
+
+觸控版的 compare-strip：只有選中的縮圖常駐隱藏與移除。
+
+<Gallery min="480px">
+<State component="compare-strip" state="touch" label="touch · item 3 selected" frame="w-[380px] bg-stage" />
+<State component="compare-strip" state="touch-all-hidden" label="touch · all hidden" frame="w-[380px] bg-stage" />
+</Gallery>
+
+<Rules component="compare-strip" part="mobile">
+
+<ul class="ds-rules">
+<Rule component="compare-strip" id="touch">觸控裝置沒有 hover：點縮圖先選取它，選中的縮圖左上序號角換成 eye-off（點擊隱藏）、右上常駐移除 X；其他縮圖只有序號角。已隱藏的縮圖照桌面常駐 eye-off（點擊恢復）、不顯示 X。尺寸、選取框、載入失敗與捲動同桌面的 compare-strip。</Rule>
+</ul>
+
+</Rules>
+
+## 底部膠囊
+
+浮在內容上的膠囊，放桌面 Bar 上的清單操作。
+
+<Gallery min="480px">
+<State component="compare-mobile-bar" state="partially-hidden" label="partially hidden" frame="w-[390px] bg-surface px-3 pt-6 pb-3" />
+<State component="compare-mobile-bar" state="default" label="all shown" frame="w-[390px] bg-surface px-3 pt-6 pb-3" />
+<State component="compare-mobile-bar" state="all-hidden" label="all hidden" frame="w-[390px] bg-surface px-3 pt-6 pb-3" />
+</Gallery>
+
+<Rules component="compare-mobile-bar">
+
+<ul class="ds-rules">
+<Rule component="compare-mobile-bar" id="layout">膠囊外觀、位置與內容留白同 generate-mobile-bar 的 layout 與 clearance。左側是 `shown / total`（13px、`text-fg-secondary`、等寬數字，不加「shown」字樣），接著是 32px 圓形 ghost 圖示鈕：Show all（Eye，只在部分圖片隱藏時出現；全部隱藏時由中央引導提供，同桌面）、Clear comparison list（ListX）；分隔線後是 accent solid「Add images」（ImagePlus icon＋文字，左右內距 20px），開 image picker。</Rule>
+<Rule component="compare-mobile-bar" id="desktop-bar">手機版沒有工作區 Bar：桌面 Bar 的計數與三個動作都移到膠囊，行為相同。</Rule>
+</ul>
+
+</Rules>
+
+## Image picker
+
+手機版的 compare-image-picker：用 Dialog 的手機外框，固定兩欄。
+
+<Gallery min="480px">
+<State component="compare-image-picker" state="mobile" label="mobile · 2 selected" frame="relative flex h-[844px] w-[390px] overflow-hidden bg-canvas" />
+</Gallery>
+
+<Rules component="compare-image-picker" part="mobile">
+
+<ul class="ds-rules">
+<Rule component="compare-image-picker" id="mobile-frame">外框照 [Dialog](/base/container/dialog/#dialog/rules/mobile) 的手機規則；40px 篩選直條與篩選規則同桌面。</Rule>
+<Rule component="compare-image-picker" id="mobile-toolbar">工具列只剩撐滿寬度的搜尋（同 task-browser 的 mobile-grid），沒有縮圖大小滑桿與選取 chip。</Rule>
+<Rule component="compare-image-picker" id="mobile-grid">格狀固定兩欄，間距與內距同桌面。觸控沒有 hover：卡片不浮出勾選鈕，點卡片任何地方切換選取；選中的樣式與右上序號同桌面。</Rule>
+<Rule component="compare-image-picker" id="mobile-pill">膠囊（見 Dialog 的 mobile-actions）左側是「✕ N selected」（同 generate-mobile-bar 的 selection，按下清空選取），右側是 accent「Apply」；沒有選取時只有停用的 Apply。</Rule>
+</ul>
+
+</Rules>
+
+## Screen
+
+<Screen frame="relative flex h-[844px] w-[390px] flex-col overflow-hidden rounded-xl border border-line bg-canvas text-fg">
+    <Fixed component="app-header" state="web-compare" />
+    <div class="flex min-h-0 flex-1 flex-col overflow-hidden bg-shell px-1 pb-1">
+        <Switch name="view">
+            <Case state="task" label="task output">
+                <Slot name="page" component="compare-mobile-page" states="top,docked" />
+                <div class="absolute inset-x-3 bottom-3 z-30"><Fixed component="compare-mobile-bar" state="partially-hidden" /></div>
+            </Case>
+            <Case state="image" label="uploaded / reference image">
+                <Fixed component="compare-mobile-page" state="image" />
+                <div class="absolute inset-x-3 bottom-3 z-30"><Fixed component="compare-mobile-bar" state="partially-hidden" /></div>
+            </Case>
+            <Case state="all-hidden" label="all hidden">
+                <Fixed component="compare-mobile-page" state="all-hidden" />
+                <div class="absolute inset-x-3 bottom-3 z-30"><Fixed component="compare-mobile-bar" state="all-hidden" /></div>
+            </Case>
+            <Case state="empty" label="empty"><Fixed component="compare-mobile-page" state="empty" /></Case>
+            <Case state="picker-sliding" label="image picker · sliding up">
+                <Fixed component="compare-mobile-page" state="top" />
+                <div class="absolute inset-0 z-40 flex translate-y-[40%]"><Fixed component="compare-image-picker" state="mobile" /></div>
+            </Case>
+            <Case state="picker" label="image picker">
+                <Fixed component="compare-mobile-page" state="top" />
+                <div class="absolute inset-0 z-40 flex"><Fixed component="compare-image-picker" state="mobile" /></div>
+            </Case>
+        </Switch>
+    </div>
+</Screen>
+
+<Rules component="compare-mobile-screen">
+
+<ul class="ds-rules">
+<Rule component="compare-mobile-screen" id="breakpoint">視窗寬度 &lt; 640px 時 Compare 改用這個版面（見 App model 的手機例外）；640px 以上用桌面版，&lt; 980px 時照桌面的 narrow 規則隱藏右側面板。</Rule>
+<Rule component="compare-mobile-screen" id="overlays">Image viewer 與 image picker 是模態任務，照 App model 的 mobile-surfaces。</Rule>
+</ul>
+
+</Rules>

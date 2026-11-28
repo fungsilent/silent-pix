@@ -142,6 +142,38 @@ Tasks 開啟時從左側滑出、蓋住 Task 頁的清單：與桌面版相同�
 
 </Rules>
 
+## Reference picker
+
+手機版的 generate-reference-picker：版面同 Compare · Mobile 的 image picker。
+
+<Gallery min="480px">
+<State component="generate-reference-picker" state="mobile" label="mobile · selected" frame="relative flex h-[844px] w-[390px] overflow-hidden bg-canvas" />
+</Gallery>
+
+<Rules component="generate-reference-picker" part="mobile">
+
+<ul class="ds-rules">
+<Rule component="generate-reference-picker" id="mobile">外框、工具列、固定兩欄與觸控選取同 [Compare · Mobile](/pages/compare-mobile/#compare-image-picker/rules/mobile) 的 image picker（mobile-frame、mobile-toolbar、mobile-grid）。膠囊左側換成單選的選取：✕、20px 小縮圖與 Image ID（同卡片，不放尺寸），按下取消選取；右側是 Apply，沒有選取時只有停用的 Apply。</Rule>
+</ul>
+
+</Rules>
+
+## LoRA picker
+
+手機版的 lora-picker：用 Dialog 的手機外框，清單列加高。
+
+<Gallery min="480px">
+<State component="lora-picker" state="mobile" label="mobile · 2 selected" frame="relative flex h-[844px] w-[390px] overflow-hidden bg-canvas" />
+</Gallery>
+
+<Rules component="lora-picker" part="mobile">
+
+<ul class="ds-rules">
+<Rule component="lora-picker" id="mobile">外框照 [Dialog](/base/container/dialog/#dialog/rules/mobile) 的手機規則。工具列只剩撐滿寬度的搜尋，選取 chip 移到膠囊：「✕ N selected」與 Apply，同 Compare · Mobile 的 image picker mobile-pill，但 Apply 一律可按（同桌面的 footer 規則）。清單列加高到 40px 方便手指點選，其餘同桌面。</Rule>
+</ul>
+
+</Rules>
+
 ## Screen
 
 <Screen frame="relative flex h-[844px] w-[390px] flex-col overflow-hidden rounded-xl border border-line bg-canvas text-fg">
@@ -150,28 +182,39 @@ Tasks 開啟時從左側滑出、蓋住 Task 頁的清單：與桌面版相同�
         <Switch name="view">
             <Case state="task" label="task">
                 <Slot name="task" component="generate-mobile-task" states="top,prompt,gutter,config" />
+                <div class="absolute inset-x-3 bottom-3 z-30"><Slot name="bar" component="generate-mobile-bar" states="default,submitting" /></div>
             </Case>
             <Case state="tasks-sliding" label="task list · sliding in">
                 <div class="relative flex min-h-0 flex-1 flex-col overflow-hidden">
                     <Fixed component="generate-mobile-task" state="config" />
                     <div class="absolute inset-0 flex -translate-x-[40%] overflow-hidden rounded-lg border border-line-subtle"><Fixed component="task-list" state="mobile" /></div>
                 </div>
+                <div class="absolute inset-x-3 bottom-3 z-30"><Fixed component="generate-mobile-bar" state="tasks" /></div>
             </Case>
             <Case state="tasks" label="task list">
                 <div class="relative flex min-h-0 flex-1 flex-col overflow-hidden">
                     <Fixed component="generate-mobile-task" state="config" />
                     <div class="absolute inset-0 flex overflow-hidden rounded-lg border border-line-subtle"><Fixed component="task-list" state="mobile" /></div>
                 </div>
+                <div class="absolute inset-x-3 bottom-3 z-30"><Fixed component="generate-mobile-bar" state="tasks" /></div>
             </Case>
             <Case state="browser" label="task browser">
                 <div class="relative flex min-h-0 flex-1 flex-col overflow-hidden">
                     <Fixed component="generate-mobile-task" state="config" />
                     <div class="absolute inset-0 flex overflow-hidden rounded-lg border border-line-subtle"><Slot name="browser" component="task-browser" states="mobile,mobile-selection" /></div>
                 </div>
+                <div class="absolute inset-x-3 bottom-3 z-30"><Slot name="browser-bar" component="generate-mobile-bar" states="tasks,selection" /></div>
+            </Case>
+            <Case state="picker" label="reference picker">
+                <Fixed component="generate-mobile-task" state="config" />
+                <div class="absolute inset-0 z-40 flex"><Fixed component="generate-reference-picker" state="mobile" /></div>
+            </Case>
+            <Case state="lora" label="LoRA picker">
+                <Fixed component="generate-mobile-task" state="config" />
+                <div class="absolute inset-0 z-40 flex"><Fixed component="lora-picker" state="mobile" /></div>
             </Case>
         </Switch>
     </div>
-    <div class="absolute inset-x-3 bottom-3 z-30"><Slot name="bar" component="generate-mobile-bar" states="default,submitting,tasks,selection" /></div>
 </Screen>
 
 <Rules component="generate-mobile-screen">
@@ -180,7 +223,7 @@ Tasks 開啟時從左側滑出、蓋住 Task 頁的清單：與桌面版相同�
 <Rule component="generate-mobile-screen" id="breakpoint">視窗寬度 &lt; 640px 時 Generate 改用這個版面（見 App model 的手機例外）；640px 以上用桌面版的三欄與窄視窗收合規則。</Rule>
 <Rule component="generate-mobile-screen" id="views">Task 頁是底層、一直在；Task 清單與 Task browser 是蓋在它上面的一張卡片，從 Header 下方延伸到視窗底部（底部膠囊浮在它上面），在卡片內捲動。Tasks 鈕開關清單，清單直條的 Grid view 在同一張卡片裡切換清單與 Browser（不再滑動）。Task 頁不因開關清單重建或捲動，關閉後就是原本的位置與編輯內容。底部列一直在，Generate 在每個畫面都按得到。</Rule>
 <Rule component="generate-mobile-screen" id="slide">清單卡片從左側滑入、滑回左側離開，200ms ease-out，Header 與底部膠囊不動、不被蓋住。沒有遮罩與陰影，卡片自己的邊框就是分界。開著時整頁不能捲，背後的 Task 頁不跟著動。系統要求減少動態效果時直接出現、消失。</Rule>
-<Rule component="generate-mobile-screen" id="overlays">Image viewer、審片、mask editor、LoRA／參考圖 picker 與確認 dialog 照桌面版的疊加層規則蓋住整個視窗（Web 沒有標題列，見 App 的疊加層區域）。</Rule>
+<Rule component="generate-mobile-screen" id="overlays">Image viewer、審片、mask editor、參考圖 picker 與 LoRA picker 是模態任務，照 App model 的 mobile-surfaces 蓋滿整個視窗；確認 dialog 維持置中。</Rule>
 </ul>
 
 </Rules>

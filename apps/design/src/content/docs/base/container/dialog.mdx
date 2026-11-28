@@ -1,6 +1,6 @@
 ---
 title: Dialog
-description: 置中的 modal 外框：header（標題、說明、關閉鈕）、body、可選的 footer。確認、選取等 dialog 的內容由各 L1 元件填入。
+description: 置中的 modal 外框：header（標題、說明、關閉鈕）、body、可選的 footer；手機版的模態任務改為蓋滿視窗、操作放在底部膠囊。確認、選取等 dialog 的內容由各 L1 元件填入。
 sidebar:
     order: 5
 ---
@@ -30,6 +30,30 @@ import Rules from '@silent-pix/blueprint/components/Rules.astro'
 <Rule component="dialog" id="picker">**picker**：從清單挑項目再按 Apply 的 dialog，footer 左側用 `text-xs text-fg-muted tabular-nums` 顯示目前選取（數量或尺寸），Apply 用 solid accent。</Rule>
 <Rule component="dialog" id="error">**error**：失敗時 dialog 保持開啟，在 body 與 footer 之間插入 L0 Callout attached（整寬錯誤條，文字一般色、紅色只在底與三角），可換行不截斷。錯誤條不跟 body 捲動、永遠貼著按鈕；footer 只放按鈕，不與錯誤搶寬度。沒有錯誤時不佔位。成功才關閉。</Rule>
 <Rule component="dialog" id="pending">**pending**：進行中兩顆按鈕都用 L0 Button 停用樣式，確認鈕文案依 L0 Button pending 改成進行式（「Deleting...」）；會造成不一致的操作進行中也擋住關閉，此時右上關閉鈕一併停用。</Rule>
+</ul>
+
+</Rules>
+
+## Mobile
+
+窄視窗（&lt; 640px）的 dialog：模態任務蓋滿整個視窗，操作在底部膠囊；確認 dialog 維持置中。
+
+<Gallery min="480px">
+<State component="dialog" state="mobile" label="mobile · modal task" frame="relative flex h-[844px] w-[390px] overflow-hidden bg-canvas" />
+<State component="dialog" state="mobile-error" label="mobile · error above the pill" frame="relative flex h-[844px] w-[390px] overflow-hidden bg-canvas" />
+<State component="dialog" state="mobile-pending" label="mobile · pending" frame="relative flex h-[844px] w-[390px] overflow-hidden bg-canvas" />
+<State component="dialog" state="mobile-confirm" label="mobile · confirm stays centered" frame="relative h-[844px] w-[390px] overflow-hidden bg-canvas" />
+</Gallery>
+
+<Rules component="dialog" part="mobile">
+
+<ul class="ds-rules">
+<Rule component="dialog" id="mobile-frame">視窗寬度 &lt; 640px 時，要做完或關閉的模態任務（picker、編輯器、檢視器）蓋住整個視窗（含 Header）：一層 `bg-shell` 上浮著一張卡片，四周留 4px（上方再加裝置的安全區），卡片同頁面卡片（`rounded-lg border-line-subtle bg-surface`），沒有 backdrop 與陰影。header 高 36px（同 App Header）、`border-b border-line-subtle`，左側 12px medium 標題，右側 ghost 關閉鈕（`size-7`、X 15，同 Header 的 Settings 鈕），不放說明；body 自己捲動；沒有 footer。</Rule>
+<Rule component="dialog" id="mobile-actions">footer 的按鈕移到浮在 body 上的底部膠囊（外觀、位置與尺寸同手機頁面的膠囊：離視窗底部 12px 加安全區、`bg-elevated border-line shadow-popover p-1`、按鈕 `h-8 rounded-full text-[13px]`）。右側是確認鈕（tone 同桌面 footer 規則，左右內距 20px），需要時左側放次要操作或目前狀態（ghost），兩者以 20px 分隔線隔開。沒有 Cancel：取消用右上關閉鈕或 Esc。body 底部留 72px，最後一列能捲到膠囊上方。</Rule>
+<Rule component="dialog" id="mobile-error">錯誤照桌面 error 的規則（保持開啟、成功才關閉、可換行不截斷），但錯誤條改為浮在膠囊正上方 8px：左右各留 12px、`rounded-lg`、與 Callout 同色，不跟 body 捲動；出現時 body 底部留白再加上錯誤條的高度。</Rule>
+<Rule component="dialog" id="mobile-pending">進行中同桌面 pending：膠囊內的按鈕都用停用樣式，確認鈕改成進行式文案，需要擋住關閉時右上關閉鈕一併停用。</Rule>
+<Rule component="dialog" id="mobile-motion">開啟時整層（`bg-shell` 連同卡片）從視窗下方滑上來、蓋過 Header 與頁面，關閉時滑回下方，200ms ease-out；系統要求減少動態效果時直接出現、消失。</Rule>
+<Rule component="dialog" id="mobile-confirm">確認 dialog（短問題＋Cancel／確認，例如刪除）不換外框：照桌面置中、四周留 16px，footer 按鈕不變。</Rule>
 </ul>
 
 </Rules>
