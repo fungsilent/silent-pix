@@ -1,5 +1,5 @@
 import { Line } from '#/components/base/Line'
-import { DetailPanel, DetailRow, DetailSection } from '#/components/detail'
+import { detailCopySlotClass, DetailCountReserve, detailIdClass, DetailPanel, DetailRow, DetailSection } from '#/components/detail'
 import { Number } from '#/components/field'
 import { resolveImageUrl } from '#/data/image/image.api'
 import { t } from '#/lib/i18n'
@@ -29,10 +29,19 @@ function ReferenceImageContent(props: ReferenceImageContentProps) {
     return (
         <>
             <DetailSection>
-                <DetailRow label={t('fields.id')}>
-                    <span class='block truncate font-mono text-[11px] font-medium leading-none text-fg'>
-                        {props.image.id}
-                    </span>
+                <DetailRow
+                    label={t('fields.id')}
+                    fit
+                >
+                    <div class='flex min-w-0 items-center gap-2'>
+                        <span class='flex min-w-0 items-center gap-1.5'>
+                            <span class={detailIdClass}>
+                                {props.image.id}
+                            </span>
+                            <span class={detailCopySlotClass} />
+                        </span>
+                        <DetailCountReserve />
+                    </div>
                 </DetailRow>
                 <DetailRow label={t('fields.created')}>
                     <span class='text-xs leading-none text-fg-secondary'>

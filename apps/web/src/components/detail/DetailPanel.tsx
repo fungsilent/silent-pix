@@ -18,8 +18,7 @@ export function DetailPanel(props: DetailPanelProps) {
         <Panel
             classes={{
                 root: mergeClasses(theme.card, 'bg-surface max-[980px]:hidden'),
-                // 380 是讓 ID 欄位能完整顯示 36 字元 UUID 加上複製圖示的最小寬度
-                open: 'w-[380px]',
+                open: 'w-min',
                 close: 'w-10',
             }}
             collapse={props.collapse}
@@ -28,7 +27,10 @@ export function DetailPanel(props: DetailPanelProps) {
                 panel.isCollapsed() ? (
                     <CollapsedBar onClick={panel.toggle} />
                 ) : (
-                    <div class='flex h-full min-h-0 flex-col'>
+                    <div
+                        data-detail-panel
+                        class='flex h-full min-h-0 flex-col'
+                    >
                         <Bar.Root classes={{ root: 'px-2' }}>
                             <Bar.Group>
                                 <Bar.Title>{t('common.detail')}</Bar.Title>

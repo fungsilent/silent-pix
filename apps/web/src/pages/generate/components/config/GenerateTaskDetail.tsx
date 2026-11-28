@@ -217,6 +217,13 @@ export function GenerateTaskDetail(props: GenerateTaskDetailProps) {
         errorCode: () => detail.task()?.errorCode,
         errorMessage: () => detail.task()?.errorMessage,
         createdAt: () => detail.task()?.createdAt,
+        image: () => {
+            const images = detail.task()?.images ?? []
+            const index = images[detail.imageIndex()] ? detail.imageIndex() : 0
+            const image = images[index]
+            if (!image) return undefined
+            return { id: image.id, position: images.length > 1 ? `${index + 1}/${images.length}` : undefined }
+        },
         draft: detail.draft,
         draftSource: () => {
             const source = generateSession.state.draft?.source

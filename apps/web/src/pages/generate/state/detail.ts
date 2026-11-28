@@ -1,4 +1,5 @@
 import { createContextProvider } from '@solid-primitives/context'
+import { createEffect, createSignal, on } from 'solid-js'
 
 import { isPreviewing } from '#/store/dev'
 
@@ -13,11 +14,13 @@ export type GenerateDetail = {
     task: Accessor<TaskApi.GetTaskResponse | undefined>
     sourceTask: Accessor<TaskApi.GetTaskResponse | undefined>
     editable: Accessor<boolean>
+    imageIndex: Accessor<number>
+    selectImage: (index: number) => void
     retry: () => void
 }
 
 /* 尚未套用預覽規則的原始 query 狀態 */
-export type GenerateDetailSource = Omit<GenerateDetail, 'editable'> & {
+export type GenerateDetailSource = Omit<GenerateDetail, 'editable' | 'imageIndex' | 'selectImage'> & {
     selectionLoaded: Accessor<boolean>
 }
 
@@ -31,14 +34,20 @@ export type GenerateDetailSource = Omit<GenerateDetail, 'editable'> & {
 export function createGenerateDetail(source: GenerateDetailSource): GenerateDetail {
     const error = () => !isPreviewing() && source.error()
     const loading = () => isPreviewing() || source.loading()
+    const task = () => isPreviewing() ? undefined : source.task()
+    const sourceTask = () => isPreviewing() ? undefined : source.sourceTask()
+    const [imageIndex, setImageIndex] = createSignal(0)
+    createEffect(on(() => (task() ?? sourceTask())?.id, () => setImageIndex(0)))
 
     return {
         draft: () => !isPreviewing() && source.draft(),
         error,
         loading,
-        task: () => isPreviewing() ? undefined : source.task(),
-        sourceTask: () => isPreviewing() ? undefined : source.sourceTask(),
+        task,
+        sourceTask,
         editable: () => source.selectionLoaded() && !loading() && !error(),
+        imageIndex,
+        selectImage: setImageIndex,
         retry: source.retry,
     }
 }

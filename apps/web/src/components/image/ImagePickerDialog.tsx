@@ -3,6 +3,7 @@ import {
     FlagOff,
     FlagTriangleRight,
     HeartX,
+    Image as ImageIcon,
     Images,
     ListFilter,
     Search,
@@ -17,7 +18,6 @@ import { Loading } from '#/components/base/Loading'
 import { SelectedCountChip } from '#/components/base/SelectedCountChip'
 import { StatusMessage } from '#/components/base/StatusMessage'
 import { Text } from '#/components/field'
-import { originLabel } from '#/components/image/image.label'
 import { ImageTypeBadge } from '#/components/image/ImageTypeBadge'
 import { createThumbnailGrid, ThumbnailSizeSlider } from '#/components/image/ThumbnailSize'
 import { TaskFlagOverlay } from '#/components/task/TaskFlagOverlay'
@@ -264,12 +264,10 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                                     src={resolveImageUrl(item().image.url)}
                                     alt=''
                                 />
-                                <span
-                                    class='truncate font-medium'
-                                    classList={{ 'font-mono': !item().matchedUsage.taskName }}
-                                >
-                                    {imageLabel(item())}
-                                </span>
+                                <ImageIdLabel
+                                    id={item().image.id}
+                                    class='font-medium'
+                                />
                                 <span class='shrink-0 text-fg-muted tabular-nums'>
                                     {item().image.width} × {item().image.height}
                                 </span>
@@ -404,12 +402,10 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                                                     </div>
 
                                                     <div class='mt-2 flex h-7 min-w-0 items-center gap-1.5'>
-                                                        <span
-                                                            class='min-w-0 flex-1 truncate text-xs font-medium text-fg'
-                                                            classList={{ 'font-mono': !item.matchedUsage.taskName }}
-                                                        >
-                                                            {imageLabel(item)}
-                                                        </span>
+                                                        <ImageIdLabel
+                                                            id={item.image.id}
+                                                            class='flex-1 text-xs font-medium text-fg'
+                                                        />
                                                         <ImageTypeBadge type={item.matchedUsage.type} />
                                                     </div>
                                                 </Button>
@@ -446,8 +442,17 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
     )
 }
 
-function imageLabel(item: ImageApi.ImageListItem) {
-    return originLabel(item.matchedUsage) ?? item.image.id.slice(0, 8)
+function ImageIdLabel(props: { id: string, class: string }) {
+    return (
+        <span class={mergeClasses('flex min-w-0 items-center gap-1', props.class)}>
+            <ImageIcon
+                class='shrink-0 text-fg-muted'
+                size={12}
+                strokeWidth={1.8}
+            />
+            <span class='truncate font-mono'>{props.id.slice(0, 8)}</span>
+        </span>
+    )
 }
 
 function ClearSelectionButton(props: { onClick: () => void }) {

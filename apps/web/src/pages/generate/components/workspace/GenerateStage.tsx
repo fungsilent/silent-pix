@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createSignal, Show } from 'solid-js'
+import { createEffect, createMemo, createSignal, on, Show } from 'solid-js'
 
 import { ImageViewer } from '#/components/viewer/ImageViewer'
 import { useCompareSession } from '#/pages/compare/state/session'
@@ -21,14 +21,9 @@ export function GenerateStage(props: GenerateStageProps) {
     const detail = useGenerateDetail()
     const imageTask = () => detail.task() ?? detail.sourceTask()
     const images = createMemo(() => imageTask()?.images ?? [])
-    const [selectedImageIndex, setSelectedImageIndex] = createSignal(0)
     const [expanded, setExpanded] = createSignal(false)
 
-    createEffect(() => {
-        const _taskId = imageTask()?.id
-        setSelectedImageIndex(0)
-        setExpanded(false)
-    })
+    createEffect(on(() => imageTask()?.id, () => setExpanded(false)))
 
     return (
         <>
@@ -37,7 +32,7 @@ export function GenerateStage(props: GenerateStageProps) {
                 loading={detail.loading()}
                 source={detail.task() === undefined && detail.sourceTask() !== undefined}
                 keyboardEnabled={!overlayStore.isActive() && !expanded() && !detail.loading()}
-                selectedIndex={selectedImageIndex()}
+                selectedIndex={detail.imageIndex()}
                 onCompare={image => {
                     const task = imageTask()
 
@@ -57,7 +52,7 @@ export function GenerateStage(props: GenerateStageProps) {
                         setExpanded(true)
                     }
                 }}
-                onSelect={setSelectedImageIndex}
+                onSelect={detail.selectImage}
                 onUseAsReference={image => generateSession.setReferenceImage({ type: 'asset', image, origin: null, mask: null })}
                 onSurfaceClick={props.onSurfaceClick}
                 fit={props.fit}
@@ -67,9 +62,9 @@ export function GenerateStage(props: GenerateStageProps) {
             <Show when={expanded()}>
                 <ImageViewer
                     images={images()}
-                    selectedIndex={selectedImageIndex()}
+                    selectedIndex={detail.imageIndex()}
                     onClose={() => setExpanded(false)}
-                    onSelect={setSelectedImageIndex}
+                    onSelect={detail.selectImage}
                 />
             </Show>
         </>

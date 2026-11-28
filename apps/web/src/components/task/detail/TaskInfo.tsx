@@ -6,7 +6,7 @@ import { Badge } from '#/components/base/Badge'
 import { Button } from '#/components/base/Button'
 import { Dialog } from '#/components/base/Dialog'
 import { Loading } from '#/components/base/Loading'
-import { DetailRow, DetailSection } from '#/components/detail'
+import { detailCopySlotClass, DetailCountReserve, detailIdClass, DetailRow, DetailSection } from '#/components/detail'
 import { Editable } from '#/components/field/Editable'
 import { TaskFailure } from '#/components/task/detail/TaskFailure'
 import { TaskStatus } from '#/components/task/TaskStatus'
@@ -26,6 +26,8 @@ export type TaskInfoData = {
     errorCode: Accessor<string | null | undefined>
     errorMessage: Accessor<string | null | undefined>
     createdAt: Accessor<string | undefined>
+    /* 目前顯示的那張圖；position 只在多張輸出時有值，例如「2/4」 */
+    image: Accessor<{ id: string, position: string | undefined } | undefined>
 }
 
 export type TaskDraftSource =
@@ -59,7 +61,6 @@ type TaskInfoProps = {
 
 export function TaskInfo(props: TaskInfoProps) {
     const [deleteOpen, setDeleteOpen] = createSignal(false)
-    const idCopied = createTimedValue<true>()
     const [copyFailed, setCopyFailed] = createSignal(false)
     createIssueSource(() => copyFailed()
         ? [{ id: 'task-id-copy', tone: 'warning' as const, field: () => t('fields.id'), message: () => t('common.copyFailed'), onDismiss: () => setCopyFailed(false) }]
@@ -68,10 +69,11 @@ export function TaskInfo(props: TaskInfoProps) {
         try {
             await navigator.clipboard.writeText(id)
             setCopyFailed(false)
-            idCopied.show(true)
+            return true
         }
         catch {
             setCopyFailed(true)
+            return false
         }
     }
     const [deleteError, setDeleteError] = createSignal<() => string>()
@@ -128,47 +130,57 @@ export function TaskInfo(props: TaskInfoProps) {
 
     return (
         <DetailSection inert={props.loading()}>
-            <DetailRow label={t('fields.id')}>
-                <Loading.Mask loading={props.loading}>
-                    <Show
-                        when={props.data.id()}
-                        /* cold／draft 時用 nbsp 撐住行高，mask 才有高度；不是假資料 */
-                        fallback={<span class='block font-mono text-[11px] leading-none'>{'\u00A0'}</span>}
-                    >
-                        {id => (
-                            <button
-                                type='button'
-                                title={t('common.copyId')}
-                                class='group flex min-w-0 max-w-full cursor-pointer items-center gap-1.5 border-0 bg-transparent p-0 text-left outline-none'
-                                onClick={() => void copyId(id())}
-                            >
-                                <span class='min-w-0 truncate font-mono text-[11px] font-medium leading-none text-fg'>
-                                    {id()}
+            <DetailRow
+                label={t('fields.id')}
+                fit
+            >
+                <div class='flex min-w-0 items-center gap-2'>
+                    <Loading.Mask loading={props.loading}>
+                        <Show
+                            when={props.data.id()}
+                            fallback={(
+                                <span class='flex min-w-0 items-center gap-1.5'>
+                                    <span class={detailIdClass}>{'\u00A0'}</span>
+                                    <span class={detailCopySlotClass} />
                                 </span>
-                                <span
-                                    class='flex shrink-0 text-fg-muted'
-                                    classList={{ 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100': !idCopied.value() }}
-                                >
-                                    <Show
-                                        when={idCopied.value()}
-                                        fallback={(
-                                            <Copy
-                                                size={12}
-                                                strokeWidth={1.8}
-                                            />
-                                        )}
-                                    >
-                                        <Check
-                                            size={12}
-                                            strokeWidth={2}
-                                        />
-                                    </Show>
-                                </span>
-                            </button>
-                        )}
-                    </Show>
-                </Loading.Mask>
+                            )}
+                        >
+                            {id => (
+                                <CopyableId
+                                    value={id()}
+                                    title={t('common.copyId')}
+                                    onCopy={copyId}
+                                />
+                            )}
+                        </Show>
+                    </Loading.Mask>
+                    <DetailCountReserve />
+                </div>
             </DetailRow>
+
+            <Show when={!props.loading() && props.data.image()}>
+                {image => (
+                    <DetailRow
+                        label={t('image.title')}
+                        fit
+                    >
+                        <div class='flex min-w-0 items-center gap-2'>
+                            <CopyableId
+                                value={image().id}
+                                title={t('common.copyImageId')}
+                                onCopy={copyId}
+                            />
+                            <Show when={image().position}>
+                                {position => (
+                                    <span class='w-7 shrink-0 whitespace-nowrap text-center text-xs leading-none tabular-nums text-fg-muted'>
+                                        {position()}
+                                    </span>
+                                )}
+                            </Show>
+                        </div>
+                    </DetailRow>
+                )}
+            </Show>
 
             <DetailRow label={t('fields.name')}>
                 <div class='flex min-w-0 flex-col gap-1'>
@@ -326,7 +338,6 @@ export function TaskInfo(props: TaskInfoProps) {
     )
 }
 
-/* 與 TaskFailure 同結構、warning 色：一句數量，Details 展開後逐欄列出維持預設值的欄位 */
 function DraftDefaults(props: { defaults: { label: string, value: string }[] }) {
     return (
         <div class='min-w-0 border-l-2 border-warning/50 pl-2.5'>
@@ -363,5 +374,41 @@ function DraftDefaults(props: { defaults: { label: string, value: string }[] }) 
                 </Collapsible.Content>
             </Collapsible.Root>
         </div>
+    )
+}
+
+function CopyableId(props: { value: string, title: string, onCopy: (value: string) => Promise<boolean> }) {
+    const copied = createTimedValue<true>()
+
+    return (
+        <button
+            type='button'
+            title={props.title}
+            class='group flex min-w-0 max-w-full cursor-pointer items-center gap-1.5 border-0 bg-transparent p-0 text-left outline-none'
+            onClick={() => void props.onCopy(props.value).then(ok => ok && copied.show(true))}
+        >
+            <span class={detailIdClass}>
+                {props.value}
+            </span>
+            <span
+                class='flex shrink-0 text-fg-muted'
+                classList={{ 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100': !copied.value() }}
+            >
+                <Show
+                    when={copied.value()}
+                    fallback={(
+                        <Copy
+                            size={12}
+                            strokeWidth={1.8}
+                        />
+                    )}
+                >
+                    <Check
+                        size={12}
+                        strokeWidth={2}
+                    />
+                </Show>
+            </span>
+        </button>
     )
 }

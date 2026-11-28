@@ -23,6 +23,7 @@
         "dismiss": "Dismiss",
         "reload": "Reload",
         "copyId": "Copy ID",
+        "copyImageId": "Copy image ID",
         "copyFailed": "Could not copy to the clipboard."
     },
     "header": {
@@ -34,9 +35,6 @@
         "maximize": "Maximize",
         "close": "Close",
         "status": {
-            "connecting": "Connecting",
-            "oneDown": "{{name}} down",
-            "downCount": "{{count}} down",
             "up": "Connected",
             "down": "Not reachable",
             "unknown": "Unknown",
@@ -296,7 +294,6 @@
         "loadMoreFailed": "Failed to load more images.",
         "emptyTitle": "No images yet",
         "emptyMessage": "Generated outputs and uploaded inputs will appear here.",
-        "originInput": "{{task}} input",
         "originOutput": "{{task}} #{{index}}",
         "add": "Add images",
         "unavailable": "Image unavailable",

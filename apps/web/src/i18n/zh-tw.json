@@ -23,6 +23,7 @@
         "dismiss": "關閉",
         "reload": "重新載入",
         "copyId": "複製 ID",
+        "copyImageId": "複製圖片 ID",
         "copyFailed": "無法複製到剪貼簿。"
     },
     "header": {
@@ -34,9 +35,6 @@
         "maximize": "最大化",
         "close": "關閉",
         "status": {
-            "connecting": "連線中",
-            "oneDown": "{{name}} 中斷",
-            "downCount": "{{count}} 項中斷",
             "up": "已連線",
             "down": "無法連線",
             "unknown": "未知",
@@ -295,7 +293,6 @@
         "loadMoreFailed": "載入更多圖片失敗。",
         "emptyTitle": "尚無圖片",
         "emptyMessage": "產生的輸出與上傳的輸入圖會出現在這裡。",
-        "originInput": "{{task}} 輸入",
         "originOutput": "{{task}} #{{index}}",
         "add": "新增圖片",
         "unavailable": "圖片無法使用",

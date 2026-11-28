@@ -8,14 +8,3 @@ export function originTaskLabel(origin: ImageApi.ImageUsage): string {
         ? t('image.originOutput', { task: taskLabel, index: origin.sortIndex + 1 })
         : taskLabel
 }
-
-export function originLabel(origin: ImageApi.ImageUsage | null): string | null {
-    if (!origin) {
-        return null
-    }
-
-    const taskLabel = origin.taskName ?? origin.taskId.slice(0, 8)
-    return origin.type === 'output'
-        ? t('image.originOutput', { task: taskLabel, index: origin.sortIndex + 1 })
-        : t('image.originInput', { task: taskLabel })
-}

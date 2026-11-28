@@ -269,27 +269,17 @@ function ServiceStatus() {
         <Popover
             placement='bottom-end'
             classes={{
-                trigger: mergeClasses(
-                    'flex h-7 shrink-0 items-center justify-center gap-1.5 rounded-md text-xs',
-                    allUp() ? 'w-7' : 'px-2',
-                    down().length > 0
-                        ? 'bg-danger/12 text-danger-fg hover:bg-danger/[0.18]'
-                        : 'text-fg-muted hover:bg-hover data-[state=open]:bg-selected data-[state=open]:text-fg',
-                ),
+                trigger: 'flex size-7 shrink-0 items-center justify-center rounded-md hover:bg-hover data-[state=open]:bg-selected',
                 content: 'w-60',
             }}
             trigger={(
-                <Show
-                    when={!allUp()}
-                    fallback={<span class={mergeClasses('size-2 shrink-0 rounded-full', dotClass.up)} />}
-                >
-                    <span class={mergeClasses('size-1.5 shrink-0 rounded-full', down().length > 0 ? dotClass.down : dotClass.unknown)} />
-                    {down().length === 0
-                        ? t('header.status.connecting')
-                        : down().length === 1
-                            ? t('header.status.oneDown', { name: down()[0]!.name })
-                            : t('header.status.downCount', { count: down().length })}
-                </Show>
+                <span
+                    class={mergeClasses(
+                        'shrink-0 rounded-full',
+                        allUp() ? 'size-2' : 'size-1.5',
+                        dotClass[allUp() ? 'up' : down().length > 0 ? 'down' : 'unknown'],
+                    )}
+                />
             )}
         >
             <For each={services()}>

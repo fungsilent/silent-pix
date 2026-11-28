@@ -39,6 +39,10 @@ export function CompareDetail() {
         errorCode: () => task()?.errorCode,
         errorMessage: () => task()?.errorMessage,
         createdAt: () => task()?.createdAt,
+        image: () => {
+            const entry = selected()
+            return entry && task() ? { id: entry.image.id, position: undefined } : undefined
+        },
     }
     const image: TaskImageData = {
         reference: (): TaskImageReference | null => {
