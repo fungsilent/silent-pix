@@ -20,12 +20,14 @@ import { StatusMessage } from '#/components/base/StatusMessage'
 import { Text } from '#/components/field'
 import { ImageTypeBadge } from '#/components/image/ImageTypeBadge'
 import { createThumbnailGrid, ThumbnailSizeSlider } from '#/components/image/ThumbnailSize'
+import { MobileSelectedCount } from '#/components/mobile/MobileSelectedCount'
 import { TaskFlagOverlay } from '#/components/task/TaskFlagOverlay'
 import { resolveImageUrl } from '#/data/image/image.api'
 import { useImageListQuery } from '#/data/image/image.query'
 import { t } from '#/lib/i18n'
 import { createLoadOnScroll } from '#/lib/load-on-scroll'
 import { storageKeys } from '#/lib/storage'
+import { appStore } from '#/store/app'
 import { mergeClasses } from '#/utils/style'
 
 import type { ImageApi, TaskApi } from '@silent-pix/shared'
@@ -94,7 +96,8 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
     )
     const hasLoadError = () => query.isError && query.data === undefined
     const thumbnailGrid = createThumbnailGrid(storageKeys.app.imagePickerColumns)
-    const gridStyle = () => ({ 'grid-template-columns': thumbnailGrid.template() })
+    const mobile = () => appStore.state.mobile
+    const gridStyle = () => ({ 'grid-template-columns': mobile() ? 'repeat(2, minmax(0, 1fr))' : thumbnailGrid.template() })
     const loadOnScroll = createLoadOnScroll({
         canLoad: () => props.open && query.hasNextPage && !query.isFetching && !query.isError,
         load: () => void query.fetchNextPage(),
@@ -190,6 +193,58 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                 body: 'flex overflow-hidden p-0',
                 footer: 'h-12 items-center py-0',
             }}
+            sheet
+            pill={(
+                <>
+                    <Show
+                        when={props.mode === 'single' && selectedSingle()}
+                        fallback={(
+                            <Show when={props.mode === 'multiple' && selectedMultiple().length > 0}>
+                                <MobileSelectedCount
+                                    count={selectedMultiple().length}
+                                    onClear={clearSelection}
+                                />
+                                <span class='mx-1 h-5 w-px shrink-0 bg-line' />
+                            </Show>
+                        )}
+                    >
+                        {item => (
+                            <>
+                                <Button
+                                    variant='ghost'
+                                    title={t('task.clearSelection')}
+                                    classes={{ root: 'h-8 min-w-0 gap-2 rounded-full px-3.5 text-[13px] text-fg' }}
+                                    onClick={clearSelection}
+                                >
+                                    <X
+                                        size={16}
+                                        strokeWidth={1.8}
+                                    />
+                                    <img
+                                        class='size-5 shrink-0 rounded object-cover'
+                                        src={resolveImageUrl(item().image.url)}
+                                        alt=''
+                                    />
+                                    <ImageIdLabel
+                                        id={item().image.id}
+                                        class='font-medium'
+                                    />
+                                </Button>
+                                <span class='mx-1 h-5 w-px shrink-0 bg-line' />
+                            </>
+                        )}
+                    </Show>
+                    <Button
+                        variant='solid'
+                        tone='accent'
+                        disabled={!hasSelection()}
+                        classes={{ root: 'h-8 rounded-full px-5 text-[13px] font-semibold' }}
+                        onClick={apply}
+                    >
+                        {t('common.apply')}
+                    </Button>
+                </>
+            )}
             footer={(
                 <Button
                     variant='solid'
@@ -231,7 +286,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
 
             <div class='flex min-w-0 flex-1 flex-col'>
                 <div class='flex h-12 shrink-0 items-center gap-3 border-b border-line-subtle bg-surface px-2'>
-                    <div class='flex w-[234px] shrink-0'>
+                    <div class={mobile() ? 'flex min-w-0 flex-1' : 'flex w-[234px] shrink-0'}>
                         <Text
                             label={t('common.search')}
                             value={keyword()}
@@ -247,9 +302,9 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                         />
                     </div>
                     <Show
-                        when={props.mode === 'single' && selectedSingle()}
+                        when={!mobile() && props.mode === 'single' && selectedSingle()}
                         fallback={(
-                            <Show when={props.mode === 'multiple' && selectedMultiple().length > 0}>
+                            <Show when={!mobile() && props.mode === 'multiple' && selectedMultiple().length > 0}>
                                 <SelectedCountChip
                                     count={selectedMultiple().length}
                                     onClear={clearSelection}
@@ -275,17 +330,19 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                             </span>
                         )}
                     </Show>
-                    <div class='ml-auto'>
-                        <ThumbnailSizeSlider grid={thumbnailGrid} />
-                    </div>
+                    <Show when={!mobile()}>
+                        <div class='ml-auto'>
+                            <ThumbnailSizeSlider grid={thumbnailGrid} />
+                        </div>
+                    </Show>
                 </div>
 
                 <div
                     ref={element => {
                         loadOnScroll.setViewport(element)
-                        thumbnailGrid.observe(element)
+                        if (!mobile()) thumbnailGrid.observe(element)
                     }}
-                    class='scrollbar-thin relative min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]'
+                    class={mergeClasses('scrollbar-thin relative min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]', mobile() && 'pb-[72px]')}
                 >
                     <Loading.Swap
                         loading={() => props.open && query.isLoading}
@@ -374,7 +431,7 @@ export function ImagePickerDialog(props: ImagePickerDialogProps) {
                                                                     'absolute right-1 top-1 grid size-7 place-items-center rounded-md',
                                                                     selected()
                                                                         ? 'bg-accent text-[10px] font-bold text-on-stage'
-                                                                        : 'bg-stage-control text-on-stage/75 opacity-0 backdrop-blur-[3px] group-hover:opacity-100 group-focus-within:opacity-100',
+                                                                        : 'bg-stage-control text-on-stage/75 opacity-0 backdrop-blur-[3px] group-hover:opacity-100 group-focus-within:opacity-100 touch:hidden',
                                                                 )}
                                                             >
                                                                 <Show

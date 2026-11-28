@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight, Columns2, Expand, Image as ImageIcon, ImagePlus } from 'lucide-solid'
-import { createEffect, createMemo, createSignal, For, on, onCleanup, Show } from 'solid-js'
+import { For, Show } from 'solid-js'
 
 import { Button } from '#/components/base/Button'
 import { Loading } from '#/components/base/Loading'
@@ -7,10 +7,12 @@ import { StatusMessage } from '#/components/base/StatusMessage'
 import { resolveImageUrl } from '#/data/image/image.api'
 import { t } from '#/lib/i18n'
 import { createHotkeys } from '#/lib/interaction'
+import { createMobileFit } from '#/lib/mobile-fit'
 import { theme } from '#/lib/theme'
 import { mergeClasses } from '#/utils/style'
 
 import type { ImageApi } from '@silent-pix/shared'
+import type { MobileFit } from '#/lib/mobile-fit'
 
 type ImageStageProps = {
     images: ImageApi.ImageResource[]
@@ -24,11 +26,8 @@ type ImageStageProps = {
     onSelect: (index: number) => void
     onUseAsReference: (image: ImageApi.ImageResource) => void
     class?: string | undefined
-    fit?: { covered: number, peek: number } | undefined
+    fit?: MobileFit | undefined
 }
-
-const fitHeight = { min: 160, max: 360, empty: 240 }
-const stripHeight = 80
 
 const glass = 'border-stage-line bg-stage-control text-on-stage hover:bg-stage-control-hover backdrop-blur-[8px]'
 
@@ -36,46 +35,13 @@ export function ImageStage(props: ImageStageProps) {
     const selectedImage = () => props.images[props.selectedIndex] ?? props.images[0]
     const hasMany = () => props.images.length > 1
 
-    /* 只有手機 fit 需要圖片區寬度 */
-    let area: HTMLDivElement | undefined
-    const [areaWidth, setAreaWidth] = createSignal(0)
-    createEffect(on(() => props.fit !== undefined, enabled => {
-        if (!enabled || !area) return
-
-        const observer = new ResizeObserver(([entry]) => setAreaWidth(entry?.contentRect.width ?? 0))
-        observer.observe(area)
-        onCleanup(() => observer.disconnect())
-    }))
-
-    const aspect = () => {
-        const image = selectedImage()
-        return image ? image.width / image.height : undefined
-    }
-    const areaHeight = () => {
-        const ratio = aspect()
-        return ratio ? Math.min(fitHeight.max, Math.max(fitHeight.min, areaWidth() / ratio)) : fitHeight.empty
-    }
-    const fitBox = createMemo(() => {
-        const fit = props.fit
-        const ratio = aspect()
-        const width = areaWidth()
-        if (!fit || !ratio || width === 0) return undefined
-
-        const height = areaHeight()
-        /* 縮圖列在下方，先被蓋住 */
-        const visible = Math.min(height, Math.max(fit.peek, height + (hasMany() ? stripHeight : 0) - fit.covered))
-        const progress = (height - visible) / (height - fit.peek)
-        const contain = Math.min(width, height * ratio)
-        const cover = Math.max(width, fit.peek * ratio)
-        const imageWidth = contain + (cover - contain) * progress
-        const imageHeight = imageWidth / ratio
-
-        return {
-            left: `${(width - imageWidth) / 2}px`,
-            top: `${visible / 2 - imageHeight / 2}px`,
-            width: `${imageWidth}px`,
-            height: `${imageHeight}px`,
-        }
+    const mobileFit = createMobileFit({
+        fit: () => props.fit,
+        aspect: () => {
+            const image = selectedImage()
+            return image ? image.width / image.height : undefined
+        },
+        strip: hasMany,
     })
 
     const selectPrevious = () => {
@@ -105,11 +71,11 @@ export function ImageStage(props: ImageStageProps) {
                 selectedImage() ? 'bg-stage' : 'bg-stage-empty',
                 props.class,
             )}
-            style={props.fit ? { height: `${areaHeight() + (hasMany() ? stripHeight : 0)}px` } : undefined}
+            style={props.fit ? { height: `${mobileFit.stageHeight()}px` } : undefined}
             inert={props.loading}
         >
             <div
-                ref={element => { area = element }}
+                ref={mobileFit.setArea}
                 class='relative flex min-h-0 flex-1 items-center justify-center overflow-hidden'
                 onClick={event => {
                     const onImage = event.target instanceof HTMLImageElement
@@ -137,8 +103,8 @@ export function ImageStage(props: ImageStageProps) {
                 >
                     {image => (
                         <img
-                            class={fitBox() ? 'absolute max-w-none' : 'h-full w-full object-contain'}
-                            style={fitBox()}
+                            class={mobileFit.box() ? 'absolute max-w-none' : 'h-full w-full object-contain'}
+                            style={mobileFit.box()}
                             src={resolveImageUrl(image().url)}
                             alt={t('generate.previewAlt')}
                         />

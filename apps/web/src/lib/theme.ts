@@ -7,6 +7,7 @@ export const theme = {
     },
     selected: 'bg-selected text-fg hover:bg-selected',
     card: 'overflow-hidden rounded-lg border border-line-subtle',
+    mobilePill: 'fixed inset-x-0 bottom-[calc(12px+env(safe-area-inset-bottom))] z-30 mx-auto flex w-fit items-center gap-1 rounded-full border border-line bg-elevated p-1 shadow-popover',
     /*
      * Flag 分兩件事：縮圖左上的角摺是「狀態」，常駐且不可點；
      * 行右端的兩顆是「操作」，只在 hover 整張卡／整列時出現。

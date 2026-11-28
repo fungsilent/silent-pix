@@ -1,3 +1,5 @@
+import { Show } from 'solid-js'
+
 import { Line } from '#/components/base/Line'
 import { detailCopySlotClass, DetailCountReserve, detailIdClass, DetailPanel, DetailRow, DetailSection } from '#/components/detail'
 import { Number } from '#/components/field'
@@ -11,13 +13,19 @@ import type { PanelCollapse } from '#/components/base/Panel'
 type ReferenceImageDetailProps = {
     image?: ImageApi.ImageResource | undefined
     collapse: PanelCollapse
+    bare?: boolean | undefined
 }
 
 export function ReferenceImageDetail(props: ReferenceImageDetailProps) {
     return (
-        <DetailPanel collapse={props.collapse}>
-            {props.image && <ReferenceImageContent image={props.image} />}
-        </DetailPanel>
+        <Show
+            when={!props.bare}
+            fallback={props.image && <ReferenceImageContent image={props.image} />}
+        >
+            <DetailPanel collapse={props.collapse}>
+                {props.image && <ReferenceImageContent image={props.image} />}
+            </DetailPanel>
+        </Show>
     )
 }
 

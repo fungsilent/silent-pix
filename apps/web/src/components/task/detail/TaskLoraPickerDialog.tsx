@@ -7,7 +7,9 @@ import { Loading } from '#/components/base/Loading'
 import { SelectedCountChip } from '#/components/base/SelectedCountChip'
 import { StatusMessage } from '#/components/base/StatusMessage'
 import { Text } from '#/components/field/Text'
+import { MobileSelectedCount } from '#/components/mobile/MobileSelectedCount'
 import { t } from '#/lib/i18n'
+import { appStore } from '#/store/app'
 import { mergeClasses } from '#/utils/style'
 
 import type { SelectOption } from '#/components/field'
@@ -73,6 +75,27 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
                 body: 'flex min-h-0 flex-col overflow-hidden p-0',
                 footer: 'h-12 items-center py-0',
             }}
+            sheet
+            pill={(
+                <>
+                    <Show when={selected().length > 0}>
+                        <MobileSelectedCount
+                            count={selected().length}
+                            onClear={() => setSelected([])}
+                        />
+                        <span class='mx-1 h-5 w-px shrink-0 bg-line' />
+                    </Show>
+                    <Button
+                        type='button'
+                        variant='solid'
+                        tone='accent'
+                        classes={{ root: 'h-8 rounded-full px-5 text-[13px] font-semibold' }}
+                        onClick={() => props.onApply(selected())}
+                    >
+                        {t('common.apply')}
+                    </Button>
+                </>
+            )}
             /* 一律可按：取消全部勾選再 Apply 等於清空 LoRA */
             footer={(
                 <Button
@@ -103,7 +126,7 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
                         onInput={setKeyword}
                     />
                 </div>
-                <Show when={selected().length > 0}>
+                <Show when={!appStore.state.mobile && selected().length > 0}>
                     <SelectedCountChip
                         count={selected().length}
                         onClear={() => setSelected([])}
@@ -111,7 +134,7 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
                 </Show>
             </div>
 
-            <div class='scrollbar-thin min-h-0 flex-1 overflow-y-auto p-2'>
+            <div class={mergeClasses('scrollbar-thin min-h-0 flex-1 overflow-y-auto p-2', appStore.state.mobile && 'pb-[72px]')}>
                 <Loading.Swap
                     loading={() => props.open && props.loading}
                     fallback={(
@@ -162,6 +185,7 @@ export function TaskLoraPickerDialog(props: TaskLoraPickerDialogProps) {
                                                 classes={{
                                                     root: mergeClasses(
                                                         'h-8 w-full justify-start gap-2.5 rounded-md border-0 px-2 text-left text-xs',
+                                                        appStore.state.mobile && 'h-10',
                                                         checked()
                                                             ? 'bg-accent/15 text-fg hover:bg-accent/20'
                                                             : 'text-fg-secondary hover:bg-hover hover:text-fg',

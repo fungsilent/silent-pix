@@ -14,7 +14,7 @@ import type { TaskImageData, TaskImageReference } from '#/components/task/detail
 import type { TaskInfoData } from '#/components/task/detail/TaskInfo'
 import type { TaskLoraData } from '#/components/task/detail/TaskLora'
 
-export function CompareDetail() {
+export function CompareDetail(props: { bare?: boolean }) {
     const collapse = createStoredCollapse(storageKeys.compare.detailCollapsed)
     const compareSession = useCompareSession()
     const selected = createMemo(() => compareSession.selectedCompare())
@@ -110,6 +110,7 @@ export function CompareDetail() {
                         <ReferenceImageDetail
                             image={entry().image}
                             collapse={collapse}
+                            bare={props.bare}
                         />
                     )}
                 >
@@ -120,6 +121,7 @@ export function CompareDetail() {
                         loading={() => taskId() !== undefined && taskDetailQuery.isLoading}
                         onRetry={() => void taskDetailQuery.refetch()}
                         collapse={collapse}
+                        bare={props.bare}
                     />
                 </Show>
             )}
